@@ -1,0 +1,13 @@
+{
+  "name": "AgoraVAP!",
+  "short_name": "AgoraVAP",
+  "description": "Sistema de Gestão Comercial — Método VAP! Vendas de Alta Performance",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E53E3E",
+  "theme_color": "#E53E3E",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
