@@ -47,6 +47,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 .auth-toggle{text-align:center;margin-top:1rem;font-size:.85rem;color:var(--gray)}
 .auth-toggle span{color:#C53030;cursor:pointer;font-weight:600}
 .auth-err{background:var(--rl);color:var(--r);border-radius:var(--rsm);padding:9px 13px;font-size:.83rem;margin-bottom:.9rem;display:none}
+.auth-success{background:#D5F5E3;color:#1E8449;border-radius:var(--rsm);padding:9px 13px;font-size:.83rem;margin-bottom:.9rem;display:none}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:42px}
+.pw-eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray);font-size:16px;padding:0;line-height:1}
+.pw-eye:hover{color:var(--dark)}
+.pw-strength{height:4px;border-radius:2px;margin-top:5px;transition:width .3s,background .3s;width:0}
+.pw-hint{font-size:.7rem;color:var(--gray);margin-top:3px;line-height:1.4}
+.auth-divider{text-align:center;font-size:.75rem;color:var(--gray);margin:.75rem 0;position:relative}
+.auth-divider::before,.auth-divider::after{content:"";position:absolute;top:50%;width:40%;height:1px;background:var(--border)}
+.auth-divider::before{left:0}.auth-divider::after{right:0}
+.first-login-badge{background:#FFF9C4;border:1px solid #F9A825;border-radius:var(--rsm);padding:8px 12px;font-size:.8rem;color:#7B4F00;margin-bottom:.9rem;display:none}
+.inactivity-bar{position:fixed;bottom:0;left:0;right:0;background:#C53030;color:#fff;font-size:.78rem;text-align:center;padding:6px;z-index:9999;display:none}
 
 /* ── SHELL ── */
 #app{display:none;min-height:100vh}
@@ -283,25 +295,82 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   <div class="auth-card">
     <div class="auth-logo"><h1>AgoraVAP!</h1><p>Sistema de Gestão Comercial</p></div>
     <div class="auth-err" id="auth-err"></div>
+    <div class="auth-success" id="auth-success"></div>
+
+    <!-- ── TELA 1: LOGIN ── -->
     <div id="form-login">
-      <div class="auth-field"><label>E-mail</label><input type="email" id="li-email" placeholder="seu@email.com" autocomplete="email"/></div>
-      <div class="auth-field"><label>Senha</label><input type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password"/></div>
-      <button class="btn-auth" id="btn-login">Entrar</button>
-      <div class="auth-toggle">Não tem conta? <span id="go-reg">Criar conta</span></div>
-    </div>
-    <div id="form-reg" style="display:none">
-      <div class="auth-field"><label>Nome completo</label><input type="text" id="rg-name" placeholder="Seu nome"/></div>
-      <div class="auth-field"><label>E-mail</label><input type="email" id="rg-email" placeholder="seu@email.com" autocomplete="email"/></div>
-      <div class="auth-field"><label>Senha (mín. 6 caracteres)</label><input type="password" id="rg-pass" placeholder="••••••••" autocomplete="new-password"/></div>
-      <div class="auth-field"><label>Perfil</label>
-        <select id="rg-role">
-          <option value="vendedor">Vendedor</option>
-          <option value="lider">Líder (acessa todos)</option>
-        </select>
+      <div class="auth-field">
+        <label>E-mail</label>
+        <input type="email" id="li-email" placeholder="seu@email.com" autocomplete="off" autocorrect="off" spellcheck="false"/>
       </div>
-      <button class="btn-auth" id="btn-reg">Criar conta</button>
-      <div class="auth-toggle">Já tem conta? <span id="go-login">Entrar</span></div>
+      <div class="auth-field">
+        <label>Senha</label>
+        <div class="pw-wrap">
+          <input type="password" id="li-pass" placeholder="••••••••" autocomplete="off"/>
+          <button class="pw-eye" id="eye-login" type="button" title="Mostrar/ocultar senha">&#128065;</button>
+        </div>
+      </div>
+      <button class="btn-auth" id="btn-login">Entrar</button>
+      <div class="auth-divider">ou</div>
+      <div style="text-align:center;font-size:.82rem;color:rgba(0,0,0,0.6)">
+        Esqueceu a senha? <span id="go-forgot" style="color:#C53030;cursor:pointer;font-weight:700">Recuperar acesso</span>
+      </div>
     </div>
+
+    <!-- ── TELA 2: PRIMEIRO ACESSO (criar senha) ── -->
+    <div id="form-primeiro" style="display:none">
+      <div class="first-login-badge" id="badge-primeiro" style="display:block">
+        Bem-vindo(a)! Este é seu primeiro acesso.<br/>Crie uma senha para continuar.
+      </div>
+      <div class="auth-field">
+        <label>Nome completo <span style="color:var(--r)">*</span></label>
+        <input type="text" id="pr-nome" placeholder="Nome e Sobrenome" autocomplete="off"/>
+        <div class="pw-hint" id="hint-nome"></div>
+      </div>
+      <div class="auth-field">
+        <label>E-mail (confirmação)</label>
+        <input type="email" id="pr-email" placeholder="seu@email.com" readonly style="opacity:.65"/>
+      </div>
+      <div class="auth-field">
+        <label>Criar senha <span style="color:var(--r)">*</span></label>
+        <div class="pw-wrap">
+          <input type="password" id="pr-pass" placeholder="Mínimo 8 caracteres" autocomplete="new-password" oninput="checkPwStrength('pr-pass','pw-str1','hint-pw1')"/>
+          <button class="pw-eye" id="eye-pr1" type="button">&#128065;</button>
+        </div>
+        <div class="pw-strength" id="pw-str1"></div>
+        <div class="pw-hint" id="hint-pw1">Mín. 8 caracteres · 1 maiúscula · 1 número · 1 caractere especial (!@#$%)</div>
+      </div>
+      <div class="auth-field">
+        <label>Confirmar senha <span style="color:var(--r)">*</span></label>
+        <div class="pw-wrap">
+          <input type="password" id="pr-pass2" placeholder="Repita a senha" autocomplete="new-password"/>
+          <button class="pw-eye" id="eye-pr2" type="button">&#128065;</button>
+        </div>
+        <div class="pw-hint" id="hint-pw2"></div>
+      </div>
+      <button class="btn-auth" id="btn-primeiro">Criar senha e entrar</button>
+    </div>
+
+    <!-- ── TELA 3: RECUPERAR SENHA ── -->
+    <div id="form-forgot" style="display:none">
+      <div style="text-align:center;font-size:.85rem;color:rgba(0,0,0,0.65);margin-bottom:1rem;line-height:1.5">
+        Informe seu e-mail cadastrado. Você receberá um link para redefinir sua senha.
+      </div>
+      <div class="auth-field">
+        <label>E-mail</label>
+        <input type="email" id="fg-email" placeholder="seu@email.com" autocomplete="off"/>
+      </div>
+      <button class="btn-auth" id="btn-forgot">Enviar link de recuperação</button>
+      <div style="text-align:center;margin-top:.9rem;font-size:.82rem;color:rgba(0,0,0,0.6)">
+        <span id="go-back-login" style="color:#C53030;cursor:pointer;font-weight:700">&#8592; Voltar ao login</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Barra de inatividade -->
+  <div class="inactivity-bar" id="inactivity-bar">
+    Sessão encerrada por inatividade. Faça login novamente.
   </div>
 
   <div class="auth-spacer"></div>
@@ -424,10 +493,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <div class="field"><label>E-mail</label><input type="email" id="adm-email" placeholder="email@empresa.com"/></div>
           </div>
           <div class="fgrid fg2">
-            <div class="field"><label>Senha inicial</label><input type="password" id="adm-senha" placeholder="Mín. 6 caracteres"/></div>
             <div class="field"><label>Perfil</label>
               <select id="adm-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option></select>
             </div>
+            <div class="field"><label>Meta mensal (R$)</label><input type="number" id="adm-meta-ini" placeholder="0,00" min="0"/></div>
+          </div>
+          <div style="background:#FFF9C4;border:1px solid #F9A825;border-radius:6px;padding:8px 12px;font-size:.78rem;color:#7B4F00;margin-bottom:.5rem">
+            A senha será criada pelo próprio usuário no primeiro acesso. Um e-mail temporário será gerado automaticamente.
           </div>
           <input type="hidden" id="adm-uid"/>
           <div class="ffooter">
@@ -436,7 +508,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           </div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Usuários cadastrados</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <div class="chart-title" style="margin:0">Usuários cadastrados</div>
+            <button class="btn-danger" onclick="resetAllLogins()" style="font-size:.75rem;padding:6px 12px">Redefinir todos os acessos</button>
+          </div>
           <div id="users-table"><div class="loading"><div class="spin"></div></div></div>
         </div>
       </div>
@@ -504,6 +579,48 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="divider"></div>
 
         <div class="help-section">
+          <h2>Módulo Acesso</h2>
+
+          <h3>Como funciona o cadastro de usuários</h3>
+          <p>Somente o <b>Líder</b> cadastra os usuários pelo módulo Administrativo. O vendedor não cria conta por conta própria — ele recebe o acesso do Líder e cria sua senha no primeiro login.</p>
+
+          <h3>Primeiro acesso do vendedor</h3>
+          <p>Quando o Líder cadastra um vendedor, uma senha temporária é gerada automaticamente pelo sistema. No primeiro acesso, o vendedor verá a tela <b>"Primeiro Acesso"</b> onde deverá:</p>
+          <ul>
+            <li>Informar o <b>nome completo</b> (nome e sobrenome — mínimo 2 caracteres cada)</li>
+            <li>Criar sua própria <b>senha pessoal</b> atendendo aos critérios abaixo</li>
+            <li>Confirmar a senha digitando-a novamente</li>
+          </ul>
+
+          <h3>Critérios obrigatórios para a senha</h3>
+          <ul>
+            <li>Mínimo de <b>8 caracteres</b></li>
+            <li>Pelo menos <b>1 letra maiúscula</b> (ex: A, B, C…)</li>
+            <li>Pelo menos <b>1 número</b> (ex: 1, 2, 3…)</li>
+            <li>Pelo menos <b>1 caractere especial</b> (ex: ! @ # $ %)</li>
+          </ul>
+          <div class="help-tip">A barra colorida abaixo do campo de senha indica a força da senha: vermelha = fraca · laranja = boa · verde = forte.</div>
+
+          <h3>Mostrar ou ocultar a senha</h3>
+          <p>Clique no ícone de olho 👁 ao lado do campo de senha para alternar entre mostrar e ocultar os caracteres digitados.</p>
+
+          <h3>Senha incorreta — como recuperar o acesso</h3>
+          <p>Na tela de login, clique em <b>"Recuperar acesso"</b>. Digite seu e-mail cadastrado e clique em <b>"Enviar link de recuperação"</b>. Você receberá um e-mail com o seguinte aviso:</p>
+          <div class="help-tip"><i>"AVISO: Seu aplicativo AgoraVAP! está solicitando a alteração de sua senha!"</i><br/>Clique no link do e-mail para criar uma nova senha.</div>
+
+          <h3>Logout automático por inatividade</h3>
+          <p>Após <b>2 minutos sem atividade</b> (sem clicar, digitar ou navegar), o sistema encerra a sessão automaticamente e retorna à tela de login com os campos limpos. Isso protege seus dados caso você esqueça o aplicativo aberto.</p>
+
+          <h3>Campos sempre limpos ao acessar</h3>
+          <p>Sempre que você abrir ou recarregar o aplicativo, os campos de e-mail e senha estarão em branco. O sistema não memoriza senha nem mantém sessão aberta após fechar o navegador.</p>
+
+          <h3>Redefinir todos os acessos (somente Líder)</h3>
+          <p>No módulo Administrativo, o Líder pode clicar em <b>"Redefinir todos os acessos"</b> para forçar que todos os vendedores criem uma nova senha no próximo login. Útil em casos de troca de equipe ou suspeita de acesso indevido.</p>
+          <div class="help-tip">Apenas o Líder tem acesso ao módulo Administrativo e pode gerenciar usuários, senhas e metas.</div>
+        </div>
+        <div class="divider"></div>
+
+        <div class="help-section">
           <h2>Módulo Lançar</h2>
           <h3>Contatos por Origem</h3>
           <p>Registre diariamente quantos contatos você fez em cada origem:</p>
@@ -543,13 +660,24 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="divider"></div>
 
         <div class="help-section">
-          <h2>Módulo Administrativo</h2>
-          <h3>Vendedores</h3>
-          <p>Cadastre novos usuários informando nome, e-mail, senha inicial e perfil (Vendedor ou Líder).</p>
-          <h3>Metas Mensais</h3>
-          <p>Defina a meta de vendas de cada vendedor por mês. Esses valores alimentam as barras de progresso no Dashboard e no Ranking.</p>
-          <h3>Exportar Excel</h3>
-          <p>Gera um arquivo CSV com todos os registros do período selecionado, pronto para abrir no Excel ou Google Sheets.</p>
+          <h2>Módulo Acesso</h2>
+          <h3>Como funciona o cadastro</h3>
+          <p>Somente o Líder cadastra os usuários pelo módulo Administrativo. O vendedor não cria conta por conta própria.</p>
+          <h3>Primeiro acesso do vendedor</h3>
+          <p>Quando o Líder cadastra um vendedor, é gerada uma senha temporária automática. No primeiro acesso, o vendedor verá a tela "Primeiro Acesso" onde deverá informar nome completo (nome e sobrenome) e criar sua própria senha.</p>
+          <h3>Critérios da senha</h3>
+          <ul>
+            <li>Mínimo de <b>8 caracteres</b></li>
+            <li>Pelo menos <b>1 letra maiúscula</b></li>
+            <li>Pelo menos <b>1 número</b></li>
+            <li>Pelo menos <b>1 caractere especial</b> (!@#$%)</li>
+          </ul>
+          <h3>Recuperar senha esquecida</h3>
+          <p>Na tela de login, clique em "Recuperar acesso". Um e-mail será enviado com o aviso: <i>"AVISO: Seu aplicativo AgoraVAP! está solicitando a alteração de sua senha!"</i> e um link para criar uma nova senha.</p>
+          <h3>Logout automático por inatividade</h3>
+          <p>Após 2 minutos sem atividade, o sistema encerra a sessão automaticamente e retorna à tela de login com os campos limpos.</p>
+          <h3>Redefinir todos os acessos</h3>
+          <p>O Líder pode clicar em "Redefinir todos os acessos" no módulo Administrativo para forçar que todos os vendedores criem uma nova senha no próximo login.</p>
           <div class="help-tip">Apenas Líderes têm acesso ao módulo Administrativo.</div>
         </div>
         <div class="divider"></div>
@@ -625,13 +753,12 @@ import { getFirestore, collection, addDoc, updateDoc, deleteDoc,
 // ⚠️  COLE AQUI AS CREDENCIAIS DO SEU FIREBASE
 // ════════════════════════════════════════════════════════
 const firebaseConfig = {
-  apiKey:            "AIzaSyAoZkp4qQAz8dJdYlsBaJdNN3lfbowJdbM",
-  authDomain:        "agoravap-b978d.firebaseapp.com",
-  projectId:         "agoravap-b978d",
-  storageBucket:     "agoravap-b978d.firebasestorage.app",
-  messagingSenderId: "42644052540",
-  appId:             "1:42644052540:web:af56d96110a6a7bc78c139",
-  measurementId:     "G-XFQT9M8LY4"
+  apiKey:            "SUA_API_KEY",
+  authDomain:        "SEU_PROJETO.firebaseapp.com",
+  projectId:         "SEU_PROJETO",
+  storageBucket:     "SEU_PROJETO.appspot.com",
+  messagingSenderId: "SEU_SENDER_ID",
+  appId:             "SEU_APP_ID"
 };
 // ════════════════════════════════════════════════════════
 
@@ -673,77 +800,247 @@ function confirm2(msg, cb){
 $('confirm-yes').onclick = () => { closeModal('modal-confirm'); if(_confirmCb) _confirmCb(); };
 $('confirm-no').onclick  = () => closeModal('modal-confirm');
 
-// ── Auth ─────────────────────────────────────────────────
-$('go-reg').onclick   = () => { $('form-login').style.display='none'; $('form-reg').style.display='block'; };
-$('go-login').onclick = () => { $('form-reg').style.display='none'; $('form-login').style.display='block'; };
+// ── Import sendPasswordResetEmail ────────────────────────
+// (already imported via firebase-auth above — added below)
 
-window._vap_doLogin = async () => {};
-window._vap_doReg   = async () => {};
+// ── Auth helpers ─────────────────────────────────────────
+function showErr(m){ const e=$('auth-err'); e.style.display='block'; e.textContent=m; $('auth-success').style.display='none'; setTimeout(()=>e.style.display='none',6000); }
+function showOk(m){  const e=$('auth-success'); e.style.display='block'; e.textContent=m; $('auth-err').style.display='none'; }
 
-$('btn-login').onclick = async () => {
-  const e=$('li-email').value.trim(), p=$('li-pass').value;
-  if(!e||!p){ showErr('Preencha e-mail e senha.'); return; }
-  try{ await signInWithEmailAndPassword(auth,e,p); }
-  catch(err){ showErr(err.code==='auth/invalid-credential'?'E-mail ou senha incorretos.':'Erro ao entrar. Tente novamente.'); }
-};
+function clearLoginFields(){
+  ['li-email','li-pass'].forEach(id=>{ if($(id)) $(id).value=''; });
+  ['fg-email','pr-pass','pr-pass2','pr-nome'].forEach(id=>{ if($(id)) $(id).value=''; });
+  $('auth-err').style.display='none';
+  $('auth-success').style.display='none';
+}
 
-$('btn-reg').onclick = async () => {
-  const n=$('rg-name').value.trim(), e=$('rg-email').value.trim(),
-        p=$('rg-pass').value, r=$('rg-role').value;
-  if(!n||!e||!p){ showErr('Preencha todos os campos.'); return; }
-  if(p.length<6){ showErr('Senha deve ter mínimo 6 caracteres.'); return; }
-  try{
-    const c = await createUserWithEmailAndPassword(auth,e,p);
-    await setDoc(doc(db,'users',c.user.uid),{
-      name:n, email:e, role:r, meta:0, createdAt:new Date().toISOString()
-    });
-    toast('Conta criada! Bem-vindo(a)!');
-  } catch(err){
-    showErr(err.code==='auth/email-already-in-use'?'E-mail já cadastrado.':'Erro ao criar conta.');
+function showForm(name){
+  ['form-login','form-primeiro','form-forgot'].forEach(id=>{
+    const el=$(id); if(el) el.style.display = id===name?'block':'none';
+  });
+  clearLoginFields();
+}
+
+// ── Força limpeza ao carregar/recarregar página ───────────
+window.addEventListener('load', ()=> clearLoginFields());
+window.addEventListener('pageshow', ()=> clearLoginFields());
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible' && !cu) clearLoginFields();
+});
+
+// ── Mostrar/ocultar senha ─────────────────────────────────
+function togglePw(inputId, btnId){
+  const inp=$(inputId), btn=$(btnId); if(!inp||!btn) return;
+  const show = inp.type==='password';
+  inp.type = show?'text':'password';
+  btn.innerHTML = show?'&#128064;':'&#128065;';
+}
+$('eye-login') && ($('eye-login').onclick = ()=>togglePw('li-pass','eye-login'));
+$('eye-pr1')   && ($('eye-pr1').onclick   = ()=>togglePw('pr-pass','eye-pr1'));
+$('eye-pr2')   && ($('eye-pr2').onclick   = ()=>togglePw('pr-pass2','eye-pr2'));
+
+// ── Força da senha ────────────────────────────────────────
+window.checkPwStrength = (inputId, barId, hintId)=>{
+  const v=$(inputId)?.value||'';
+  const bar=$(barId), hint=$(hintId);
+  if(!bar) return;
+  const has = {
+    len:   v.length>=8,
+    upper: /[A-Z]/.test(v),
+    num:   /[0-9]/.test(v),
+    spec:  /[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(v),
+  };
+  const score = Object.values(has).filter(Boolean).length;
+  const colors=['#E53E3E','#E53E3E','#F6AD55','#68D391','#38A169'];
+  const labels=['','Muito fraca','Fraca','Boa','Forte'];
+  bar.style.width = (score*25)+'%';
+  bar.style.background = colors[score];
+  if(hint){
+    const missing=[];
+    if(!has.len)   missing.push('8 caracteres');
+    if(!has.upper) missing.push('1 maiúscula');
+    if(!has.num)   missing.push('1 número');
+    if(!has.spec)  missing.push('1 especial (!@#$%)');
+    hint.textContent = missing.length===0
+      ? '✓ Senha '+labels[score]
+      : 'Falta: '+missing.join(' · ');
+    hint.style.color = score===4?'#1E8449':'#666';
   }
 };
 
+function validatePw(v){
+  return v.length>=8 && /[A-Z]/.test(v) && /[0-9]/.test(v) && /[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(v);
+}
+function validateNome(v){
+  const parts = v.trim().split(/\s+/);
+  return parts.length>=2 && parts.every(p=>p.length>=2);
+}
+
+// ── LOGIN ─────────────────────────────────────────────────
+$('btn-login').onclick = async () => {
+  const e=$('li-email').value.trim(), p=$('li-pass').value;
+  if(!e||!p){ showErr('Preencha e-mail e senha.'); return; }
+  $('btn-login').textContent='Entrando…'; $('btn-login').disabled=true;
+  try{
+    await signInWithEmailAndPassword(auth,e,p);
+  } catch(err){
+    const msg = err.code==='auth/invalid-credential'||err.code==='auth/wrong-password'||err.code==='auth/user-not-found'
+      ? 'E-mail ou senha incorretos.' : 'Erro ao entrar. Tente novamente.';
+    showErr(msg);
+  } finally {
+    $('btn-login').textContent='Entrar'; $('btn-login').disabled=false;
+  }
+};
+
+// ── PRIMEIRO ACESSO ───────────────────────────────────────
+let _primeiroUid=null, _primeiroEmail=null;
+
+$('btn-primeiro').onclick = async ()=>{
+  const nome  = $('pr-nome').value.trim();
+  const pass  = $('pr-pass').value;
+  const pass2 = $('pr-pass2').value;
+
+  $('hint-nome').textContent='';
+  if(!validateNome(nome)){
+    $('hint-nome').textContent='⚠ Informe nome e sobrenome (mínimo 2 caracteres cada).';
+    $('hint-nome').style.color='#C53030'; return;
+  }
+  if(!validatePw(pass)){
+    showErr('Senha não atende aos critérios mínimos de segurança.'); return;
+  }
+  if(pass!==pass2){
+    $('hint-pw2').textContent='⚠ As senhas não coincidem.';
+    $('hint-pw2').style.color='#C53030'; return;
+  }
+  $('btn-primeiro').textContent='Salvando…'; $('btn-primeiro').disabled=true;
+  try{
+    const { getAuth: gA, updatePassword } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    await updatePassword(auth.currentUser, pass);
+    await updateDoc(doc(db,'users',_primeiroUid),{
+      name: nome,
+      firstLogin: false,
+      updatedAt: new Date().toISOString()
+    });
+    toast('Senha criada com sucesso! Bem-vindo(a), '+nome.split(' ')[0]+'!');
+    clearLoginFields();
+  } catch(err){
+    showErr('Erro ao criar senha. Tente novamente.');
+  } finally {
+    $('btn-primeiro').textContent='Criar senha e entrar'; $('btn-primeiro').disabled=false;
+  }
+};
+
+// ── RECUPERAR SENHA ───────────────────────────────────────
+$('go-forgot').onclick      = ()=> showForm('form-forgot');
+$('go-back-login').onclick  = ()=> showForm('form-login');
+
+$('btn-forgot').onclick = async ()=>{
+  const e=$('fg-email').value.trim();
+  if(!e){ showErr('Informe seu e-mail.'); return; }
+  $('btn-forgot').textContent='Enviando…'; $('btn-forgot').disabled=true;
+  try{
+    const { sendPasswordResetEmail } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    await sendPasswordResetEmail(auth, e, {
+      url: window.location.href,
+    });
+    showOk('Link enviado para '+e+'. Verifique sua caixa de entrada e spam.');
+    setTimeout(()=>showForm('form-login'), 4000);
+  } catch(err){
+    showErr(err.code==='auth/user-not-found'?'E-mail não encontrado.':'Erro ao enviar. Verifique o e-mail digitado.');
+  } finally {
+    $('btn-forgot').textContent='Enviar link de recuperação'; $('btn-forgot').disabled=false;
+  }
+};
+
+// ── LOGOUT ────────────────────────────────────────────────
 $('btn-logout').onclick = async () => {
+  clearInactivityTimer();
   [unRecs,unUsers,unMetas].forEach(u=>u&&u());
   await signOut(auth);
+  clearLoginFields();
 };
+
+// ── INATIVIDADE (2 minutos) ───────────────────────────────
+const INACTIVITY_MS = 2 * 60 * 1000;
+let _inactTimer = null;
+
+function resetInactivityTimer(){
+  if(!cu) return;
+  clearTimeout(_inactTimer);
+  _inactTimer = setTimeout(async ()=>{
+    $('inactivity-bar').style.display='block';
+    setTimeout(()=>$('inactivity-bar').style.display='none', 5000);
+    [unRecs,unUsers,unMetas].forEach(u=>u&&u());
+    await signOut(auth);
+    clearLoginFields();
+    showForm('form-login');
+  }, INACTIVITY_MS);
+}
+function clearInactivityTimer(){ clearTimeout(_inactTimer); }
+['click','keydown','mousemove','touchstart','scroll'].forEach(ev=>{
+  document.addEventListener(ev, ()=>{ if(cu) resetInactivityTimer(); }, {passive:true});
+});
 
 // ── Auth state ────────────────────────────────────────────
 onAuthStateChanged(auth, async user => {
   if(user){
     cu = user;
     const snap = await getDoc(doc(db,'users',user.uid));
-    cp = snap.exists() ? snap.data() : { name:user.email, role:'vendedor', meta:0 };
 
-    $('auth-screen').style.display = 'none';
-    $('app').style.display = 'block';
-    $('top-user').textContent = cp.name;
-
-    const isLider = cp.role === 'lider';
-    $('role-badge').textContent = isLider ? 'Líder' : 'Vendedor';
-    if(isLider) $('role-badge').classList.add('role-lider');
-
-    // Show/hide leader-only elements
-    $('ff-vendedor').style.display  = isLider ? 'flex' : 'none';
-    $('btn-limpar').style.display   = isLider ? 'block' : 'none';
-    $('exp-vend-wrap').style.display= isLider ? 'block' : 'none';
-    // Hide admin tab for vendors
-    if(!isLider){
-      document.querySelector('[data-tab="admin"]').style.display='none';
+    // Check if user exists in Firestore (pre-registered by leader)
+    if(!snap.exists()){
+      // Unknown user — sign out immediately
+      await signOut(auth);
+      showErr('Usuário não encontrado. Solicite ao Líder que faça seu cadastro.');
+      return;
     }
 
-    // Set defaults
+    cp = snap.data();
+
+    // First login flow — user needs to set name + password
+    if(cp.firstLogin){
+      _primeiroUid   = user.uid;
+      _primeiroEmail = cp.email || user.email;
+      $('pr-email').value = _primeiroEmail;
+      $('auth-screen').style.display='flex';
+      $('app').style.display='none';
+      showForm('form-primeiro');
+      return;
+    }
+
+    // Normal login — go to app
+    $('auth-screen').style.display='none';
+    $('app').style.display='block';
+    clearLoginFields();
+
+    $('top-user').textContent = cp.name;
+    const isLider = cp.role==='lider';
+    $('role-badge').textContent = isLider?'Líder':'Vendedor';
+    if(isLider) $('role-badge').classList.add('role-lider');
+    else $('role-badge').classList.remove('role-lider');
+
+    $('ff-vendedor').style.display   = isLider?'flex':'none';
+    $('btn-limpar').style.display    = isLider?'block':'none';
+    $('exp-vend-wrap').style.display = isLider?'block':'none';
+    if(!isLider){
+      const admTab = document.querySelector('[data-tab="admin"]');
+      if(admTab) admTab.style.display='none';
+    }
+
     $('hist-data').value = tod();
     $('meta-mes').value  = thisMes();
     initExpDates();
-
     startListeners();
+    resetInactivityTimer();
 
   } else {
-    cu=null; cp=null;
+    cu=null; cp=null; _primeiroUid=null;
+    clearInactivityTimer();
     $('auth-screen').style.display='flex';
     $('app').style.display='none';
     $('role-badge').classList.remove('role-lider');
+    showForm('form-login');
+    clearLoginFields();
   }
 });
 
@@ -1111,25 +1408,30 @@ function renderDashboard(){
 // ── Admin: Users ──────────────────────────────────────────
 $('btn-adm-save').onclick = async () => {
   const n=$('adm-nome').value.trim(), e=$('adm-email').value.trim(),
-        s=$('adm-senha').value, r=$('adm-perfil').value,
-        uid=$('adm-uid').value;
+        r=$('adm-perfil').value, uid=$('adm-uid').value,
+        metaIni=parseFloat($('adm-meta-ini')?.value)||0;
   if(!n||!e){ toast('Informe nome e e-mail.'); return; }
+  if(!validateNome(n)){ toast('Nome deve ter nome e sobrenome (mín. 2 caracteres cada).'); return; }
 
   if(uid){
-    // Edit existing
     await updateDoc(doc(db,'users',uid),{name:n,role:r,updatedAt:new Date().toISOString()});
     toast('Usuário atualizado!');
     resetAdmForm();
   } else {
-    // Create new
-    if(!s||s.length<6){ toast('Informe uma senha com mínimo 6 caracteres.'); return; }
+    // Pre-register: create Firebase Auth with temp password, mark firstLogin=true
+    const tempPass = 'Vap@'+Math.random().toString(36).slice(2,8).toUpperCase()+'1!';
     try{
-      const c=await createUserWithEmailAndPassword(auth,e,s);
-      await setDoc(doc(db,'users',c.user.uid),{name:n,email:e,role:r,meta:0,createdAt:new Date().toISOString()});
-      toast('Usuário cadastrado!');
+      const c = await createUserWithEmailAndPassword(auth, e, tempPass);
+      await setDoc(doc(db,'users',c.user.uid),{
+        name:n, email:e, role:r, meta:metaIni,
+        firstLogin:true,
+        tempPass:tempPass,
+        createdAt:new Date().toISOString()
+      });
+      toast('Usuário pré-cadastrado! No primeiro acesso ele criará a própria senha.');
       resetAdmForm();
     } catch(err){
-      toast(err.code==='auth/email-already-in-use'?'E-mail já cadastrado.':'Erro ao criar usuário.');
+      toast(err.code==='auth/email-already-in-use'?'E-mail já cadastrado.':'Erro ao criar usuário: '+err.message);
     }
   }
 };
@@ -1175,8 +1477,24 @@ function editUser(uid){
 
 async function delUser(uid){
   confirm2('Remover este usuário? Os registros dele serão mantidos.', async ()=>{
+    // Delete from Firebase Auth via Admin SDK not available client-side
+    // We mark as deleted in Firestore; full cleanup needs Firebase Admin
     await deleteDoc(doc(db,'users',uid));
-    toast('Usuário removido.');
+    toast('Usuário removido do sistema.');
+  });
+}
+
+async function resetAllLogins(){
+  confirm2('ATENÇÃO: Isso irá redefinir TODOS os usuários para "Primeiro Acesso". Eles precisarão criar nova senha no próximo login. Deseja continuar?', async ()=>{
+    const snap = await getDocs(collection(db,'users'));
+    const batch = writeBatch(db);
+    snap.docs.forEach(d=>{
+      if(d.id !== cu.uid){ // keep leader logged in
+        batch.update(d.ref, { firstLogin:true, updatedAt:new Date().toISOString() });
+      }
+    });
+    await batch.commit();
+    toast('Todos os usuários foram redefinidos para primeiro acesso.');
   });
 }
 
