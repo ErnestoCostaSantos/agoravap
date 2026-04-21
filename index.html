@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
@@ -838,7 +838,7 @@ document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState==='visible' && !cu) forceClear();
 });
 // Refresh / navegação
-window.addEventListener('beforeunload', ()=> { if(auth.currentUser) signOut(auth); });
+// Note: beforeunload removed — browserSessionPersistence handles session expiry on tab close
 
 // ── Mostrar/ocultar senha ─────────────────────────────────
 function togglePw(inputId, btnId){
@@ -894,13 +894,20 @@ $('btn-login').onclick = async () => {
   if(!e||!p){ showErr('Preencha e-mail e senha.'); return; }
   $('btn-login').textContent='Entrando…'; $('btn-login').disabled=true;
   try{
-    await signInWithEmailAndPassword(auth,e,p);
+    await signInWithEmailAndPassword(auth, e, p);
+    // onAuthStateChanged will handle redirect to app
   } catch(err){
     console.error('Login error:', err.code, err.message);
-    showErr('Erro: ' + (err.code || err.message));
-  } finally {
-    $('btn-login').textContent='Entrar'; $('btn-login').disabled=false;
+    const credErrors=['auth/invalid-credential','auth/wrong-password',
+      'auth/user-not-found','auth/invalid-email','auth/user-disabled'];
+    showErr(credErrors.includes(err.code)
+      ? 'E-mail ou senha incorretos. Verifique e tente novamente.'
+      : 'Erro: '+(err.code||err.message));
+    $('btn-login').textContent='Entrar';
+    $('btn-login').disabled=false;
   }
+  // Note: do NOT re-enable button in finally — onAuthStateChanged will redirect
+  // and re-enabling after success causes flicker
 };
 
 // ── PRIMEIRO ACESSO ───────────────────────────────────────
