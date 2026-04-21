@@ -497,8 +497,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
     <!-- ════ ADMINISTRATIVO ═══════════════════════════════════ -->
     <div class="panel" id="panel-admin">
+      <!-- Banner download mês anterior — aparece no dia 1 de cada mês -->
+      <div id="banner-mes-anterior" style="display:none;background:#E8F5E9;border:1px solid #2E7D32;border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-weight:700;color:#1B5E20;font-size:.9rem">Novo mês iniciado!</div>
+          <div style="font-size:.8rem;color:#2E7D32;margin-top:2px">Deseja fazer o download dos dados do mês anterior?</div>
+        </div>
+        <button class="btn-save" id="btn-download-mes" style="background:#2E7D32;white-space:nowrap">Baixar histórico do mês anterior</button>
+      </div>
       <div class="nav" style="margin-bottom:1rem;border-radius:var(--radius);overflow:hidden">
-        <div class="nav-tab active" data-adm="vendedores">Vendedores</div>
+        <div class="nav-tab active" data-adm="vendedores">Profissionais</div>
         <div class="nav-tab" data-adm="metas">Metas Mensais</div>
         <div class="nav-tab" data-adm="exportar">Exportar Excel</div>
       </div>
@@ -506,7 +514,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       <!-- Vendedores -->
       <div id="adm-vendedores">
         <div class="fcard">
-          <div class="fcard-title"><span class="bar" style="background:#E53E3E"></span>Cadastrar / Editar Usuário</div>
+          <div class="fcard-title"><span class="bar" style="background:#E53E3E"></span>Cadastrar / Editar Profissional</div>
           <div class="fgrid fg2">
             <div class="field"><label>Nome</label><input type="text" id="adm-nome" placeholder="Nome completo"/></div>
             <div class="field"><label>E-mail</label><input type="email" id="adm-email" placeholder="email@empresa.com"/></div>
@@ -523,12 +531,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <input type="hidden" id="adm-uid"/>
           <div class="ffooter">
             <button class="btn-sec" id="btn-adm-cancel" style="display:none">Cancelar</button>
-            <button class="btn-save" id="btn-adm-save">Cadastrar Usuário</button>
+            <button class="btn-save" id="btn-adm-save">Cadastrar Profissional</button>
           </div>
         </div>
         <div class="chart-card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-            <div class="chart-title" style="margin:0">Usuários cadastrados</div>
+            <div class="chart-title" style="margin:0">Profissionais cadastrados</div>
             <button class="btn-danger" onclick="resetAllLogins()" style="font-size:.75rem;padding:6px 12px">Redefinir todos os acessos</button>
           </div>
           <div id="users-table"><div class="loading"><div class="spin"></div></div></div>
@@ -540,7 +548,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="fcard">
           <div class="fcard-title"><span class="bar" style="background:var(--g)"></span>Definir Meta Mensal</div>
           <div class="fgrid fg3">
-            <div class="field"><label>Vendedor</label>
+            <div class="field"><label>Profissional</label>
               <select id="meta-uid"><option value="">Selecione…</option></select>
             </div>
             <div class="field"><label>Mês / Ano</label><input type="month" id="meta-mes"/></div>
@@ -570,7 +578,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             </div>
           </div>
           <div class="field" id="exp-vend-wrap" style="display:none;margin-bottom:.75rem">
-            <label>Vendedor</label>
+            <label>Profissional</label>
             <select id="exp-vendedor"><option value="">Todos</option></select>
           </div>
           <div class="ffooter"><button class="btn-save" id="btn-exportar">Exportar CSV (Excel)</button></div>
@@ -641,26 +649,39 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
         <div class="help-section">
           <h2>Módulo Lançar</h2>
-          <h3>Contatos por Origem</h3>
+
+          <h3>Data do lançamento</h3>
+          <p>No topo do módulo há um seletor de data. Por padrão vem com a data de hoje. Para lançar ou editar dados de um dia anterior, selecione a data desejada antes de preencher os campos. Se já houver lançamento naquela data, o sistema atualiza o registro existente em vez de criar um novo.</p>
+
+          <h3>Contatos Efetivos do Dia</h3>
           <p>Registre diariamente quantos contatos você fez em cada origem:</p>
           <ul>
-            <li><b>Interno na Carteira</b> — clientes que você já atende regularmente</li>
-            <li><b>Novo Receptivo</b> — clientes que entraram em contato por iniciativa deles</li>
-            <li><b>Visita Clientes Ativos</b> — visitas presenciais a clientes comprando</li>
-            <li><b>Visita Clientes Inativos</b> — visitas a clientes que pararam de comprar</li>
-            <li><b>Prospecção</b> — abordagem de novos clientes potenciais</li>
-            <li><b>Outras</b> — qualquer outra origem não listada</li>
+            <li><b>Internos na Carteira</b> — clientes da sua carteira que você já atende regularmente</li>
+            <li><b>Internos de Prospecção</b> — contatos internos com foco em prospectar novos negócios</li>
+            <li><b>Visitas a Ativos</b> — visitas presenciais a clientes que estão comprando</li>
+            <li><b>Visitas a Inativos</b> — visitas a clientes que pararam de comprar</li>
+            <li><b>Prospecções Externas</b> — abordagem externa de novos clientes potenciais</li>
+            <li><b>Outras Externas</b> — outros contatos externos não listados acima</li>
+            <li><b>Contatos Inválidos</b> — tentativas que não resultaram em contato efetivo</li>
           </ul>
-          <div class="help-tip">Dica: lance os contatos ao fim do expediente, somando tudo que fez no dia.</div>
+          <div class="help-tip">Lance os contatos ao fim do expediente, somando tudo que fez no dia.</div>
 
-          <h3>Cotações e Pedidos</h3>
+          <h3>Cotações e Pedidos do Dia</h3>
           <ul>
-            <li><b>Qtd. de Cotações</b> — total de cotações enviadas no dia (ativas + receptivas)</li>
+            <li><b>Qtd. de Cotações (Ativo + Receptivo)</b> — total de cotações enviadas no dia</li>
             <li><b>Valor Total das Cotações</b> — soma dos valores de todas as cotações do dia</li>
             <li><b>Qtd. de Pedidos Fechados</b> — pedidos confirmados no dia</li>
-            <li><b>Valor dos Pedidos Fechados</b> — receita confirmada no dia</li>
-            <li><b>Perdas por Preço / Estoque / Outras</b> — cotações que você já sabe que perdeu, separadas por motivo</li>
+            <li><b>Valor Total dos Pedidos Fechados</b> — receita confirmada no dia</li>
           </ul>
+
+          <h3>Cotações Perdidas do Dia</h3>
+          <ul>
+            <li><b>Perdas por Preço / Estoque / Outras Causas</b> — valores das cotações perdidas por motivo</li>
+            <li><b>Valor Total de Cotações Perdidas</b> — calculado automaticamente ao preencher os campos acima</li>
+          </ul>
+
+          <h3>Formato dos valores</h3>
+          <p>Os campos de valor usam o formato <b>1000,00</b> — sem ponto separador de milhar, sem "R$", com vírgula decimal. O valor é formatado automaticamente ao sair do campo.</p>
         </div>
         <div class="divider"></div>
 
@@ -673,8 +694,38 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
         <div class="help-section">
           <h2>Módulo Dashboard</h2>
-          <p>Exibe os KPIs consolidados do mês atual: total de vendas, taxa de conversão, ticket médio e contatos por origem. Os gráficos mostram a evolução das vendas, motivos de perda e canais de contato.</p>
-          <p style="margin-top:.5rem">Líderes visualizam o ranking completo da equipe com barra de progresso em relação à meta de cada vendedor.</p>
+          <p>Exibe os KPIs consolidados do mês atual em quatro cards: total de vendas (quantidade e valor), <b>Pedidos/Cotações</b> (percentual de pedidos fechados sobre o total cotado), ticket médio e total perdido.</p>
+          <p style="margin-top:.5rem">Líderes visualizam também o ranking completo da equipe com barra de progresso em relação à meta de cada profissional.</p>
+
+          <h3>Gráfico Vendas vs. Cotações</h3>
+          <p>Barras diárias comparando pedidos e cotações ao longo do mês. Se o profissional tiver meta cadastrada para o mês, aparece uma <b>linha tracejada vermelha</b> indicando a meta diária proporcional. Sem meta, a linha não aparece.</p>
+
+          <h3>Gráfico Motivos de Perda</h3>
+          <p>Rosca com três fatias em cores contrastantes — vermelho (Preço), azul (Estoque) e verde (Outras) — mostrando a proporção de cada motivo de perda no mês.</p>
+
+          <h3>Gráfico Contatos por Origem</h3>
+          <p>Barras horizontais com uma cor distinta para cada origem de contato, facilitando a comparação visual entre os canais.</p>
+        </div>
+        <div class="divider"></div>
+
+        <div class="help-section">
+          <h2>Módulo Administrativo</h2>
+
+          <h3>Profissionais</h3>
+          <p>Cadastre novos profissionais informando nome completo (nome e sobrenome), e-mail e perfil (Profissional ou Líder). A senha temporária é gerada automaticamente e exibida na tela para você repassar. No primeiro acesso ele cria a própria senha.</p>
+
+          <h3>Download do histórico do mês anterior</h3>
+          <p>No primeiro dia de cada mês, ao abrir o módulo Administrativo, aparece um banner verde com o botão <b>"Baixar histórico do mês anterior"</b>. O CSV gerado contém todos os registros de todos os profissionais e líderes, com uma coluna "Perfil" separando cada um. Após o download o banner some e não reaparece naquele mês.</p>
+
+          <h3>Metas Mensais</h3>
+          <p>Defina a meta de vendas de cada profissional por mês. Esses valores alimentam as barras de progresso no Dashboard, no Ranking e a linha de meta no gráfico de Vendas.</p>
+
+          <h3>Exportar Excel</h3>
+          <p>Gera um arquivo CSV com os registros do período selecionado. As colunas de visitas são abreviadas como <b>Vis.Ativos</b> e <b>Vis.Inativos</b>. Pode ser aberto diretamente no Excel ou Google Sheets.</p>
+
+          <h3>Redefinir todos os acessos</h3>
+          <p>Força que todos os profissionais criem uma nova senha no próximo login. Útil em casos de troca de equipe ou suspeita de acesso indevido.</p>
+          <div class="help-tip">Apenas Líderes têm acesso ao módulo Administrativo.</div>
         </div>
         <div class="divider"></div>
 
@@ -1077,6 +1128,8 @@ onAuthStateChanged(auth, async user => {
     initExpDates();
     startListeners();
     resetInactivityTimer();
+    // Verifica banner dia 1 do mês
+    setTimeout(checkBannerMesAnterior, 800);
 
   } else {
     // Deslogado — volta para tela de login
@@ -1631,7 +1684,7 @@ function resetAdmForm(){
   ['adm-nome','adm-email','adm-uid'].forEach(id=>{ const el=$(id); if(el) el.value=''; });
   const metaEl = $('adm-meta-ini'); if(metaEl) metaEl.value='';
   const perfEl = $('adm-perfil'); if(perfEl) perfEl.value='vendedor';
-  const saveBtn = $('btn-adm-save'); if(saveBtn) saveBtn.textContent='Cadastrar Usuario';
+  const saveBtn = $('btn-adm-save'); if(saveBtn) saveBtn.textContent='Cadastrar Profissional';
   const cancelBtn = $('btn-adm-cancel'); if(cancelBtn) cancelBtn.style.display='none';
 }
 $('btn-adm-cancel').onclick = resetAdmForm;
@@ -1662,7 +1715,7 @@ function editUser(uid){
   $('adm-senha').value='';
   $('adm-perfil').value=u.role;
   $('adm-uid').value=uid;
-  $('btn-adm-save').textContent='Salvar Alterações';
+  $('btn-adm-save').textContent='Salvar Alteracoes';
   $('btn-adm-cancel').style.display='block';
   document.querySelector('[data-adm="vendedores"]').click();
 }
@@ -1775,7 +1828,7 @@ $('btn-exportar').onclick = () => {
   if(!recs.length){ toast('Nenhum dado para exportar.'); return; }
 
   const rows=[['Data','Vendedor','Tipo',
-    'Contatos Total','Carteira','Prosp.Int.','At.Ativos','At.Inativos','Prosp.Ext.','Outras Ext.','Inválidos',
+    'Contatos Total','Carteira','Prosp.Int.','Vis.Ativos','Vis.Inativos','Prosp.Ext.','Outras Ext.','Invalidos',
     'Cotações Qtd','Cotações Valor','Pedidos Qtd','Pedidos Valor',
     'Perda Preço','Perda Estoque','Perda Outras','Total Perdas']];
 
@@ -1799,7 +1852,89 @@ $('btn-exportar').onclick = () => {
   a.href=url; a.download=`AgoraVAP_${de}_${ate}.csv`; a.click();
   URL.revokeObjectURL(url);
   toast('Arquivo CSV exportado!');
-};
+}
+
+// ── Download histórico mês anterior ──────────────────────
+function getMesAnterior(){
+  const d = new Date();
+  const y = d.getMonth()===0 ? d.getFullYear()-1 : d.getFullYear();
+  const m = d.getMonth()===0 ? 12 : d.getMonth();
+  return `${y}-${String(m).padStart(2,'0')}`;
+}
+
+function checkBannerMesAnterior(){
+  // Mostra banner apenas no dia 1 de cada mês para o Líder
+  if(cp?.role !== 'lider') return;
+  const hoje = tod();
+  const diaDoMes = new Date().getDate();
+  const bannerKey = 'vap_banner_' + hoje.slice(0,7); // ex: vap_banner_2026-04
+  const jaDismissed = localStorage.getItem(bannerKey);
+  const banner = $('banner-mes-anterior');
+  if(!banner) return;
+  if(diaDoMes === 1 && !jaDismissed){
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+$('btn-download-mes') && ($('btn-download-mes').onclick = () => {
+  const mesAnt = getMesAnterior();
+  const bannerKey = 'vap_banner_' + new Date().toISOString().slice(0,7);
+
+  // Busca todos os registros do mês anterior
+  let recs = [..._recs].filter(r => r.date?.startsWith(mesAnt));
+
+  if(!recs.length){
+    toast('Nenhum dado encontrado para ' + mesAnt + '.');
+    return;
+  }
+
+  // Ordena por profissional e data
+  recs.sort((a,b) => {
+    if(a.seller < b.seller) return -1;
+    if(a.seller > b.seller) return 1;
+    return a.date.localeCompare(b.date);
+  });
+
+  // Monta CSV com todos os profissionais separados por colunas
+  const rows = [['Profissional','Perfil','Data','Tipo',
+    'Contatos Total','Carteira','Prosp.Int.','Vis.Ativos','Vis.Inativos','Prosp.Ext.','Outras Ext.','Invalidos',
+    'Cotacoes Qtd','Cotacoes Valor','Pedidos Qtd','Pedidos Valor',
+    'Perda Preco','Perda Estoque','Perda Outras','Total Perdas']];
+
+  recs.forEach(r => {
+    const perfil = _users.find(u => u.id === r.uid)?.role || 'vendedor';
+    if(r.tipo === 'contatos'){
+      rows.push([r.seller, perfil, fD(r.date), 'Contatos',
+        r.total||0, r.carteira||0, r.prospint||0, r.ativos||0, r.inativos||0,
+        r.prospext||0, r.outras||0, r.invalidos||0,
+        '','','','','','','','']);
+    } else {
+      rows.push([r.seller, perfil, fD(r.date), 'Cotacoes/Pedidos',
+        '','','','','','','','',
+        r.cotQtd||0, r.cotValor||0, r.pedQtd||0, r.pedValor||0,
+        r.perPreco||0, r.perEstoque||0, r.perOutras||0, r.totalPerdas||0]);
+    }
+  });
+
+  const csv = rows.map(r => r.map(v => JSON.stringify(String(v))).join(',')).join('
+');
+  const blob = new Blob(['﻿' + csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'AgoraVAP_historico_' + mesAnt + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Dismiss banner após download
+  localStorage.setItem(bannerKey, '1');
+  $('banner-mes-anterior').style.display = 'none';
+  toast('Histórico de ' + mesAnt + ' exportado com sucesso!');
+});
+
+;
 
 // ── Tab navigation ────────────────────────────────────────
 // Tab navigation — ID-based, not index-based
@@ -1814,7 +1949,7 @@ window.switchTab = tab => {
   if(tab==='lancar'){ if($('lancar-data')) $('lancar-data').value = tod(); }
   if(tab==='historico'){ setupHistoricoListeners(); renderHistorico(); }
   if(tab==='dashboard') renderDashboard();
-  if(tab==='admin')     renderUsersTable();
+  if(tab==='admin')     { renderUsersTable(); checkBannerMesAnterior(); }
 };
 document.querySelectorAll('[data-tab]').forEach(btn=>{
   btn.onclick = () => switchTab(btn.dataset.tab);
