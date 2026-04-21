@@ -742,7 +742,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 <script type="module">
 import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-         signOut, onAuthStateChanged }
+         signOut, onAuthStateChanged, sendPasswordResetEmail, updatePassword }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc,
          query, where, orderBy, onSnapshot,
@@ -782,10 +782,6 @@ const n0  = v => Number(v)||0;
 function toast(m, ms=2600){
   const t=$('toast'); t.textContent=m; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), ms);
-}
-function showErr(m){
-  const e=$('auth-err'); e.textContent=m; e.style.display='block';
-  setTimeout(()=>e.style.display='none', 5000);
 }
 function openModal(id){ $(id).classList.add('open'); }
 function closeModal(id){ $(id).classList.remove('open'); }
@@ -914,7 +910,6 @@ $('btn-primeiro').onclick = async ()=>{
   }
   $('btn-primeiro').textContent='Salvando…'; $('btn-primeiro').disabled=true;
   try{
-    const { getAuth: gA, updatePassword } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
     await updatePassword(auth.currentUser, pass);
     await updateDoc(doc(db,'users',_primeiroUid),{
       name: nome,
@@ -939,7 +934,6 @@ $('btn-forgot').onclick = async ()=>{
   if(!e){ showErr('Informe seu e-mail.'); return; }
   $('btn-forgot').textContent='Enviando…'; $('btn-forgot').disabled=true;
   try{
-    const { sendPasswordResetEmail } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
     await sendPasswordResetEmail(auth, e, {
       url: window.location.href,
     });
