@@ -721,7 +721,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 </script>
 
 <script type="module">
-import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          signOut, onAuthStateChanged, sendPasswordResetEmail, updatePassword,
          browserSessionPersistence, setPersistence }
@@ -745,359 +745,311 @@ const firebaseConfig = {
 };
 // ════════════════════════════════════════════════════════
 
+// Instância principal — sessão do usuário logado
 const FA   = initializeApp(firebaseConfig);
 const auth = getAuth(FA);
 const db   = getFirestore(FA);
 
-// Secondary app instance — used ONLY for creating new users
-// This prevents createUserWithEmailAndPassword from changing the leader's session
-const FA2  = initializeApp(firebaseConfig, 'secondary');
+// Instância secundária — SOMENTE para criar novos usuários
+// Impede que createUserWithEmailAndPassword derrube a sessão do Líder
+const FA2   = initializeApp(firebaseConfig, 'admin');
 const auth2 = getAuth(FA2);
 
-// SESSION persistence: login expires when browser/tab is closed
-setPersistence(auth, browserSessionPersistence)
-  .then(() => { console.log('VAP: session persistence set'); })
-  .catch(err => { console.warn('VAP: persistence error', err); });
+// Sessão expira ao fechar o navegador
+setPersistence(auth, browserSessionPersistence).catch(() => {});
 
 // ── State ────────────────────────────────────────────────
-let cu=null, cp=null;
-let _recs=[], _users=[], _metas=[];
-let unRecs=null, unUsers=null, unMetas=null;
-let _adminOp=false; // flag: true while leader is doing admin Auth operations
+let cu = null, cp = null;
+let _recs = [], _users = [], _metas = [];
+let unRecs = null, unUsers = null, unMetas = null;
 
 // ── Utils ────────────────────────────────────────────────
-const $   = id => document.getElementById(id);
-const tod = () => new Date().toISOString().slice(0,10);
-const thisMes = () => new Date().toISOString().slice(0,7);
-const fD  = d => { try{ const[y,m,dd]=d.split('-'); return`${dd}/${m}/${y}`; }catch{return d;} };
-const fC  = v => 'R$\u00a0'+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-const n0  = v => Number(v)||0;
+const $ = id => document.getElementById(id);
+const tod = () => new Date().toISOString().slice(0, 10);
+const thisMes = () => new Date().toISOString().slice(0, 7);
+const fD = d => { try { const [y, m, dd] = d.split('-'); return `${dd}/${m}/${y}`; } catch { return d; } };
+const fC = v => 'R$\u00a0' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const n0 = v => Number(v) || 0;
 
-function toast(m, ms=2600){
-  const t=$('toast'); t.textContent=m; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), ms);
+function toast(m, ms = 2600) {
+  const t = $('toast'); t.textContent = m; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
 }
-function openModal(id){ $(id).classList.add('open'); }
-function closeModal(id){ $(id).classList.remove('open'); }
+function openModal(id) { $(id).classList.add('open'); }
+function closeModal(id) { $(id).classList.remove('open'); }
 
-// Confirm dialog
+// ── Confirmação ───────────────────────────────────────────
 let _confirmCb = null;
-function confirm2(msg, cb){
+function confirm2(msg, cb) {
   $('confirm-msg').textContent = msg;
   _confirmCb = cb;
   openModal('modal-confirm');
 }
-$('confirm-yes').onclick = () => { closeModal('modal-confirm'); if(_confirmCb) _confirmCb(); };
+$('confirm-yes').onclick = () => { closeModal('modal-confirm'); if (_confirmCb) _confirmCb(); };
 $('confirm-no').onclick  = () => closeModal('modal-confirm');
 
-// ── Check if first user (no users in system yet) ──────────
-async function checkFirstUser(){
-  try{
-    const snap = await getDocs(collection(db,'users'));
-    const isFirst = snap.empty;
-    $('badge-first-user').style.display = isFirst ? 'block' : 'none';
-    $('btn-criar-lider').style.display  = isFirst ? 'block' : 'none';
-    $('btn-login').style.display        = isFirst ? 'none'  : 'block';
-  } catch(e){ /* ignore if offline */ }
+// ══════════════════════════════════════════════════════════
+// AUTH — TELA DE ACESSO
+// ══════════════════════════════════════════════════════════
+
+// ── Helpers de UI ─────────────────────────────────────────
+function showErr(m) {
+  const e = $('auth-err');
+  e.textContent = m; e.style.display = 'block';
+  $('auth-success').style.display = 'none';
+  setTimeout(() => e.style.display = 'none', 7000);
 }
-
-// ── Create first leader account ───────────────────────────
-$('btn-criar-lider').onclick = async () => {
-  const e=$('li-email').value.trim(), p=$('li-pass').value;
-  if(!e||!p){ showErr('Preencha e-mail e senha para criar o Líder.'); return; }
-  if(!validatePw(p)){ showErr('Senha não atende aos critérios mínimos.'); return; }
-  $('btn-criar-lider').textContent='Criando…'; $('btn-criar-lider').disabled=true;
-  try{
-    // First user uses main auth — this IS the login
-    const c = await createUserWithEmailAndPassword(auth, e, p);
-    await setDoc(doc(db,'users',c.user.uid),{
-      name:'Líder', email:e, role:'lider', meta:0,
-      firstLogin:true, createdAt:new Date().toISOString()
-    });
-    _primeiroUid   = c.user.uid;
-    _primeiroEmail = e;
-    $('pr-email').value = e;
-    $('auth-screen').style.display='flex';
-    $('app').style.display='none';
-    showForm('form-primeiro');
-    toast('Conta de Líder criada! Defina seu nome e senha.');
-  } catch(err){
-    showErr(err.code==='auth/email-already-in-use'
-      ? 'E-mail já cadastrado.' : 'Erro: '+(err.code||err.message));
-  } finally {
-    $('btn-criar-lider').textContent='Criar conta do Líder';
-    $('btn-criar-lider').disabled=false;
-  }
-};
-
-// ── Import sendPasswordResetEmail ────────────────────────
-// (already imported via firebase-auth above — added below)
-
-// ── Auth helpers ─────────────────────────────────────────
-function showErr(m){ const e=$('auth-err'); e.style.display='block'; e.textContent=m; $('auth-success').style.display='none'; setTimeout(()=>e.style.display='none',6000); }
-function showOk(m){  const e=$('auth-success'); e.style.display='block'; e.textContent=m; $('auth-err').style.display='none'; }
-
-function clearLoginFields(){
-  ['li-email','li-pass','fg-email','pr-pass','pr-pass2','pr-nome'].forEach(id=>{
-    const el=$(id); if(el){ el.value=''; el.type = (id==='li-pass'||id==='pr-pass'||id==='pr-pass2') ? 'password' : el.type; }
+function showOk(m) {
+  const e = $('auth-success');
+  e.textContent = m; e.style.display = 'block';
+  $('auth-err').style.display = 'none';
+}
+function clearFields() {
+  ['li-email','li-pass','fg-email','pr-nome','pr-pass','pr-pass2'].forEach(id => {
+    const el = $(id); if (el) { el.value = ''; el.type = el.type; }
   });
-  ['pw-str1'].forEach(id=>{ const el=$(id); if(el){ el.style.width='0'; el.style.background=''; } });
-  ['hint-pw1','hint-pw2','hint-nome'].forEach(id=>{ const el=$(id); if(el) el.textContent=''; });
-  ['auth-err','auth-success'].forEach(id=>{ const el=$(id); if(el) el.style.display='none'; });
+  const bar = $('pw-str1');
+  if (bar) { bar.style.width = '0'; }
+  const hint = $('hint-pw1');
+  if (hint) hint.textContent = 'Min. 8 caracteres · 1 maiuscula · 1 numero · 1 especial (!@#$%)';
+  ['auth-err','auth-success'].forEach(id => {
+    const el = $(id); if (el) el.style.display = 'none';
+  });
   // Reset eye icons
-  ['eye-login','eye-pr1','eye-pr2'].forEach(id=>{ const el=$(id); if(el) el.innerHTML='&#128065;'; });
-}
-
-function showForm(name){
-  ['form-login','form-primeiro','form-forgot'].forEach(id=>{
-    const el=$(id); if(el) el.style.display = id===name?'block':'none';
+  ['eye-login','eye-pr1','eye-pr2'].forEach(id => {
+    const el = $(id);
+    if (el) { el.innerHTML = '&#128065;'; }
+    const inp = id === 'eye-login' ? $('li-pass') : id === 'eye-pr1' ? $('pr-pass') : $('pr-pass2');
+    if (inp) inp.type = 'password';
   });
-  clearLoginFields();
+}
+function showForm(name) {
+  ['form-login','form-primeiro','form-forgot'].forEach(id => {
+    const el = $(id); if (el) el.style.display = id === name ? 'block' : 'none';
+  });
+  clearFields();
 }
 
-// ── Limpeza de campos e controle de sessão ────────────────
-function forceClear(){
-  clearLoginFields();
-  showForm('form-login');
+// Limpa campos sempre que a página carrega ou é recarregada
+window.addEventListener('load', () => { clearFields(); showForm('form-login'); checkFirstUser(); });
+
+// ── Mostrar/ocultar senha ──────────────────────────────────
+function togglePw(inputId, btnId) {
+  const inp = $(inputId), btn = $(btnId); if (!inp || !btn) return;
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.innerHTML = show ? '&#128064;' : '&#128065;';
 }
+const el = $('eye-login'); if (el) el.onclick = () => togglePw('li-pass', 'eye-login');
+const ep1 = $('eye-pr1');  if (ep1) ep1.onclick = () => togglePw('pr-pass', 'eye-pr1');
+const ep2 = $('eye-pr2');  if (ep2) ep2.onclick = () => togglePw('pr-pass2', 'eye-pr2');
 
-// Limpa sempre ao carregar ou recarregar
-window.addEventListener('load', ()=>{ forceClear(); checkFirstUser(); });
-
-// pageshow: dispara em back/forward navigation e cache do navegador
-window.addEventListener('pageshow', e => {
-  if(e.persisted){
-    // Página veio do cache — força logout para garantir tela limpa
-    signOut(auth).then(()=>forceClear()).catch(()=>forceClear());
-  } else {
-    forceClear();
-  }
-});
-
-// Quando usuário volta de outro site e não está logado
-document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState === 'visible' && !cu) forceClear();
-});
-
-// ── Mostrar/ocultar senha ─────────────────────────────────
-function togglePw(inputId, btnId){
-  const inp=$(inputId), btn=$(btnId); if(!inp||!btn) return;
-  const show = inp.type==='password';
-  inp.type = show?'text':'password';
-  btn.innerHTML = show?'&#128064;':'&#128065;';
-}
-$('eye-login') && ($('eye-login').onclick = ()=>togglePw('li-pass','eye-login'));
-$('eye-pr1')   && ($('eye-pr1').onclick   = ()=>togglePw('pr-pass','eye-pr1'));
-$('eye-pr2')   && ($('eye-pr2').onclick   = ()=>togglePw('pr-pass2','eye-pr2'));
-
-// ── Força da senha ────────────────────────────────────────
-window.checkPwStrength = (inputId, barId, hintId)=>{
-  const v=$(inputId)?.value||'';
-  const bar=$(barId), hint=$(hintId);
-  if(!bar) return;
+// ── Força da senha ─────────────────────────────────────────
+window.checkPwStrength = (inputId, barId, hintId) => {
+  const v = $(inputId) ? $(inputId).value : '';
+  const bar = $(barId), hint = $(hintId);
   const has = {
-    len:   v.length>=8,
+    len:   v.length >= 8,
     upper: /[A-Z]/.test(v),
     num:   /[0-9]/.test(v),
-    spec:  /[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(v),
+    spec:  /[!@#$%]/.test(v),
   };
   const score = Object.values(has).filter(Boolean).length;
-  const colors=['#E53E3E','#E53E3E','#F6AD55','#68D391','#38A169'];
-  const labels=['','Muito fraca','Fraca','Boa','Forte'];
-  bar.style.width = (score*25)+'%';
-  bar.style.background = colors[score];
-  if(hint){
-    const missing=[];
-    if(!has.len)   missing.push('8 caracteres');
-    if(!has.upper) missing.push('1 maiúscula');
-    if(!has.num)   missing.push('1 número');
-    if(!has.spec)  missing.push('1 especial (!@#$%)');
-    hint.textContent = missing.length===0
-      ? '✓ Senha '+labels[score]
-      : 'Falta: '+missing.join(' · ');
-    hint.style.color = score===4?'#1E8449':'#666';
+  const colors = ['#E53E3E','#E53E3E','#F6AD55','#68D391','#38A169'];
+  if (bar) { bar.style.width = (score * 25) + '%'; bar.style.background = colors[score]; }
+  if (hint) {
+    const miss = [];
+    if (!has.len)   miss.push('8 caracteres');
+    if (!has.upper) miss.push('1 maiuscula');
+    if (!has.num)   miss.push('1 numero');
+    if (!has.spec)  miss.push('1 especial (!@#$%)');
+    hint.textContent = miss.length === 0 ? 'Senha forte!' : 'Falta: ' + miss.join(' · ');
+    hint.style.color = score === 4 ? '#1E8449' : '#666';
   }
 };
 
-function validatePw(v){
-  return v.length>=8 && /[A-Z]/.test(v) && /[0-9]/.test(v) && /[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(v);
+function validatePw(v) {
+  return v.length >= 8 && /[A-Z]/.test(v) && /[0-9]/.test(v) && /[!@#$%]/.test(v);
 }
-function validateNome(v){
+function validateNome(v) {
   const parts = v.trim().split(/\s+/);
-  return parts.length>=2 && parts.every(p=>p.length>=2);
+  return parts.length >= 2 && parts.every(p => p.length >= 2);
 }
 
-// ── LOGIN ─────────────────────────────────────────────────
-$('btn-login').onclick = async () => {
-  const e=$('li-email').value.trim(), p=$('li-pass').value;
-  if(!e||!p){ showErr('Preencha e-mail e senha.'); return; }
-  $('btn-login').textContent='Entrando…'; $('btn-login').disabled=true;
-  try{
-    await signInWithEmailAndPassword(auth, e, p);
-    // Set session token so onAuthStateChanged knows this is a fresh login
-    // onAuthStateChanged will handle redirect to app
-  } catch(err){
-    console.error('Login error:', err.code, err.message);
-    const credErrors=['auth/invalid-credential','auth/wrong-password',
-      'auth/user-not-found','auth/invalid-email','auth/user-disabled'];
-    showErr(credErrors.includes(err.code)
-      ? 'E-mail ou senha incorretos. Verifique e tente novamente.'
-      : 'Erro: '+(err.code||err.message));
-    $('btn-login').textContent='Entrar';
-    $('btn-login').disabled=false;
+// ── Detecção: primeiro usuário do sistema ──────────────────
+async function checkFirstUser() {
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    const isFirst = snap.empty;
+    const badge = $('badge-first-user');
+    const btnLider = $('btn-criar-lider');
+    const btnLogin = $('btn-login');
+    if (badge)    badge.style.display    = isFirst ? 'block' : 'none';
+    if (btnLider) btnLider.style.display = isFirst ? 'block' : 'none';
+    if (btnLogin) btnLogin.style.display = isFirst ? 'none'  : 'block';
+  } catch (e) { /* offline ou sem permissão — ignora */ }
+}
+
+// ── Criar primeiro Líder ───────────────────────────────────
+const btnCriarLider = $('btn-criar-lider');
+if (btnCriarLider) btnCriarLider.onclick = async () => {
+  const e = $('li-email').value.trim(), p = $('li-pass').value;
+  if (!e || !p) { showErr('Preencha e-mail e senha.'); return; }
+  if (!validatePw(p)) { showErr('Senha não atende aos critérios: min. 8 caracteres, 1 maiuscula, 1 numero, 1 especial (!@#$%).'); return; }
+  btnCriarLider.textContent = 'Criando...'; btnCriarLider.disabled = true;
+  try {
+    const c = await createUserWithEmailAndPassword(auth, e, p);
+    await setDoc(doc(db, 'users', c.user.uid), {
+      name: 'Lider', email: e, role: 'lider', meta: 0,
+      firstLogin: true, createdAt: new Date().toISOString()
+    });
+    // onAuthStateChanged vai detectar firstLogin:true e mostrar tela de nome/senha
+  } catch (err) {
+    showErr(err.code === 'auth/email-already-in-use' ? 'E-mail ja cadastrado.' : 'Erro: ' + (err.code || err.message));
+    btnCriarLider.textContent = 'Criar conta do Lider'; btnCriarLider.disabled = false;
   }
-  // Note: do NOT re-enable button in finally — onAuthStateChanged will redirect
-  // and re-enabling after success causes flicker
 };
 
-// ── PRIMEIRO ACESSO ───────────────────────────────────────
-let _primeiroUid=null, _primeiroEmail=null;
+// ── LOGIN ──────────────────────────────────────────────────
+$('btn-login').onclick = async () => {
+  const e = $('li-email').value.trim(), p = $('li-pass').value;
+  if (!e || !p) { showErr('Preencha e-mail e senha.'); return; }
+  $('btn-login').textContent = 'Entrando...'; $('btn-login').disabled = true;
+  try {
+    await signInWithEmailAndPassword(auth, e, p);
+    // onAuthStateChanged cuida do redirecionamento
+  } catch (err) {
+    const cred = ['auth/invalid-credential','auth/wrong-password','auth/user-not-found','auth/invalid-email'];
+    showErr(cred.includes(err.code) ? 'E-mail ou senha incorretos.' : 'Erro: ' + (err.code || err.message));
+  } finally {
+    $('btn-login').textContent = 'Entrar'; $('btn-login').disabled = false;
+  }
+};
 
-$('btn-primeiro').onclick = async ()=>{
+// ── RECUPERAR SENHA ────────────────────────────────────────
+$('go-forgot').onclick     = () => showForm('form-forgot');
+$('go-back-login').onclick = () => showForm('form-login');
+
+$('btn-forgot').onclick = async () => {
+  const e = $('fg-email').value.trim();
+  if (!e) { showErr('Informe seu e-mail.'); return; }
+  $('btn-forgot').textContent = 'Enviando...'; $('btn-forgot').disabled = true;
+  try {
+    await sendPasswordResetEmail(auth, e, { url: window.location.origin });
+    showOk('AVISO: Seu aplicativo AgoraVAP! esta solicitando a alteracao de sua senha! Link enviado para ' + e + '. Verifique sua caixa de entrada e spam.');
+    setTimeout(() => showForm('form-login'), 6000);
+  } catch (err) {
+    showErr(err.code === 'auth/user-not-found' || err.code === 'auth/invalid-email'
+      ? 'E-mail nao encontrado.' : 'Erro ao enviar: ' + (err.code || err.message));
+  } finally {
+    $('btn-forgot').textContent = 'Enviar link de recuperacao'; $('btn-forgot').disabled = false;
+  }
+};
+
+// ── PRIMEIRO ACESSO — criar nome e senha ───────────────────
+let _primeiroUid = null, _primeiroEmail = null;
+
+$('btn-primeiro').onclick = async () => {
   const nome  = $('pr-nome').value.trim();
   const pass  = $('pr-pass').value;
   const pass2 = $('pr-pass2').value;
 
-  $('hint-nome').textContent='';
-  if(!validateNome(nome)){
-    $('hint-nome').textContent='⚠ Informe nome e sobrenome (mínimo 2 caracteres cada).';
-    $('hint-nome').style.color='#C53030'; return;
+  $('hint-nome') && ($('hint-nome').textContent = '');
+
+  if (!validateNome(nome)) {
+    if ($('hint-nome')) { $('hint-nome').textContent = 'Informe nome e sobrenome (min. 2 caracteres cada).'; $('hint-nome').style.color = '#C53030'; }
+    return;
   }
-  if(!validatePw(pass)){
-    showErr('Senha não atende aos critérios mínimos de segurança.'); return;
+  if (!validatePw(pass)) { showErr('Senha nao atende aos criterios minimos.'); return; }
+  if (pass !== pass2) {
+    if ($('hint-pw2')) { $('hint-pw2').textContent = 'As senhas nao coincidem.'; $('hint-pw2').style.color = '#C53030'; }
+    return;
   }
-  if(pass!==pass2){
-    $('hint-pw2').textContent='⚠ As senhas não coincidem.';
-    $('hint-pw2').style.color='#C53030'; return;
-  }
-  $('btn-primeiro').textContent='Salvando…'; $('btn-primeiro').disabled=true;
-  try{
+
+  $('btn-primeiro').textContent = 'Salvando...'; $('btn-primeiro').disabled = true;
+  try {
     await updatePassword(auth.currentUser, pass);
-    await updateDoc(doc(db,'users',_primeiroUid),{
-      name: nome,
-      firstLogin: false,
-      updatedAt: new Date().toISOString()
+    await updateDoc(doc(db, 'users', _primeiroUid), {
+      name: nome, firstLogin: false, updatedAt: new Date().toISOString()
     });
-    toast('Senha criada com sucesso! Bem-vindo(a), '+nome.split(' ')[0]+'!');
-    clearLoginFields();
-  } catch(err){
-    showErr('Erro ao criar senha. Tente novamente.');
-  } finally {
-    $('btn-primeiro').textContent='Criar senha e entrar'; $('btn-primeiro').disabled=false;
+    // Recarrega para iniciar sessão limpa com dados atualizados
+    window.location.reload();
+  } catch (err) {
+    showErr('Erro ao salvar: ' + (err.code || err.message));
+    $('btn-primeiro').textContent = 'Criar senha e entrar'; $('btn-primeiro').disabled = false;
   }
 };
 
-// ── RECUPERAR SENHA ───────────────────────────────────────
-$('go-forgot').onclick      = ()=> showForm('form-forgot');
-$('go-back-login').onclick  = ()=> showForm('form-login');
-
-$('btn-forgot').onclick = async ()=>{
-  const e=$('fg-email').value.trim();
-  if(!e){ showErr('Informe seu e-mail.'); return; }
-  $('btn-forgot').textContent='Enviando…'; $('btn-forgot').disabled=true;
-  try{
-    await sendPasswordResetEmail(auth, e, {
-      url: window.location.origin,
-      handleCodeInApp: false
-    });
-    // Show success with the required warning message
-    showOk('AVISO: Seu aplicativo AgoraVAP! está solicitando a alteração de sua senha! ' +
-      'Um link foi enviado para ' + e + '. Verifique sua caixa de entrada e a pasta de spam. ' +
-      'Clique no link recebido para criar sua nova senha.');
-    setTimeout(()=>showForm('form-login'), 7000);
-  } catch(err){
-    console.error('Reset error:', err.code);
-    if(err.code==='auth/user-not-found'||err.code==='auth/invalid-email'){
-      showErr('E-mail não encontrado. Verifique o endereço digitado.');
-    } else {
-      showErr('Erro ao enviar: ' + (err.code||err.message));
-    }
-  } finally {
-    $('btn-forgot').textContent='Enviar link de recuperação'; $('btn-forgot').disabled=false;
-  }
-};
-
-// ── LOGOUT ────────────────────────────────────────────────
+// ── LOGOUT ─────────────────────────────────────────────────
 $('btn-logout').onclick = async () => {
   clearInactivityTimer();
-  [unRecs,unUsers,unMetas].forEach(u=>u&&u());
+  [unRecs, unUsers, unMetas].forEach(u => u && u());
   await signOut(auth);
-  clearLoginFields();
 };
 
-// ── INATIVIDADE (2 minutos) ───────────────────────────────
+// ── INATIVIDADE (2 minutos) ────────────────────────────────
 const INACTIVITY_MS = 2 * 60 * 1000;
 let _inactTimer = null;
 
-function resetInactivityTimer(){
-  if(!cu) return;
+function resetInactivityTimer() {
+  if (!cu) return;
   clearTimeout(_inactTimer);
-  _inactTimer = setTimeout(async ()=>{
-    $('inactivity-bar').style.display='block';
-    setTimeout(()=>$('inactivity-bar').style.display='none', 5000);
-    [unRecs,unUsers,unMetas].forEach(u=>u&&u());
+  _inactTimer = setTimeout(async () => {
+    $('inactivity-bar').style.display = 'block';
+    setTimeout(() => $('inactivity-bar').style.display = 'none', 4000);
+    [unRecs, unUsers, unMetas].forEach(u => u && u());
     await signOut(auth);
-    clearLoginFields();
-    showForm('form-login');
   }, INACTIVITY_MS);
 }
-function clearInactivityTimer(){ clearTimeout(_inactTimer); }
-['click','keydown','mousemove','touchstart','scroll'].forEach(ev=>{
-  document.addEventListener(ev, ()=>{ if(cu) resetInactivityTimer(); }, {passive:true});
+function clearInactivityTimer() { clearTimeout(_inactTimer); }
+['click','keydown','mousemove','touchstart','scroll'].forEach(ev => {
+  document.addEventListener(ev, () => { if (cu) resetInactivityTimer(); }, { passive: true });
 });
 
-// ── Auth state ────────────────────────────────────────────
+// ── onAuthStateChanged ─────────────────────────────────────
 onAuthStateChanged(auth, async user => {
-  // Ignore auth state changes triggered by admin operations (creating/managing users)
-  if(_adminOp) return;
+  if (user) {
+    // Busca documento do usuário no Firestore
+    const snap = await getDoc(doc(db, 'users', user.uid));
 
-  if(user){
-    cu = user;
-    const snap = await getDoc(doc(db,'users',user.uid));
-
-    // Check if user exists in Firestore (pre-registered by leader)
-    if(!snap.exists()){
-      // Check if this user was deleted by leader
-      const delSnap = await getDoc(doc(db,'deleted_users',user.uid));
+    if (!snap.exists()) {
+      // Auth existe mas Firestore não — usuário removido ou órfão
       await signOut(auth);
-      if(delSnap.exists()){
-        showErr('Este usuário foi removido do sistema. Solicite ao Líder um novo cadastro com o mesmo e-mail.');
-      } else {
-        showErr('Usuário não encontrado. Solicite ao Líder que faça seu cadastro.');
-      }
+      showErr('Acesso negado. Solicite ao Lider que refaca seu cadastro.');
       return;
     }
 
     cp = snap.data();
 
-    // First login flow — user needs to set name + password
-    if(cp.firstLogin){
+    // Primeiro acesso — precisa criar nome e senha
+    if (cp.firstLogin) {
       _primeiroUid   = user.uid;
       _primeiroEmail = cp.email || user.email;
-      $('pr-email').value = _primeiroEmail;
-      $('auth-screen').style.display='flex';
-      $('app').style.display='none';
+      if ($('pr-email')) $('pr-email').value = _primeiroEmail;
+      $('auth-screen').style.display = 'flex';
+      $('app').style.display = 'none';
       showForm('form-primeiro');
       return;
     }
 
-    // Normal login — go to app
-    $('auth-screen').style.display='none';
-    $('app').style.display='block';
-    clearLoginFields();
+    // Login normal — entra no app
+    cu = user;
+    $('auth-screen').style.display = 'none';
+    $('app').style.display = 'block';
+    clearFields();
 
     $('top-user').textContent = cp.name;
-    const isLider = cp.role==='lider';
-    $('role-badge').textContent = isLider?'Líder':'Vendedor';
-    if(isLider) $('role-badge').classList.add('role-lider');
-    else $('role-badge').classList.remove('role-lider');
+    const isLider = cp.role === 'lider';
+    $('role-badge').textContent = isLider ? 'Lider' : 'Vendedor';
+    if (isLider) $('role-badge').classList.add('role-lider');
+    else         $('role-badge').classList.remove('role-lider');
 
-    $('ff-vendedor').style.display   = isLider?'flex':'none';
-    $('btn-limpar').style.display    = isLider?'block':'none';
-    $('exp-vend-wrap').style.display = isLider?'block':'none';
-    if(!isLider){
+    $('ff-vendedor').style.display   = isLider ? 'flex'  : 'none';
+    $('btn-limpar').style.display    = isLider ? 'block' : 'none';
+    $('exp-vend-wrap').style.display = isLider ? 'block' : 'none';
+    if (!isLider) {
       const admTab = document.querySelector('[data-tab="admin"]');
-      if(admTab) admTab.style.display='none';
+      if (admTab) admTab.style.display = 'none';
     }
 
     $('hist-data').value = tod();
@@ -1107,13 +1059,13 @@ onAuthStateChanged(auth, async user => {
     resetInactivityTimer();
 
   } else {
-    cu=null; cp=null; _primeiroUid=null;
+    // Deslogado — volta para tela de login
+    cu = null; cp = null; _primeiroUid = null;
     clearInactivityTimer();
-    $('auth-screen').style.display='flex';
-    $('app').style.display='none';
+    $('auth-screen').style.display = 'flex';
+    $('app').style.display = 'none';
     $('role-badge').classList.remove('role-lider');
     showForm('form-login');
-    clearLoginFields();
     checkFirstUser();
   }
 });
@@ -1492,78 +1444,64 @@ $('btn-adm-save').onclick = async () => {
     toast('Usuário atualizado!');
     resetAdmForm();
   } else {
-    // Pre-register using SECONDARY auth instance
-    // This avoids changing the leader's active session
-    const tempPass = 'Vap@'+Math.random().toString(36).slice(2,8).toUpperCase()+'1!';
-    try{
+    // Cria usuario via auth2 (instancia secundaria)
+    // Isso NAO afeta a sessao atual do Lider
+    const tempPass = 'Vap@' + Math.random().toString(36).slice(2,8).toUpperCase() + '1!';
+    try {
       const c = await createUserWithEmailAndPassword(auth2, e, tempPass);
       const newUid = c.user.uid;
-      // Sign out from secondary instance immediately
-      await signOut(auth2);
-      // Remove from deleted_users if previously deleted
-      const delRef = doc(db,'deleted_users', newUid);
-      const delSnap = await getDoc(delRef);
-      if(delSnap.exists()) await deleteDoc(delRef);
-      // Create Firestore document
-      await setDoc(doc(db,'users', newUid),{
-        name:n, email:e, role:r, meta:metaIni,
-        firstLogin:true,
-        createdAt:new Date().toISOString()
+      await signOut(auth2); // desconecta instancia secundaria imediatamente
+
+      // Limpa deleted_users se era um usuario deletado anteriormente
+      try {
+        const delSnap = await getDoc(doc(db, 'deleted_users', newUid));
+        if (delSnap.exists()) await deleteDoc(doc(db, 'deleted_users', newUid));
+      } catch(e2) { /* ignora se nao existir */ }
+
+      // Cria documento no Firestore
+      await setDoc(doc(db, 'users', newUid), {
+        name: n, email: e, role: r, meta: metaIni,
+        firstLogin: true,
+        createdAt: new Date().toISOString()
       });
-      toast('Usuário "'+n+'" cadastrado! No primeiro acesso ele criará a própria senha.');
+      toast('Usuario "' + n + '" cadastrado! No primeiro acesso ele criara a propria senha.');
       resetAdmForm();
-    } catch(err){
-      if(err.code==='auth/email-already-in-use'){
+    } catch (err) {
+      if (err.code === 'auth/email-already-in-use') {
         await recoverDeletedUser(e, n, r, metaIni);
       } else {
-        toast('Erro ao criar usuário: '+err.message);
+        toast('Erro ao criar usuario: ' + (err.code || err.message));
       }
     }
   }
 };
 
-async function recoverDeletedUser(email, name, role, meta){
-  // Email exists in Auth but not in Firestore — restore the Firestore doc
-  try{
-    // Find the deleted record by email to get the original uid
-    const snap = await getDocs(collection(db,'deleted_users'));
-    let deletedDoc = null;
-    snap.forEach(d=>{ if(d.data().email===email) deletedDoc=d; });
+async function recoverDeletedUser(email, name, role, meta) {
+  // E-mail existe no Auth mas nao no Firestore
+  // Tenta restaurar o documento Firestore pelo registro em deleted_users
+  try {
+    const snap = await getDocs(collection(db, 'deleted_users'));
+    let found = null;
+    snap.forEach(d => { if (d.data().email === email) found = d; });
 
-    if(deletedDoc){
-      const uid = deletedDoc.data().uid || deletedDoc.id;
-      // Restore Firestore doc — leader is still logged in since we used auth2
-      await setDoc(doc(db,'users', uid),{
+    if (found) {
+      // Restaura documento Firestore com o uid original
+      const uid = found.data().uid || found.id;
+      await setDoc(doc(db, 'users', uid), {
         name, email, role, meta,
         firstLogin: true,
         createdAt: new Date().toISOString()
       });
-      await deleteDoc(doc(db,'deleted_users', deletedDoc.id));
-      toast('Usuário "'+name+'" restaurado com sucesso! No primeiro acesso ele criará nova senha.');
+      await deleteDoc(doc(db, 'deleted_users', found.id));
+      toast('Usuario "' + name + '" restaurado! No primeiro acesso ele criara nova senha.');
       resetAdmForm();
     } else {
-      // No deleted record — email exists in Auth from external source
-      // Use auth2 to sign in and get the uid, then create Firestore doc
-      toast('Restaurando acesso de "'+name+'"... aguarde.');
-      try{
-        const tempPass2 = 'Vap@'+Math.random().toString(36).slice(2,8).toUpperCase()+'1!';
-        // Try creating via auth2 first — if it fails email truly already exists
-        const c2 = await createUserWithEmailAndPassword(auth2, email, tempPass2);
-        const uid2 = c2.user.uid;
-        await signOut(auth2);
-        await setDoc(doc(db,'users', uid2),{
-          name, email, role, meta,
-          firstLogin: true,
-          createdAt: new Date().toISOString()
-        });
-        toast('Usuário "'+name+'" cadastrado com sucesso!');
-        resetAdmForm();
-      } catch(e2){
-        toast('Não foi possível cadastrar "'+email+'". Acesse Firebase Console → Authentication → Usuários → exclua esse e-mail → tente novamente.');
-      }
+      // Sem registro em deleted_users — e-mail veio de outra fonte
+      // Instrui lider a deletar manualmente do Firebase Console
+      toast('O e-mail "' + email + '" ja existe na autenticacao. Acesse Firebase Console → Authentication → Usuarios → exclua esse e-mail → tente novamente.');
     }
-  } catch(err){
-    toast('Erro: '+err.message);
+  } catch (err) {
+    toast('Erro ao restaurar: ' + (err.code || err.message));
   }
 }
 
@@ -1606,25 +1544,23 @@ function editUser(uid){
   document.querySelector('[data-adm="vendedores"]').click();
 }
 
-async function delUser(uid){
-  const u = _users.find(x=>x.id===uid);
-  if(!u){ toast('Usuário não encontrado.'); return; }
-  confirm2('Remover "' + u.name + '"? Os registros serão mantidos. O e-mail poderá ser reutilizado.', async ()=>{
-    try{
-      // Save uid and email to deleted_users BEFORE deleting the doc
-      // This allows the email to be reused in future registrations
-      await setDoc(doc(db,'deleted_users', uid),{
+async function delUser(uid) {
+  const u = _users.find(x => x.id === uid);
+  if (!u) { toast('Usuario nao encontrado.'); return; }
+  confirm2('Remover "' + u.name + '"? Os registros serao mantidos. O e-mail podera ser reutilizado.', async () => {
+    try {
+      // Salva em deleted_users ANTES de deletar (permite reutilizar o e-mail)
+      await setDoc(doc(db, 'deleted_users', uid), {
         uid: uid,
         email: u.email,
         name: u.name,
         deletedAt: new Date().toISOString(),
         deletedBy: cu.uid
       });
-      // Delete Firestore user document
-      await deleteDoc(doc(db,'users',uid));
+      await deleteDoc(doc(db, 'users', uid));
       toast('"' + u.name + '" removido. O e-mail pode ser reutilizado.');
-    } catch(err){
-      toast('Erro ao remover: ' + err.message);
+    } catch (err) {
+      toast('Erro ao remover: ' + (err.code || err.message));
     }
   });
 }
@@ -1775,6 +1711,6 @@ document.querySelectorAll('[data-adm]').forEach(btn=>{
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </body>
 </html>
