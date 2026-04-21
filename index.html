@@ -985,6 +985,9 @@ $('btn-logout').onclick = async () => {
   clearInactivityTimer();
   [unRecs, unUsers, unMetas].forEach(u => u && u());
   await signOut(auth);
+  // Reload para resetar o DOM completamente — garante que
+  // o proximo usuario veja todos os modulos corretamente
+  window.location.reload();
 };
 
 // ── INATIVIDADE (2 minutos) ────────────────────────────────
@@ -996,9 +999,10 @@ function resetInactivityTimer() {
   clearTimeout(_inactTimer);
   _inactTimer = setTimeout(async () => {
     $('inactivity-bar').style.display = 'block';
-    setTimeout(() => $('inactivity-bar').style.display = 'none', 4000);
     [unRecs, unUsers, unMetas].forEach(u => u && u());
     await signOut(auth);
+    // Reload apos inatividade — mesmo motivo do logout manual
+    setTimeout(() => window.location.reload(), 2000);
   }, INACTIVITY_MS);
 }
 function clearInactivityTimer() { clearTimeout(_inactTimer); }
