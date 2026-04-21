@@ -721,7 +721,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 </script>
 
 <script type="module">
-import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          signOut, onAuthStateChanged, sendPasswordResetEmail, updatePassword,
          browserSessionPersistence, setPersistence }
@@ -749,8 +749,12 @@ const FA   = initializeApp(firebaseConfig);
 const auth = getAuth(FA);
 const db   = getFirestore(FA);
 
+// Secondary app instance — used ONLY for creating new users
+// This prevents createUserWithEmailAndPassword from changing the leader's session
+const FA2  = initializeApp(firebaseConfig, 'secondary');
+const auth2 = getAuth(FA2);
+
 // SESSION persistence: login expires when browser/tab is closed
-// This ensures users always see the login screen when reopening the app
 setPersistence(auth, browserSessionPersistence)
   .then(() => { console.log('VAP: session persistence set'); })
   .catch(err => { console.warn('VAP: persistence error', err); });
@@ -803,14 +807,13 @@ $('btn-criar-lider').onclick = async () => {
   if(!e||!p){ showErr('Preencha e-mail e senha para criar o Líder.'); return; }
   if(!validatePw(p)){ showErr('Senha não atende aos critérios mínimos.'); return; }
   $('btn-criar-lider').textContent='Criando…'; $('btn-criar-lider').disabled=true;
-  _adminOp = false; // First user creation IS the login — don't block
   try{
+    // First user uses main auth — this IS the login
     const c = await createUserWithEmailAndPassword(auth, e, p);
     await setDoc(doc(db,'users',c.user.uid),{
       name:'Líder', email:e, role:'lider', meta:0,
       firstLogin:true, createdAt:new Date().toISOString()
     });
-    // Immediately go to primeiro acesso to set full name
     _primeiroUid   = c.user.uid;
     _primeiroEmail = e;
     $('pr-email').value = e;
@@ -1489,32 +1492,27 @@ $('btn-adm-save').onclick = async () => {
     toast('Usuário atualizado!');
     resetAdmForm();
   } else {
-    // Pre-register: create Firebase Auth with temp password, mark firstLogin=true
+    // Pre-register using SECONDARY auth instance
+    // This avoids changing the leader's active session
     const tempPass = 'Vap@'+Math.random().toString(36).slice(2,8).toUpperCase()+'1!';
-    _adminOp = true; // prevent onAuthStateChanged from kicking out the leader
     try{
-      const c = await createUserWithEmailAndPassword(auth, e, tempPass);
-      // Remove from deleted_users if previously deleted (email reuse)
-      const delRef = doc(db,'deleted_users',c.user.uid);
+      const c = await createUserWithEmailAndPassword(auth2, e, tempPass);
+      const newUid = c.user.uid;
+      // Sign out from secondary instance immediately
+      await signOut(auth2);
+      // Remove from deleted_users if previously deleted
+      const delRef = doc(db,'deleted_users', newUid);
       const delSnap = await getDoc(delRef);
       if(delSnap.exists()) await deleteDoc(delRef);
-      await setDoc(doc(db,'users',c.user.uid),{
+      // Create Firestore document
+      await setDoc(doc(db,'users', newUid),{
         name:n, email:e, role:r, meta:metaIni,
         firstLogin:true,
         createdAt:new Date().toISOString()
       });
-      // Sign back in as leader after creating the new user
-      const leaderEmail = cp.email;
-      const leaderSnap  = await getDoc(doc(db,'users',cu.uid));
-      // Re-authenticate leader silently — just restore the cu/cp state
-      // createUserWithEmailAndPassword switches auth to new user
-      // We need to sign back in as leader
-      toast('Usuário "'+n+'" pré-cadastrado com sucesso!');
+      toast('Usuário "'+n+'" cadastrado! No primeiro acesso ele criará a própria senha.');
       resetAdmForm();
-      // Force page reload to restore leader session cleanly
-      setTimeout(()=>{ _adminOp=false; window.location.reload(); }, 1500);
     } catch(err){
-      _adminOp = false;
       if(err.code==='auth/email-already-in-use'){
         await recoverDeletedUser(e, n, r, metaIni);
       } else {
@@ -1525,30 +1523,47 @@ $('btn-adm-save').onclick = async () => {
 };
 
 async function recoverDeletedUser(email, name, role, meta){
-  _adminOp = true;
+  // Email exists in Auth but not in Firestore — restore the Firestore doc
   try{
+    // Find the deleted record by email to get the original uid
     const snap = await getDocs(collection(db,'deleted_users'));
     let deletedDoc = null;
     snap.forEach(d=>{ if(d.data().email===email) deletedDoc=d; });
 
     if(deletedDoc){
       const uid = deletedDoc.data().uid || deletedDoc.id;
+      // Restore Firestore doc — leader is still logged in since we used auth2
       await setDoc(doc(db,'users', uid),{
         name, email, role, meta,
         firstLogin: true,
         createdAt: new Date().toISOString()
       });
       await deleteDoc(doc(db,'deleted_users', deletedDoc.id));
-      toast('Usuário "'+name+'" restaurado! Recarregando...');
+      toast('Usuário "'+name+'" restaurado com sucesso! No primeiro acesso ele criará nova senha.');
       resetAdmForm();
-      setTimeout(()=>{ _adminOp=false; window.location.reload(); }, 1500);
     } else {
-      _adminOp = false;
-      toast('O e-mail "'+email+'" já existe na autenticação. Acesse Firebase Console → Authentication → Usuários → exclua esse e-mail → tente novamente.');
+      // No deleted record — email exists in Auth from external source
+      // Use auth2 to sign in and get the uid, then create Firestore doc
+      toast('Restaurando acesso de "'+name+'"... aguarde.');
+      try{
+        const tempPass2 = 'Vap@'+Math.random().toString(36).slice(2,8).toUpperCase()+'1!';
+        // Try creating via auth2 first — if it fails email truly already exists
+        const c2 = await createUserWithEmailAndPassword(auth2, email, tempPass2);
+        const uid2 = c2.user.uid;
+        await signOut(auth2);
+        await setDoc(doc(db,'users', uid2),{
+          name, email, role, meta,
+          firstLogin: true,
+          createdAt: new Date().toISOString()
+        });
+        toast('Usuário "'+name+'" cadastrado com sucesso!');
+        resetAdmForm();
+      } catch(e2){
+        toast('Não foi possível cadastrar "'+email+'". Acesse Firebase Console → Authentication → Usuários → exclua esse e-mail → tente novamente.');
+      }
     }
   } catch(err){
-    _adminOp = false;
-    toast('Erro ao recuperar usuário: '+err.message);
+    toast('Erro: '+err.message);
   }
 }
 
