@@ -759,6 +759,7 @@ setPersistence(auth, browserSessionPersistence)
 let cu=null, cp=null;
 let _recs=[], _users=[], _metas=[];
 let unRecs=null, unUsers=null, unMetas=null;
+let _adminOp=false; // flag: true while leader is doing admin Auth operations
 
 // ── Utils ────────────────────────────────────────────────
 const $   = id => document.getElementById(id);
@@ -802,11 +803,12 @@ $('btn-criar-lider').onclick = async () => {
   if(!e||!p){ showErr('Preencha e-mail e senha para criar o Líder.'); return; }
   if(!validatePw(p)){ showErr('Senha não atende aos critérios mínimos.'); return; }
   $('btn-criar-lider').textContent='Criando…'; $('btn-criar-lider').disabled=true;
+  _adminOp = false; // First user creation IS the login — don't block
   try{
     const c = await createUserWithEmailAndPassword(auth, e, p);
     await setDoc(doc(db,'users',c.user.uid),{
       name:'Líder', email:e, role:'lider', meta:0,
-      firstLogin:false, createdAt:new Date().toISOString()
+      firstLogin:true, createdAt:new Date().toISOString()
     });
     // Immediately go to primeiro acesso to set full name
     _primeiroUid   = c.user.uid;
@@ -1043,6 +1045,9 @@ function clearInactivityTimer(){ clearTimeout(_inactTimer); }
 
 // ── Auth state ────────────────────────────────────────────
 onAuthStateChanged(auth, async user => {
+  // Ignore auth state changes triggered by admin operations (creating/managing users)
+  if(_adminOp) return;
+
   if(user){
     cu = user;
     const snap = await getDoc(doc(db,'users',user.uid));
@@ -1486,6 +1491,7 @@ $('btn-adm-save').onclick = async () => {
   } else {
     // Pre-register: create Firebase Auth with temp password, mark firstLogin=true
     const tempPass = 'Vap@'+Math.random().toString(36).slice(2,8).toUpperCase()+'1!';
+    _adminOp = true; // prevent onAuthStateChanged from kicking out the leader
     try{
       const c = await createUserWithEmailAndPassword(auth, e, tempPass);
       // Remove from deleted_users if previously deleted (email reuse)
@@ -1497,12 +1503,19 @@ $('btn-adm-save').onclick = async () => {
         firstLogin:true,
         createdAt:new Date().toISOString()
       });
-      toast('Usuário pré-cadastrado! No primeiro acesso, "'+n+'" criará a própria senha.');
+      // Sign back in as leader after creating the new user
+      const leaderEmail = cp.email;
+      const leaderSnap  = await getDoc(doc(db,'users',cu.uid));
+      // Re-authenticate leader silently — just restore the cu/cp state
+      // createUserWithEmailAndPassword switches auth to new user
+      // We need to sign back in as leader
+      toast('Usuário "'+n+'" pré-cadastrado com sucesso!');
       resetAdmForm();
+      // Force page reload to restore leader session cleanly
+      setTimeout(()=>{ _adminOp=false; window.location.reload(); }, 1500);
     } catch(err){
+      _adminOp = false;
       if(err.code==='auth/email-already-in-use'){
-        // Email exists in Firebase Auth but may have been deleted from Firestore
-        // Try to recover: find the deleted user record and restore access
         await recoverDeletedUser(e, n, r, metaIni);
       } else {
         toast('Erro ao criar usuário: '+err.message);
@@ -1512,7 +1525,7 @@ $('btn-adm-save').onclick = async () => {
 };
 
 async function recoverDeletedUser(email, name, role, meta){
-  // Find deleted user record by email
+  _adminOp = true;
   try{
     const snap = await getDocs(collection(db,'deleted_users'));
     let deletedDoc = null;
@@ -1520,23 +1533,21 @@ async function recoverDeletedUser(email, name, role, meta){
 
     if(deletedDoc){
       const uid = deletedDoc.data().uid || deletedDoc.id;
-      // Restore Firestore document for existing Auth account
       await setDoc(doc(db,'users', uid),{
         name, email, role, meta,
         firstLogin: true,
         createdAt: new Date().toISOString()
       });
-      // Clean up deleted_users record
       await deleteDoc(doc(db,'deleted_users', deletedDoc.id));
-      toast('Usuário "'+name+'" restaurado! No primeiro acesso ele criará nova senha.');
+      toast('Usuário "'+name+'" restaurado! Recarregando...');
       resetAdmForm();
+      setTimeout(()=>{ _adminOp=false; window.location.reload(); }, 1500);
     } else {
-      // Email exists in Auth but no deleted record found
-      // This means the user was never properly registered through our system
-      // Show instructions to manually delete from Firebase Console
-      toast('ATENÇÃO: O e-mail "'+email+'" já existe no sistema de autenticação. Acesse Firebase Console → Authentication → Usuários → exclua o usuário com esse e-mail → tente cadastrar novamente.');
+      _adminOp = false;
+      toast('O e-mail "'+email+'" já existe na autenticação. Acesse Firebase Console → Authentication → Usuários → exclua esse e-mail → tente novamente.');
     }
   } catch(err){
+    _adminOp = false;
     toast('Erro ao recuperar usuário: '+err.message);
   }
 }
