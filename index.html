@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
@@ -961,9 +961,9 @@ $('btn-forgot').onclick = async ()=>{
       handleCodeInApp: false
     });
     // Show success with the required warning message
-    showOk('AVISO: Seu aplicativo AgoraVAP! está solicitando a alteração de sua senha!
-
-Um link foi enviado para ' + e + '. Verifique sua caixa de entrada e a pasta de spam. Clique no link para criar sua nova senha.');
+    showOk('AVISO: Seu aplicativo AgoraVAP! está solicitando a alteração de sua senha! ' +
+      'Um link foi enviado para ' + e + '. Verifique sua caixa de entrada e a pasta de spam. ' +
+      'Clique no link recebido para criar sua nova senha.');
     setTimeout(()=>showForm('form-login'), 7000);
   } catch(err){
     console.error('Reset error:', err.code);
@@ -1515,9 +1515,7 @@ function editUser(uid){
 async function delUser(uid){
   const u = _users.find(x=>x.id===uid);
   if(!u){ toast('Usuário não encontrado.'); return; }
-  confirm2(`Remover "${u.name}"?
-
-Os registros de vendas serão mantidos. O e-mail "${u.email}" poderá ser reutilizado para novo cadastro.`, async ()=>{
+  confirm2('Remover "' + u.name + '"? Os registros serão mantidos. O e-mail "' + u.email + '" poderá ser reutilizado para novo cadastro.', async ()=>{
     try{
       // 1. Delete Firestore user document
       await deleteDoc(doc(db,'users',uid));
