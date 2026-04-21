@@ -1501,13 +1501,45 @@ $('btn-adm-save').onclick = async () => {
       resetAdmForm();
     } catch(err){
       if(err.code==='auth/email-already-in-use'){
-        toast('E-mail já cadastrado em outro usuário ativo. Use outro e-mail ou remova o usuário anterior.');
+        // Email exists in Firebase Auth but may have been deleted from Firestore
+        // Try to recover: find the deleted user record and restore access
+        await recoverDeletedUser(e, n, r, metaIni);
       } else {
         toast('Erro ao criar usuário: '+err.message);
       }
     }
   }
 };
+
+async function recoverDeletedUser(email, name, role, meta){
+  // Find deleted user record by email
+  try{
+    const snap = await getDocs(collection(db,'deleted_users'));
+    let deletedDoc = null;
+    snap.forEach(d=>{ if(d.data().email===email) deletedDoc=d; });
+
+    if(deletedDoc){
+      const uid = deletedDoc.data().uid || deletedDoc.id;
+      // Restore Firestore document for existing Auth account
+      await setDoc(doc(db,'users', uid),{
+        name, email, role, meta,
+        firstLogin: true,
+        createdAt: new Date().toISOString()
+      });
+      // Clean up deleted_users record
+      await deleteDoc(doc(db,'deleted_users', deletedDoc.id));
+      toast('Usuário "'+name+'" restaurado! No primeiro acesso ele criará nova senha.');
+      resetAdmForm();
+    } else {
+      // Email exists in Auth but no deleted record found
+      // This means the user was never properly registered through our system
+      // Show instructions to manually delete from Firebase Console
+      toast('ATENÇÃO: O e-mail "'+email+'" já existe no sistema de autenticação. Acesse Firebase Console → Authentication → Usuários → exclua o usuário com esse e-mail → tente cadastrar novamente.');
+    }
+  } catch(err){
+    toast('Erro ao recuperar usuário: '+err.message);
+  }
+}
 
 function resetAdmForm(){
   ['adm-nome','adm-email','adm-senha','adm-uid'].forEach(id=>$(id).value='');
@@ -1551,20 +1583,20 @@ function editUser(uid){
 async function delUser(uid){
   const u = _users.find(x=>x.id===uid);
   if(!u){ toast('Usuário não encontrado.'); return; }
-  confirm2('Remover "' + u.name + '"? Os registros serão mantidos. O e-mail "' + u.email + '" poderá ser reutilizado para novo cadastro.', async ()=>{
+  confirm2('Remover "' + u.name + '"? Os registros serão mantidos. O e-mail poderá ser reutilizado.', async ()=>{
     try{
-      // 1. Delete Firestore user document
-      await deleteDoc(doc(db,'users',uid));
-      // 2. Add email to "freed emails" list so it can be reused
+      // Save uid and email to deleted_users BEFORE deleting the doc
+      // This allows the email to be reused in future registrations
       await setDoc(doc(db,'deleted_users', uid),{
+        uid: uid,
         email: u.email,
         name: u.name,
         deletedAt: new Date().toISOString(),
         deletedBy: cu.uid
       });
-      // 3. Mark in a separate collection so login is blocked
-      // Firebase Auth account remains but access is denied via Firestore check
-      toast(`Usuário "${u.name}" removido. O e-mail pode ser reutilizado para novo cadastro.`);
+      // Delete Firestore user document
+      await deleteDoc(doc(db,'users',uid));
+      toast('"' + u.name + '" removido. O e-mail pode ser reutilizado.');
     } catch(err){
       toast('Erro ao remover: ' + err.message);
     }
