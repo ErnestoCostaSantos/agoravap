@@ -415,41 +415,56 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     <div class="panel active" id="panel-lancar">
       <div id="metrics-dia"></div>
 
-      <!-- Contatos por Origem -->
+      <!-- Seletor de data para lançar / editar -->
+      <div class="fcard" style="padding:.75rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div class="field" style="margin:0;flex:1;min-width:160px">
+          <label>Data do lançamento</label>
+          <input type="date" id="lancar-data" style="width:100%"/>
+        </div>
+        <div style="font-size:.78rem;color:var(--gray);margin-top:18px">
+          Editar lançamento anterior? Selecione a data acima.
+        </div>
+      </div>
+
+      <!-- Contatos Efetivos do Dia -->
       <div class="fcard">
-        <div class="fcard-title"><span class="bar" style="background:#E53E3E"></span>Contatos do Dia por Origem</div>
+        <div class="fcard-title"><span class="bar" style="background:#E53E3E"></span>Contatos Efetivos do Dia</div>
         <div class="fgrid fg2">
-          <div class="field"><label>Interno na Carteira</label><input type="number" min="0" id="ct-interno" placeholder="0"/></div>
-          <div class="field"><label>Novo Receptivo</label><input type="number" min="0" id="ct-receptivo" placeholder="0"/></div>
+          <div class="field"><label>Internos na Carteira</label><input type="number" min="0" id="ct-carteira" placeholder="0"/></div>
+          <div class="field"><label>Internos de Prospecção</label><input type="number" min="0" id="ct-prospint" placeholder="0"/></div>
         </div>
         <div class="fgrid fg2">
-          <div class="field"><label>Visita Clientes Ativos</label><input type="number" min="0" id="ct-ativos" placeholder="0"/></div>
-          <div class="field"><label>Visita Clientes Inativos</label><input type="number" min="0" id="ct-inativos" placeholder="0"/></div>
+          <div class="field"><label>Visitas a Ativos</label><input type="number" min="0" id="ct-ativos" placeholder="0"/></div>
+          <div class="field"><label>Visitas a Inativos</label><input type="number" min="0" id="ct-inativos" placeholder="0"/></div>
         </div>
-        <div class="fgrid fg2">
-          <div class="field"><label>Prospecção</label><input type="number" min="0" id="ct-prospeccao" placeholder="0"/></div>
-          <div class="field"><label>Outras</label><input type="number" min="0" id="ct-outras" placeholder="0"/></div>
+        <div class="fgrid fg3">
+          <div class="field"><label>Prospecções Externas</label><input type="number" min="0" id="ct-prospext" placeholder="0"/></div>
+          <div class="field"><label>Outras Externas</label><input type="number" min="0" id="ct-outras" placeholder="0"/></div>
+          <div class="field"><label>Contatos Inválidos</label><input type="number" min="0" id="ct-invalidos" placeholder="0"/></div>
         </div>
         <div class="ffooter"><button class="btn-save" id="btn-salvar-contatos">Registrar Contatos</button></div>
       </div>
 
-      <!-- Cotações e Pedidos -->
+      <!-- Cotações e Pedidos do Dia -->
       <div class="fcard">
         <div class="fcard-title"><span class="bar" style="background:var(--g)"></span>Cotações e Pedidos do Dia</div>
         <div class="fgrid fg2">
-          <div class="field"><label>Qtd. de Cotações (ativo + receptivo)</label><input type="number" min="0" id="cot-qtd" placeholder="0"/></div>
-          <div class="field"><label>Valor Total das Cotações (R$)</label><input type="number" min="0" step="0.01" id="cot-valor" placeholder="0,00"/></div>
+          <div class="field"><label>Qtd. de Cotações (Ativo + Receptivo)</label><input type="number" min="0" id="cot-qtd" placeholder="0"/></div>
+          <div class="field"><label>Valor Total das Cotações</label><input type="number" min="0" step="0.01" id="cot-valor" placeholder="0,00"/></div>
         </div>
         <div class="fgrid fg2">
           <div class="field"><label>Qtd. de Pedidos Fechados</label><input type="number" min="0" id="ped-qtd" placeholder="0"/></div>
-          <div class="field"><label>Valor dos Pedidos Fechados (R$)</label><input type="number" min="0" step="0.01" id="ped-valor" placeholder="0,00"/></div>
+          <div class="field"><label>Valor Total dos Pedidos Fechados</label><input type="number" min="0" step="0.01" id="ped-valor" placeholder="0,00"/></div>
         </div>
         <div class="divider"></div>
         <div class="fcard-title" style="margin-bottom:.75rem"><span class="bar" style="background:var(--r)"></span>Cotações Perdidas do Dia</div>
-        <div class="fgrid fg3">
-          <div class="field"><label>Perdas por Preço (R$)</label><input type="number" min="0" step="0.01" id="per-preco" placeholder="0,00"/></div>
-          <div class="field"><label>Perdas por Estoque (R$)</label><input type="number" min="0" step="0.01" id="per-estoque" placeholder="0,00"/></div>
-          <div class="field"><label>Perdas por Outras Causas (R$)</label><input type="number" min="0" step="0.01" id="per-outras" placeholder="0,00"/></div>
+        <div class="fgrid fg2">
+          <div class="field"><label>Perdas por Preço</label><input type="number" min="0" step="0.01" id="per-preco" placeholder="0,00"/></div>
+          <div class="field"><label>Perdas por Estoque</label><input type="number" min="0" step="0.01" id="per-estoque" placeholder="0,00"/></div>
+        </div>
+        <div class="fgrid fg2">
+          <div class="field"><label>Perdas por Outras Causas</label><input type="number" min="0" step="0.01" id="per-outras" placeholder="0,00"/></div>
+          <div class="field"><label>Valor Total de Cotações Perdidas</label><input type="number" min="0" step="0.01" id="per-total" placeholder="0,00" style="background:#FFF0F0"/></div>
         </div>
         <div class="ffooter"><button class="btn-save" id="btn-salvar-cotacoes">Registrar Cotações e Pedidos</button></div>
       </div>
@@ -1057,6 +1072,7 @@ onAuthStateChanged(auth, async user => {
     }
 
     $('hist-data').value = tod();
+    if($('lancar-data')) $('lancar-data').value = tod();
     $('meta-mes').value  = thisMes();
     initExpDates();
     startListeners();
@@ -1105,51 +1121,118 @@ function startListeners(){
 }
 
 // ── Lançar: Contatos ──────────────────────────────────────
+// ── Formatação de valores: "1000,00" sem R$ sem ponto ────────
+// Ao sair de campo de valor, formata para BR sem separador de milhar
+function fmtValInput(el){
+  const v = parseFloat(el.value.replace(',','.'));
+  if(!isNaN(v)) el.value = v.toFixed(2).replace('.',',');
+}
+// Aplica formatação em todos os campos de valor ao perder foco
+['cot-valor','ped-valor','per-preco','per-estoque','per-outras','per-total'].forEach(id=>{
+  const el = $(id); if(!el) return;
+  el.addEventListener('blur', ()=>fmtValInput(el));
+  el.setAttribute('placeholder','0,00');
+  el.setAttribute('step','0.01');
+});
+
+// ── Calcula total de perdas automaticamente ────────────────
+function calcTotalPerdas(){
+  const p = parseFloat(($('per-preco').value||'0').replace(',','.')) || 0;
+  const e = parseFloat(($('per-estoque').value||'0').replace(',','.')) || 0;
+  const o = parseFloat(($('per-outras').value||'0').replace(',','.')) || 0;
+  const t = p + e + o;
+  $('per-total').value = t > 0 ? t.toFixed(2).replace('.',',') : '';
+}
+['per-preco','per-estoque','per-outras'].forEach(id=>{
+  const el=$(id); if(!el) return;
+  el.addEventListener('input', calcTotalPerdas);
+  el.addEventListener('blur',  ()=>{ fmtValInput(el); calcTotalPerdas(); });
+});
+
+// ── Data do lançamento ────────────────────────────────────
+function getLancarData(){ return $('lancar-data').value || tod(); }
+
+// ── Busca registro existente do dia para o usuario ────────
+async function getRecDia(tipo){
+  const data = getLancarData();
+  // Busca nos registros em memória (já carregados via listener)
+  return _recs.find(r => r.uid===cu.uid && r.tipo===tipo && r.date===data) || null;
+}
+
+// ── Salvar Contatos ───────────────────────────────────────
 $('btn-salvar-contatos').onclick = async () => {
   const vals = {
-    interno:    n0($('ct-interno').value),
-    receptivo:  n0($('ct-receptivo').value),
-    ativos:     n0($('ct-ativos').value),
-    inativos:   n0($('ct-inativos').value),
-    prospeccao: n0($('ct-prospeccao').value),
-    outras:     n0($('ct-outras').value),
+    carteira:  n0($('ct-carteira').value),
+    prospint:  n0($('ct-prospint').value),
+    ativos:    n0($('ct-ativos').value),
+    inativos:  n0($('ct-inativos').value),
+    prospext:  n0($('ct-prospext').value),
+    outras:    n0($('ct-outras').value),
+    invalidos: n0($('ct-invalidos').value),
   };
   const total = Object.values(vals).reduce((a,b)=>a+b,0);
   if(total===0){ toast('Informe ao menos um contato.'); return; }
 
-  await addDoc(collection(db,'records'),{
-    uid: cu.uid, seller: cp.name, tipo: 'contatos',
-    date: tod(), ts: new Date().toISOString(), ...vals, total
-  });
-  ['ct-interno','ct-receptivo','ct-ativos','ct-inativos','ct-prospeccao','ct-outras']
-    .forEach(id=>$(id).value='');
-  toast('Contatos registrados!');
+  const data = getLancarData();
+  const existente = await getRecDia('contatos');
+
+  if(existente){
+    // Edita o registro existente do dia
+    await updateDoc(doc(db,'records',existente.id),{
+      ...vals, total, ts: new Date().toISOString()
+    });
+    toast('Contatos do dia ' + fD(data) + ' atualizados!');
+  } else {
+    // Cria novo registro
+    await addDoc(collection(db,'records'),{
+      uid: cu.uid, seller: cp.name, tipo: 'contatos',
+      date: data, ts: new Date().toISOString(), ...vals, total
+    });
+    toast('Contatos registrados!');
+  }
+  ['ct-carteira','ct-prospint','ct-ativos','ct-inativos','ct-prospext','ct-outras','ct-invalidos']
+    .forEach(id=>{ const el=$(id); if(el) el.value=''; });
 };
 
-// ── Lançar: Cotações / Pedidos ────────────────────────────
+// ── Salvar Cotações e Pedidos ─────────────────────────────
 $('btn-salvar-cotacoes').onclick = async () => {
-  const cotQtd   = n0($('cot-qtd').value);
-  const cotValor = n0($('cot-valor').value);
-  const pedQtd   = n0($('ped-qtd').value);
-  const pedValor = n0($('ped-valor').value);
-  const perPreco  = n0($('per-preco').value);
-  const perEstoque= n0($('per-estoque').value);
-  const perOutras = n0($('per-outras').value);
+  const pv = v => parseFloat(($(v).value||'0').replace(',','.')) || 0;
+  const cotQtd    = n0($('cot-qtd').value);
+  const cotValor  = pv('cot-valor');
+  const pedQtd    = n0($('ped-qtd').value);
+  const pedValor  = pv('ped-valor');
+  const perPreco  = pv('per-preco');
+  const perEstoque= pv('per-estoque');
+  const perOutras = pv('per-outras');
+  const totalPerdas = perPreco + perEstoque + perOutras;
 
   if(cotQtd===0 && cotValor===0 && pedQtd===0 && pedValor===0){
     toast('Preencha ao menos cotações ou pedidos.'); return;
   }
 
-  await addDoc(collection(db,'records'),{
+  const data = getLancarData();
+  const existente = await getRecDia('cotacoes');
+
+  const payload = {
     uid: cu.uid, seller: cp.name, tipo: 'cotacoes',
-    date: tod(), ts: new Date().toISOString(),
+    date: data, ts: new Date().toISOString(),
     cotQtd, cotValor, pedQtd, pedValor,
-    perPreco, perEstoque, perOutras,
-    totalPerdas: perPreco+perEstoque+perOutras
-  });
-  ['cot-qtd','cot-valor','ped-qtd','ped-valor','per-preco','per-estoque','per-outras']
-    .forEach(id=>$(id).value='');
-  toast('Cotações e pedidos registrados!');
+    perPreco, perEstoque, perOutras, totalPerdas
+  };
+
+  if(existente){
+    await updateDoc(doc(db,'records',existente.id), {
+      cotQtd, cotValor, pedQtd, pedValor,
+      perPreco, perEstoque, perOutras, totalPerdas,
+      ts: new Date().toISOString()
+    });
+    toast('Cotações do dia ' + fD(data) + ' atualizadas!');
+  } else {
+    await addDoc(collection(db,'records'), payload);
+    toast('Cotações e pedidos registrados!');
+  }
+  ['cot-qtd','cot-valor','ped-qtd','ped-valor','per-preco','per-estoque','per-outras','per-total']
+    .forEach(id=>{ const el=$(id); if(el) el.value=''; });
 };
 
 // ── Métricas do dia ───────────────────────────────────────
@@ -1166,9 +1249,9 @@ function renderMetricsDia(){
   const totPerdas  = cot.reduce((a,b)=>a+(b.totalPerdas||0),0);
   const conv       = totCotVal>0 ? (totPedVal/totCotVal*100).toFixed(1) : '0.0';
 
-  // Contatos por origem
-  const origens = ['interno','receptivo','ativos','inativos','prospeccao','outras'];
-  const origLabels = ['Carteira','Receptivo','At. Ativos','At. Inativos','Prospecção','Outras'];
+  // Contatos por origem — novos campos
+  const origens = ['carteira','prospint','ativos','inativos','prospext','outras','invalidos'];
+  const origLabels = ['Carteira','Prosp. Int.','At. Ativos','At. Inativos','Prosp. Ext.','Outras Ext.','Inválidos'];
   const origVals = origens.map(k=>ct.reduce((a,b)=>a+(b[k]||0),0));
   const origHtml = origens.map((k,i)=>origVals[i]>0
     ? `<span class="badge bg-blue" style="margin:2px">${origLabels[i]}: <b>${origVals[i]}</b></span>`
@@ -1281,8 +1364,8 @@ function renderDashboard(){
   const ticket= totPedQtd>0?totPedVal/totPedQtd:0;
 
   // Contatos por origem
-  const origens=['interno','receptivo','ativos','inativos','prospeccao','outras'];
-  const origLabels=['Carteira','Receptivo','At. Ativos','At. Inativos','Prospecção','Outras'];
+  const origens=['carteira','prospint','ativos','inativos','prospext','outras','invalidos'];
+  const origLabels=['Carteira','Prosp. Int.','At. Ativos','At. Inativos','Prosp. Ext.','Outras Ext.','Inválidos'];
   const origVals=origens.map(k=>cts.reduce((a,b)=>a+(b[k]||0),0));
   const origHtml=origens.map((k,i)=>origVals[i]>0
     ?`<span class="badge bg-blue" style="margin:2px">${origLabels[i]}: <b>${origVals[i]}</b></span>`:''
@@ -1666,14 +1749,14 @@ $('btn-exportar').onclick = () => {
   if(!recs.length){ toast('Nenhum dado para exportar.'); return; }
 
   const rows=[['Data','Vendedor','Tipo',
-    'Contatos Total','Carteira','Receptivo','At.Ativos','At.Inativos','Prospecção','Outras',
+    'Contatos Total','Carteira','Prosp.Int.','At.Ativos','At.Inativos','Prosp.Ext.','Outras Ext.','Inválidos',
     'Cotações Qtd','Cotações Valor','Pedidos Qtd','Pedidos Valor',
     'Perda Preço','Perda Estoque','Perda Outras','Total Perdas']];
 
   recs.forEach(r=>{
     if(r.tipo==='contatos'){
       rows.push([fD(r.date),r.seller,'Contatos',
-        r.total||0,r.interno||0,r.receptivo||0,r.ativos||0,r.inativos||0,r.prospeccao||0,r.outras||0,
+        r.total||0,r.carteira||0,r.prospint||0,r.ativos||0,r.inativos||0,r.prospext||0,r.outras||0,r.invalidos||0,
         '','','','','','','','']);
     } else {
       rows.push([fD(r.date),r.seller,'Cotações/Pedidos',
@@ -1702,6 +1785,7 @@ window.switchTab = tab => {
   if(btn) btn.classList.add('active');
   const panel = $('panel-'+tab);
   if(panel) panel.classList.add('active');
+  if(tab==='lancar'){ if($('lancar-data')) $('lancar-data').value = tod(); }
   if(tab==='historico'){ setupHistoricoListeners(); renderHistorico(); }
   if(tab==='dashboard') renderDashboard();
   if(tab==='admin')     renderUsersTable();
