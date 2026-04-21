@@ -1464,7 +1464,12 @@ $('btn-adm-save').onclick = async () => {
         firstLogin: true,
         createdAt: new Date().toISOString()
       });
-      toast('Usuario "' + n + '" cadastrado! No primeiro acesso ele criara a propria senha.');
+      // Mostra senha temporaria para o Lider repassar ao vendedor
+      toast('Usuario "' + n + '" cadastrado! Senha temporaria: ' + tempPass + ' — Repasse ao vendedor para o primeiro acesso.', 8000);
+      // Tambem mostra em alert para facil copia
+      setTimeout(()=>{
+        alert('Vendedor: ' + n + '\nE-mail: ' + e + '\nSenha temporaria: ' + tempPass + '\n\nRepasse essas informacoes ao vendedor. No primeiro acesso ele criara uma senha propria.');
+      }, 300);
       resetAdmForm();
     } catch (err) {
       if (err.code === 'auth/email-already-in-use') {
@@ -1493,7 +1498,11 @@ async function recoverDeletedUser(email, name, role, meta) {
         createdAt: new Date().toISOString()
       });
       await deleteDoc(doc(db, 'deleted_users', found.id));
-      toast('Usuario "' + name + '" restaurado! No primeiro acesso ele criara nova senha.');
+      const tempPassR = 'Vap@' + Math.random().toString(36).slice(2,8).toUpperCase() + '1!';
+      toast('Usuario "' + name + '" restaurado! Senha temporaria: ' + tempPassR, 8000);
+      setTimeout(()=>{
+        alert('Vendedor: ' + name + '\nE-mail: ' + email + '\nSenha temporaria: ' + tempPassR + '\n\nRepasse ao vendedor. No primeiro acesso ele criara uma senha propria.');
+      }, 300);
       resetAdmForm();
     } else {
       // Sem registro em deleted_users — e-mail veio de outra fonte
@@ -1506,10 +1515,11 @@ async function recoverDeletedUser(email, name, role, meta) {
 }
 
 function resetAdmForm(){
-  ['adm-nome','adm-email','adm-senha','adm-uid'].forEach(id=>$(id).value='');
-  $('adm-perfil').value='vendedor';
-  $('btn-adm-save').textContent='Cadastrar Usuário';
-  $('btn-adm-cancel').style.display='none';
+  ['adm-nome','adm-email','adm-uid'].forEach(id=>{ const el=$(id); if(el) el.value=''; });
+  const metaEl = $('adm-meta-ini'); if(metaEl) metaEl.value='';
+  const perfEl = $('adm-perfil'); if(perfEl) perfEl.value='vendedor';
+  const saveBtn = $('btn-adm-save'); if(saveBtn) saveBtn.textContent='Cadastrar Usuario';
+  const cancelBtn = $('btn-adm-cancel'); if(cancelBtn) cancelBtn.style.display='none';
 }
 $('btn-adm-cancel').onclick = resetAdmForm;
 
