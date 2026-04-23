@@ -450,21 +450,21 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="fcard-title"><span class="bar" style="background:var(--g)"></span>Cotações e Pedidos do Dia</div>
         <div class="fgrid fg2">
           <div class="field"><label>Qtd. de Cotações (Ativo + Receptivo)</label><input type="number" min="0" id="cot-qtd" placeholder="0"/></div>
-          <div class="field"><label>Valor Total das Cotações</label><input type="number" min="0" step="0.01" id="cot-valor" placeholder="0,00"/></div>
+          <div class="field"><label>Valor Total das Cotações (R$)</label><input type="number" min="0" step="0.01" id="cot-valor" placeholder="0,00"/></div>
         </div>
         <div class="fgrid fg2">
           <div class="field"><label>Qtd. de Pedidos Fechados</label><input type="number" min="0" id="ped-qtd" placeholder="0"/></div>
-          <div class="field"><label>Valor Total dos Pedidos Fechados</label><input type="number" min="0" step="0.01" id="ped-valor" placeholder="0,00"/></div>
+          <div class="field"><label>Valor Total dos Pedidos Fechados (R$)</label><input type="number" min="0" step="0.01" id="ped-valor" placeholder="0,00"/></div>
         </div>
         <div class="divider"></div>
         <div class="fcard-title" style="margin-bottom:.75rem"><span class="bar" style="background:var(--r)"></span>Cotações Perdidas do Dia</div>
         <div class="fgrid fg2">
-          <div class="field"><label>Perdas por Preço</label><input type="number" min="0" step="0.01" id="per-preco" placeholder="0,00"/></div>
-          <div class="field"><label>Perdas por Estoque</label><input type="number" min="0" step="0.01" id="per-estoque" placeholder="0,00"/></div>
+          <div class="field"><label>Perdas por Preço (R$)</label><input type="number" min="0" step="0.01" id="per-preco" placeholder="0,00"/></div>
+          <div class="field"><label>Perdas por Estoque (R$)</label><input type="number" min="0" step="0.01" id="per-estoque" placeholder="0,00"/></div>
         </div>
         <div class="fgrid fg2">
-          <div class="field"><label>Perdas por Outras Causas</label><input type="number" min="0" step="0.01" id="per-outras" placeholder="0,00"/></div>
-          <div class="field"><label>Valor Total de Cotações Perdidas</label><input type="number" min="0" step="0.01" id="per-total" placeholder="0,00" style="background:#FFF0F0"/></div>
+          <div class="field"><label>Perdas por Outras Causas (R$)</label><input type="number" min="0" step="0.01" id="per-outras" placeholder="0,00"/></div>
+          <div class="field"><label>Meta Mensal (R$)</label><input type="text" id="meta-mensal-display" placeholder="–" readonly style="background:#F0F4FF;color:#1B4F72;font-weight:700;cursor:default"/></div>
         </div>
         <div class="ffooter"><button class="btn-save" id="btn-salvar-cotacoes">Registrar Cotações e Pedidos</button></div>
       </div>
@@ -497,13 +497,34 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
     <!-- ════ ADMINISTRATIVO ═══════════════════════════════════ -->
     <div class="panel" id="panel-admin">
-      <!-- Banner download mês anterior — aparece no dia 1 de cada mês -->
-      <div id="banner-mes-anterior" style="display:none;background:#E8F5E9;border:1px solid #2E7D32;border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-        <div>
-          <div style="font-weight:700;color:#1B5E20;font-size:.9rem">Novo mês iniciado!</div>
-          <div style="font-size:.8rem;color:#2E7D32;margin-top:2px">Deseja fazer o download dos dados do mês anterior?</div>
+      <!-- Banner início de mês — aparece 1x por dia nos primeiros dias do mês -->
+      <div id="banner-mes-anterior" style="display:none;background:#E8F5E9;border:1px solid #2E7D32;border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem">
+
+        <!-- Etapa 1: Download -->
+        <div id="banner-etapa1">
+          <div style="font-weight:700;color:#1B5E20;font-size:.95rem;margin-bottom:.4rem">Novo mês iniciado!</div>
+          <div style="font-size:.85rem;color:#2E7D32;margin-bottom:.9rem">Quer fazer o download dos históricos do mês passado?</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-save" id="btn-download-mes" style="background:#2E7D32">Sim, baixar histórico</button>
+            <button class="btn-sec" id="btn-skip-download" style="border-color:#2E7D32;color:#2E7D32">Não, pular</button>
+          </div>
         </div>
-        <button class="btn-save" id="btn-download-mes" style="background:#2E7D32;white-space:nowrap">Baixar histórico do mês anterior</button>
+
+        <!-- Etapa 2: Confirmação backup (aparece após download ou pular) -->
+        <div id="banner-etapa2" style="display:none">
+          <div style="font-weight:700;color:#1B5E20;font-size:.95rem;margin-bottom:.4rem">Já fez backup dos históricos dos vendedores?</div>
+          <div style="font-size:.85rem;color:#2E7D32;margin-bottom:.9rem">Confirme para liberar os lançamentos do novo mês.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-save" id="btn-confirmar-backup" style="background:#2E7D32">Sim, backup feito!</button>
+            <button class="btn-sec" id="btn-cancelar-backup" style="border-color:#2E7D32;color:#2E7D32">Ainda não</button>
+          </div>
+        </div>
+
+        <!-- Etapa 3: Concluído -->
+        <div id="banner-etapa3" style="display:none">
+          <div style="font-weight:700;color:#1B5E20;font-size:.95rem">Tudo pronto para o novo mês!</div>
+          <div style="font-size:.85rem;color:#2E7D32;margin-top:.3rem">Lançamentos liberados. Bom trabalho!</div>
+        </div>
       </div>
       <div class="nav" style="margin-bottom:1rem;border-radius:var(--radius);overflow:hidden">
         <div class="nav-tab active" data-adm="vendedores">Profissionais</div>
@@ -525,7 +546,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             </div>
             <div class="field"><label>Meta mensal (R$)</label><input type="number" id="adm-meta-ini" placeholder="0,00" min="0"/></div>
           </div>
-          <div style="background:#FFF9C4;border:1px solid #F9A825;border-radius:6px;padding:8px 12px;font-size:.78rem;color:#7B4F00;margin-bottom:.5rem">
+          <div id="aviso-edicao" style="display:none;background:#E3F2FD;border:1px solid #1565C0;border-radius:6px;padding:8px 12px;font-size:.82rem;color:#0D47A1;font-weight:600;margin-bottom:.5rem"></div>
+          <div id="aviso-cadastro" style="background:#FFF9C4;border:1px solid #F9A825;border-radius:6px;padding:8px 12px;font-size:.78rem;color:#7B4F00;margin-bottom:.5rem">
             A senha será criada pelo próprio usuário no primeiro acesso. Um e-mail temporário será gerado automaticamente.
           </div>
           <input type="hidden" id="adm-uid"/>
@@ -537,7 +559,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="chart-card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
             <div class="chart-title" style="margin:0">Profissionais cadastrados</div>
-            <button class="btn-danger" onclick="resetAllLogins()" style="font-size:.75rem;padding:6px 12px">Redefinir todos os acessos</button>
+            <button class="btn-danger" disabled title="Funcao temporariamente inativa" style="font-size:.75rem;padding:6px 12px;opacity:.4;cursor:not-allowed">Redefinir todos os acessos</button>
           </div>
           <div id="users-table"><div class="loading"><div class="spin"></div></div></div>
         </div>
@@ -999,14 +1021,26 @@ $('go-back-login').onclick = () => showForm('form-login');
 $('btn-forgot').onclick = async () => {
   const e = $('fg-email').value.trim();
   if (!e) { showErr('Informe seu e-mail.'); return; }
-  $('btn-forgot').textContent = 'Enviando...'; $('btn-forgot').disabled = true;
+  $('btn-forgot').textContent = 'Verificando...'; $('btn-forgot').disabled = true;
   try {
+    // Verifica se o e-mail está cadastrado pelo Líder no Firestore
+    // antes de tentar enviar o link de recuperação
+    const usersSnap = await getDocs(collection(db, 'users'));
+    const cadastrado = usersSnap.docs.some(d => d.data().email === e);
+
+    if (!cadastrado) {
+      showErr('Usuário não cadastrado. Fale com seu Líder.');
+      return;
+    }
+
+    // E-mail cadastrado — envia link de recuperação
     await sendPasswordResetEmail(auth, e, { url: window.location.origin });
-    showOk('AVISO: Seu aplicativo AgoraVAP! esta solicitando a alteracao de sua senha! Link enviado para ' + e + '. Verifique sua caixa de entrada e spam.');
+    showOk('Link de recuperação enviado para ' + e + '. Verifique sua caixa de entrada e spam.');
     setTimeout(() => showForm('form-login'), 6000);
   } catch (err) {
     showErr(err.code === 'auth/user-not-found' || err.code === 'auth/invalid-email'
-      ? 'E-mail nao encontrado.' : 'Erro ao enviar: ' + (err.code || err.message));
+      ? 'Usuário não cadastrado. Fale com seu Líder.'
+      : 'Erro ao enviar: ' + (err.code || err.message));
   } finally {
     $('btn-forgot').textContent = 'Enviar link de recuperacao'; $('btn-forgot').disabled = false;
   }
@@ -1181,7 +1215,15 @@ function fmtValInput(el){
   if(!isNaN(v)) el.value = v.toFixed(2).replace('.',',');
 }
 // Aplica formatação em todos os campos de valor ao perder foco
-['cot-valor','ped-valor','per-preco','per-estoque','per-outras','per-total'].forEach(id=>{
+// Atualiza boxes quando data do lançamento muda
+const lancarDataEl = $('lancar-data');
+if(lancarDataEl){
+  lancarDataEl.addEventListener('change', ()=>{
+    renderMetricsDia();
+  });
+}
+
+['cot-valor','ped-valor','per-preco','per-estoque','per-outras'].forEach(id=>{
   const el = $(id); if(!el) return;
   el.addEventListener('blur', ()=>fmtValInput(el));
   el.setAttribute('placeholder','0,00');
@@ -1194,7 +1236,7 @@ function calcTotalPerdas(){
   const e = parseFloat(($('per-estoque').value||'0').replace(',','.')) || 0;
   const o = parseFloat(($('per-outras').value||'0').replace(',','.')) || 0;
   const t = p + e + o;
-  $('per-total').value = t > 0 ? t.toFixed(2).replace('.',',') : '';
+  // per-total field removed — total de perdas não exibido separadamente
 }
 ['per-preco','per-estoque','per-outras'].forEach(id=>{
   const el=$(id); if(!el) return;
@@ -1242,6 +1284,9 @@ $('btn-salvar-contatos').onclick = async () => {
       date: data, ts: new Date().toISOString(), ...vals, total
     });
     toast('Contatos registrados!');
+  renderMetricsDia();
+  // Atualiza dashboard se estiver ativo
+  if(document.querySelector('#panel-dashboard.active')) renderDashboard();
   }
   ['ct-carteira','ct-prospint','ct-ativos','ct-inativos','ct-prospext','ct-outras','ct-invalidos']
     .forEach(id=>{ const el=$(id); if(el) el.value=''; });
@@ -1280,56 +1325,83 @@ $('btn-salvar-cotacoes').onclick = async () => {
       ts: new Date().toISOString()
     });
     toast('Cotações do dia ' + fD(data) + ' atualizadas!');
+  renderMetricsDia();
+  if(document.querySelector('#panel-dashboard.active')) renderDashboard();
   } else {
     await addDoc(collection(db,'records'), payload);
     toast('Cotações e pedidos registrados!');
+  renderMetricsDia();
+  if(document.querySelector('#panel-dashboard.active')) renderDashboard();
   }
-  ['cot-qtd','cot-valor','ped-qtd','ped-valor','per-preco','per-estoque','per-outras','per-total']
+  ['cot-qtd','cot-valor','ped-qtd','ped-valor','per-preco','per-estoque','per-outras']
     .forEach(id=>{ const el=$(id); if(el) el.value=''; });
 };
 
 // ── Métricas do dia ───────────────────────────────────────
 function renderMetricsDia(){
-  const t=tod(), isLider=cp?.role==='lider';
-  const dr=_recs.filter(r=>r.date===t&&(isLider||r.uid===cu.uid));
-  const ct=dr.filter(r=>r.tipo==='contatos');
-  const cot=dr.filter(r=>r.tipo==='cotacoes');
+  // Usa a data selecionada no seletor — pode ser retroativa
+  const t = getLancarData ? getLancarData() : tod();
+  const isHoje = t === tod();
+  const isLider = cp?.role === 'lider';
+  const dr = _recs.filter(r => r.date === t && (isLider || r.uid === cu.uid));
+  const ct  = dr.filter(r => r.tipo === 'contatos');
+  const cot = dr.filter(r => r.tipo === 'cotacoes');
 
-  const totContatos= ct.reduce((a,b)=>a+(b.total||0),0);
-  const totCotVal  = cot.reduce((a,b)=>a+(b.cotValor||0),0);
-  const totPedVal  = cot.reduce((a,b)=>a+(b.pedValor||0),0);
-  const totPedQtd  = cot.reduce((a,b)=>a+(b.pedQtd||0),0);
-  const totPerdas  = cot.reduce((a,b)=>a+(b.totalPerdas||0),0);
-  const conv       = totCotVal>0 ? (totPedVal/totCotVal*100).toFixed(1) : '0.0';
+  const totContatos = ct.reduce((a,b)=>a+(b.total||0),0);
+  const totCotVal   = cot.reduce((a,b)=>a+(b.cotValor||0),0);
+  const totPedVal   = cot.reduce((a,b)=>a+(b.pedValor||0),0);
+  const totPedQtd   = cot.reduce((a,b)=>a+(b.pedQtd||0),0);
+  const totPerdas   = cot.reduce((a,b)=>a+(b.totalPerdas||0),0);
+  const conv        = totCotVal > 0 ? (totPedVal/totCotVal*100).toFixed(1) : '0.0';
 
-  // Contatos por origem — novos campos
-  const origens = ['carteira','prospint','ativos','inativos','prospext','outras','invalidos'];
+  // Meta mensal do profissional
+  const mes = t.slice(0,7);
+  const metaVal = (() => {
+    if(!cu) return 0;
+    const m = _metas.find(x => x.uid === cu.uid && x.mes === mes);
+    if(m) return m.valor;
+    const u = _users.find(x => x.id === cu.uid);
+    return u?.meta || 0;
+  })();
+
+  // Exibe meta no campo readonly do formulário
+  const metaEl = $('meta-mensal-display');
+  if(metaEl) metaEl.value = metaVal > 0 ? fC(metaVal) : '–';
+
+  // Contatos por origem
+  const origens    = ['carteira','prospint','ativos','inativos','prospext','outras','invalidos'];
   const origLabels = ['Carteira','Prosp. Int.','At. Ativos','At. Inativos','Prosp. Ext.','Outras Ext.','Inválidos'];
-  const origVals = origens.map(k=>ct.reduce((a,b)=>a+(b[k]||0),0));
-  const origHtml = origens.map((k,i)=>origVals[i]>0
+  const origVals   = origens.map(k => ct.reduce((a,b) => a+(b[k]||0), 0));
+  const origHtml   = origens.map((k,i) => origVals[i] > 0
     ? `<span class="badge bg-blue" style="margin:2px">${origLabels[i]}: <b>${origVals[i]}</b></span>`
     : ''
   ).join('');
 
-  $('metrics-dia').innerHTML=`
+  // Label do box muda conforme a data
+  const labelData = isHoje ? 'Contatos hoje' : 'Contatos em ' + fD(t);
+  const labelPed  = isHoje ? 'Pedidos fechados' : 'Pedidos em ' + fD(t);
+  const labelCot  = isHoje ? 'Cotações enviadas' : 'Cotações em ' + fD(t);
+  const labelPerd = isHoje ? 'Perdas hoje' : 'Perdas em ' + fD(t);
+
+  $('metrics-dia').innerHTML = `
     <div class="mgrid" style="margin-bottom:1rem">
       <div class="mcard blue">
-        <div class="mcard-label">Contatos hoje</div>
+        <div class="mcard-label">${labelData}</div>
         <div class="mcard-val" style="color:#C53030">${totContatos}</div>
         <div class="mcard-sub" style="margin-top:6px;line-height:1.6">${origHtml||'–'}</div>
       </div>
       <div class="mcard green">
-        <div class="mcard-label">Pedidos fechados</div>
+        <div class="mcard-label">${labelPed}</div>
         <div class="mcard-val" style="color:var(--g)">${totPedQtd}</div>
         <div class="mcard-sub">${fC(totPedVal)}</div>
       </div>
       <div class="mcard amber">
-        <div class="mcard-label">Cotações enviadas</div>
+        <div class="mcard-label">${labelCot}</div>
         <div class="mcard-val" style="color:var(--a)">${fC(totCotVal)}</div>
         <div class="mcard-sub">Conv.: ${conv}%</div>
       </div>
       <div class="mcard red">
-        <div class="mcard-label">Perdas hoje</div>
+        <div class="mcard-label">${labelPerd}</div>
         <div class="mcard-val" style="color:var(--r)">${fC(totPerdas)}</div>
         <div class="mcard-sub">Preço+Est.+Outras</div>
       </div>
@@ -1606,8 +1678,19 @@ $('btn-adm-save').onclick = async () => {
   if(!validateNome(n)){ toast('Nome deve ter nome e sobrenome (mín. 2 caracteres cada).'); return; }
 
   if(uid){
-    await updateDoc(doc(db,'users',uid),{name:n,role:r,updatedAt:new Date().toISOString()});
-    toast('Usuário atualizado!');
+    // Modo editar: atualiza apenas nome e meta
+    if(!validateNome(n)){ toast('Informe nome e sobrenome (min. 2 caracteres cada).'); return; }
+    await updateDoc(doc(db,'users',uid),{name:n, updatedAt:new Date().toISOString()});
+    // Salva meta do mes atual se informada
+    if(metaIni > 0){
+      const mesAtual = thisMes();
+      await setDoc(doc(db,'metas',uid+'_'+mesAtual),{
+        uid, mes:mesAtual, valor:metaIni,
+        sellerName:n, updatedAt:new Date().toISOString()
+      });
+      await updateDoc(doc(db,'users',uid),{meta:metaIni});
+    }
+    toast('Profissional atualizado!');
     resetAdmForm();
   } else {
     // Cria usuario via auth2 (instancia secundaria)
@@ -1686,6 +1769,13 @@ function resetAdmForm(){
   const perfEl = $('adm-perfil'); if(perfEl) perfEl.value='vendedor';
   const saveBtn = $('btn-adm-save'); if(saveBtn) saveBtn.textContent='Cadastrar Profissional';
   const cancelBtn = $('btn-adm-cancel'); if(cancelBtn) cancelBtn.style.display='none';
+  // Restaura campos que foram escondidos no modo editar
+  const emailWrap = $('adm-email')?.closest('.field');
+  const perfilWrap = $('adm-perfil')?.closest('.field');
+  if(emailWrap) emailWrap.style.display='';
+  if(perfilWrap) perfilWrap.style.display='';
+  const avisoEd = $('aviso-edicao'); if(avisoEd){ avisoEd.style.display='none'; avisoEd.textContent=''; }
+  const avisoC = $('aviso-cadastro'); if(avisoC) avisoC.style.display='';
 }
 $('btn-adm-cancel').onclick = resetAdmForm;
 
@@ -1710,14 +1800,31 @@ function renderUsersTable(){
 
 function editUser(uid){
   const u=_users.find(x=>x.id===uid); if(!u) return;
-  $('adm-nome').value=u.name;
-  $('adm-email').value=u.email;
-  $('adm-senha').value='';
-  $('adm-perfil').value=u.role;
-  $('adm-uid').value=uid;
-  $('btn-adm-save').textContent='Salvar Alteracoes';
-  $('btn-adm-cancel').style.display='block';
+  // Modo editar: mostra apenas nome e meta
+  $('adm-nome').value = u.name;
+  $('adm-uid').value  = uid;
+  // Pre-preenche a meta atual do usuario
+  const mesMeta = thisMes();
+  const metaAtual = _metas.find(m=>m.uid===uid&&m.mes===mesMeta)?.valor || u.meta || 0;
+  const metaEl = $('adm-meta-ini');
+  if(metaEl) metaEl.value = metaAtual > 0 ? metaAtual : '';
+  // Esconde campos que nao devem ser editados
+  const emailWrap = $('adm-email')?.closest('.field');
+  const perfilWrap = $('adm-perfil')?.closest('.field');
+  const emailGrid = $('adm-email')?.closest('.fgrid');
+  if(emailWrap) emailWrap.style.display='none';
+  if(perfilWrap) perfilWrap.style.display='none';
+  // Aviso sobre o que esta sendo editado
+  const avisoEl = document.getElementById('aviso-edicao');
+  if(avisoEl){
+    avisoEl.textContent = 'Editando: ' + u.name + ' (' + (u.role==='lider'?'Lider':'Vendedor') + ')';
+    avisoEl.style.display='block';
+  }
+  $('btn-adm-save').textContent = 'Salvar Alteracoes';
+  $('btn-adm-cancel').style.display = 'block';
   document.querySelector('[data-adm="vendedores"]').click();
+  // Scroll para o form
+  $('adm-nome')?.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 async function delUser(uid) {
@@ -1795,12 +1902,14 @@ function renderMetasTable(){
 
 // ── Admin: Selects ────────────────────────────────────────
 function populateSelects(){
-  const vends=_users.filter(u=>u.role==='vendedor');
+  // Para metas: todos os usuarios (lider + vendedor)
+  // Para historico/exportar: todos os usuarios
+  const todos = [..._users].sort((a,b)=>a.name.localeCompare(b.name));
   ['meta-uid','hist-vendedor','exp-vendedor'].forEach(id=>{
     const sel=$(id); if(!sel) return;
     const cur=sel.value;
-    const opt0=id==='hist-vendedor'||id==='exp-vendedor'?'<option value="">Todos</option>':'<option value="">Selecione…</option>';
-    sel.innerHTML=opt0+vends.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+    const opt0=id==='hist-vendedor'||id==='exp-vendedor'?'<option value="">Todos</option>':'<option value="">Selecione...</option>';
+    sel.innerHTML=opt0+todos.map(u=>`<option value="${u.id}">${u.name}${u.role==='lider'?' (Lider)':''}</option>`).join('');
     if(cur) sel.value=cur;
   });
 }
@@ -1863,21 +1972,33 @@ function getMesAnterior(){
 }
 
 function checkBannerMesAnterior(){
-  // Mostra banner apenas no dia 1 de cada mês para o Líder
   if(cp?.role !== 'lider') return;
   const hoje = tod();
   const diaDoMes = new Date().getDate();
-  const bannerKey = 'vap_banner_' + hoje.slice(0,7); // ex: vap_banner_2026-04
-  const jaDismissed = localStorage.getItem(bannerKey);
+  // Aparece apenas no dia 1 do mes e apenas uma vez por dia
+  const bannerKey = 'vap_banner_dia_' + hoje; // ex: vap_banner_dia_2026-05-01
+  const jaViu = localStorage.getItem(bannerKey);
   const banner = $('banner-mes-anterior');
   if(!banner) return;
-  if(diaDoMes === 1 && !jaDismissed){
-    banner.style.display = 'flex';
+  if(diaDoMes === 1 && !jaViu){
+    banner.style.display = 'block';
+    // Mostra etapa 1, esconde demais
+    $('banner-etapa1').style.display = 'block';
+    $('banner-etapa2').style.display = 'none';
+    $('banner-etapa3').style.display = 'none';
+    localStorage.setItem(bannerKey, '1'); // marca como visto hoje
   } else {
     banner.style.display = 'none';
   }
 }
 
+// ── Etapa 1: Pular download ───────────────────────────────
+$('btn-skip-download') && ($('btn-skip-download').onclick = () => {
+  $('banner-etapa1').style.display = 'none';
+  $('banner-etapa2').style.display = 'block';
+});
+
+// ── Etapa 1: Download ─────────────────────────────────────
 $('btn-download-mes') && ($('btn-download-mes').onclick = () => {
   const mesAnt = getMesAnterior();
   const bannerKey = 'vap_banner_' + new Date().toISOString().slice(0,7);
@@ -1927,10 +2048,24 @@ $('btn-download-mes') && ($('btn-download-mes').onclick = () => {
   a.click();
   URL.revokeObjectURL(url);
 
-  // Dismiss banner após download
-  localStorage.setItem(bannerKey, '1');
+  // Apos download: mostra etapa 2
+  toast('Historico de ' + mesAnt + ' exportado!');
+  $('banner-etapa1').style.display = 'none';
+  $('banner-etapa2').style.display = 'block';
+});
+
+// ── Etapa 2: Confirmar backup ─────────────────────────────
+$('btn-confirmar-backup') && ($('btn-confirmar-backup').onclick = () => {
+  $('banner-etapa2').style.display = 'none';
+  $('banner-etapa3').style.display = 'block';
+  setTimeout(() => { $('banner-mes-anterior').style.display = 'none'; }, 3000);
+  toast('Otimo! Tudo pronto para o novo mes!');
+});
+
+// ── Etapa 2: Ainda nao fez backup ─────────────────────────
+$('btn-cancelar-backup') && ($('btn-cancelar-backup').onclick = () => {
   $('banner-mes-anterior').style.display = 'none';
-  toast('Histórico de ' + mesAnt + ' exportado com sucesso!');
+  toast('Ok! Lembre de fazer o backup antes de comecar os lancamentos.');
 });
 
 ;
@@ -1945,7 +2080,10 @@ window.switchTab = tab => {
   if(btn) btn.classList.add('active');
   const panel = $('panel-'+tab);
   if(panel) panel.classList.add('active');
-  if(tab==='lancar'){ if($('lancar-data')) $('lancar-data').value = tod(); }
+  if(tab==='lancar'){
+    if($('lancar-data')) $('lancar-data').value = tod();
+    renderMetricsDia();
+  }
   if(tab==='historico'){ setupHistoricoListeners(); renderHistorico(); }
   if(tab==='dashboard') renderDashboard();
   if(tab==='admin')     { renderUsersTable(); checkBannerMesAnterior(); }
