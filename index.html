@@ -422,7 +422,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <input type="date" id="lancar-data" style="width:100%"/>
         </div>
         <div style="font-size:.78rem;color:var(--gray);margin-top:18px">
-          Editar lançamento anterior? Selecione a data acima.
+          Editar lançamento anterior? Selecione a data acima. Datas futuras não são permitidas.
         </div>
       </div>
 
@@ -1021,26 +1021,18 @@ $('go-back-login').onclick = () => showForm('form-login');
 $('btn-forgot').onclick = async () => {
   const e = $('fg-email').value.trim();
   if (!e) { showErr('Informe seu e-mail.'); return; }
-  $('btn-forgot').textContent = 'Verificando...'; $('btn-forgot').disabled = true;
+  $('btn-forgot').textContent = 'Enviando...'; $('btn-forgot').disabled = true;
   try {
-    // Verifica se o e-mail está cadastrado pelo Líder no Firestore
-    // antes de tentar enviar o link de recuperação
-    const usersSnap = await getDocs(collection(db, 'users'));
-    const cadastrado = usersSnap.docs.some(d => d.data().email === e);
-
-    if (!cadastrado) {
-      showErr('Usuário não cadastrado. Fale com seu Líder.');
-      return;
-    }
-
-    // E-mail cadastrado — envia link de recuperação
+    // Tenta enviar o link — Firebase retorna user-not-found se nao cadastrado
     await sendPasswordResetEmail(auth, e, { url: window.location.origin });
-    showOk('Link de recuperação enviado para ' + e + '. Verifique sua caixa de entrada e spam.');
+    showOk('Link de recuperacao enviado para ' + e + '. Verifique sua caixa de entrada e spam.');
     setTimeout(() => showForm('form-login'), 6000);
   } catch (err) {
-    showErr(err.code === 'auth/user-not-found' || err.code === 'auth/invalid-email'
-      ? 'Usuário não cadastrado. Fale com seu Líder.'
-      : 'Erro ao enviar: ' + (err.code || err.message));
+    if(err.code === 'auth/user-not-found' || err.code === 'auth/invalid-email'){
+      showErr('Usuário não cadastrado. Fale com seu Líder.');
+    } else {
+      showErr('Erro ao enviar: ' + (err.code || err.message));
+    }
   } finally {
     $('btn-forgot').textContent = 'Enviar link de recuperacao'; $('btn-forgot').disabled = false;
   }
@@ -1157,7 +1149,10 @@ onAuthStateChanged(auth, async user => {
     }
 
     $('hist-data').value = tod();
-    if($('lancar-data')) $('lancar-data').value = tod();
+    if($('lancar-data')){
+      $('lancar-data').value = tod();
+      $('lancar-data').max   = tod(); // bloqueia datas futuras no picker
+    }
     $('meta-mes').value  = thisMes();
     initExpDates();
     startListeners();
@@ -1269,27 +1264,29 @@ $('btn-salvar-contatos').onclick = async () => {
   if(total===0){ toast('Informe ao menos um contato.'); return; }
 
   const data = getLancarData();
+  if(data > tod()){ toast('Não é permitido lançar para datas futuras.'); return; }
   const existente = await getRecDia('contatos');
 
   if(existente){
-    // Edita o registro existente do dia
     await updateDoc(doc(db,'records',existente.id),{
       ...vals, total, ts: new Date().toISOString()
     });
     toast('Contatos do dia ' + fD(data) + ' atualizados!');
   } else {
-    // Cria novo registro
     await addDoc(collection(db,'records'),{
       uid: cu.uid, seller: cp.name, tipo: 'contatos',
       date: data, ts: new Date().toISOString(), ...vals, total
     });
     toast('Contatos registrados!');
-  renderMetricsDia();
-  // Atualiza dashboard se estiver ativo
-  if(document.querySelector('#panel-dashboard.active')) renderDashboard();
   }
+  // Sempre limpa campos e atualiza boxes/dashboard após salvar
   ['ct-carteira','ct-prospint','ct-ativos','ct-inativos','ct-prospext','ct-outras','ct-invalidos']
     .forEach(id=>{ const el=$(id); if(el) el.value=''; });
+  // onSnapshot atualiza _recs automaticamente — aguarda 300ms para refletir
+  setTimeout(()=>{
+    renderMetricsDia();
+    if(document.querySelector('#panel-dashboard.active')) renderDashboard();
+  }, 300);
 };
 
 // ── Salvar Cotações e Pedidos ─────────────────────────────
@@ -1309,6 +1306,7 @@ $('btn-salvar-cotacoes').onclick = async () => {
   }
 
   const data = getLancarData();
+  if(data > tod()){ toast('Não é permitido lançar para datas futuras.'); return; }
   const existente = await getRecDia('cotacoes');
 
   const payload = {
@@ -1325,16 +1323,18 @@ $('btn-salvar-cotacoes').onclick = async () => {
       ts: new Date().toISOString()
     });
     toast('Cotações do dia ' + fD(data) + ' atualizadas!');
-  renderMetricsDia();
-  if(document.querySelector('#panel-dashboard.active')) renderDashboard();
   } else {
     await addDoc(collection(db,'records'), payload);
     toast('Cotações e pedidos registrados!');
-  renderMetricsDia();
-  if(document.querySelector('#panel-dashboard.active')) renderDashboard();
   }
+  // Sempre limpa campos e atualiza boxes/dashboard após salvar
   ['cot-qtd','cot-valor','ped-qtd','ped-valor','per-preco','per-estoque','per-outras']
     .forEach(id=>{ const el=$(id); if(el) el.value=''; });
+  // onSnapshot atualiza _recs — aguarda 300ms para refletir
+  setTimeout(()=>{
+    renderMetricsDia();
+    if(document.querySelector('#panel-dashboard.active')) renderDashboard();
+  }, 300);
 };
 
 // ── Métricas do dia ───────────────────────────────────────
@@ -1674,8 +1674,10 @@ $('btn-adm-save').onclick = async () => {
   const n=$('adm-nome').value.trim(), e=$('adm-email').value.trim(),
         r=$('adm-perfil').value, uid=$('adm-uid').value,
         metaIni=parseFloat($('adm-meta-ini')?.value)||0;
-  if(!n||!e){ toast('Informe nome e e-mail.'); return; }
-  if(!validateNome(n)){ toast('Nome deve ter nome e sobrenome (mín. 2 caracteres cada).'); return; }
+  if(!n){ toast('Informe o nome.'); return; }
+  if(!validateNome(n)){ toast('Nome deve ter nome e sobrenome (min. 2 caracteres cada).'); return; }
+  // Só exige e-mail no modo cadastro (não edição)
+  if(!uid && !e){ toast('Informe o e-mail.'); return; }
 
   if(uid){
     // Modo editar: atualiza apenas nome e meta
@@ -2081,7 +2083,10 @@ window.switchTab = tab => {
   const panel = $('panel-'+tab);
   if(panel) panel.classList.add('active');
   if(tab==='lancar'){
-    if($('lancar-data')) $('lancar-data').value = tod();
+    if($('lancar-data')){
+      $('lancar-data').value = tod();
+      $('lancar-data').max   = tod(); // bloqueia datas futuras no picker
+    }
     renderMetricsDia();
   }
   if(tab==='historico'){ setupHistoricoListeners(); renderHistorico(); }
