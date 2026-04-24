@@ -450,20 +450,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="fcard-title"><span class="bar" style="background:var(--g)"></span>Cotações e Pedidos do Dia</div>
         <div class="fgrid fg2">
           <div class="field"><label>Qtd. de Cotações (Ativo + Receptivo)</label><input type="number" min="0" id="cot-qtd" placeholder="0"/></div>
-          <div class="field"><label>Valor Total das Cotações (R$)</label><input type="number" min="0" step="0.01" id="cot-valor" placeholder="0,00"/></div>
+          <div class="field"><label>Valor Total das Cotações (R$)</label><input type="text" id="cot-valor" inputmode="decimal" placeholder="0,00"/></div>
         </div>
         <div class="fgrid fg2">
           <div class="field"><label>Qtd. de Pedidos Fechados</label><input type="number" min="0" id="ped-qtd" placeholder="0"/></div>
-          <div class="field"><label>Valor Total dos Pedidos Fechados (R$)</label><input type="number" min="0" step="0.01" id="ped-valor" placeholder="0,00"/></div>
+          <div class="field"><label>Valor Total dos Pedidos Fechados (R$)</label><input type="text" id="ped-valor" inputmode="decimal" placeholder="0,00"/></div>
         </div>
         <div class="divider"></div>
         <div class="fcard-title" style="margin-bottom:.75rem"><span class="bar" style="background:var(--r)"></span>Cotações Perdidas do Dia</div>
         <div class="fgrid fg2">
-          <div class="field"><label>Perdas por Preço (R$)</label><input type="number" min="0" step="0.01" id="per-preco" placeholder="0,00"/></div>
-          <div class="field"><label>Perdas por Estoque (R$)</label><input type="number" min="0" step="0.01" id="per-estoque" placeholder="0,00"/></div>
+          <div class="field"><label>Perdas por Preço (R$)</label><input type="text" id="per-preco" inputmode="decimal" placeholder="0,00"/></div>
+          <div class="field"><label>Perdas por Estoque (R$)</label><input type="text" id="per-estoque" inputmode="decimal" placeholder="0,00"/></div>
         </div>
         <div class="fgrid fg2">
-          <div class="field"><label>Perdas por Outras Causas (R$)</label><input type="number" min="0" step="0.01" id="per-outras" placeholder="0,00"/></div>
+          <div class="field"><label>Perdas por Outras Causas (R$)</label><input type="text" id="per-outras" inputmode="decimal" placeholder="0,00"/></div>
           <div class="field"><label>Meta Mensal (R$)</label><input type="text" id="meta-mensal-display" placeholder="–" readonly style="background:#F0F4FF;color:#1B4F72;font-weight:700;cursor:default"/></div>
         </div>
         <div class="ffooter"><button class="btn-save" id="btn-salvar-cotacoes">Registrar Cotações e Pedidos</button></div>
@@ -1209,8 +1209,15 @@ function startListeners(){
 // ── Formatação de valores: "1000,00" sem R$ sem ponto ────────
 // Ao sair de campo de valor, formata para BR sem separador de milhar
 function fmtValInput(el){
-  const v = parseFloat(el.value.replace(',','.'));
-  if(!isNaN(v)) el.value = v.toFixed(2).replace('.',',');
+  if(!el || !el.value.trim()) return;
+  // Remove tudo exceto digitos, ponto e virgula
+  const cleaned = el.value.replace(/[^0-9.,]/g,'').replace(',','.');
+  const v = parseFloat(cleaned);
+  if(!isNaN(v) && v >= 0){
+    el.value = v.toFixed(2).replace('.',',');
+  } else {
+    el.value = '';
+  }
 }
 // Aplica formatação em todos os campos de valor ao perder foco
 // Atualiza boxes quando data do lançamento muda
@@ -1223,9 +1230,14 @@ if(lancarDataEl){
 
 ['cot-valor','ped-valor','per-preco','per-estoque','per-outras'].forEach(id=>{
   const el = $(id); if(!el) return;
+  el.placeholder = '0,00';
   el.addEventListener('blur', ()=>fmtValInput(el));
-  el.setAttribute('placeholder','0,00');
-  el.setAttribute('step','0.01');
+  // Permite apenas digitos e separadores decimais ao digitar
+  el.addEventListener('input', function(){
+    // Remove caracteres nao numericos enquanto digita (exceto virgula e ponto)
+    const v = this.value.replace(/[^0-9,.]/g,'');
+    if(this.value !== v) this.value = v;
+  });
 });
 
 // ── Calcula total de perdas automaticamente ────────────────
@@ -1294,7 +1306,7 @@ $('btn-salvar-contatos').onclick = async () => {
 
 // ── Salvar Cotações e Pedidos ─────────────────────────────
 $('btn-salvar-cotacoes').onclick = async () => {
-  const pv = v => parseFloat(($(v).value||'0').replace(',','.')) || 0;
+  const pv = v => { const raw=($(v)?.value||'0').trim().replace(/[^0-9.,]/g,'').replace(',','.'); return parseFloat(raw)||0; };
   const cotQtd    = n0($('cot-qtd').value);
   const cotValor  = pv('cot-valor');
   const pedQtd    = n0($('ped-qtd').value);
