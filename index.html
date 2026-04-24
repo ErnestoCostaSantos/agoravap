@@ -1286,14 +1286,11 @@ $('btn-salvar-contatos').onclick = async () => {
     const ts = new Date().toISOString();
     if(existente){
       await updateDoc(doc(db,'records',existente.id),{...vals, total, ts});
-      const idx = _recs.findIndex(r => r.id === existente.id);
-      if(idx >= 0) _recs[idx] = { ..._recs[idx], ...vals, total, ts };
       toast('Contatos do dia ' + fD(data) + ' atualizados!');
     } else {
       const payload = { uid:cu.uid, seller:cp.name, tipo:'contatos',
                         date:data, ts, ...vals, total };
-      const ref = await addDoc(collection(db,'records'), payload);
-      _recs.unshift({ id:ref.id, ...payload });
+      await addDoc(collection(db,'records'), payload);
       toast('Contatos registrados!');
     }
   } catch(err) {
@@ -1303,8 +1300,11 @@ $('btn-salvar-contatos').onclick = async () => {
     ['ct-carteira','ct-prospint','ct-ativos','ct-inativos','ct-prospext','ct-outras','ct-invalidos']
       .forEach(id=>{ const el=$(id); if(el) el.value=''; });
   }
-  renderMetricsDia();
-  if(document.querySelector('#panel-dashboard.active')) renderDashboard();
+  // onSnapshot atualiza _recs automaticamente — aguarda 500ms para refletir
+  setTimeout(()=>{
+    renderMetricsDia();
+    if(document.querySelector('#panel-dashboard.active')) renderDashboard();
+  }, 500);
 };
 
 // ── Salvar Cotações e Pedidos ─────────────────────────────
@@ -1334,16 +1334,11 @@ $('btn-salvar-cotacoes').onclick = async () => {
 
     if(existente){
       await updateDoc(doc(db,'records',existente.id), dadosCot);
-      // Atualiza _recs em memória imediatamente — sem esperar onSnapshot
-      const idx = _recs.findIndex(r => r.id === existente.id);
-      if(idx >= 0) _recs[idx] = { ..._recs[idx], ...dadosCot };
       toast('Cotações do dia ' + fD(data) + ' atualizadas!');
     } else {
       const payload = { uid:cu.uid, seller:cp.name, tipo:'cotacoes',
                         date:data, ...dadosCot };
-      const ref = await addDoc(collection(db,'records'), payload);
-      // Adiciona em _recs imediatamente
-      _recs.unshift({ id:ref.id, ...payload });
+      await addDoc(collection(db,'records'), payload);
       toast('Cotações e pedidos registrados!');
     }
   } catch(err) {
@@ -1355,9 +1350,11 @@ $('btn-salvar-cotacoes').onclick = async () => {
       .forEach(id=>{ const el=$(id); if(el) el.value=''; });
   }
 
-  // Atualiza boxes e dashboard imediatamente (sem delay — _recs já foi atualizado)
-  renderMetricsDia();
-  if(document.querySelector('#panel-dashboard.active')) renderDashboard();
+  // onSnapshot atualiza _recs automaticamente — aguarda 500ms para refletir
+  setTimeout(()=>{
+    renderMetricsDia();
+    if(document.querySelector('#panel-dashboard.active')) renderDashboard();
+  }, 500);
 };
 
 // ── Métricas do dia ───────────────────────────────────────
