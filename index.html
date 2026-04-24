@@ -1282,26 +1282,29 @@ $('btn-salvar-contatos').onclick = async () => {
   if(data > tod()){ toast('Não é permitido lançar para datas futuras.'); return; }
   const existente = await getRecDia('contatos');
 
-  if(existente){
-    await updateDoc(doc(db,'records',existente.id),{
-      ...vals, total, ts: new Date().toISOString()
-    });
-    toast('Contatos do dia ' + fD(data) + ' atualizados!');
-  } else {
-    await addDoc(collection(db,'records'),{
-      uid: cu.uid, seller: cp.name, tipo: 'contatos',
-      date: data, ts: new Date().toISOString(), ...vals, total
-    });
-    toast('Contatos registrados!');
+  try {
+    const ts = new Date().toISOString();
+    if(existente){
+      await updateDoc(doc(db,'records',existente.id),{...vals, total, ts});
+      const idx = _recs.findIndex(r => r.id === existente.id);
+      if(idx >= 0) _recs[idx] = { ..._recs[idx], ...vals, total, ts };
+      toast('Contatos do dia ' + fD(data) + ' atualizados!');
+    } else {
+      const payload = { uid:cu.uid, seller:cp.name, tipo:'contatos',
+                        date:data, ts, ...vals, total };
+      const ref = await addDoc(collection(db,'records'), payload);
+      _recs.unshift({ id:ref.id, ...payload });
+      toast('Contatos registrados!');
+    }
+  } catch(err) {
+    toast('Erro ao salvar: ' + (err.message||err.code));
+    return;
+  } finally {
+    ['ct-carteira','ct-prospint','ct-ativos','ct-inativos','ct-prospext','ct-outras','ct-invalidos']
+      .forEach(id=>{ const el=$(id); if(el) el.value=''; });
   }
-  // Sempre limpa campos e atualiza boxes/dashboard após salvar
-  ['ct-carteira','ct-prospint','ct-ativos','ct-inativos','ct-prospext','ct-outras','ct-invalidos']
-    .forEach(id=>{ const el=$(id); if(el) el.value=''; });
-  // onSnapshot atualiza _recs automaticamente — aguarda 300ms para refletir
-  setTimeout(()=>{
-    renderMetricsDia();
-    if(document.querySelector('#panel-dashboard.active')) renderDashboard();
-  }, 300);
+  renderMetricsDia();
+  if(document.querySelector('#panel-dashboard.active')) renderDashboard();
 };
 
 // ── Salvar Cotações e Pedidos ─────────────────────────────
@@ -1322,34 +1325,39 @@ $('btn-salvar-cotacoes').onclick = async () => {
 
   const data = getLancarData();
   if(data > tod()){ toast('Não é permitido lançar para datas futuras.'); return; }
-  const existente = await getRecDia('cotacoes');
 
-  const payload = {
-    uid: cu.uid, seller: cp.name, tipo: 'cotacoes',
-    date: data, ts: new Date().toISOString(),
-    cotQtd, cotValor, pedQtd, pedValor,
-    perPreco, perEstoque, perOutras, totalPerdas
-  };
+  try {
+    const existente = await getRecDia('cotacoes');
+    const ts = new Date().toISOString();
+    const dadosCot = { cotQtd, cotValor, pedQtd, pedValor,
+                       perPreco, perEstoque, perOutras, totalPerdas, ts };
 
-  if(existente){
-    await updateDoc(doc(db,'records',existente.id), {
-      cotQtd, cotValor, pedQtd, pedValor,
-      perPreco, perEstoque, perOutras, totalPerdas,
-      ts: new Date().toISOString()
-    });
-    toast('Cotações do dia ' + fD(data) + ' atualizadas!');
-  } else {
-    await addDoc(collection(db,'records'), payload);
-    toast('Cotações e pedidos registrados!');
+    if(existente){
+      await updateDoc(doc(db,'records',existente.id), dadosCot);
+      // Atualiza _recs em memória imediatamente — sem esperar onSnapshot
+      const idx = _recs.findIndex(r => r.id === existente.id);
+      if(idx >= 0) _recs[idx] = { ..._recs[idx], ...dadosCot };
+      toast('Cotações do dia ' + fD(data) + ' atualizadas!');
+    } else {
+      const payload = { uid:cu.uid, seller:cp.name, tipo:'cotacoes',
+                        date:data, ...dadosCot };
+      const ref = await addDoc(collection(db,'records'), payload);
+      // Adiciona em _recs imediatamente
+      _recs.unshift({ id:ref.id, ...payload });
+      toast('Cotações e pedidos registrados!');
+    }
+  } catch(err) {
+    toast('Erro ao salvar: ' + (err.message||err.code));
+    return;
+  } finally {
+    // Limpa campos SEMPRE — independente de erro
+    ['cot-qtd','cot-valor','ped-qtd','ped-valor','per-preco','per-estoque','per-outras']
+      .forEach(id=>{ const el=$(id); if(el) el.value=''; });
   }
-  // Sempre limpa campos e atualiza boxes/dashboard após salvar
-  ['cot-qtd','cot-valor','ped-qtd','ped-valor','per-preco','per-estoque','per-outras']
-    .forEach(id=>{ const el=$(id); if(el) el.value=''; });
-  // onSnapshot atualiza _recs — aguarda 300ms para refletir
-  setTimeout(()=>{
-    renderMetricsDia();
-    if(document.querySelector('#panel-dashboard.active')) renderDashboard();
-  }, 300);
+
+  // Atualiza boxes e dashboard imediatamente (sem delay — _recs já foi atualizado)
+  renderMetricsDia();
+  if(document.querySelector('#panel-dashboard.active')) renderDashboard();
 };
 
 // ── Métricas do dia ───────────────────────────────────────
