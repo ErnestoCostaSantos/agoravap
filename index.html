@@ -673,7 +673,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h2>Módulo Lançar</h2>
 
           <h3>Data do lançamento</h3>
-          <p>No topo do módulo há um seletor de data. Por padrão vem com a data de hoje. Para lançar ou editar dados de um dia anterior, selecione a data desejada antes de preencher os campos. Se já houver lançamento naquela data, o sistema atualiza o registro existente em vez de criar um novo.</p>
+          <p>No topo do módulo há um seletor de data. Por padrão vem com a data de hoje. Para lançar ou editar dados de um dia anterior, selecione a data desejada antes de preencher os campos. Se já houver lançamento naquela data, o sistema atualiza o registro existente. <b>Datas futuras não são permitidas.</b></p>
 
           <h3>Contatos Efetivos do Dia</h3>
           <p>Registre diariamente quantos contatos você fez em cada origem:</p>
@@ -686,24 +686,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Outras Externas</b> — outros contatos externos não listados acima</li>
             <li><b>Contatos Inválidos</b> — tentativas que não resultaram em contato efetivo</li>
           </ul>
-          <div class="help-tip">Lance os contatos ao fim do expediente, somando tudo que fez no dia.</div>
+          <div class="help-tip">Lance os contatos ao fim do expediente. Os boxes superiores atualizam automaticamente após registrar.</div>
 
           <h3>Cotações e Pedidos do Dia</h3>
           <ul>
             <li><b>Qtd. de Cotações (Ativo + Receptivo)</b> — total de cotações enviadas no dia</li>
-            <li><b>Valor Total das Cotações</b> — soma dos valores de todas as cotações do dia</li>
+            <li><b>Valor Total das Cotações (R$)</b> — soma dos valores de todas as cotações do dia</li>
             <li><b>Qtd. de Pedidos Fechados</b> — pedidos confirmados no dia</li>
-            <li><b>Valor Total dos Pedidos Fechados</b> — receita confirmada no dia</li>
+            <li><b>Valor Total dos Pedidos Fechados (R$)</b> — receita confirmada no dia</li>
           </ul>
 
           <h3>Cotações Perdidas do Dia</h3>
           <ul>
-            <li><b>Perdas por Preço / Estoque / Outras Causas</b> — valores das cotações perdidas por motivo</li>
-            <li><b>Valor Total de Cotações Perdidas</b> — calculado automaticamente ao preencher os campos acima</li>
+            <li><b>Perdas por Preço (R$) / Estoque (R$) / Outras Causas (R$)</b> — valores das cotações perdidas por motivo</li>
           </ul>
 
+          <h3>Meta Mensal (R$)</h3>
+          <p>Exibe a meta do mês atual cadastrada no módulo Administrativo. Campo somente leitura — aparece em azul no formulário. Se não houver meta cadastrada, exibe "–".</p>
+
+          <h3>Meta Mensal (R$)</h3>
+          <p>Exibe a meta do mês atual cadastrada no módulo Administrativo. Campo somente leitura com fundo azul claro. Se não houver meta cadastrada, exibe "–".</p>
+
           <h3>Formato dos valores</h3>
-          <p>Os campos de valor usam o formato <b>1000,00</b> — sem ponto separador de milhar, sem "R$", com vírgula decimal. O valor é formatado automaticamente ao sair do campo.</p>
+          <p>Os campos de valor aceitam números inteiros (ex: 10000) ou decimais com vírgula (ex: 10000,50). O valor é formatado automaticamente como <b>10000,00</b> ao sair do campo.</p>
         </div>
         <div class="divider"></div>
 
@@ -716,17 +721,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
         <div class="help-section">
           <h2>Módulo Dashboard</h2>
-          <p>Exibe os KPIs consolidados do mês atual em quatro cards: total de vendas (quantidade e valor), <b>Pedidos/Cotações</b> (percentual de pedidos fechados sobre o total cotado), ticket médio e total perdido.</p>
+          <p>Exibe os KPIs consolidados do mês atual em quatro cards: total de vendas (quantidade e valor), <b>Pedidos/Cotações</b> (percentual de pedidos fechados sobre o total cotado em R$), ticket médio e total perdido.</p>
           <p style="margin-top:.5rem">Líderes visualizam também o ranking completo da equipe com barra de progresso em relação à meta de cada profissional.</p>
 
           <h3>Gráfico Vendas vs. Cotações</h3>
-          <p>Barras diárias comparando pedidos e cotações ao longo do mês. Se o profissional tiver meta cadastrada para o mês, aparece uma <b>linha tracejada vermelha</b> indicando a meta diária proporcional. Sem meta, a linha não aparece.</p>
+          <p>Gráfico de <b>linhas</b> com 31 dias mostrando a evolução diária de Pedidos (azul) e Cotações (laranja). Passe o mouse sobre o gráfico para ver os valores do dia. Se houver meta cadastrada, aparece uma <b>linha tracejada vermelha</b> com a meta diária proporcional (meta ÷ 31).</p>
 
           <h3>Gráfico Motivos de Perda</h3>
           <p>Rosca com três fatias em cores contrastantes — vermelho (Preço), azul (Estoque) e verde (Outras) — mostrando a proporção de cada motivo de perda no mês.</p>
 
           <h3>Gráfico Contatos por Origem</h3>
-          <p>Barras horizontais com uma cor distinta para cada origem de contato, facilitando a comparação visual entre os canais.</p>
+          <p>Barras horizontais com uma cor distinta para cada uma das 7 origens de contato, facilitando a comparação visual entre os canais.</p>
         </div>
         <div class="divider"></div>
 
@@ -755,8 +760,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h2>Perfis de acesso</h2>
           <ul>
             <li><b>Vendedor</b> — lança e consulta apenas seus próprios dados</li>
-            <li><b>Líder</b> — visualiza dados de toda a equipe, gerencia usuários, metas e exportações</li>
+            <li><b>Líder</b> — visualiza dados de toda a equipe, gerencia usuários, metas e exportações. Pode ter metas individuais como qualquer vendedor.</li>
           </ul>
+        </div>
+        <div class="divider"></div>
+
+        <div class="help-section">
+          <h2>Observação Legal</h2>
+          <p>Demais condições de uso, Termos de Uso e Garantias devem ser acessadas, lidas e ter o <b>"De Acordo"</b> do cliente responsável no site:</p>
+          <div class="help-tip" style="margin-top:.6rem;font-size:.9rem;text-align:center">
+            <a href="https://ernestocostasantos.com.br/agoravap" target="_blank" style="color:#C53030;font-weight:700;text-decoration:none">
+              https://ernestocostasantos.com.br/agoravap
+            </a>
+          </div>
         </div>
       </div>
     </div>
