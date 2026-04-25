@@ -481,7 +481,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     <div class="panel" id="panel-historico">
       <div class="fcard" style="padding:.75rem 1.25rem;margin-bottom:.75rem">
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
-          <!-- Modo de filtro: dia único ou período -->
+          <!-- Modo de filtro -->
           <div class="ff" style="min-width:130px">
             <label>Modo</label>
             <select id="hist-modo" style="width:100%">
@@ -510,7 +510,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <input type="month" id="hist-mes" style="width:100%"/>
           </div>
           <!-- Tipo -->
-          <div class="ff" style="min-width:140px">
+          <div class="ff" style="min-width:130px">
             <label>Tipo</label>
             <select id="hist-tipo" style="width:100%">
               <option value="">Todos</option>
@@ -523,10 +523,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <label>Profissional</label>
             <select id="hist-vendedor" style="width:100%"><option value="">Todos</option></select>
           </div>
+          <!-- Botões filtro -->
           <div style="display:flex;gap:6px;align-items:flex-end;padding-bottom:2px">
             <button class="btn-save" id="btn-hist-filtrar" style="white-space:nowrap">Filtrar</button>
             <button class="btn-sec" id="btn-hist-limpar-filtro" style="white-space:nowrap">Limpar</button>
-            <button class="btn-danger" id="btn-limpar" style="display:none;white-space:nowrap">Apagar Registros</button>
+          </div>
+          <!-- Apagar — empurrado para a direita -->
+          <div style="flex:1"></div>
+          <div style="align-self:flex-end;padding-bottom:2px">
+            <button class="btn-danger" id="btn-limpar" style="display:none;white-space:nowrap;font-size:.78rem">⚠ Apagar Registros</button>
           </div>
         </div>
         <div id="hist-resumo" style="margin-top:.5rem;font-size:.8rem;color:var(--gray)"></div>
@@ -1725,18 +1730,55 @@ function renderMetricsDia(){
 
 // ── Histórico ─────────────────────────────────────────────
 function setupHistoricoListeners(){
-  $('hist-data').onchange  = renderHistorico;
-  $('hist-tipo').onchange  = renderHistorico;
+  // Muda campos visíveis conforme modo
+  const applyModo = () => {
+    const modo = $('hist-modo').value;
+    $('hist-wrap-dia').style.display  = modo === 'dia'     ? '' : 'none';
+    $('hist-wrap-de').style.display   = modo === 'periodo' ? '' : 'none';
+    $('hist-wrap-ate').style.display  = modo === 'periodo' ? '' : 'none';
+    $('hist-wrap-mes').style.display  = modo === 'mes'     ? '' : 'none';
+  };
+
+  $('hist-modo').onchange = () => { applyModo(); renderHistorico(); };
+  $('hist-tipo').onchange = renderHistorico;
   $('hist-vendedor').onchange = renderHistorico;
-  $('btn-limpar').onclick = () => {
+
+  // Botão Filtrar
+  $('btn-hist-filtrar').onclick = renderHistorico;
+
+  // Botão Limpar filtros
+  $('btn-hist-limpar-filtro').onclick = () => {
+    $('hist-modo').value     = 'dia';
+    $('hist-data').value     = tod();
+    if($('hist-de'))  $('hist-de').value  = '';
+    if($('hist-ate')) $('hist-ate').value = tod();
+    if($('hist-mes')) $('hist-mes').value = thisMes();
+    $('hist-tipo').value     = '';
+    if($('hist-vendedor')) $('hist-vendedor').value = '';
+    applyModo();
+    renderHistorico();
+  };
+
+  // Botão Apagar Registros — só líder
+  $('btn-limpar') && ($('btn-limpar').onclick = () => {
     confirm2('Apagar TODOS os registros? Esta ação não pode ser desfeita.', async () => {
-      const snap = await getDocs(collection(db,'records'));
+      const uid_filter = $('hist-vendedor')?.value;
+      let snap;
+      if(uid_filter){
+        snap = await getDocs(query(collection(db,'records'), where('uid','==',uid_filter)));
+      } else {
+        snap = await getDocs(collection(db,'records'));
+      }
       const batch = writeBatch(db);
       snap.docs.forEach(d => batch.delete(d.ref));
       await batch.commit();
-      toast('Todos os registros apagados.');
+      VapLogger.warning('Registros apagados', { uid_filter: uid_filter||'todos' });
+      toast('Registros apagados.');
     });
-  };
+  });
+
+  // Aplica modo inicial
+  applyModo();
 }
 
 function renderHistorico(){
