@@ -479,20 +479,57 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
     <!-- ════ HISTÓRICO ═════════════════════════════════════════ -->
     <div class="panel" id="panel-historico">
-      <div class="fbar">
-        <div class="ff"><label>Data</label><input type="date" id="hist-data"/></div>
-        <div class="ff"><label>Tipo</label>
-          <select id="hist-tipo">
-            <option value="">Todos</option>
-            <option value="contatos">Contatos</option>
-            <option value="cotacoes">Cotações / Pedidos</option>
-          </select>
+      <div class="fcard" style="padding:.75rem 1.25rem;margin-bottom:.75rem">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <!-- Modo de filtro: dia único ou período -->
+          <div class="ff" style="min-width:130px">
+            <label>Modo</label>
+            <select id="hist-modo" style="width:100%">
+              <option value="dia">Dia único</option>
+              <option value="periodo">Período</option>
+              <option value="mes">Mês</option>
+            </select>
+          </div>
+          <!-- Dia único -->
+          <div class="ff" id="hist-wrap-dia" style="min-width:140px">
+            <label>Data</label>
+            <input type="date" id="hist-data" style="width:100%"/>
+          </div>
+          <!-- Período -->
+          <div class="ff" id="hist-wrap-de" style="display:none;min-width:140px">
+            <label>De</label>
+            <input type="date" id="hist-de" style="width:100%"/>
+          </div>
+          <div class="ff" id="hist-wrap-ate" style="display:none;min-width:140px">
+            <label>Até</label>
+            <input type="date" id="hist-ate" style="width:100%"/>
+          </div>
+          <!-- Mês -->
+          <div class="ff" id="hist-wrap-mes" style="display:none;min-width:140px">
+            <label>Mês</label>
+            <input type="month" id="hist-mes" style="width:100%"/>
+          </div>
+          <!-- Tipo -->
+          <div class="ff" style="min-width:140px">
+            <label>Tipo</label>
+            <select id="hist-tipo" style="width:100%">
+              <option value="">Todos</option>
+              <option value="contatos">Contatos</option>
+              <option value="cotacoes">Cotações / Pedidos</option>
+            </select>
+          </div>
+          <!-- Profissional (só líder) -->
+          <div class="ff" id="ff-vendedor" style="display:none;min-width:140px">
+            <label>Profissional</label>
+            <select id="hist-vendedor" style="width:100%"><option value="">Todos</option></select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-end;padding-bottom:2px">
+            <button class="btn-save" id="btn-hist-filtrar" style="white-space:nowrap">Filtrar</button>
+            <button class="btn-sec" id="btn-hist-limpar-filtro" style="white-space:nowrap">Limpar</button>
+            <button class="btn-danger" id="btn-limpar" style="display:none;white-space:nowrap">Apagar Registros</button>
+          </div>
         </div>
-        <div class="ff" id="ff-vendedor" style="display:none"><label>Vendedor</label>
-          <select id="hist-vendedor"><option value="">Todos</option></select>
-        </div>
-        <div class="fspace"></div>
-        <button class="btn-danger" id="btn-limpar" style="display:none">Limpar Registros</button>
+        <div id="hist-resumo" style="margin-top:.5rem;font-size:.8rem;color:var(--gray)"></div>
       </div>
       <div id="hist-list"><div class="loading"><div class="spin"></div> Carregando…</div></div>
     </div>
@@ -1404,6 +1441,8 @@ onAuthStateChanged(auth, async user => {
     }
 
     $('hist-data').value = tod();
+    if($('hist-mes'))  $('hist-mes').value  = thisMes();
+    if($('hist-ate'))  $('hist-ate').value  = tod();
     if($('lancar-data')){
       $('lancar-data').value = tod();
       $('lancar-data').max   = tod(); // bloqueia datas futuras no picker
@@ -1701,14 +1740,49 @@ function setupHistoricoListeners(){
 }
 
 function renderHistorico(){
-  const df=$('hist-data').value, tf=$('hist-tipo').value;
-  const sv=$('hist-vendedor').value;
-  const isLider=cp?.role==='lider';
-  let recs=[..._recs];
-  if(!isLider) recs=recs.filter(r=>r.uid===cu.uid);
-  if(df) recs=recs.filter(r=>r.date===df);
-  if(tf) recs=recs.filter(r=>r.tipo===tf);
-  if(sv) recs=recs.filter(r=>r.uid===sv);
+  const modo = $('hist-modo')?.value || 'dia';
+  const tf   = $('hist-tipo').value;
+  const sv   = $('hist-vendedor').value;
+  const isLider = cp?.role === 'lider';
+  let recs = [..._recs];
+  if(!isLider) recs = recs.filter(r => r.uid === cu.uid);
+
+  // Aplica filtro de data conforme modo
+  let labelPeriodo = '';
+  if(modo === 'dia'){
+    const df = $('hist-data').value;
+    if(df){ recs = recs.filter(r => r.date === df); labelPeriodo = fD(df); }
+  } else if(modo === 'periodo'){
+    const de  = $('hist-de').value;
+    const ate = $('hist-ate').value;
+    if(de)  recs = recs.filter(r => r.date >= de);
+    if(ate) recs = recs.filter(r => r.date <= ate);
+    if(de && ate) labelPeriodo = fD(de) + ' até ' + fD(ate);
+    else if(de)   labelPeriodo = 'a partir de ' + fD(de);
+    else if(ate)  labelPeriodo = 'até ' + fD(ate);
+  } else if(modo === 'mes'){
+    const mes = $('hist-mes').value;
+    if(mes){ recs = recs.filter(r => r.date?.startsWith(mes)); labelPeriodo = mes; }
+  }
+
+  if(tf) recs = recs.filter(r => r.tipo === tf);
+  if(sv) recs = recs.filter(r => r.uid  === sv);
+
+  // Ordena por data decrescente
+  recs.sort((a,b) => b.date?.localeCompare(a.date));
+
+  // Resumo
+  const resumoEl = $('hist-resumo');
+  if(resumoEl){
+    const totalCot = recs.filter(r=>r.tipo==='cotacoes').reduce((a,b)=>a+(b.pedValor||0),0);
+    const totalCt  = recs.filter(r=>r.tipo==='contatos').reduce((a,b)=>a+(b.total||0),0);
+    resumoEl.textContent = recs.length
+      ? `${recs.length} registro(s)${labelPeriodo?' — '+labelPeriodo:''} · Contatos: ${totalCt} · Pedidos: ${fC(totalCot)}`
+      : '';
+  }
+
+  const el = $('hist-list');
+  if(!recs.length){ el.innerHTML='<div class="empty"><div class="empty-ic">📋</div>Nenhum registro encontrado.</div>'; return; }
 
   const el=$('hist-list');
   if(!recs.length){el.innerHTML='<div class="empty"><div class="empty-ic">📋</div>Nenhum registro encontrado.</div>';return;}
