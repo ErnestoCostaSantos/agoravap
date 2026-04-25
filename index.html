@@ -227,6 +227,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   .mgrid{grid-template-columns:1fr}
   .fg2{grid-template-columns:1fr}
 }
+
+  /* Help tables */
+  .help-table{width:100%;border-collapse:collapse;font-size:.82rem;margin:.4rem 0}
+  .help-table th{background:var(--r);color:#fff;padding:6px 10px;text-align:left;font-weight:600;font-size:.78rem}
+  .help-table td{padding:5px 10px;border-bottom:1px solid #f1f5f9;color:var(--dark)}
+  .help-table tr:nth-child(even) td{background:#FFF5F5}
+
 </style>
 </head>
 <body>
@@ -530,6 +537,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="nav-tab active" data-adm="vendedores">Profissionais</div>
         <div class="nav-tab" data-adm="metas">Metas Mensais</div>
         <div class="nav-tab" data-adm="exportar">Exportar Excel</div>
+        <div class="nav-tab" data-adm="logs">Logs</div>
       </div>
 
       <!-- Vendedores -->
@@ -585,6 +593,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
 
       <!-- Exportar -->
+      <!-- Logs -->
+      <div id="adm-logs" style="display:none">
+        <div class="fcard">
+          <div class="fcard-title"><span class="bar" style="background:#8E44AD"></span>Log do Sistema</div>
+          <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+            <select id="log-level-filter" style="flex:1;min-width:130px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:.85rem">
+              <option value="">Todos os níveis</option>
+              <option value="INFO">INFO</option>
+              <option value="WARNING">WARNING</option>
+              <option value="ERROR">ERROR</option>
+              <option value="CRITICAL">CRITICAL</option>
+            </select>
+            <select id="log-user-filter" style="flex:1;min-width:130px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:.85rem">
+              <option value="">Todos os usuários</option>
+            </select>
+            <button class="btn-save" id="btn-load-logs" style="white-space:nowrap">Carregar Logs</button>
+            <button class="btn-sec" id="btn-export-session-log" style="white-space:nowrap">Baixar Log Sessão</button>
+          </div>
+          <div id="logs-table-wrap" style="overflow-x:auto">
+            <div class="empty" style="padding:2rem 0">Clique em "Carregar Logs" para visualizar.</div>
+          </div>
+        </div>
+      </div>
+
       <div id="adm-exportar" style="display:none">
         <div class="fcard">
           <div class="fcard-title"><span class="bar" style="background:var(--g)"></span>Exportar para Excel (CSV)</div>
@@ -619,165 +651,230 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     </div>
 
     <!-- ════ AJUDA ═════════════════════════════════════════════ -->
-    <div class="panel" id="panel-ajuda">
-      <div class="fcard">
+        <div class="panel" id="panel-ajuda">
+      <div class="help-content">
+
+        <!-- 1. APRESENTAÇÃO -->
         <div class="help-section">
-          <h2>O que é o AgoraVAP!?</h2>
-          <p>O AgoraVAP! é um sistema web de gestão comercial desenvolvido para equipes de vendas. Permite registrar diariamente contatos realizados, cotações, pedidos fechados e perdas, oferecendo visibilidade em tempo real ao vendedor e ao líder da equipe.</p>
+          <h2>1. Apresentação do AgoraVAP!</h2>
+          <p>O AgoraVAP! é um sistema, versão web e app, de gestão comercial desenvolvido para equipes de vendas B2B. Ele não é um sistema transacional como ERP ou CRM.</p>
+          <p>A plataforma permite centralizar diariamente os registros feitos pelos agentes de vendas definidos pela empresa cliente, de seus contatos realizados, cotações, pedidos fechados e perdas. Assim, oferece visibilidade em tempo real da performance aos próprios profissionais e ao líder da equipe, para fins de tomada de decisão gerencial.</p>
+          <p>Com uma interface simples e intuitiva — dividida em 7 grandes módulos (Lançar, Histórico, Dashboard, Administrativo, Acesso, Configuração e Ajuda) — o AgoraVAP! minimiza o uso de planilhas, fichas e registros em geral dispersos, individualizados e que não trafegam entre todos os envolvidos na área comercial.</p>
+          <p>Ele permite que profissionais e seus líderes tomem decisões baseadas em dados atualizados e relevantes.</p>
+          <div class="help-tip">O sistema é indicado para equipes com ciclo de vendas consultivo, onde o acompanhamento de funil, taxas de conversão e ticket médio são indicadores críticos de performance.</div>
         </div>
         <div class="divider"></div>
 
+        <!-- 2. MÓDULOS E FUNCIONALIDADES -->
         <div class="help-section">
-          <h2>Módulo Acesso</h2>
+          <h2>2. Módulos e Funcionalidades</h2>
+          <p>O AgoraVAP! é organizado em 7 módulos principais, cada um com função específica no ciclo de gestão comercial.</p>
 
-          <h3>Como funciona o cadastro de usuários</h3>
-          <p>Somente o <b>Líder</b> cadastra os usuários pelo módulo Administrativo. O vendedor não cria conta por conta própria — ele recebe o acesso do Líder e cria sua senha no primeiro login.</p>
-
-          <h3>Primeiro acesso do vendedor</h3>
-          <p>Quando o Líder cadastra um vendedor, uma senha temporária é gerada automaticamente pelo sistema. No primeiro acesso, o vendedor verá a tela <b>"Primeiro Acesso"</b> onde deverá:</p>
+          <h3>2.1 Módulo Lançar</h3>
+          <p>Ponto de entrada diário do profissional. Permite registrar contatos, cotações, pedidos e perdas por data selecionável. Datas futuras não são permitidas.</p>
           <ul>
-            <li>Informar o <b>nome completo</b> (nome e sobrenome — mínimo 2 caracteres cada)</li>
-            <li>Criar sua própria <b>senha pessoal</b> atendendo aos critérios abaixo</li>
-            <li>Confirmar a senha digitando-a novamente</li>
+            <li><b>Contatos Efetivos do Dia</b> — Carteira · Prosp. Int. · Vis. Ativos · Vis. Inativos · Prosp. Ext. · Outras Externas · Inválidos</li>
+            <li><b>Cotações e Pedidos</b> — Qtd. Cotações · Valor Total (R$) · Qtd. Pedidos · Valor Total dos Pedidos (R$)</li>
+            <li><b>Cotações Perdidas</b> — Perdas por Preço (R$) · Estoque (R$) · Outras Causas (R$)</li>
+            <li><b>Meta Mensal (R$)</b> — Campo somente leitura, exibe a meta do mês cadastrada no módulo Administrativo</li>
           </ul>
+          <div class="help-tip">Quatro boxes no topo exibem os dados do dia selecionado: Contatos, Pedidos Fechados, Cotações Enviadas e Perdas. Atualizados automaticamente após cada lançamento.</div>
 
-          <h3>Critérios obrigatórios para a senha</h3>
+          <h3>2.2 Módulo Histórico</h3>
+          <p>Exibe todos os registros lançados com filtros por data, tipo (Contatos ou Cotações/Pedidos) e vendedor (Líder). Cada registro apresenta ícone colorido por tipo, dados do profissional, data e valores.</p>
+
+          <h3>2.3 Módulo Dashboard</h3>
+          <p>Consolida os registros do mês atual em KPIs e gráficos atualizados em tempo real. Líderes visualizam o ranking completo da equipe com barra de progresso em relação à meta.</p>
+          <ul>
+            <li><b>Vendas do Mês</b> — Quantidade de pedidos + receita total acumulada</li>
+            <li><b>Pedidos/Cotações</b> — Pedidos ÷ Cotações (R$) × 100</li>
+            <li><b>Ticket Médio</b> — Receita total ÷ número de pedidos</li>
+            <li><b>Total Perdido</b> — Soma de todas as perdas do mês</li>
+            <li><b>Vendas vs. Cotações</b> — Gráfico de linhas com 31 dias e linha de meta tracejada</li>
+            <li><b>Motivos de Perda</b> — Rosca: Preço (vermelho), Estoque (azul), Outras (verde)</li>
+            <li><b>Contatos por Origem</b> — Barras horizontais com 7 cores distintas</li>
+          </ul>
+        </div>
+        <div class="divider"></div>
+
+        <!-- 3. MÓDULO ACESSO -->
+        <div class="help-section">
+          <h2>3. Módulo Acesso</h2>
+
+          <h3>Como funciona o cadastro</h3>
+          <p>Somente o Líder cadastra os profissionais pelo módulo Administrativo. A senha temporária é gerada automaticamente e exibida na tela para o Líder repassar ao profissional.</p>
+
+          <h3>Primeiro acesso</h3>
+          <p>No primeiro login, o profissional vê a tela "Primeiro Acesso" onde informa nome completo (nome e sobrenome) e cria sua própria senha.</p>
+
+          <h3>Critérios da senha</h3>
           <ul>
             <li>Mínimo de <b>8 caracteres</b></li>
-            <li>Pelo menos <b>1 letra maiúscula</b> (ex: A, B, C…)</li>
-            <li>Pelo menos <b>1 número</b> (ex: 1, 2, 3…)</li>
-            <li>Pelo menos <b>1 caractere especial</b> (ex: ! @ # $ %)</li>
+            <li>Pelo menos <b>1 letra maiúscula</b></li>
+            <li>Pelo menos <b>1 número</b></li>
+            <li>Pelo menos <b>1 caractere especial</b> (!@#$%)</li>
           </ul>
-          <div class="help-tip">A barra colorida abaixo do campo de senha indica a força da senha: vermelha = fraca · laranja = boa · verde = forte.</div>
 
-          <h3>Mostrar ou ocultar a senha</h3>
-          <p>Clique no ícone de olho 👁 ao lado do campo de senha para alternar entre mostrar e ocultar os caracteres digitados.</p>
-
-          <h3>Senha incorreta — como recuperar o acesso</h3>
-          <p>Na tela de login, clique em <b>"Recuperar acesso"</b>. Digite seu e-mail cadastrado e clique em <b>"Enviar link de recuperação"</b>. Você receberá um e-mail com o seguinte aviso:</p>
-          <div class="help-tip"><i>"AVISO: Seu aplicativo AgoraVAP! está solicitando a alteração de sua senha!"</i><br/>Clique no link do e-mail para criar uma nova senha.</div>
+          <h3>Recuperar senha esquecida</h3>
+          <p>Na tela de login, clique em "Recuperar acesso". Um e-mail com link de redefinição será enviado se o e-mail estiver cadastrado pelo Líder.</p>
 
           <h3>Logout automático por inatividade</h3>
-          <p>Após <b>2 minutos sem atividade</b> (sem clicar, digitar ou navegar), o sistema encerra a sessão automaticamente e retorna à tela de login com os campos limpos. Isso protege seus dados caso você esqueça o aplicativo aberto.</p>
-
-          <h3>Campos sempre limpos ao acessar</h3>
-          <p>Sempre que você abrir ou recarregar o aplicativo, os campos de e-mail e senha estarão em branco. O sistema não memoriza senha nem mantém sessão aberta após fechar o navegador.</p>
-
-          <h3>Redefinir todos os acessos (somente Líder)</h3>
-          <p>No módulo Administrativo, o Líder pode clicar em <b>"Redefinir todos os acessos"</b> para forçar que todos os vendedores criem uma nova senha no próximo login. Útil em casos de troca de equipe ou suspeita de acesso indevido.</p>
-          <div class="help-tip">Apenas o Líder tem acesso ao módulo Administrativo e pode gerenciar usuários, senhas e metas.</div>
+          <p>Após 2 minutos sem atividade, o sistema encerra a sessão automaticamente e retorna à tela de login com os campos limpos.</p>
         </div>
         <div class="divider"></div>
 
+        <!-- 4. MÓDULO ADMINISTRATIVO -->
         <div class="help-section">
-          <h2>Módulo Lançar</h2>
-
-          <h3>Data do lançamento</h3>
-          <p>No topo do módulo há um seletor de data. Por padrão vem com a data de hoje. Para lançar ou editar dados de um dia anterior, selecione a data desejada antes de preencher os campos. Se já houver lançamento naquela data, o sistema atualiza o registro existente. <b>Datas futuras não são permitidas.</b></p>
-
-          <h3>Contatos Efetivos do Dia</h3>
-          <p>Registre diariamente quantos contatos você fez em cada origem:</p>
-          <ul>
-            <li><b>Internos na Carteira</b> — clientes da sua carteira que você já atende regularmente</li>
-            <li><b>Internos de Prospecção</b> — contatos internos com foco em prospectar novos negócios</li>
-            <li><b>Visitas a Ativos</b> — visitas presenciais a clientes que estão comprando</li>
-            <li><b>Visitas a Inativos</b> — visitas a clientes que pararam de comprar</li>
-            <li><b>Prospecções Externas</b> — abordagem externa de novos clientes potenciais</li>
-            <li><b>Outras Externas</b> — outros contatos externos não listados acima</li>
-            <li><b>Contatos Inválidos</b> — tentativas que não resultaram em contato efetivo</li>
-          </ul>
-          <div class="help-tip">Lance os contatos ao fim do expediente. Os boxes superiores atualizam automaticamente após registrar.</div>
-
-          <h3>Cotações e Pedidos do Dia</h3>
-          <ul>
-            <li><b>Qtd. de Cotações (Ativo + Receptivo)</b> — total de cotações enviadas no dia</li>
-            <li><b>Valor Total das Cotações (R$)</b> — soma dos valores de todas as cotações do dia</li>
-            <li><b>Qtd. de Pedidos Fechados</b> — pedidos confirmados no dia</li>
-            <li><b>Valor Total dos Pedidos Fechados (R$)</b> — receita confirmada no dia</li>
-          </ul>
-
-          <h3>Cotações Perdidas do Dia</h3>
-          <ul>
-            <li><b>Perdas por Preço (R$) / Estoque (R$) / Outras Causas (R$)</b> — valores das cotações perdidas por motivo</li>
-          </ul>
-
-          <h3>Meta Mensal (R$)</h3>
-          <p>Exibe a meta do mês atual cadastrada no módulo Administrativo. Campo somente leitura — aparece em azul no formulário. Se não houver meta cadastrada, exibe "–".</p>
-
-          <h3>Meta Mensal (R$)</h3>
-          <p>Exibe a meta do mês atual cadastrada no módulo Administrativo. Campo somente leitura com fundo azul claro. Se não houver meta cadastrada, exibe "–".</p>
-
-          <h3>Formato dos valores</h3>
-          <p>Os campos de valor aceitam números inteiros (ex: 10000) ou decimais com vírgula (ex: 10000,50). O valor é formatado automaticamente como <b>10000,00</b> ao sair do campo.</p>
-        </div>
-        <div class="divider"></div>
-
-        <div class="help-section">
-          <h2>Módulo Histórico</h2>
-          <p>Consulte todos os lançamentos por data e tipo. Líderes podem filtrar por vendedor específico.</p>
-          <div class="help-tip">O botão "Limpar Registros" é exclusivo para Líderes e apaga todos os dados — use com atenção.</div>
-        </div>
-        <div class="divider"></div>
-
-        <div class="help-section">
-          <h2>Módulo Dashboard</h2>
-          <p>Exibe os KPIs consolidados do mês atual em quatro cards: total de vendas (quantidade e valor), <b>Pedidos/Cotações</b> (percentual de pedidos fechados sobre o total cotado em R$), ticket médio e total perdido.</p>
-          <p style="margin-top:.5rem">Líderes visualizam também o ranking completo da equipe com barra de progresso em relação à meta de cada profissional.</p>
-
-          <h3>Gráfico Vendas vs. Cotações</h3>
-          <p>Gráfico de <b>linhas</b> com 31 dias mostrando a evolução diária de Pedidos (azul) e Cotações (laranja). Passe o mouse sobre o gráfico para ver os valores do dia. Se houver meta cadastrada, aparece uma <b>linha tracejada vermelha</b> com a meta diária proporcional (meta ÷ 31).</p>
-
-          <h3>Gráfico Motivos de Perda</h3>
-          <p>Rosca com três fatias em cores contrastantes — vermelho (Preço), azul (Estoque) e verde (Outras) — mostrando a proporção de cada motivo de perda no mês.</p>
-
-          <h3>Gráfico Contatos por Origem</h3>
-          <p>Barras horizontais com uma cor distinta para cada uma das 7 origens de contato, facilitando a comparação visual entre os canais.</p>
-        </div>
-        <div class="divider"></div>
-
-        <div class="help-section">
-          <h2>Módulo Administrativo</h2>
+          <h2>4. Módulo Administrativo</h2>
 
           <h3>Profissionais</h3>
-          <p>Cadastre novos profissionais informando nome completo (nome e sobrenome), e-mail e perfil (Profissional ou Líder). A senha temporária é gerada automaticamente e exibida na tela para você repassar. No primeiro acesso ele cria a própria senha.</p>
+          <p>Cadastre novos profissionais informando nome completo, e-mail e perfil. A senha temporária é exibida na tela para repasse. Para <b>editar</b>, clique em "Editar" — apenas Nome e Meta podem ser alterados.</p>
 
           <h3>Download do histórico do mês anterior</h3>
-          <p>No primeiro dia de cada mês, ao abrir o módulo Administrativo, aparece um banner verde com o botão <b>"Baixar histórico do mês anterior"</b>. O CSV gerado contém todos os registros de todos os profissionais e líderes, com uma coluna "Perfil" separando cada um. Após o download o banner some e não reaparece naquele mês.</p>
+          <p>No <b>primeiro dia de cada mês</b>, aparece um banner verde com duas etapas:</p>
+          <ul>
+            <li><b>Etapa 1</b> — "Quer fazer o download dos históricos do mês passado?" → Sim ou Pular</li>
+            <li><b>Etapa 2</b> — "Já fez backup dos históricos dos vendedores?" → Confirmar ou Ainda não</li>
+          </ul>
+          <p>O CSV gerado contém todos os registros do mês anterior de todos os profissionais e líderes. Aparece uma vez por dia.</p>
 
           <h3>Metas Mensais</h3>
-          <p>Defina a meta de vendas de cada profissional por mês. Esses valores alimentam as barras de progresso no Dashboard, no Ranking e a linha de meta no gráfico de Vendas.</p>
+          <p>Defina a meta de cada profissional por mês — incluindo Líderes. Alimenta as barras de progresso no Ranking, o card do Dashboard e a linha tracejada no gráfico de Vendas vs. Cotações.</p>
 
           <h3>Exportar Excel</h3>
-          <p>Gera um arquivo CSV com os registros do período selecionado. As colunas de visitas são abreviadas como <b>Vis.Ativos</b> e <b>Vis.Inativos</b>. Pode ser aberto diretamente no Excel ou Google Sheets.</p>
+          <p>Gera arquivo CSV do período selecionado com todos os registros da equipe. Colunas de visitas abreviadas como <b>Vis.Ativos</b> e <b>Vis.Inativos</b>. Abrível no Excel ou Google Sheets.</p>
 
-          <h3>Redefinir todos os acessos</h3>
-          <p>Força que todos os profissionais criem uma nova senha no próximo login. Útil em casos de troca de equipe ou suspeita de acesso indevido.</p>
           <div class="help-tip">Apenas Líderes têm acesso ao módulo Administrativo.</div>
         </div>
         <div class="divider"></div>
 
+        <!-- 5. PERFIS DE ACESSO -->
         <div class="help-section">
-          <h2>Perfis de acesso</h2>
+          <h2>5. Perfis de Acesso</h2>
           <ul>
-            <li><b>Vendedor</b> — lança e consulta apenas seus próprios dados</li>
-            <li><b>Líder</b> — visualiza dados de toda a equipe, gerencia usuários, metas e exportações. Pode ter metas individuais como qualquer vendedor.</li>
+            <li><b>Vendedor / Profissional</b> — Lança e consulta apenas seus próprios dados nos módulos Lançar, Histórico e Dashboard.</li>
+            <li><b>Líder</b> — Visualiza dados de toda a equipe, gerencia profissionais, metas e exportações. Pode ter metas individuais como qualquer vendedor.</li>
           </ul>
         </div>
         <div class="divider"></div>
 
+        <!-- 6. SIMULAÇÃO DE VENDAS B2B -->
         <div class="help-section">
-          <h2>Observação Legal</h2>
+          <h2>6. Simulação de Vendas B2B</h2>
+          <p>Simulação completa de três meses de operação comercial para uma equipe de três vendedores B2B. Ciclo de vendas dividido em quatro etapas: Descoberta, Ativação, Negociação e Fechamento.</p>
+
+          <h3>6.1 Perfil dos Vendedores e Metas</h3>
+          <div style="overflow-x:auto;margin:.5rem 0">
+            <table class="help-table">
+              <tr><th>Vendedor</th><th>Meta Mensal</th><th>Ticket Médio</th><th>Janeiro</th><th>Fevereiro</th><th>Março</th></tr>
+              <tr><td>Carlos Mendes</td><td>R$ 150.000,00</td><td>R$ 1.500,00</td><td>R$ 150.000,00</td><td>R$ 165.000,00</td><td>R$ 127.500,00</td></tr>
+              <tr><td>Patrícia Lemos</td><td>R$ 230.000,00</td><td>R$ 1.200,00</td><td>R$ 230.000,00</td><td>R$ 253.000,00</td><td>R$ 195.500,00</td></tr>
+              <tr><td>Roberto Farias</td><td>R$ 98.000,00</td><td>R$ 990,00</td><td>R$ 98.000,00</td><td>R$ 107.800,00</td><td>R$ 83.300,00</td></tr>
+            </table>
+          </div>
+          <p style="font-size:.8rem;color:var(--gray)">Jan = bate a meta · Fev = supera em 10% · Mar = fica 15% abaixo da meta</p>
+
+          <h3>6.2 Funil de Vendas — Carlos Mendes</h3>
+          <div style="overflow-x:auto;margin:.5rem 0">
+            <table class="help-table">
+              <tr><th>Etapa</th><th>Prospects</th><th>Val. Médio Est.</th><th>Volume Est.</th><th>Taxa de Passagem</th></tr>
+              <tr><td>Descoberta</td><td>40</td><td>R$ 3.000,00</td><td>R$ 120.000,00</td><td>55%</td></tr>
+              <tr><td>Ativação</td><td>22</td><td>R$ 7.000,00</td><td>R$ 154.000,00</td><td>55%</td></tr>
+              <tr><td>Negociação</td><td>12</td><td>R$ 12.000,00</td><td>R$ 144.000,00</td><td>50%</td></tr>
+              <tr><td>Fechamento</td><td>6</td><td>R$ 22.000,00</td><td>R$ 132.000,00</td><td>—</td></tr>
+            </table>
+          </div>
+          <ul>
+            <li><b>Janeiro:</b> R$ 150.000,00 (+0%) — Bate a meta. ~100 vendas com ticket de R$ 1.500,00.</li>
+            <li><b>Fevereiro:</b> R$ 165.000,00 (+10%) — Supera em 10%. Diferença: +R$ 15.000,00. ~110 vendas.</li>
+            <li><b>Março:</b> R$ 127.500,00 (-15%) — Abaixo da meta. Diferença: -R$ 22.500,00. ~85 vendas.</li>
+          </ul>
+
+          <h3>6.3 Funil de Vendas — Patrícia Lemos</h3>
+          <div style="overflow-x:auto;margin:.5rem 0">
+            <table class="help-table">
+              <tr><th>Etapa</th><th>Prospects</th><th>Val. Médio Est.</th><th>Volume Est.</th><th>Taxa de Passagem</th></tr>
+              <tr><td>Descoberta</td><td>55</td><td>R$ 4.000,00</td><td>R$ 220.000,00</td><td>55%</td></tr>
+              <tr><td>Ativação</td><td>30</td><td>R$ 9.000,00</td><td>R$ 270.000,00</td><td>60%</td></tr>
+              <tr><td>Negociação</td><td>18</td><td>R$ 18.000,00</td><td>R$ 324.000,00</td><td>50%</td></tr>
+              <tr><td>Fechamento</td><td>9</td><td>R$ 28.000,00</td><td>R$ 252.000,00</td><td>—</td></tr>
+            </table>
+          </div>
+          <ul>
+            <li><b>Janeiro:</b> R$ 230.000,00 (+0%) — Bate a meta. ~192 vendas com ticket de R$ 1.200,00.</li>
+            <li><b>Fevereiro:</b> R$ 253.000,00 (+10%) — Supera em 10%. Diferença: +R$ 23.000,00. ~211 vendas.</li>
+            <li><b>Março:</b> R$ 195.500,00 (-15%) — Abaixo da meta. Diferença: -R$ 34.500,00. ~163 vendas.</li>
+          </ul>
+
+          <h3>6.4 Funil de Vendas — Roberto Farias</h3>
+          <div style="overflow-x:auto;margin:.5rem 0">
+            <table class="help-table">
+              <tr><th>Etapa</th><th>Prospects</th><th>Val. Médio Est.</th><th>Volume Est.</th><th>Taxa de Passagem</th></tr>
+              <tr><td>Descoberta</td><td>28</td><td>R$ 2.500,00</td><td>R$ 70.000,00</td><td>54%</td></tr>
+              <tr><td>Ativação</td><td>15</td><td>R$ 5.500,00</td><td>R$ 82.500,00</td><td>60%</td></tr>
+              <tr><td>Negociação</td><td>9</td><td>R$ 9.000,00</td><td>R$ 81.000,00</td><td>44%</td></tr>
+              <tr><td>Fechamento</td><td>4</td><td>R$ 18.000,00</td><td>R$ 72.000,00</td><td>—</td></tr>
+            </table>
+          </div>
+          <ul>
+            <li><b>Janeiro:</b> R$ 98.000,00 (+0%) — Bate a meta. ~99 vendas com ticket de R$ 990,00.</li>
+            <li><b>Fevereiro:</b> R$ 107.800,00 (+10%) — Supera em 10%. Diferença: +R$ 9.800,00. ~109 vendas.</li>
+            <li><b>Março:</b> R$ 83.300,00 (-15%) — Abaixo da meta. Diferença: -R$ 14.700,00. ~84 vendas.</li>
+          </ul>
+
+          <h3>6.5 Cotações Perdidas por Vendedor</h3>
+          <p>O registro sistemático das perdas permite identificar padrões e aprimorar a abordagem comercial.</p>
+          <div style="overflow-x:auto;margin:.5rem 0">
+            <table class="help-table">
+              <tr><th>Vendedor</th><th>Cliente</th><th>Valor</th><th>Motivo</th></tr>
+              <tr><td>Carlos Mendes</td><td>Distribuidora Alfa Ltda</td><td>R$ 12.000,00</td><td>Preço</td></tr>
+              <tr><td>Carlos Mendes</td><td>Indústria Betamax S/A</td><td>R$ 9.500,00</td><td>Concorrente</td></tr>
+              <tr><td>Carlos Mendes</td><td>Grupo Sigma Comércio</td><td>R$ 15.000,00</td><td>Sem orçamento</td></tr>
+              <tr><td>Patrícia Lemos</td><td>TechSol Sistemas Ltda</td><td>R$ 18.500,00</td><td>Prazo</td></tr>
+              <tr><td>Patrícia Lemos</td><td>Construtora Horizonte</td><td>R$ 22.000,00</td><td>Preço</td></tr>
+              <tr><td>Patrícia Lemos</td><td>Grupo Médico Saúde+</td><td>R$ 14.000,00</td><td>Concorrente</td></tr>
+              <tr><td>Roberto Farias</td><td>Mercado Regional Express</td><td>R$ 7.800,00</td><td>Sem decisão</td></tr>
+              <tr><td>Roberto Farias</td><td>Escritório Contábil Nova</td><td>R$ 5.900,00</td><td>Preço</td></tr>
+              <tr><td>Roberto Farias</td><td>Farmácia Popular Plus</td><td>R$ 9.200,00</td><td>Concorrente</td></tr>
+            </table>
+          </div>
+
+          <h3>6.6 Dashboard — Resultados do Trimestre</h3>
+          <div style="overflow-x:auto;margin:.5rem 0">
+            <table class="help-table">
+              <tr><th>Total Receita</th><th>Total Vendas</th><th>Conversão</th><th>Ticket Médio</th><th>Perdas</th><th>Volume Perdido</th></tr>
+              <tr><td>R$ 1.410.100,00</td><td>1153 negócios</td><td>99,2%</td><td>R$ 1.223,00</td><td>9 cotações</td><td>R$ 113.900,00</td></tr>
+            </table>
+          </div>
+          <div style="overflow-x:auto;margin:.5rem 0">
+            <table class="help-table">
+              <tr><th>Vendedor</th><th>Meta</th><th>Janeiro</th><th>%</th><th>Fevereiro</th><th>%</th><th>Março</th><th>%</th></tr>
+              <tr><td>Carlos Mendes</td><td>R$ 150.000</td><td>R$ 150.000</td><td>+0%</td><td>R$ 165.000</td><td>+10%</td><td>R$ 127.500</td><td style="color:#C53030">-15%</td></tr>
+              <tr><td>Patrícia Lemos</td><td>R$ 230.000</td><td>R$ 230.000</td><td>+0%</td><td>R$ 253.000</td><td>+10%</td><td>R$ 195.500</td><td style="color:#C53030">-15%</td></tr>
+              <tr><td>Roberto Farias</td><td>R$ 98.000</td><td>R$ 98.000</td><td>+0%</td><td>R$ 107.800</td><td>+10%</td><td>R$ 83.300</td><td style="color:#C53030">-15%</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="divider"></div>
+
+        <!-- 7. OBSERVAÇÃO LEGAL -->
+        <div class="help-section">
+          <h2>7. Observação Legal</h2>
           <p>Demais condições de uso, Termos de Uso e Garantias devem ser acessadas, lidas e ter o <b>"De Acordo"</b> do cliente responsável no site:</p>
           <div class="help-tip" style="margin-top:.6rem;font-size:.9rem;text-align:center">
             <a href="https://ernestocostasantos.com.br/agoravap" target="_blank" style="color:#C53030;font-weight:700;text-decoration:none">
               https://ernestocostasantos.com.br/agoravap
             </a>
           </div>
+          <p style="margin-top:1rem">Para suporte técnico ou dúvidas, entre em contato:</p>
+          <p><b>E-mail:</b> contato@ernestocostasantos.com.br</p>
+          <p><b>Site:</b> <a href="https://ernestocostasantos.com.br/agoravap" target="_blank" style="color:#C53030">https://ernestocostasantos.com.br/agoravap</a></p>
+          <p style="margin-top:.8rem;color:var(--gray);font-size:.85rem">AgoraVAP! — Versão 2.0 · 2026</p>
         </div>
+
       </div>
     </div>
-
-  </div><!-- /content -->
+</div><!-- /content -->
 </div><!-- /app -->
 
 <!-- MODAL confirmação -->
@@ -861,6 +958,136 @@ const auth2 = getAuth(FA2);
 
 // Sessão expira ao fechar o navegador
 setPersistence(auth, browserSessionPersistence).catch(() => {});
+
+// ════════════════════════════════════════════════════════
+// VAP LOGGER — Sistema de Log v1.0
+// Níveis: INFO · WARNING · ERROR · CRITICAL
+// Armazenamento: Firestore → coleção "logs"
+// ════════════════════════════════════════════════════════
+
+const VapLogger = (() => {
+
+  // ── Níveis de log ────────────────────────────────────
+  const LEVELS = { INFO: 1, WARNING: 2, ERROR: 3, CRITICAL: 4 };
+  const MIN_LEVEL_FIRESTORE = LEVELS.WARNING; // WARNING+ vai para Firestore
+  const MIN_LEVEL_CONSOLE   = LEVELS.INFO;    // INFO+ vai para console
+
+  // ── Buffer local de logs da sessão ──────────────────
+  const _buffer = [];
+  const MAX_BUFFER = 200;
+
+  // ── Contexto atual da sessão ─────────────────────────
+  let _ctx = { uid: null, name: null, role: null, tab: null, action: null };
+
+  function setContext(ctx) { Object.assign(_ctx, ctx); }
+
+  // ── Formata entrada de log ───────────────────────────
+  function _entry(level, message, data = {}) {
+    return {
+      level,
+      message,
+      ts: new Date().toISOString(),
+      uid:    _ctx.uid    || 'anonymous',
+      name:   _ctx.name   || 'anonymous',
+      role:   _ctx.role   || 'unknown',
+      tab:    _ctx.tab    || 'unknown',
+      action: _ctx.action || 'unknown',
+      ua:     navigator.userAgent.slice(0, 120),
+      url:    window.location.href,
+      data: JSON.stringify(data).slice(0, 500),
+    };
+  }
+
+  // ── Salva no Firestore (WARNING+) ────────────────────
+  async function _persist(entry) {
+    try {
+      // Só persiste se db estiver disponível e usuário logado
+      if (typeof db === 'undefined') return;
+      await addDoc(collection(db, 'logs'), entry);
+    } catch(e) {
+      // Falha silenciosa — não queremos loop de erros
+      console.warn('[VapLogger] Falha ao persistir log:', e.message);
+    }
+  }
+
+  // ── Core: registra o log ─────────────────────────────
+  function _log(level, message, data = {}) {
+    const entry = _entry(level, message, data);
+
+    // Buffer local
+    _buffer.push(entry);
+    if (_buffer.length > MAX_BUFFER) _buffer.shift();
+
+    // Console
+    if (LEVELS[level] >= MIN_LEVEL_CONSOLE) {
+      const icons = { INFO:'ℹ️', WARNING:'⚠️', ERROR:'❌', CRITICAL:'🚨' };
+      const fn = level === 'INFO' ? 'log'
+               : level === 'WARNING' ? 'warn'
+               : 'error';
+      console[fn](`${icons[level]} [VAP ${level}] ${message}`, data);
+    }
+
+    // Firestore (WARNING+)
+    if (LEVELS[level] >= MIN_LEVEL_FIRESTORE) {
+      _persist(entry);
+    }
+  }
+
+  // ── API pública ──────────────────────────────────────
+  return {
+    setContext,
+    info    : (msg, data) => _log('INFO',     msg, data),
+    warning : (msg, data) => _log('WARNING',  msg, data),
+    error   : (msg, data) => _log('ERROR',    msg, data),
+    critical: (msg, data) => _log('CRITICAL', msg, data),
+
+    // Rastreia ação do usuário
+    track: (action, data) => {
+      _ctx.action = action;
+      _log('INFO', `Ação: ${action}`, data);
+    },
+
+    // Muda aba ativa
+    setTab: (tab) => { _ctx.tab = tab; },
+
+    // Retorna buffer da sessão
+    getBuffer: () => [..._buffer],
+
+    // Exporta log da sessão como JSON para download
+    exportSession: () => {
+      const json = JSON.stringify(_buffer, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `agoravap_log_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+  };
+})();
+
+// ── Captura global de erros não tratados ──────────────
+window.onerror = function(message, source, lineno, colno, error) {
+  VapLogger.critical('Erro não tratado', {
+    message, source, lineno, colno,
+    stack: error?.stack?.slice(0, 500) || 'N/A'
+  });
+  return false; // deixa o erro aparecer no console também
+};
+
+// ── Captura de Promises rejeitadas não tratadas ───────
+window.addEventListener('unhandledrejection', e => {
+  VapLogger.error('Promise rejeitada não tratada', {
+    reason: String(e.reason).slice(0, 300),
+    stack:  e.reason?.stack?.slice(0, 300) || 'N/A'
+  });
+});
+
+// ── Log de início de sessão ───────────────────────────
+VapLogger.info('App inicializado', { version: '2.0', ts: new Date().toISOString() });
+
+
 
 // ── State ────────────────────────────────────────────────
 let cu = null, cp = null;
@@ -1024,7 +1251,13 @@ $('btn-login').onclick = async () => {
     // onAuthStateChanged cuida do redirecionamento
   } catch (err) {
     const cred = ['auth/invalid-credential','auth/wrong-password','auth/user-not-found','auth/invalid-email'];
-    showErr(cred.includes(err.code) ? 'E-mail ou senha incorretos.' : 'Erro: ' + (err.code || err.message));
+    if(cred.includes(err.code)){
+      VapLogger.warning('Tentativa de login falhou', { code: err.code, email: e });
+      showErr('E-mail ou senha incorretos.');
+    } else {
+      VapLogger.error('Erro inesperado no login', { code: err.code, msg: err.message });
+      showErr('Erro: ' + (err.code || err.message));
+    }
   } finally {
     $('btn-login').textContent = 'Entrar'; $('btn-login').disabled = false;
   }
@@ -1152,6 +1385,9 @@ onAuthStateChanged(auth, async user => {
     $('auth-screen').style.display = 'none';
     $('app').style.display = 'block';
     clearFields();
+    // Define contexto do logger com dados do usuário logado
+    VapLogger.setContext({ uid: user.uid, name: cp.name, role: cp.role });
+    VapLogger.info('Login realizado', { role: cp.role });
 
     $('top-user').textContent = cp.name;
     const isLider = cp.role === 'lider';
@@ -1300,8 +1536,10 @@ $('btn-salvar-contatos').onclick = async () => {
 
   try {
     const ts = new Date().toISOString();
+    VapLogger.track('Salvar contatos', { data, total });
     if(existente){
       await updateDoc(doc(db,'records',existente.id),{...vals, total, ts});
+      VapLogger.info('Contatos atualizados', { data, total });
       toast('Contatos do dia ' + fD(data) + ' atualizados!');
     } else {
       const payload = { uid:cu.uid, seller:cp.name, tipo:'contatos',
@@ -1310,6 +1548,7 @@ $('btn-salvar-contatos').onclick = async () => {
       toast('Contatos registrados!');
     }
   } catch(err) {
+    VapLogger.error('Erro ao salvar contatos', { msg: err.message, code: err.code });
     toast('Erro ao salvar: ' + (err.message||err.code));
     return;
   } finally {
@@ -1343,6 +1582,7 @@ $('btn-salvar-cotacoes').onclick = async () => {
   if(data > tod()){ toast('Não é permitido lançar para datas futuras.'); return; }
 
   try {
+    VapLogger.track('Salvar cotacoes', { data, cotQtd, cotValor, pedQtd, pedValor });
     const existente = await getRecDia('cotacoes');
     const ts = new Date().toISOString();
     const dadosCot = { cotQtd, cotValor, pedQtd, pedValor,
@@ -1787,7 +2027,8 @@ $('btn-adm-save').onclick = async () => {
       if (err.code === 'auth/email-already-in-use') {
         await recoverDeletedUser(e, n, r, metaIni);
       } else {
-        toast('Erro ao criar usuario: ' + (err.code || err.message));
+        VapLogger.error('Erro ao criar usuario', { code: err.code, msg: err.message, email: e });
+    toast('Erro ao criar usuario: ' + (err.code || err.message));
       }
     }
   }
@@ -1906,6 +2147,7 @@ async function delUser(uid) {
       await deleteDoc(doc(db, 'users', uid));
       toast('"' + u.name + '" removido. O e-mail pode ser reutilizado.');
     } catch (err) {
+      VapLogger.error('Erro ao remover usuario', { code: err.code, msg: err.message, uid });
       toast('Erro ao remover: ' + (err.code || err.message));
     }
   });
@@ -2137,6 +2379,8 @@ $('btn-cancelar-backup') && ($('btn-cancelar-backup').onclick = () => {
 // Tab navigation — ID-based, not index-based
 // Works correctly even when admin tab is hidden for vendors
 window.switchTab = tab => {
+  VapLogger.setTab(tab);
+  VapLogger.track('Aba: ' + tab);
   document.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   const btn = document.querySelector('[data-tab="'+tab+'"]');
@@ -2162,13 +2406,129 @@ document.querySelectorAll('[data-tab]').forEach(btn=>{
 document.querySelectorAll('[data-adm]').forEach(btn=>{
   btn.onclick=()=>{
     document.querySelectorAll('[data-adm]').forEach(b=>b.classList.remove('active'));
-    ['adm-vendedores','adm-metas','adm-exportar'].forEach(id=>$(id).style.display='none');
+    ['adm-vendedores','adm-metas','adm-exportar','adm-logs'].forEach(id=>$(id).style.display='none');
     btn.classList.add('active');
     $('adm-'+btn.dataset.adm).style.display='block';
   };
 });
 
 // ── Initial setup after login ─────────────────────────────
+
+// ── Módulo Logs ───────────────────────────────────────────
+async function loadLogs(){
+  const levelFilter = $('log-level-filter')?.value || '';
+  const userFilter  = $('log-user-filter')?.value  || '';
+  const wrap = $('logs-table-wrap');
+  if(!wrap) return;
+  wrap.innerHTML = '<div class="empty" style="padding:2rem 0">Carregando...</div>';
+
+  try {
+    VapLogger.track('Carregar logs', { levelFilter, userFilter });
+    // Busca últimos 200 logs ordenados por timestamp
+    let q = query(collection(db,'logs'), orderBy('ts','desc'));
+    const snap = await getDocs(q);
+    let logs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Aplica filtros
+    if(levelFilter) logs = logs.filter(l => l.level === levelFilter);
+    if(userFilter)  logs = logs.filter(l => l.uid  === userFilter);
+    logs = logs.slice(0, 200);
+
+    if(!logs.length){
+      wrap.innerHTML = '<div class="empty" style="padding:2rem 0">Nenhum log encontrado.</div>';
+      return;
+    }
+
+    // Popula filtro de usuários únicos
+    const uids = [...new Set(snap.docs.map(d => d.data()).map(d => d.uid))];
+    const sel = $('log-user-filter');
+    if(sel){
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">Todos os usuários</option>';
+      uids.forEach(uid => {
+        const u = _users.find(x => x.id === uid);
+        const label = u ? u.name : uid.slice(0,8)+'...';
+        sel.innerHTML += `<option value="${uid}" ${uid===cur?'selected':''}>${label}</option>`;
+      });
+    }
+
+    // Cores por nível
+    const colors = {
+      INFO:     '#EBF5FB',
+      WARNING:  '#FEF9E7',
+      ERROR:    '#FDEDEC',
+      CRITICAL: '#F5EEF8',
+    };
+    const badges = {
+      INFO:     'background:#2980B9;color:#fff',
+      WARNING:  'background:#F39C12;color:#fff',
+      ERROR:    'background:#E74C3C;color:#fff',
+      CRITICAL: 'background:#8E44AD;color:#fff',
+    };
+
+    wrap.innerHTML = `
+      <div style="font-size:.78rem;color:var(--gray);margin-bottom:.5rem">${logs.length} registros encontrados</div>
+      <table style="width:100%;border-collapse:collapse;font-size:.78rem">
+        <thead>
+          <tr style="background:var(--r);color:#fff">
+            <th style="padding:6px 8px;text-align:left">Data/Hora</th>
+            <th style="padding:6px 8px;text-align:left">Nível</th>
+            <th style="padding:6px 8px;text-align:left">Usuário</th>
+            <th style="padding:6px 8px;text-align:left">Aba</th>
+            <th style="padding:6px 8px;text-align:left">Mensagem</th>
+            <th style="padding:6px 8px;text-align:left">Dados</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${logs.map((l,i) => `
+            <tr style="background:${colors[l.level]||'#fff'};border-bottom:1px solid #f0f0f0">
+              <td style="padding:5px 8px;white-space:nowrap">${l.ts ? l.ts.slice(0,19).replace('T',' ') : '—'}</td>
+              <td style="padding:5px 8px">
+                <span style="padding:2px 7px;border-radius:10px;font-size:.72rem;font-weight:700;${badges[l.level]||''}">${l.level}</span>
+              </td>
+              <td style="padding:5px 8px">${l.name||l.uid||'—'}</td>
+              <td style="padding:5px 8px">${l.tab||'—'}</td>
+              <td style="padding:5px 8px">${l.message||'—'}</td>
+              <td style="padding:5px 8px;font-family:monospace;font-size:.7rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(l.data||'').replace(/"/g,'&quot;')}">${l.data||'—'}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+
+    // Botão exportar CSV dos logs filtrados
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'btn-sec';
+    exportBtn.textContent = 'Exportar CSV';
+    exportBtn.style.cssText = 'margin-top:.75rem;font-size:.8rem';
+    exportBtn.onclick = () => {
+      const header = ['Data/Hora','Nivel','Usuario','UID','Perfil','Aba','Acao','Mensagem','Dados','URL'];
+      const rows = logs.map(l => [
+        (l.ts||'').slice(0,19).replace('T',' '),
+        l.level, l.name, l.uid, l.role, l.tab, l.action,
+        l.message, l.data, l.url
+      ]);
+      const csv = [header,...rows].map(r => r.map(v => JSON.stringify(String(v||''))).join(',')).join('\n');
+      const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url;
+      a.download = 'agoravap_logs_'+new Date().toISOString().slice(0,10)+'.csv';
+      a.click(); URL.revokeObjectURL(url);
+      VapLogger.info('Logs exportados', { count: logs.length });
+    };
+    wrap.appendChild(exportBtn);
+
+  } catch(err) {
+    VapLogger.error('Erro ao carregar logs', { msg: err.message });
+    wrap.innerHTML = '<div class="empty" style="padding:2rem 0;color:#C53030">Erro ao carregar logs: ' + err.message + '</div>';
+  }
+}
+
+$('btn-load-logs') && ($('btn-load-logs').onclick = loadLogs);
+$('btn-export-session-log') && ($('btn-export-session-log').onclick = () => {
+  VapLogger.info('Download log sessão solicitado');
+  VapLogger.exportSession();
+});
+
+
 // setupHistoricoListeners called on tab open
 </script>
 
