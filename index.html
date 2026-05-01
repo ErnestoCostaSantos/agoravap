@@ -300,32 +300,56 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
   <div class="auth-spacer"></div>
   <div class="auth-card">
-    <div class="auth-logo"><h1>AgoraVAP!</h1><p>Sistema de Gestão Comercial</p></div>
+    <!-- Logo dinâmico da empresa -->
+    <div id="company-logo-wrap" style="text-align:center;margin-bottom:1rem;min-height:50px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px">
+      <img id="company-logo-img" src="" alt="" style="display:none;max-height:56px;max-width:180px;object-fit:contain;border-radius:6px"/>
+      <div class="auth-logo" id="company-logo-text"><h1>AgoraVAP!</h1><p id="company-tagline">Sistema de Gestão Comercial</p></div>
+    </div>
     <div class="auth-err" id="auth-err"></div>
     <div class="auth-success" id="auth-success"></div>
 
     <!-- ── TELA 1: LOGIN ── -->
     <div id="form-login">
-      <div class="first-login-badge" id="badge-first-user" style="display:none;background:#E8F5E9;border-color:#2E7D32;color:#1B5E20">
-        Nenhum usuário cadastrado. Crie a conta do primeiro <b>Líder</b> para começar.
+
+      <!-- PASSO 1: Código da empresa -->
+      <div id="step-company">
+        <div class="auth-field">
+          <label>Código da Empresa</label>
+          <input type="text" id="li-company" placeholder="ex: alpha"
+            autocomplete="off" autocorrect="off" spellcheck="false"
+            style="text-transform:lowercase;letter-spacing:.05em"/>
+        </div>
+        <button class="btn-auth" id="btn-verify-company">Confirmar</button>
       </div>
-      <div class="auth-field">
-        <label>E-mail</label>
-        <input type="email" id="li-email" placeholder="seu@email.com" autocomplete="off" autocorrect="off" spellcheck="false"/>
-      </div>
-      <div class="auth-field">
-        <label>Senha</label>
-        <div class="pw-wrap">
-          <input type="password" id="li-pass" placeholder="••••••••" autocomplete="off"/>
-          <button class="pw-eye" id="eye-login" type="button" title="Mostrar/ocultar senha">&#128065;</button>
+
+      <!-- PASSO 2: E-mail e senha (aparece após confirmar empresa) -->
+      <div id="step-credentials" style="display:none">
+        <div id="company-info-bar" style="background:#F0FFF4;border:1px solid #68D391;border-radius:8px;padding:6px 12px;margin-bottom:.75rem;font-size:.82rem;color:#276749;text-align:center;font-weight:600"></div>
+        <div class="first-login-badge" id="badge-first-user" style="display:none;background:#E8F5E9;border-color:#2E7D32;color:#1B5E20">
+          Nenhum usuário cadastrado. Crie a conta do primeiro <b>Líder</b> para começar.
+        </div>
+        <div class="auth-field">
+          <label>E-mail</label>
+          <input type="email" id="li-email" placeholder="seu@email.com" autocomplete="off" autocorrect="off" spellcheck="false"/>
+        </div>
+        <div class="auth-field">
+          <label>Senha</label>
+          <div class="pw-wrap">
+            <input type="password" id="li-pass" placeholder="••••••••" autocomplete="off"/>
+            <button class="pw-eye" id="eye-login" type="button" title="Mostrar/ocultar senha">&#128065;</button>
+          </div>
+        </div>
+        <button class="btn-auth" id="btn-login">Entrar</button>
+        <button class="btn-auth" id="btn-criar-lider" style="display:none;background:#2E7D32;margin-top:8px">Criar conta do Líder</button>
+        <div style="text-align:center;margin-top:.5rem">
+          <span id="btn-change-company" style="font-size:.78rem;color:#C53030;cursor:pointer">← Trocar empresa</span>
+        </div>
+        <div class="auth-divider">ou</div>
+        <div style="text-align:center;font-size:.82rem;color:rgba(0,0,0,0.6)">
+          Esqueceu a senha? <span id="go-forgot" style="color:#C53030;cursor:pointer;font-weight:700">Recuperar acesso</span>
         </div>
       </div>
-      <button class="btn-auth" id="btn-login">Entrar</button>
-      <button class="btn-auth" id="btn-criar-lider" style="display:none;background:#2E7D32;margin-top:8px">Criar conta do Líder</button>
-      <div class="auth-divider">ou</div>
-      <div style="text-align:center;font-size:.82rem;color:rgba(0,0,0,0.6)">
-        Esqueceu a senha? <span id="go-forgot" style="color:#C53030;cursor:pointer;font-weight:700">Recuperar acesso</span>
-      </div>
+
     </div>
 
     <!-- ── TELA 2: PRIMEIRO ACESSO (criar senha) ── -->
@@ -414,6 +438,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     <div class="nav-tab" data-tab="dashboard">Dashboard</div>
     <div class="nav-tab" data-tab="admin">Administrativo</div>
     <div class="nav-tab" data-tab="ajuda">Ajuda</div>
+    <div class="nav-tab" data-tab="superadmin" id="tab-superadmin" style="display:none;background:#8E44AD;color:#fff">Super Admin</div>
   </div>
 
   <div class="content">
@@ -693,7 +718,57 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     </div>
 
     <!-- ════ AJUDA ═════════════════════════════════════════════ -->
-        <div class="panel" id="panel-ajuda">
+        <!-- SUPER ADMIN PANEL -->
+    <div class="panel" id="panel-superadmin">
+      <div class="fcard">
+        <div class="fcard-title"><span class="bar" style="background:#8E44AD"></span>Gestão de Empresas</div>
+        <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+          <button class="btn-save" id="btn-nova-empresa" style="background:#8E44AD">+ Nova Empresa</button>
+          <button class="btn-sec" id="btn-reload-empresas">Atualizar Lista</button>
+        </div>
+        <!-- Form Nova/Editar Empresa -->
+        <div id="form-empresa" style="display:none;background:#F5EEF8;border:1px solid #D7BDE2;border-radius:10px;padding:1rem;margin-bottom:1rem">
+          <div style="font-weight:700;color:#6C3483;margin-bottom:.75rem" id="form-empresa-title">Nova Empresa</div>
+          <input type="hidden" id="empresa-id"/>
+          <div class="fgrid fg2">
+            <div class="field"><label>Nome Completo</label><input type="text" id="empresa-name" placeholder="Alpha Distribuidora Ltda"/></div>
+            <div class="field"><label>Nome Fantasia</label><input type="text" id="empresa-fantasy" placeholder="Alpha"/></div>
+          </div>
+          <div class="fgrid fg2">
+            <div class="field"><label>Código de Acesso</label><input type="text" id="empresa-code" placeholder="alpha" style="text-transform:lowercase"/></div>
+            <div class="field"><label>Status</label>
+              <select id="empresa-active">
+                <option value="true">Ativa</option>
+                <option value="false">Inativa</option>
+              </select>
+            </div>
+          </div>
+          <div class="fgrid fg2">
+            <div class="field"><label>Cor de Fundo (hex)</label><input type="text" id="empresa-bgcolor" placeholder="#E53E3E"/></div>
+            <div class="field"><label>URL Imagem de Fundo</label><input type="text" id="empresa-bgimage" placeholder="https://..."/></div>
+          </div>
+          <div class="field"><label>URL do Logo</label><input type="text" id="empresa-logo" placeholder="https://..."/></div>
+          <div style="display:flex;gap:8px;margin-top:.75rem">
+            <button class="btn-save" id="btn-salvar-empresa" style="background:#8E44AD">Salvar Empresa</button>
+            <button class="btn-sec" id="btn-cancelar-empresa">Cancelar</button>
+          </div>
+        </div>
+        <!-- Lista de Empresas -->
+        <div id="empresas-list"><div class="empty">Clique em "Atualizar Lista" para carregar.</div></div>
+      </div>
+
+      <!-- Stats globais -->
+      <div class="fcard" style="margin-top:1rem">
+        <div class="fcard-title"><span class="bar" style="background:#8E44AD"></span>Visão Global</div>
+        <div id="superadmin-stats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:.5rem">
+          <div class="mcard blue"><div class="mcard-label">Empresas ativas</div><div class="mcard-val" id="stat-empresas">–</div></div>
+          <div class="mcard green"><div class="mcard-label">Total usuários</div><div class="mcard-val" id="stat-users">–</div></div>
+          <div class="mcard amber"><div class="mcard-label">Total registros</div><div class="mcard-val" id="stat-records">–</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-ajuda">
       <div class="help-content">
 
         <!-- 1. APRESENTAÇÃO -->
@@ -701,8 +776,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h2>1. Apresentação do AgoraVAP!</h2>
           <p>O AgoraVAP! é um sistema, versão web e app, de gestão comercial desenvolvido para equipes de vendas B2B. Ele não é um sistema transacional como ERP ou CRM.</p>
           <p>A plataforma permite centralizar diariamente os registros feitos pelos agentes de vendas definidos pela empresa cliente, de seus contatos realizados, cotações, pedidos fechados e perdas. Assim, oferece visibilidade em tempo real da performance aos próprios profissionais e ao líder da equipe, para fins de tomada de decisão gerencial.</p>
-          <p>Com uma interface simples e intuitiva — dividida em 7 grandes módulos (Lançar, Histórico, Dashboard, Administrativo, Acesso, Configuração e Ajuda) — o AgoraVAP! minimiza o uso de planilhas, fichas e registros em geral dispersos, individualizados e que não trafegam entre todos os envolvidos na área comercial.</p>
-          <p>Ele permite que profissionais e seus líderes tomem decisões baseadas em dados atualizados e relevantes.</p>
+          <p>Com uma interface simples e intuitiva — dividida em 8 módulos (Lançar, Histórico, Dashboard, Administrativo, Acesso, Configuração, Ajuda e Super Admin) — o AgoraVAP! minimiza o uso de planilhas, fichas e registros em geral dispersos, individualizados e que não trafegam entre todos os envolvidos na área comercial.</p>
+          <p>A partir da versão 3.0, o sistema opera em arquitetura <b>multi-empresa</b>: uma única instalação suporta múltiplas empresas clientes, com dados totalmente isolados entre elas. Cada empresa tem seu próprio código de acesso, personalização visual (logo, cor e imagem de fundo) e base de dados independente.</p>
           <div class="help-tip">O sistema é indicado para equipes com ciclo de vendas consultivo, onde o acompanhamento de funil, taxas de conversão e ticket médio são indicadores críticos de performance.</div>
         </div>
         <div class="divider"></div>
@@ -710,7 +785,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <!-- 2. MÓDULOS E FUNCIONALIDADES -->
         <div class="help-section">
           <h2>2. Módulos e Funcionalidades</h2>
-          <p>O AgoraVAP! é organizado em 7 módulos principais, cada um com função específica no ciclo de gestão comercial.</p>
+          <p>O AgoraVAP! é organizado em 8 módulos principais, cada um com função específica no ciclo de gestão comercial.</p>
 
           <h3>2.1 Módulo Lançar</h3>
           <p>Ponto de entrada diário do profissional. Permite registrar contatos, cotações, pedidos e perdas por data selecionável. Datas futuras não são permitidas.</p>
@@ -723,7 +798,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <div class="help-tip">Quatro boxes no topo exibem os dados do dia selecionado: Contatos, Pedidos Fechados, Cotações Enviadas e Perdas. Atualizados automaticamente após cada lançamento.</div>
 
           <h3>2.2 Módulo Histórico</h3>
-          <p>Exibe todos os registros lançados com filtros por data, tipo (Contatos ou Cotações/Pedidos) e vendedor (Líder). Cada registro apresenta ícone colorido por tipo, dados do profissional, data e valores.</p>
+          <p>Exibe todos os registros lançados com três modos de filtro de data:</p>
+          <ul>
+            <li><b>Dia único</b> — filtra por um dia específico</li>
+            <li><b>Período</b> — campos "De" e "Até" para filtrar um intervalo de datas</li>
+            <li><b>Mês</b> — seleciona um mês inteiro de uma vez</li>
+          </ul>
+          <p>Combinado com filtros de Tipo (Contatos ou Cotações/Pedidos) e Profissional (apenas Líder). Uma linha de resumo exibe o total de registros, contatos e pedidos do período filtrado. Os registros são sempre ordenados do mais recente para o mais antigo.</p>
+          <div class="help-tip">O botão <b>⚠ Apagar Registros</b> fica à direita da barra de filtros para evitar cliques acidentais. Disponível apenas para o Líder.</div>
 
           <h3>2.3 Módulo Dashboard</h3>
           <p>Consolida os registros do mês atual em KPIs e gráficos atualizados em tempo real. Líderes visualizam o ranking completo da equipe com barra de progresso em relação à meta.</p>
@@ -742,6 +824,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <!-- 3. MÓDULO ACESSO -->
         <div class="help-section">
           <h2>3. Módulo Acesso</h2>
+
+          <h3>Login em 2 passos (v3.0)</h3>
+          <p>A partir da versão 3.0, o login é feito em duas etapas para suportar múltiplas empresas na mesma plataforma:</p>
+          <ul>
+            <li><b>Passo 1 — Código da empresa:</b> informe o código fornecido pelo administrador da sua empresa (ex.: <code>alpha</code>). O sistema verifica o código, carrega a identidade visual da empresa e avança para o passo 2.</li>
+            <li><b>Passo 2 — E-mail e senha:</b> faça login com as credenciais do seu usuário, normalmente fornecidas pelo Líder da equipe.</li>
+          </ul>
+          <div class="help-tip">O código da empresa é fixo e fornecido uma única vez pelo administrador. Se você não sabe qual é, entre em contato com o Líder da sua equipe.</div>
 
           <h3>Como funciona o cadastro</h3>
           <p>Somente o Líder cadastra os profissionais pelo módulo Administrativo. A senha temporária é gerada automaticamente e exibida na tela para o Líder repassar ao profissional.</p>
@@ -786,6 +876,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h3>Exportar Excel</h3>
           <p>Gera arquivo CSV do período selecionado com todos os registros da equipe. Colunas de visitas abreviadas como <b>Vis.Ativos</b> e <b>Vis.Inativos</b>. Abrível no Excel ou Google Sheets.</p>
 
+          <h3>Logs do Sistema</h3>
+          <p>A aba <b>Logs</b> no módulo Administrativo exibe o registro de todas as ações e erros do sistema em tempo real. Disponível apenas para o Líder.</p>
+          <ul>
+            <li><b>INFO</b> — operações normais (login, lançamentos, navegação)</li>
+            <li><b>WARNING</b> — comportamentos inesperados (tentativa de login falha)</li>
+            <li><b>ERROR</b> — falhas recuperáveis (erro ao salvar)</li>
+            <li><b>CRITICAL</b> — falhas graves (erros não tratados)</li>
+          </ul>
+          <p>Filtre por nível e por profissional. Use <b>"Exportar CSV"</b> para baixar os logs filtrados ou <b>"Baixar Log Sessão"</b> para um arquivo JSON completo da sessão atual — útil para enviar ao suporte técnico quando houver um problema.</p>
+
           <div class="help-tip">Apenas Líderes têm acesso ao módulo Administrativo.</div>
         </div>
         <div class="divider"></div>
@@ -795,8 +895,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h2>5. Perfis de Acesso</h2>
           <ul>
             <li><b>Vendedor / Profissional</b> — Lança e consulta apenas seus próprios dados nos módulos Lançar, Histórico e Dashboard.</li>
-            <li><b>Líder</b> — Visualiza dados de toda a equipe, gerencia profissionais, metas e exportações. Pode ter metas individuais como qualquer vendedor.</li>
+            <li><b>Líder</b> — Visualiza dados de toda a equipe da empresa, gerencia profissionais, metas e exportações. Pode ter metas individuais como qualquer vendedor.</li>
+            <li><b>Super Admin (ECS)</b> — Perfil exclusivo da ECS Consultoria. Acessa todas as empresas cadastradas na plataforma, cria e edita empresas, visualiza estatísticas globais e pode navegar entre empresas sem restrição. Não aparece para usuários comuns.</li>
           </ul>
+
+          <h3>Personalização visual por empresa (v3.0)</h3>
+          <p>Cada empresa pode ter identidade visual própria na tela de login: logotipo (via URL), cor de fundo e imagem de fundo. Essas configurações são definidas pelo Super Admin no módulo de gestão de empresas e aplicadas automaticamente após o usuário informar o código da empresa no login.</p>
         </div>
         <div class="divider"></div>
 
@@ -1133,6 +1237,8 @@ VapLogger.info('App inicializado', { version: '2.0', ts: new Date().toISOString(
 
 // ── State ────────────────────────────────────────────────
 let cu = null, cp = null;
+let _company = null;   // empresa ativa no login
+let _companyId = null; // id da empresa ativa
 let _recs = [], _users = [], _metas = [];
 let unRecs = null, unUsers = null, unMetas = null;
 
@@ -1177,6 +1283,102 @@ function showOk(m) {
   e.textContent = m; e.style.display = 'block';
   $('auth-err').style.display = 'none';
 }
+// ── Aplicar personalização visual da empresa ─────────────
+function applyCompanyTheme(company){
+  // Logo
+  const logoImg  = $('company-logo-img');
+  const logoText = $('company-logo-text');
+  if(company.logoUrl){
+    logoImg.src = company.logoUrl;
+    logoImg.style.display = 'block';
+    logoText.style.display = 'none';
+  } else {
+    logoImg.style.display = 'none';
+    logoText.style.display = 'block';
+  }
+  // Nome fantasia
+  const tagline = $('company-tagline');
+  if(tagline) tagline.textContent = company.fantasyName || company.name || 'AgoraVAP!';
+
+  // Cor/imagem de fundo da tela de login
+  const authBg = document.querySelector('.auth-bg') || document.querySelector('#auth-screen');
+  if(authBg){
+    if(company.bgImage){
+      authBg.style.backgroundImage = `url(${company.bgImage})`;
+      authBg.style.backgroundSize  = 'cover';
+      authBg.style.backgroundPosition = 'center';
+    } else if(company.bgColor){
+      authBg.style.background = company.bgColor;
+    }
+  }
+}
+
+function resetCompanyTheme(){
+  const logoImg  = $('company-logo-img');
+  const logoText = $('company-logo-text');
+  if(logoImg)  { logoImg.src = ''; logoImg.style.display = 'none'; }
+  if(logoText) logoText.style.display = 'block';
+  const tagline = $('company-tagline');
+  if(tagline) tagline.textContent = 'Sistema de Gestão Comercial';
+  const authBg = document.querySelector('.auth-bg') || document.querySelector('#auth-screen');
+  if(authBg){ authBg.style.background = ''; authBg.style.backgroundImage = ''; }
+}
+
+// ── Verificar código da empresa ───────────────────────────
+$('btn-verify-company').onclick = async () => {
+  const code = ($('li-company').value || '').trim().toLowerCase();
+  if(!code){ showErr('Informe o código da empresa.'); return; }
+  $('btn-verify-company').textContent = 'Verificando...';
+  $('btn-verify-company').disabled = true;
+  try {
+    const snap = await getDocs(
+      query(collection(db,'companies'), where('code','==',code), where('active','==',true))
+    );
+    if(snap.empty){
+      showErr('Código de empresa não encontrado. Verifique com seu Líder.');
+      $('btn-verify-company').textContent = 'Confirmar';
+      $('btn-verify-company').disabled = false;
+      return;
+    }
+    const companyDoc = snap.docs[0];
+    _company   = companyDoc.data();
+    _companyId = companyDoc.id;
+
+    // Aplica tema visual
+    applyCompanyTheme(_company);
+
+    // Mostra barra de info e campos de login
+    const bar = $('company-info-bar');
+    if(bar) bar.textContent = _company.fantasyName || _company.name;
+    $('step-company').style.display     = 'none';
+    $('step-credentials').style.display = 'block';
+
+    // Verifica se é o primeiro usuário desta empresa
+    checkFirstUser();
+    VapLogger.info('Empresa selecionada', { code, companyId: _companyId });
+  } catch(err){
+    VapLogger.error('Erro ao verificar empresa', { code, msg: err.message });
+    showErr('Erro ao verificar empresa: ' + (err.message || err.code));
+    $('btn-verify-company').textContent = 'Confirmar';
+    $('btn-verify-company').disabled = false;
+  }
+};
+
+// ── Trocar empresa ────────────────────────────────────────
+$('btn-change-company') && ($('btn-change-company').onclick = () => {
+  _company = null; _companyId = null;
+  $('step-credentials').style.display = 'none';
+  $('step-company').style.display     = 'block';
+  $('li-company').value = '';
+  resetCompanyTheme();
+  clearFields();
+});
+
+// Enter no campo de empresa confirma
+$('li-company') && ($('li-company').onkeydown = e => {
+  if(e.key === 'Enter') $('btn-verify-company').click();
+});
+
 function clearFields() {
   ['li-email','li-pass','fg-email','pr-nome','pr-pass','pr-pass2'].forEach(id => {
     const el = $(id); if (el) { el.value = ''; el.type = el.type; }
@@ -1252,7 +1454,13 @@ function validateNome(v) {
 // ── Detecção: primeiro usuário do sistema ──────────────────
 async function checkFirstUser() {
   try {
-    const snap = await getDocs(collection(db, 'users'));
+    // Filtra usuários pela empresa ativa
+    let snap;
+    if(_companyId){
+      snap = await getDocs(query(collection(db,'users'), where('companyId','==',_companyId)));
+    } else {
+      snap = await getDocs(collection(db, 'users'));
+    }
     const isFirst = snap.empty;
     const badge = $('badge-first-user');
     const btnLider = $('btn-criar-lider');
@@ -1274,6 +1482,7 @@ if (btnCriarLider) btnCriarLider.onclick = async () => {
     const c = await createUserWithEmailAndPassword(auth, e, p);
     await setDoc(doc(db, 'users', c.user.uid), {
       name: 'Lider', email: e, role: 'lider', meta: 0,
+      companyId: _companyId || 'default',
       firstLogin: true, createdAt: new Date().toISOString()
     });
     // onAuthStateChanged vai detectar firstLogin:true e mostrar tela de nome/senha
@@ -1411,6 +1620,23 @@ onAuthStateChanged(auth, async user => {
 
     cp = snap.data();
 
+    // Superadmin ECS bypassa verificação de empresa
+    if(cp.role !== 'superadmin'){
+      // Verifica se o usuário pertence à empresa selecionada no login
+      if(_companyId && cp.companyId && cp.companyId !== _companyId){
+        await signOut(auth);
+        showErr('Usuário não pertence a esta empresa.');
+        return;
+      }
+      // Se não tem companyId ainda (usuários legados v2.0), define
+      if(!cp.companyId && _companyId){
+        cp.companyId = _companyId;
+      }
+    }
+
+    // Define _companyId a partir do usuário (para superadmin)
+    if(!_companyId) _companyId = cp.companyId || null;
+
     // Primeiro acesso — precisa criar nome e senha
     if (cp.firstLogin) {
       _primeiroUid   = user.uid;
@@ -1432,15 +1658,22 @@ onAuthStateChanged(auth, async user => {
     VapLogger.info('Login realizado', { role: cp.role });
 
     $('top-user').textContent = cp.name;
-    const isLider = cp.role === 'lider';
-    $('role-badge').textContent = isLider ? 'Lider' : 'Vendedor';
-    if (isLider) $('role-badge').classList.add('role-lider');
-    else         $('role-badge').classList.remove('role-lider');
+    const isLider      = cp.role === 'lider';
+    const isSuperAdm   = cp.role === 'superadmin';
+    const roleLabel    = isSuperAdm ? 'Super Admin' : isLider ? 'Lider' : 'Vendedor';
+    $('role-badge').textContent = roleLabel;
+    if (isLider || isSuperAdm) $('role-badge').classList.add('role-lider');
+    else                       $('role-badge').classList.remove('role-lider');
 
-    $('ff-vendedor').style.display   = isLider ? 'flex'  : 'none';
-    $('btn-limpar').style.display    = isLider ? 'block' : 'none';
-    $('exp-vend-wrap').style.display = isLider ? 'block' : 'none';
-    if (!isLider) {
+    $('ff-vendedor').style.display   = (isLider||isSuperAdm) ? 'flex'  : 'none';
+    $('btn-limpar').style.display    = (isLider||isSuperAdm) ? 'block' : 'none';
+    $('exp-vend-wrap').style.display = (isLider||isSuperAdm) ? 'block' : 'none';
+
+    // Super Admin: mostra aba Super Admin, esconde abas normais
+    const tabSA = $('tab-superadmin');
+    if(tabSA) tabSA.style.display = isSuperAdm ? 'block' : 'none';
+
+    if (!isLider && !isSuperAdm) {
       const admTab = document.querySelector('[data-tab="admin"]');
       if (admTab) admTab.style.display = 'none';
     }
@@ -1473,11 +1706,16 @@ onAuthStateChanged(auth, async user => {
 
 // ── Listeners ─────────────────────────────────────────────
 function startListeners(){
-  const uid=cu.uid, isLider=cp.role==='lider';
+  const uid=cu.uid;
+  const isLider   = cp.role === 'lider';
+  const isSuperAdmin = cp.role === 'superadmin';
+  const cid = cp.companyId || _companyId;
 
-  // Records
-  const rq = isLider
+  // Records — filtrados por empresa
+  const rq = isSuperAdmin
     ? query(collection(db,'records'), orderBy('ts','desc'))
+    : isLider
+    ? query(collection(db,'records'), where('companyId','==',cid), orderBy('ts','desc'))
     : query(collection(db,'records'), where('uid','==',uid), orderBy('ts','desc'));
   unRecs = onSnapshot(rq, snap => {
     _recs = snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -1487,14 +1725,20 @@ function startListeners(){
     if(ap==='panel-dashboard') renderDashboard();
   });
 
-  // Users (lider only)
-  if(isLider){
-    unUsers = onSnapshot(collection(db,'users'), snap=>{
+  // Users — líder vê só da empresa, superadmin vê todos
+  if(isLider || isSuperAdmin){
+    const uq = isSuperAdmin
+      ? query(collection(db,'users'), orderBy('name'))
+      : query(collection(db,'users'), where('companyId','==',cid), orderBy('name'));
+    unUsers = onSnapshot(uq, snap=>{
       _users = snap.docs.map(d=>({id:d.id,...d.data()}));
       renderUsersTable();
       populateSelects();
     });
-    unMetas = onSnapshot(collection(db,'metas'), snap=>{
+    const mq = isSuperAdmin
+      ? query(collection(db,'metas'))
+      : query(collection(db,'metas'), where('companyId','==',cid));
+    unMetas = onSnapshot(mq, snap=>{
       _metas = snap.docs.map(d=>({id:d.id,...d.data()}));
       renderMetasTable();
     });
@@ -1587,6 +1831,7 @@ $('btn-salvar-contatos').onclick = async () => {
       toast('Contatos do dia ' + fD(data) + ' atualizados!');
     } else {
       const payload = { uid:cu.uid, seller:cp.name, tipo:'contatos',
+                        companyId: cp.companyId || _companyId || 'default',
                         date:data, ts, ...vals, total };
       await addDoc(collection(db,'records'), payload);
       toast('Contatos registrados!');
@@ -1637,6 +1882,7 @@ $('btn-salvar-cotacoes').onclick = async () => {
       toast('Cotações do dia ' + fD(data) + ' atualizadas!');
     } else {
       const payload = { uid:cu.uid, seller:cp.name, tipo:'cotacoes',
+                        companyId: cp.companyId || _companyId || 'default',
                         date:data, ...dadosCot };
       await addDoc(collection(db,'records'), payload);
       toast('Cotações e pedidos registrados!');
@@ -2104,6 +2350,7 @@ $('btn-adm-save').onclick = async () => {
       const mesAtual = thisMes();
       await setDoc(doc(db,'metas',uid+'_'+mesAtual),{
         uid, mes:mesAtual, valor:metaIni,
+        companyId: cp.companyId || _companyId || 'default',
         sellerName:n, updatedAt:new Date().toISOString()
       });
       await updateDoc(doc(db,'users',uid),{meta:metaIni});
@@ -2128,6 +2375,7 @@ $('btn-adm-save').onclick = async () => {
       // Cria documento no Firestore
       await setDoc(doc(db, 'users', newUid), {
         name: n, email: e, role: r, meta: metaIni,
+        companyId: cp.companyId || _companyId || 'default',
         firstLogin: true,
         createdAt: new Date().toISOString()
       });
@@ -2510,6 +2758,7 @@ window.switchTab = tab => {
     renderMetricsDia();
   }
   if(tab==='historico'){ setupHistoricoListeners(); renderHistorico(); }
+  if(tab==='superadmin'){ loadEmpresas(); }
   if(tab==='dashboard') renderDashboard();
   if(tab==='admin')     { renderUsersTable(); checkBannerMesAnterior(); }
 };
@@ -2643,6 +2892,146 @@ $('btn-export-session-log') && ($('btn-export-session-log').onclick = () => {
   VapLogger.exportSession();
 });
 
+
+
+// ════════════════════════════════════════════════════════
+// SUPER ADMIN — Gestão de Empresas
+// ════════════════════════════════════════════════════════
+
+async function loadEmpresas(){
+  const wrap = $('empresas-list');
+  if(!wrap) return;
+  wrap.innerHTML = '<div class="empty">Carregando...</div>';
+  try {
+    const snap = await getDocs(query(collection(db,'companies'), orderBy('name')));
+    const empresas = snap.docs.map(d=>({id:d.id,...d.data()}));
+
+    // Stats
+    if($('stat-empresas')) $('stat-empresas').textContent = empresas.filter(e=>e.active).length;
+
+    // Users count
+    const usersSnap = await getDocs(collection(db,'users'));
+    if($('stat-users')) $('stat-users').textContent = usersSnap.size;
+
+    // Records count
+    const recsSnap = await getDocs(collection(db,'records'));
+    if($('stat-records')) $('stat-records').textContent = recsSnap.size;
+
+    if(!empresas.length){
+      wrap.innerHTML = '<div class="empty">Nenhuma empresa cadastrada.</div>';
+      return;
+    }
+
+    wrap.innerHTML = empresas.map(e => `
+      <div style="background:${e.active?'#fff':'#f9f9f9'};border:1px solid ${e.active?'#e5e7eb':'#ddd'};border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.6rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:180px">
+          <div style="font-weight:700;font-size:.95rem;color:#1C2833">${e.name}</div>
+          <div style="font-size:.78rem;color:#566573;margin-top:2px">
+            Código: <b>${e.code}</b> · Nome fantasia: <b>${e.fantasyName||'–'}</b>
+            <span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:700;background:${e.active?'#D4EFDF':'#FADBD8'};color:${e.active?'#1E8449':'#C0392B'}">
+              ${e.active?'ATIVA':'INATIVA'}
+            </span>
+          </div>
+          ${e.logoUrl?`<div style="margin-top:4px"><img src="${e.logoUrl}" style="max-height:28px;border-radius:4px"/></div>`:''}
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-sec" style="font-size:.78rem;padding:5px 10px" onclick="editEmpresa('${e.id}')">Editar</button>
+          <button class="btn-sec" style="font-size:.78rem;padding:5px 10px" onclick="loginAsEmpresa('${e.id}','${e.code}')">Ver dados</button>
+        </div>
+      </div>`).join('');
+  } catch(err){
+    VapLogger.error('Erro ao carregar empresas', {msg:err.message});
+    wrap.innerHTML = '<div class="empty" style="color:#C53030">Erro: '+err.message+'</div>';
+  }
+}
+
+function editEmpresa(id){
+  const snap = getDocs(collection(db,'companies')).then(s=>{
+    const doc = s.docs.find(d=>d.id===id);
+    if(!doc) return;
+    const e = doc.data();
+    $('empresa-id').value      = id;
+    $('empresa-name').value    = e.name    || '';
+    $('empresa-fantasy').value = e.fantasyName || '';
+    $('empresa-code').value    = e.code    || '';
+    $('empresa-bgcolor').value = e.bgColor || '';
+    $('empresa-bgimage').value = e.bgImage || '';
+    $('empresa-logo').value    = e.logoUrl || '';
+    $('empresa-active').value  = String(e.active !== false);
+    $('form-empresa-title').textContent = 'Editar Empresa: ' + e.name;
+    $('form-empresa').style.display = 'block';
+    $('form-empresa').scrollIntoView({behavior:'smooth', block:'center'});
+  });
+}
+
+$('btn-nova-empresa') && ($('btn-nova-empresa').onclick = () => {
+  ['empresa-id','empresa-name','empresa-fantasy','empresa-code',
+   'empresa-bgcolor','empresa-bgimage','empresa-logo'].forEach(id=>{
+    const el=$(id); if(el) el.value='';
+  });
+  $('empresa-active').value = 'true';
+  $('form-empresa-title').textContent = 'Nova Empresa';
+  $('form-empresa').style.display = 'block';
+  $('empresa-name')?.focus();
+});
+
+$('btn-cancelar-empresa') && ($('btn-cancelar-empresa').onclick = () => {
+  $('form-empresa').style.display = 'none';
+});
+
+$('btn-reload-empresas') && ($('btn-reload-empresas').onclick = loadEmpresas);
+
+$('btn-salvar-empresa') && ($('btn-salvar-empresa').onclick = async () => {
+  const id      = $('empresa-id').value.trim();
+  const name    = $('empresa-name').value.trim();
+  const fantasy = $('empresa-fantasy').value.trim();
+  const code    = $('empresa-code').value.trim().toLowerCase();
+  const bgColor = $('empresa-bgcolor').value.trim();
+  const bgImage = $('empresa-bgimage').value.trim();
+  const logoUrl = $('empresa-logo').value.trim();
+  const active  = $('empresa-active').value === 'true';
+
+  if(!name || !code){ toast('Informe nome e código da empresa.'); return; }
+
+  // Valida código único
+  if(!id){
+    const exists = await getDocs(query(collection(db,'companies'), where('code','==',code)));
+    if(!exists.empty){ toast('Código já existe. Use outro.'); return; }
+  }
+
+  $('btn-salvar-empresa').textContent = 'Salvando...';
+  $('btn-salvar-empresa').disabled = true;
+  try {
+    const data = { name, fantasyName:fantasy, code, bgColor, bgImage, logoUrl, active,
+                   updatedAt: new Date().toISOString() };
+    if(id){
+      await updateDoc(doc(db,'companies',id), data);
+      toast('Empresa atualizada!');
+    } else {
+      data.createdAt = new Date().toISOString();
+      await addDoc(collection(db,'companies'), data);
+      toast('Empresa criada! Código: ' + code);
+    }
+    $('form-empresa').style.display = 'none';
+    loadEmpresas();
+    VapLogger.info('Empresa salva', { code, id: id||'novo' });
+  } catch(err){
+    VapLogger.error('Erro ao salvar empresa', {msg:err.message});
+    toast('Erro: ' + err.message);
+  } finally {
+    $('btn-salvar-empresa').textContent = 'Salvar Empresa';
+    $('btn-salvar-empresa').disabled = false;
+  }
+});
+
+function loginAsEmpresa(companyId, code){
+  toast('Filtrando por empresa: ' + code);
+  _companyId = companyId;
+  renderDashboard();
+}
+
+// Carrega empresas ao abrir Super Admin
+window.switchTab_orig = window.switchTab;
 
 // setupHistoricoListeners called on tab open
 </script>
