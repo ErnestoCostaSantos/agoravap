@@ -235,6 +235,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   .help-table tr:nth-child(even) td{background:#FFF5F5}
 
 </style>
+<script>
+// checkDisclaimer definida no head para garantir disponibilidade antes do script principal
+function checkDisclaimer() {
+  var chkPerfil = document.getElementById('chk-perfil');
+  var chkTermos = document.getElementById('chk-termos');
+  var btn = document.getElementById('btn-primeiro');
+  if (!chkPerfil || !chkTermos || !btn) return;
+  var ambos = chkPerfil.checked && chkTermos.checked;
+  btn.disabled = !ambos;
+  btn.style.opacity = ambos ? '1' : '0.45';
+}
+</script>
 </head>
 <body>
 
