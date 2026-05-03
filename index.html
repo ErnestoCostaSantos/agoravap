@@ -1402,8 +1402,15 @@ $('btn-verify-company').onclick = async () => {
 };
 
 // ── Trocar empresa ────────────────────────────────────────
-$('btn-change-company') && ($('btn-change-company').onclick = () => {
+$('btn-change-company') && ($('btn-change-company').onclick = async () => {
   _company = null; _companyId = null;
+  // Se há usuário autenticado, faz logout real para evitar que
+  // onAuthStateChanged redirecione de volta para o app
+  if (auth.currentUser) {
+    try { await signOut(auth); } catch(e) { /* ignora */ }
+    window.location.reload();
+    return;
+  }
   $('step-credentials').style.display = 'none';
   $('step-company').style.display     = 'block';
   $('li-company').value = '';
