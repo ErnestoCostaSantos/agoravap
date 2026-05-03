@@ -236,7 +236,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
 </style>
 <script>
-// checkDisclaimer definida no head para garantir disponibilidade antes do script principal
+// Funções chamadas via onclick inline — definidas no head para carregar antes do script principal
+
 function checkDisclaimer() {
   var chkPerfil = document.getElementById('chk-perfil');
   var chkTermos = document.getElementById('chk-termos');
@@ -245,6 +246,18 @@ function checkDisclaimer() {
   var ambos = chkPerfil.checked && chkTermos.checked;
   btn.disabled = !ambos;
   btn.style.opacity = ambos ? '1' : '0.45';
+}
+
+function editEmpresa(id) {
+  // Delega para implementação completa no script principal quando disponível
+  if (window._editEmpresaImpl) { window._editEmpresaImpl(id); return; }
+  setTimeout(function(){ editEmpresa(id); }, 200);
+}
+
+function loginAsEmpresa(companyId, code) {
+  // Delega para implementação completa no script principal quando disponível
+  if (window._loginAsEmpresaImpl) { window._loginAsEmpresaImpl(companyId, code); return; }
+  setTimeout(function(){ loginAsEmpresa(companyId, code); }, 200);
 }
 </script>
 </head>
@@ -3030,6 +3043,9 @@ async function loadEmpresas(){
 }
 
 function editEmpresa(id){
+  window._editEmpresaImpl(id);
+}
+window._editEmpresaImpl = function(id){
   const snap = getDocs(collection(db,'companies')).then(s=>{
     const doc = s.docs.find(d=>d.id===id);
     if(!doc) return;
@@ -3109,6 +3125,9 @@ $('btn-salvar-empresa') && ($('btn-salvar-empresa').onclick = async () => {
 });
 
 function loginAsEmpresa(companyId, code){
+  window._loginAsEmpresaImpl(companyId, code);
+}
+window._loginAsEmpresaImpl = function(companyId, code){
   toast('Filtrando por empresa: ' + code);
   _companyId = companyId;
   renderDashboard();
@@ -3120,7 +3139,16 @@ window.switchTab_orig = window.switchTab;
 // setupHistoricoListeners called on tab open
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// Carrega Chart.js com fallback para evitar erro quando CDN e bloqueado pelo browser
+(function(){
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
+  s.crossOrigin = 'anonymous';
+  s.onerror = function(){ window._chartJsBlocked = true; };
+  document.head.appendChild(s);
+})();
+</script>
 <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </body>
 </html>
