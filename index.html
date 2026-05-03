@@ -383,6 +383,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         </div>
         <div class="pw-hint" id="hint-pw2"></div>
       </div>
+      <!-- Disclaimer — exibido apenas para Líderes -->
+      <div id="disclaimer-lider" style="display:none;margin-top:1.2rem;padding:1rem;background:#FEF9F0;border:1px solid #F0C040;border-radius:8px;font-size:.82rem;color:#4A4A4A;line-height:1.55">
+        <div style="font-weight:700;color:#7D6608;margin-bottom:.7rem;font-size:.85rem">&#9888; Declaração obrigatória — Perfil Líder</div>
+        <label style="display:flex;align-items:flex-start;gap:.6rem;margin-bottom:.7rem;cursor:pointer">
+          <input type="checkbox" id="chk-perfil" style="margin-top:.2rem;accent-color:#C53030;width:15px;height:15px;flex-shrink:0" onchange="checkDisclaimer()"/>
+          <span>Declaro que sou o responsável pela conta desta empresa no AgoraVAP! e que estou cadastrado com o perfil de <b>Líder</b>, tendo ciência de que este perfil permite gerenciar usuários, visualizar dados de toda a equipe e configurar metas.</span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:.6rem;cursor:pointer">
+          <input type="checkbox" id="chk-termos" style="margin-top:.2rem;accent-color:#C53030;width:15px;height:15px;flex-shrink:0" onchange="checkDisclaimer()"/>
+          <span>Declaro que li e concordo com os <a href="https://ernestocostasantos.com.br/agoravap" target="_blank" style="color:#C53030;font-weight:700">Termos de Uso e Garantias</a> do AgoraVAP! e autorizo o uso dos dados inseridos nesta plataforma conforme descrito nesses termos.</span>
+        </label>
+      </div>
       <button class="btn-auth" id="btn-primeiro">Criar senha e entrar</button>
     </div>
 
@@ -1015,7 +1027,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <p style="margin-top:1rem">Para suporte técnico ou dúvidas, entre em contato:</p>
           <p><b>E-mail:</b> contato@ernestocostasantos.com.br</p>
           <p><b>Site:</b> <a href="https://ernestocostasantos.com.br/agoravap" target="_blank" style="color:#C53030">https://ernestocostasantos.com.br/agoravap</a></p>
-          <p style="margin-top:.8rem;color:var(--gray);font-size:.85rem">AgoraVAP! — Versão 2.0 · 2026</p>
+          <p style="margin-top:.8rem;color:var(--gray);font-size:.85rem">AgoraVAP! — Versão 3.0 · 2026</p>
         </div>
 
       </div>
@@ -1542,7 +1554,18 @@ $('btn-forgot').onclick = async () => {
 };
 
 // ── PRIMEIRO ACESSO — criar nome e senha ───────────────────
-let _primeiroUid = null, _primeiroEmail = null;
+let _primeiroUid = null, _primeiroEmail = null, _primeiroRole = null;
+
+// Controla visibilidade e estado do disclaimer para líderes
+function checkDisclaimer() {
+  const chkPerfil = $('chk-perfil');
+  const chkTermos = $('chk-termos');
+  const btn = $('btn-primeiro');
+  if (!chkPerfil || !chkTermos || !btn) return;
+  const ambos = chkPerfil.checked && chkTermos.checked;
+  btn.disabled = !ambos;
+  btn.style.opacity = ambos ? '1' : '0.45';
+}
 
 $('btn-primeiro').onclick = async () => {
   const nome  = $('pr-nome').value.trim();
@@ -1561,12 +1584,43 @@ $('btn-primeiro').onclick = async () => {
     return;
   }
 
+  // Valida disclaimer para líderes
+  if (_primeiroRole === 'lider') {
+    if (!$('chk-perfil')?.checked || !$('chk-termos')?.checked) {
+      showErr('Marque as duas declarações para continuar.');
+      return;
+    }
+  }
+
   $('btn-primeiro').textContent = 'Salvando...'; $('btn-primeiro').disabled = true;
   try {
     await updatePassword(auth.currentUser, pass);
-    await updateDoc(doc(db, 'users', _primeiroUid), {
+
+    // Dados base para atualizar o documento do usuário
+    const updateData = {
       name: nome, firstLogin: false, updatedAt: new Date().toISOString()
-    });
+    };
+
+    // Se for líder, salva o aceite do disclaimer no Firestore para auditoria
+    if (_primeiroRole === 'lider') {
+      const aceitedAt = new Date().toISOString();
+      updateData.disclaimerAceito = true;
+      updateData.disclaimerAceitoEm = aceitedAt;
+      updateData.disclaimerVersao = '3.0';
+      // Salva também em subcoleção de auditoria
+      try {
+        await setDoc(doc(db, 'users', _primeiroUid, 'auditoria', 'disclaimer'), {
+          aceitoPerfil: true,
+          aceitoTermos: true,
+          aceitoEm: aceitedAt,
+          versao: '3.0',
+          email: _primeiroEmail,
+          uid: _primeiroUid
+        });
+      } catch(e) { /* não bloqueia o fluxo se auditoria falhar */ }
+    }
+
+    await updateDoc(doc(db, 'users', _primeiroUid), updateData);
     // Recarrega para iniciar sessão limpa com dados atualizados
     window.location.reload();
   } catch (err) {
@@ -1641,7 +1695,23 @@ onAuthStateChanged(auth, async user => {
     if (cp.firstLogin) {
       _primeiroUid   = user.uid;
       _primeiroEmail = cp.email || user.email;
+      _primeiroRole  = cp.role || 'vendedor';
       if ($('pr-email')) $('pr-email').value = _primeiroEmail;
+
+      // Exibe disclaimer e bloqueia botão apenas para líderes
+      const disclaimerEl = $('disclaimer-lider');
+      const btnPrimeiro  = $('btn-primeiro');
+      if (_primeiroRole === 'lider') {
+        if (disclaimerEl) disclaimerEl.style.display = 'block';
+        if (btnPrimeiro)  { btnPrimeiro.disabled = true; btnPrimeiro.style.opacity = '0.45'; }
+        // Garante checkboxes desmarcados ao exibir
+        if ($('chk-perfil')) $('chk-perfil').checked = false;
+        if ($('chk-termos')) $('chk-termos').checked = false;
+      } else {
+        if (disclaimerEl) disclaimerEl.style.display = 'none';
+        if (btnPrimeiro)  { btnPrimeiro.disabled = false; btnPrimeiro.style.opacity = '1'; }
+      }
+
       $('auth-screen').style.display = 'flex';
       $('app').style.display = 'none';
       showForm('form-primeiro');
@@ -2400,6 +2470,7 @@ $('btn-adm-save').onclick = async () => {
 async function recoverDeletedUser(email, name, role, meta) {
   // E-mail existe no Auth mas nao no Firestore
   // Tenta restaurar o documento Firestore pelo registro em deleted_users
+  const companyId = cp.companyId || _companyId || 'default';
   try {
     const snap = await getDocs(collection(db, 'deleted_users'));
     let found = null;
@@ -2410,7 +2481,8 @@ async function recoverDeletedUser(email, name, role, meta) {
       const uid = found.data().uid || found.id;
       await setDoc(doc(db, 'users', uid), {
         name, email, role, meta,
-        firstLogin: true,
+        companyId,          // garante isolamento por empresa
+        firstLogin: true,   // garante fluxo de primeiro acesso
         createdAt: new Date().toISOString()
       });
       await deleteDoc(doc(db, 'deleted_users', found.id));
