@@ -2020,8 +2020,13 @@ function renderHistorico(){
   const tf   = $('hist-tipo').value;
   const sv   = $('hist-vendedor').value;
   const isLider = cp?.role === 'lider';
+  const isSuperAdm = cp?.role === 'superadmin';
+  const cid = cp?.companyId || _companyId;
   let recs = [..._recs];
-  if(!isLider) recs = recs.filter(r => r.uid === cu.uid);
+  if(!isSuperAdm){
+    if(!isLider) recs = recs.filter(r => r.uid === cu.uid);
+    if(cid) recs = recs.filter(r => r.companyId === cid);
+  }
 
   // Aplica filtro de data conforme modo
   let labelPeriodo = '';
@@ -2100,8 +2105,15 @@ function renderHistorico(){
 // ── Dashboard ─────────────────────────────────────────────
 function renderDashboard(){
   const isLider=cp?.role==='lider';
+  const isSuperAdm=cp?.role==='superadmin';
+  const cid = cp?.companyId || _companyId;
   const mes=thisMes();
-  let recs=isLider?[..._recs]:_recs.filter(r=>r.uid===cu.uid);
+  // Filtra registros pela empresa ativa
+  let recs = isSuperAdm
+    ? [..._recs]
+    : isLider
+    ? _recs.filter(r=>r.companyId===cid)
+    : _recs.filter(r=>r.uid===cu.uid && r.companyId===cid);
   const mr=recs.filter(r=>r.date?.startsWith(mes));
   const cots=mr.filter(r=>r.tipo==='cotacoes');
   const cts=mr.filter(r=>r.tipo==='contatos');
@@ -2558,9 +2570,12 @@ function renderMetasTable(){
 
 // ── Admin: Selects ────────────────────────────────────────
 function populateSelects(){
-  // Para metas: todos os usuarios (lider + vendedor)
-  // Para historico/exportar: todos os usuarios
-  const todos = [..._users].sort((a,b)=>a.name.localeCompare(b.name));
+  // Filtra usuarios pela empresa ativa
+  const cid = cp?.companyId || _companyId;
+  const isSuperAdm = cp?.role === 'superadmin';
+  const todos = [..._users]
+    .filter(u => isSuperAdm || !cid || u.companyId === cid)
+    .sort((a,b)=>a.name.localeCompare(b.name));
   ['meta-uid','hist-vendedor','exp-vendedor'].forEach(id=>{
     const sel=$(id); if(!sel) return;
     const cur=sel.value;
@@ -3013,17 +3028,20 @@ $('btn-salvar-empresa') && ($('btn-salvar-empresa').onclick = async () => {
 });
 
 window.loginAsEmpresa = async function(companyId, code){
-  toast('Visualizando empresa: ' + code);
+  // Atualiza companyId e recarrega listeners com dados da empresa selecionada
   _companyId = companyId;
-  // Busca dados da empresa para exibir no toast
-  try {
-    const snap = await getDocs(query(collection(db,'companies'), where('code','==',code)));
-    if(!snap.empty){
-      const emp = snap.docs[0].data();
-      toast('Empresa: ' + emp.name + ' | Código: ' + code);
-    }
-  } catch(e) {}
-  renderDashboard();
+
+  // Desconecta listeners atuais
+  [unRecs, unUsers, unMetas].forEach(u => u && u());
+
+  // Recarrega listeners filtrados pela nova empresa
+  startListeners();
+
+  // Aguarda listeners carregarem e vai para o Dashboard
+  setTimeout(() => {
+    window.switchTab('dashboard');
+    toast('Visualizando dados da empresa: ' + code);
+  }, 600);
 }
 
 // Carrega empresas ao abrir Super Admin
