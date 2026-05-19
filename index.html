@@ -778,6 +778,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <p>A plataforma permite centralizar diariamente os registros feitos pelos agentes de vendas definidos pela empresa cliente, de seus contatos realizados, cotações, pedidos fechados e perdas. Assim, oferece visibilidade em tempo real da performance aos próprios profissionais e ao líder da equipe, para fins de tomada de decisão gerencial.</p>
           <p>Com uma interface simples e intuitiva — dividida em 7 grandes módulos (Lançar, Histórico, Dashboard, Administrativo, Acesso, Configuração e Ajuda) — o AgoraVAP! minimiza o uso de planilhas, fichas e registros em geral dispersos, individualizados e que não trafegam entre todos os envolvidos na área comercial.</p>
           <p>Ele permite que profissionais e seus líderes tomem decisões baseadas em dados atualizados e relevantes.</p>
+          <p>A partir da <b>versão 3.0</b>, o AgoraVAP! suporta <b>múltiplas empresas</b> em uma única plataforma — cada empresa com seus próprios usuários, dados, personalização visual e isolamento total de informações.</p>
           <div class="help-tip">O sistema é indicado para equipes com ciclo de vendas consultivo, onde o acompanhamento de funil, taxas de conversão e ticket médio são indicadores críticos de performance.</div>
         </div>
         <div class="divider"></div>
@@ -824,6 +825,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <!-- 3. MÓDULO ACESSO -->
         <div class="help-section">
           <h2>3. Módulo Acesso</h2>
+
+          <h3>Código da Empresa</h3>
+          <p>Na tela de login, o primeiro passo é informar o <b>Código da Empresa</b> (ex: <i>alpha</i>). O sistema busca a empresa, aplica o logo e cores personalizadas e exibe os campos de e-mail e senha. O código é definido pelo Super Admin no módulo de gestão de empresas.</p>
 
           <h3>Como funciona o cadastro</h3>
           <p>Somente o Líder cadastra os profissionais pelo módulo Administrativo. A senha temporária é gerada automaticamente e exibida na tela para o Líder repassar ao profissional.</p>
@@ -887,8 +891,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h2>5. Perfis de Acesso</h2>
           <ul>
             <li><b>Vendedor / Profissional</b> — Lança e consulta apenas seus próprios dados nos módulos Lançar, Histórico e Dashboard.</li>
-            <li><b>Líder</b> — Visualiza dados de toda a equipe, gerencia profissionais, metas e exportações. Pode ter metas individuais como qualquer vendedor.</li>
+            <li><b>Líder</b> — Visualiza dados de toda a equipe da sua empresa, gerencia profissionais, metas e exportações. Pode ter metas individuais.</li>
+            <li><b>Super Admin</b> — Perfil exclusivo da ECS Consultoria. Gerencia todas as empresas cadastradas na plataforma, visualiza dados de qualquer empresa pelo botão "Ver Dados" e cadastra/edita/exclui empresas.</li>
           </ul>
+          <div class="help-tip">Cada empresa tem seus dados completamente isolados — um Líder de uma empresa nunca vê dados de outra empresa.</div>
+        </div>
+        <div class="divider"></div>
+
+        <div class="help-section">
+          <h2>5.1 Módulo Super Admin</h2>
+          <p>Acessível apenas pelo perfil Super Admin (ECS Consultoria). Permite gerenciar todas as empresas da plataforma.</p>
+          <h3>Gestão de Empresas</h3>
+          <ul>
+            <li><b>+ Nova Empresa</b> — cadastra uma nova empresa com nome, código de acesso, logo (URL), cor e imagem de fundo</li>
+            <li><b>Editar</b> — altera dados da empresa incluindo personalização visual</li>
+            <li><b>Ver Dados</b> — filtra todos os módulos (Dashboard, Histórico, Administrativo) pelos dados daquela empresa</li>
+            <li><b>Excluir</b> — remove o cadastro da empresa (requer dupla confirmação)</li>
+          </ul>
+          <h3>Visão Global</h3>
+          <p>Cards com totais consolidados: empresas ativas, total de usuários e total de registros em toda a plataforma.</p>
+          <div class="help-tip">Ao clicar em "Ver Dados", todos os módulos passam a exibir apenas os dados daquela empresa. Para voltar à visão global, faça logout e entre novamente.</div>
         </div>
         <div class="divider"></div>
 
@@ -1135,8 +1157,9 @@ const VapLogger = (() => {
   // ── Salva no Firestore (WARNING+) ────────────────────
   async function _persist(entry) {
     try {
-      // Só persiste se db estiver disponível e usuário logado
       if (typeof db === 'undefined') return;
+      // Adiciona companyId ao log para isolamento por empresa
+      if(typeof _companyId !== 'undefined' && _companyId) entry.companyId = _companyId;
       await addDoc(collection(db, 'logs'), entry);
     } catch(e) {
       // Falha silenciosa — não queremos loop de erros
@@ -1699,8 +1722,11 @@ function startListeners(){
   const isSuperAdmin = cp.role === 'superadmin';
   const cid = cp.companyId || _companyId;
 
-  // Records — filtrados por empresa
-  const rq = isSuperAdmin
+  // Records — SuperAdmin com empresa selecionada filtra por ela
+  // SuperAdmin sem empresa selecionada vê tudo
+  const rq = isSuperAdmin && cid
+    ? query(collection(db,'records'), where('companyId','==',cid), orderBy('ts','desc'))
+    : isSuperAdmin
     ? query(collection(db,'records'), orderBy('ts','desc'))
     : isLider
     ? query(collection(db,'records'), where('companyId','==',cid), orderBy('ts','desc'))
@@ -1723,7 +1749,9 @@ function startListeners(){
       renderUsersTable();
       populateSelects();
     });
-    const mq = isSuperAdmin
+    const mq = isSuperAdmin && cid
+      ? query(collection(db,'metas'), where('companyId','==',cid))
+      : isSuperAdmin
       ? query(collection(db,'metas'))
       : query(collection(db,'metas'), where('companyId','==',cid));
     unMetas = onSnapshot(mq, snap=>{
@@ -1896,8 +1924,15 @@ function renderMetricsDia(){
   // Usa a data selecionada no seletor — pode ser retroativa
   const t = getLancarData ? getLancarData() : tod();
   const isHoje = t === tod();
-  const isLider = cp?.role === 'lider';
-  const dr = _recs.filter(r => r.date === t && (isLider || r.uid === cu.uid));
+  const isLider    = cp?.role === 'lider';
+  const isSuperAdm = cp?.role === 'superadmin';
+  const cid = cp?.companyId || _companyId;
+  let dr = _recs.filter(r => r.date === t);
+  if(isSuperAdm && _companyId){
+    dr = dr.filter(r => r.companyId === _companyId);
+  } else if(!isSuperAdm){
+    dr = dr.filter(r => isLider ? r.companyId === cid : r.uid === cu.uid);
+  }
   const ct  = dr.filter(r => r.tipo === 'contatos');
   const cot = dr.filter(r => r.tipo === 'cotacoes');
 
@@ -2023,7 +2058,10 @@ function renderHistorico(){
   const isSuperAdm = cp?.role === 'superadmin';
   const cid = cp?.companyId || _companyId;
   let recs = [..._recs];
-  if(!isSuperAdm){
+  if(isSuperAdm && _companyId){
+    // SuperAdmin visualizando empresa específica
+    recs = recs.filter(r => r.companyId === _companyId);
+  } else if(!isSuperAdm){
     if(!isLider) recs = recs.filter(r => r.uid === cu.uid);
     if(cid) recs = recs.filter(r => r.companyId === cid);
   }
@@ -2109,11 +2147,17 @@ function renderDashboard(){
   const cid = cp?.companyId || _companyId;
   const mes=thisMes();
   // Filtra registros pela empresa ativa
-  let recs = isSuperAdm
-    ? [..._recs]
-    : isLider
-    ? _recs.filter(r=>r.companyId===cid)
-    : _recs.filter(r=>r.uid===cu.uid && r.companyId===cid);
+  // SuperAdmin: se estiver visualizando uma empresa específica (_companyId definido), filtra por ela
+  let recs;
+  if(isSuperAdm && _companyId){
+    recs = _recs.filter(r => r.companyId === _companyId);
+  } else if(isSuperAdm){
+    recs = [..._recs]; // SuperAdmin sem empresa selecionada vê tudo
+  } else if(isLider){
+    recs = _recs.filter(r => r.companyId === cid);
+  } else {
+    recs = _recs.filter(r => r.uid === cu.uid && r.companyId === cid);
+  }
   const mr=recs.filter(r=>r.date?.startsWith(mes));
   const cots=mr.filter(r=>r.tipo==='cotacoes');
   const cts=mr.filter(r=>r.tipo==='contatos');
@@ -2596,10 +2640,15 @@ $('btn-exportar').onclick = () => {
   const de=$('exp-de').value, ate=$('exp-ate').value;
   const tipo=$('exp-tipo').value;
   const vuid=$('exp-vendedor')?.value||'';
-  const isLider=cp?.role==='lider';
+  const isLider    = cp?.role==='lider';
+  const isSuperAdm = cp?.role==='superadmin';
+  const cid = cp?.companyId || _companyId;
 
   let recs=[..._recs];
-  if(!isLider) recs=recs.filter(r=>r.uid===cu.uid);
+  // Filtra por empresa — superadmin vê só empresa selecionada, lider vê sua empresa
+  if(isSuperAdm && _companyId) recs = recs.filter(r=>r.companyId===_companyId);
+  else if(!isSuperAdm && cid)  recs = recs.filter(r=>r.companyId===cid);
+  if(!isLider && !isSuperAdm)  recs = recs.filter(r=>r.uid===cu.uid);
   if(de)  recs=recs.filter(r=>r.date>=de);
   if(ate) recs=recs.filter(r=>r.date<=ate);
   if(tipo!=='todos') recs=recs.filter(r=>r.tipo===tipo);
@@ -2791,12 +2840,21 @@ async function loadLogs(){
 
   try {
     VapLogger.track('Carregar logs', { levelFilter, userFilter });
-    // Busca últimos 200 logs ordenados por timestamp
+    const isSuperAdm = cp?.role === 'superadmin';
+    const cid = cp?.companyId || _companyId;
+
     let q = query(collection(db,'logs'), orderBy('ts','desc'));
     const snap = await getDocs(q);
     let logs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    // Aplica filtros
+    // Filtra logs por empresa
+    if(isSuperAdm && _companyId){
+      logs = logs.filter(l => l.companyId === _companyId);
+    } else if(!isSuperAdm && cid){
+      logs = logs.filter(l => l.companyId === cid);
+    }
+
+    // Aplica filtros de nível e usuário
     if(levelFilter) logs = logs.filter(l => l.level === levelFilter);
     if(userFilter)  logs = logs.filter(l => l.uid  === userFilter);
     logs = logs.slice(0, 200);
@@ -2940,6 +2998,7 @@ window.loadEmpresas = async function loadEmpresas(){
         <div style="display:flex;gap:6px">
           <button class="btn-sec" style="font-size:.78rem;padding:5px 10px" onclick="editEmpresa('${e.id}')">Editar</button>
           <button class="btn-sec" style="font-size:.78rem;padding:5px 10px" onclick="loginAsEmpresa('${e.id}','${e.code}')">Ver dados</button>
+          <button class="btn-danger" style="font-size:.78rem;padding:5px 10px;opacity:.8" onclick="deleteEmpresa('${e.id}','${e.name}')">Excluir</button>
         </div>
       </div>`).join('');
   } catch(err){
@@ -3026,6 +3085,22 @@ $('btn-salvar-empresa') && ($('btn-salvar-empresa').onclick = async () => {
     $('btn-salvar-empresa').disabled = false;
   }
 });
+
+window.deleteEmpresa = async function(id, name){
+  // Confirmação em 2 etapas para evitar exclusão acidental
+  if(!confirm('Excluir a empresa "' + name + '"?\n\nATENÇÃO: Esta ação não pode ser desfeita.\nOs usuários e registros da empresa NÃO serão excluídos — apenas o cadastro da empresa.')) return;
+  if(!confirm('Confirme novamente: excluir "' + name + '" permanentemente?')) return;
+
+  try {
+    await deleteDoc(doc(db,'companies',id));
+    VapLogger.warning('Empresa excluída', { id, name });
+    toast('Empresa "' + name + '" excluída.');
+    loadEmpresas();
+  } catch(err){
+    VapLogger.error('Erro ao excluir empresa', { msg: err.message });
+    toast('Erro ao excluir: ' + err.message);
+  }
+};
 
 window.loginAsEmpresa = async function(companyId, code){
   // Atualiza companyId e recarrega listeners com dados da empresa selecionada
