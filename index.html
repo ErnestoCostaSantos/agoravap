@@ -34,7 +34,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 #auth-screen .auth-footer{position:relative;z-index:2;text-align:center;margin-top:auto;padding:1.5rem 1rem 1rem;font-size:.72rem;color:rgba(0,0,0,0.55);line-height:1.7;max-width:380px}
 #auth-screen .auth-footer strong{font-weight:700;color:rgba(0,0,0,0.68)}
 #auth-screen .auth-spacer{flex:1;min-height:1.5rem}
-.auth-card{background:var(--white);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.auth-card{background:linear-gradient(180deg,#ffffff 0%,#fff5f5 40%,#E53E3E 100%);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 .auth-logo{text-align:center;margin-bottom:2rem}
 .auth-logo h1{font-size:2rem;font-weight:700;color:#C53030;letter-spacing:-1px}
 .auth-logo p{font-size:.85rem;color:var(--gray);margin-top:4px}
@@ -301,9 +301,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   <div class="auth-spacer"></div>
   <div class="auth-card">
     <!-- Logo dinâmico da empresa -->
-    <div id="company-logo-wrap" style="text-align:center;margin-bottom:1rem;min-height:50px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px">
-      <img id="company-logo-img" src="" alt="" style="display:none;max-height:56px;max-width:180px;object-fit:contain;border-radius:6px"/>
-      <div class="auth-logo" id="company-logo-text"><h1>AgoraVAP!</h1><p id="company-tagline">Sistema de Gestão Comercial</p></div>
+    <div id="company-logo-wrap" style="text-align:center;margin-bottom:1.2rem">
+      <!-- Logo empresa (aparece quando empresa confirmada) -->
+      <img id="company-logo-img" src="" alt="" style="display:none;max-height:56px;max-width:180px;object-fit:contain;border-radius:6px;margin-bottom:.5rem"/>
+      <!-- Logo padrão VAP! + nome lado a lado -->
+      <div id="company-logo-text" style="display:flex;align-items:center;justify-content:center;gap:12px">
+        <img src="logotipo-final-vap.png"
+             alt="VAP!" style="height:64px;width:64px;object-fit:contain"
+             onerror="this.style.display='none'"/>
+        <div style="text-align:left">
+          <div style="font-size:1.9rem;font-weight:800;color:#C53030;letter-spacing:-1px;line-height:1">AgoraVAP!</div>
+          <div id="company-tagline" style="font-size:.78rem;color:#666;margin-top:3px;font-weight:500">Vendas e Gestão de Alta Performance</div>
+        </div>
+      </div>
     </div>
     <div class="auth-err" id="auth-err"></div>
     <div class="auth-success" id="auth-success"></div>
@@ -342,11 +352,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <button class="btn-auth" id="btn-login">Entrar</button>
         <button class="btn-auth" id="btn-criar-lider" style="display:none;background:#2E7D32;margin-top:8px">Criar conta do Líder</button>
         <div style="text-align:center;margin-top:.5rem">
-          <span id="btn-change-company" style="font-size:.78rem;color:#C53030;cursor:pointer">← Trocar empresa</span>
+          <span id="btn-change-company" style="font-size:.78rem;color:rgba(255,255,255,0.85);cursor:pointer;text-decoration:underline">← Trocar empresa</span>
         </div>
         <div class="auth-divider">ou</div>
-        <div style="text-align:center;font-size:.82rem;color:rgba(0,0,0,0.6)">
-          Esqueceu a senha? <span id="go-forgot" style="color:#C53030;cursor:pointer;font-weight:700">Recuperar acesso</span>
+        <div style="text-align:center;font-size:.82rem;color:rgba(255,255,255,0.9)">
+          Esqueceu a senha? <span id="go-forgot" style="color:#fff;cursor:pointer;font-weight:700;text-decoration:underline">Recuperar acesso</span>
         </div>
       </div>
 
@@ -1330,7 +1340,7 @@ function resetCompanyTheme(){
   if(logoImg)  { logoImg.src = ''; logoImg.style.display = 'none'; }
   if(logoText) logoText.style.display = 'block';
   const tagline = $('company-tagline');
-  if(tagline) tagline.textContent = 'Sistema de Gestão Comercial';
+  if(tagline) tagline.textContent = 'Vendas e Gestão de Alta Performance';
   const authBg = document.querySelector('.auth-bg') || document.querySelector('#auth-screen');
   if(authBg){ authBg.style.background = ''; authBg.style.backgroundImage = ''; }
 }
