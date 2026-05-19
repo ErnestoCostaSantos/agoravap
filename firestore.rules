@@ -2,34 +2,62 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function
+    function isAuth() {
+      return request.auth != null;
+    }
+    function isSuperAdmin() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
+    }
     function isLider() {
       return request.auth != null &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'lider';
     }
-    function isAuth() {
-      return request.auth != null;
+    function myCompany() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
     }
 
+    // Empresas — leitura pública (para verificar código no login)
+    // Escrita apenas SuperAdmin
+    match /companies/{companyId} {
+      allow read: if true;  // necessário para verificar código antes do login
+      allow write: if isSuperAdmin();
+    }
+
+    // Usuários
     match /users/{userId} {
       allow read, write: if isAuth() && request.auth.uid == userId;
-      allow read, write: if isLider();
+      allow read, write: if isLider() && myCompany() == resource.data.companyId;
+      allow read, write: if isSuperAdmin();
     }
 
+    // Registros de lançamento
     match /records/{recordId} {
-      allow create: if isAuth() && request.resource.data.uid == request.auth.uid;
-      allow read:   if isAuth() && resource.data.uid == request.auth.uid;
-      allow read, delete: if isLider();
+      allow create: if isAuth() && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.companyId == myCompany();
+      allow read, update: if isAuth() && resource.data.uid == request.auth.uid;
+      allow read, delete, update: if isLider() && resource.data.companyId == myCompany();
+      allow read, write: if isSuperAdmin();
     }
 
+    // Metas
     match /metas/{metaId} {
-      allow read:        if isAuth();
-      allow write:       if isLider();
+      allow read: if isAuth();
+      allow write: if isLider() && myCompany() == request.resource.data.companyId;
+      allow write: if isSuperAdmin();
     }
 
+    // Usuários removidos
     match /deleted_users/{uid} {
-      allow read:  if isAuth();
+      allow read: if isAuth();
       allow write: if isLider();
+      allow write: if isSuperAdmin();
+    }
+
+    // Logs do sistema
+    match /logs/{logId} {
+      allow create: if isAuth();
+      allow read, delete: if isLider() || isSuperAdmin();
     }
   }
 }
