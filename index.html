@@ -1732,8 +1732,8 @@ function startListeners(){
   const isSuperAdmin = cp.role === 'superadmin';
   const cid = cp.companyId || _companyId;
 
-  // Records — SuperAdmin com empresa selecionada filtra por ela
-  // SuperAdmin sem empresa selecionada vê tudo
+  // Records — filtra por empresa
+  // Líder e vendedor: registros da empresa OU registros sem companyId (legado v2.0)
   const rq = isSuperAdmin && cid
     ? query(collection(db,'records'), where('companyId','==',cid), orderBy('ts','desc'))
     : isSuperAdmin
@@ -1742,16 +1742,32 @@ function startListeners(){
     ? query(collection(db,'records'), where('companyId','==',cid), orderBy('ts','desc'))
     : query(collection(db,'records'), where('uid','==',uid), orderBy('ts','desc'));
   unRecs = onSnapshot(rq, snap => {
-    _recs = snap.docs.map(d=>({id:d.id,...d.data()}));
+    let recs = snap.docs.map(d=>({id:d.id,...d.data()}));
+    // Inclui registros legados (sem companyId) que pertencem a usuários desta empresa
+    // Isso garante compatibilidade com dados da v2.0
+    if(cid && !isSuperAdmin){
+      const companyUids = _users.map(u=>u.id);
+      // Registros sem companyId mas de usuários desta empresa são considerados desta empresa
+      _recs = recs.map(r => {
+        if(!r.companyId && companyUids.includes(r.uid)){
+          return {...r, companyId: cid}; // atribui companyId em memória
+        }
+        return r;
+      });
+    } else {
+      _recs = recs;
+    }
     renderMetricsDia();
     const ap = document.querySelector('.panel.active')?.id;
     if(ap==='panel-historico') renderHistorico();
     if(ap==='panel-dashboard') renderDashboard();
   });
 
-  // Users — líder vê só da empresa, superadmin vê todos
+  // Users — SuperAdmin com empresa selecionada filtra por ela
   if(isLider || isSuperAdmin){
-    const uq = isSuperAdmin
+    const uq = isSuperAdmin && cid
+      ? query(collection(db,'users'), where('companyId','==',cid), orderBy('name'))
+      : isSuperAdmin
       ? query(collection(db,'users'), orderBy('name'))
       : query(collection(db,'users'), where('companyId','==',cid), orderBy('name'));
     unUsers = onSnapshot(uq, snap=>{
@@ -3123,10 +3139,11 @@ window.loginAsEmpresa = async function(companyId, code){
   startListeners();
 
   // Aguarda listeners carregarem e vai para o Dashboard
+  // Aguarda listeners carregarem completamente antes de renderizar
   setTimeout(() => {
     window.switchTab('dashboard');
     toast('Visualizando dados da empresa: ' + code);
-  }, 600);
+  }, 1200);
 }
 
 // Carrega empresas ao abrir Super Admin
