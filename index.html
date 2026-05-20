@@ -1731,6 +1731,7 @@ function startListeners(){
   const isLider   = cp.role === 'lider';
   const isSuperAdmin = cp.role === 'superadmin';
   const cid = cp.companyId || _companyId;
+  console.log('[startListeners] role:', cp.role, 'cid:', cid, '_companyId:', _companyId);
 
   // Records — filtra por empresa
   // Líder e vendedor: registros da empresa OU registros sem companyId (legado v2.0)
@@ -1743,6 +1744,7 @@ function startListeners(){
     : query(collection(db,'records'), where('uid','==',uid), orderBy('ts','desc'));
   unRecs = onSnapshot(rq, snap => {
     let recs = snap.docs.map(d=>({id:d.id,...d.data()}));
+    console.log('[onSnapshot records] total:', recs.length, 'cid:', cid);
     // Inclui registros legados (sem companyId) que pertencem a usuários desta empresa
     // Isso garante compatibilidade com dados da v2.0
     if(cid && !isSuperAdmin){
@@ -3129,21 +3131,22 @@ window.deleteEmpresa = async function(id, name){
 };
 
 window.loginAsEmpresa = async function(companyId, code){
-  // Atualiza companyId e recarrega listeners com dados da empresa selecionada
   _companyId = companyId;
+  console.log('[Ver Dados] companyId:', companyId, 'code:', code);
+  console.log('[Ver Dados] cp.role:', cp?.role, 'cp.companyId:', cp?.companyId);
 
   // Desconecta listeners atuais
   [unRecs, unUsers, unMetas].forEach(u => u && u());
+  _recs = []; _users = []; _metas = [];
 
   // Recarrega listeners filtrados pela nova empresa
   startListeners();
 
-  // Aguarda listeners carregarem e vai para o Dashboard
-  // Aguarda listeners carregarem completamente antes de renderizar
   setTimeout(() => {
+    console.log('[Ver Dados] _recs:', _recs.length, '_users:', _users.length);
     window.switchTab('dashboard');
-    toast('Visualizando dados da empresa: ' + code);
-  }, 1200);
+    toast('Visualizando empresa: ' + code + ' (' + _recs.length + ' registros)');
+  }, 2000);
 }
 
 // Carrega empresas ao abrir Super Admin
