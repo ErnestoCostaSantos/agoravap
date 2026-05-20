@@ -433,11 +433,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 <div id="app">
   <div class="topbar">
     <div class="topbar-left">
+      <img src="logotipo-final-vap.png" alt="VAP!"
+           style="height:36px;width:36px;object-fit:contain;border-radius:50%;background:#fff;padding:2px"
+           onerror="this.style.display='none'"/>
       <h1>AgoraVAP!</h1>
       <span class="role-badge" id="role-badge">Vendedor</span>
     </div>
     <div class="topbar-right">
       <span class="topbar-user" id="top-user">–</span>
+      <!-- Logo da empresa logada -->
+      <img id="topbar-company-logo" src="" alt=""
+           style="display:none;height:30px;max-width:80px;object-fit:contain;border-radius:4px;background:rgba(255,255,255,0.15);padding:2px 6px"/>
       <button class="btn-top" id="btn-logout">Sair</button>
     </div>
   </div>
@@ -1679,6 +1685,13 @@ onAuthStateChanged(auth, async user => {
     VapLogger.info('Login realizado', { role: cp.role });
 
     $('top-user').textContent = cp.name;
+    // Logo da empresa na topbar
+    const topbarLogo = $('topbar-company-logo');
+    if(topbarLogo && _company?.logoUrl){
+      topbarLogo.src = _company.logoUrl;
+      topbarLogo.style.display = 'block';
+      topbarLogo.alt = _company.fantasyName || _company.name || '';
+    }
     const isLider      = cp.role === 'lider';
     const isSuperAdm   = cp.role === 'superadmin';
     const roleLabel    = isSuperAdm ? 'Super Admin' : isLider ? 'Lider' : 'Vendedor';
@@ -1733,7 +1746,6 @@ function startListeners(){
   // SuperAdmin: usa _companyId (empresa selecionada via "Ver Dados")
   // Líder/Vendedor: usa cp.companyId (empresa do usuário)
   const cid = isSuperAdmin ? _companyId : (cp.companyId || _companyId);
-  console.log('[startListeners] role:', cp.role, 'cid:', cid, '_companyId:', _companyId);
 
   // Records — filtra por empresa
   // Líder e vendedor: registros da empresa OU registros sem companyId (legado v2.0)
@@ -1746,7 +1758,6 @@ function startListeners(){
     : query(collection(db,'records'), where('uid','==',uid), orderBy('ts','desc'));
   unRecs = onSnapshot(rq, snap => {
     let recs = snap.docs.map(d=>({id:d.id,...d.data()}));
-    console.log('[onSnapshot records] total:', recs.length, 'cid:', cid);
     // Inclui registros legados (sem companyId) que pertencem a usuários desta empresa
     // Isso garante compatibilidade com dados da v2.0
     if(cid && !isSuperAdmin){
@@ -3139,8 +3150,23 @@ window.deleteEmpresa = async function(id, name){
 
 window.loginAsEmpresa = async function(companyId, code){
   _companyId = companyId;
-  console.log('[Ver Dados] companyId:', companyId, 'code:', code);
-  console.log('[Ver Dados] cp.role:', cp?.role, 'cp.companyId:', cp?.companyId);
+  // Atualiza logo da empresa na topbar
+  try {
+    const snap = await getDocs(query(collection(db,'companies'), where('code','==',code)));
+    if(!snap.empty){
+      const emp = snap.docs[0].data();
+      const topbarLogo = $('topbar-company-logo');
+      if(topbarLogo){
+        if(emp.logoUrl){
+          topbarLogo.src = emp.logoUrl;
+          topbarLogo.style.display = 'block';
+          topbarLogo.alt = emp.fantasyName || emp.name || '';
+        } else {
+          topbarLogo.style.display = 'none';
+        }
+      }
+    }
+  } catch(e){}
 
   // Desconecta listeners atuais
   [unRecs, unUsers, unMetas].forEach(u => u && u());
@@ -3152,7 +3178,7 @@ window.loginAsEmpresa = async function(companyId, code){
   setTimeout(() => {
     console.log('[Ver Dados] _recs:', _recs.length, '_users:', _users.length);
     window.switchTab('dashboard');
-    toast('Visualizando empresa: ' + code + ' (' + _recs.length + ' registros)');
+    toast('Visualizando empresa: ' + code);
   }, 2000);
 }
 
