@@ -1958,8 +1958,12 @@ function renderMetricsDia(){
   let dr = _recs.filter(r => r.date === t);
   if(isSuperAdm && _companyId){
     dr = dr.filter(r => r.companyId === _companyId);
-  } else if(!isSuperAdm){
-    dr = dr.filter(r => isLider ? r.companyId === cid : r.uid === cu.uid);
+  } else if(isSuperAdm){
+    // SuperAdmin sem empresa vê tudo
+  } else if(isLider && cid){
+    dr = dr.filter(r => r.companyId === cid);
+  } else if(!isLider){
+    dr = dr.filter(r => r.uid === cu.uid);
   }
   const ct  = dr.filter(r => r.tipo === 'contatos');
   const cot = dr.filter(r => r.tipo === 'cotacoes');
@@ -2087,9 +2091,10 @@ function renderHistorico(){
   const cid = cp?.companyId || _companyId;
   let recs = [..._recs];
   if(isSuperAdm && _companyId){
-    // SuperAdmin visualizando empresa específica
     recs = recs.filter(r => r.companyId === _companyId);
-  } else if(!isSuperAdm){
+  } else if(isSuperAdm){
+    // SuperAdmin sem empresa selecionada vê tudo
+  } else {
     if(!isLider) recs = recs.filter(r => r.uid === cu.uid);
     if(cid) recs = recs.filter(r => r.companyId === cid);
   }
@@ -2175,16 +2180,17 @@ function renderDashboard(){
   const cid = cp?.companyId || _companyId;
   const mes=thisMes();
   // Filtra registros pela empresa ativa
-  // SuperAdmin: se estiver visualizando uma empresa específica (_companyId definido), filtra por ela
   let recs;
   if(isSuperAdm && _companyId){
     recs = _recs.filter(r => r.companyId === _companyId);
   } else if(isSuperAdm){
     recs = [..._recs]; // SuperAdmin sem empresa selecionada vê tudo
-  } else if(isLider){
+  } else if(isLider && cid){
     recs = _recs.filter(r => r.companyId === cid);
-  } else {
+  } else if(!isLider && cid){
     recs = _recs.filter(r => r.uid === cu.uid && r.companyId === cid);
+  } else {
+    recs = [..._recs];
   }
   const mr=recs.filter(r=>r.date?.startsWith(mes));
   const cots=mr.filter(r=>r.tipo==='cotacoes');
