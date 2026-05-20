@@ -1730,7 +1730,9 @@ function startListeners(){
   const uid=cu.uid;
   const isLider   = cp.role === 'lider';
   const isSuperAdmin = cp.role === 'superadmin';
-  const cid = cp.companyId || _companyId;
+  // SuperAdmin: usa _companyId (empresa selecionada via "Ver Dados")
+  // Líder/Vendedor: usa cp.companyId (empresa do usuário)
+  const cid = isSuperAdmin ? _companyId : (cp.companyId || _companyId);
   console.log('[startListeners] role:', cp.role, 'cid:', cid, '_companyId:', _companyId);
 
   // Records — filtra por empresa
@@ -1954,7 +1956,7 @@ function renderMetricsDia(){
   const isHoje = t === tod();
   const isLider    = cp?.role === 'lider';
   const isSuperAdm = cp?.role === 'superadmin';
-  const cid = cp?.companyId || _companyId;
+  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
   let dr = _recs.filter(r => r.date === t);
   if(isSuperAdm && _companyId){
     dr = dr.filter(r => r.companyId === _companyId);
@@ -2088,7 +2090,7 @@ function renderHistorico(){
   const sv   = $('hist-vendedor').value;
   const isLider = cp?.role === 'lider';
   const isSuperAdm = cp?.role === 'superadmin';
-  const cid = cp?.companyId || _companyId;
+  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
   let recs = [..._recs];
   if(isSuperAdm && _companyId){
     recs = recs.filter(r => r.companyId === _companyId);
@@ -2177,7 +2179,7 @@ function renderHistorico(){
 function renderDashboard(){
   const isLider=cp?.role==='lider';
   const isSuperAdm=cp?.role==='superadmin';
-  const cid = cp?.companyId || _companyId;
+  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
   const mes=thisMes();
   // Filtra registros pela empresa ativa
   let recs;
@@ -2648,9 +2650,8 @@ function renderMetasTable(){
 
 // ── Admin: Selects ────────────────────────────────────────
 function populateSelects(){
-  // Filtra usuarios pela empresa ativa
-  const cid = cp?.companyId || _companyId;
   const isSuperAdm = cp?.role === 'superadmin';
+  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
   const todos = [..._users]
     .filter(u => isSuperAdm || !cid || u.companyId === cid)
     .sort((a,b)=>a.name.localeCompare(b.name));
@@ -2676,7 +2677,7 @@ $('btn-exportar').onclick = () => {
   const vuid=$('exp-vendedor')?.value||'';
   const isLider    = cp?.role==='lider';
   const isSuperAdm = cp?.role==='superadmin';
-  const cid = cp?.companyId || _companyId;
+  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
 
   let recs=[..._recs];
   // Filtra por empresa — superadmin vê só empresa selecionada, lider vê sua empresa
@@ -2875,7 +2876,7 @@ async function loadLogs(){
   try {
     VapLogger.track('Carregar logs', { levelFilter, userFilter });
     const isSuperAdm = cp?.role === 'superadmin';
-    const cid = cp?.companyId || _companyId;
+    const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
 
     let q = query(collection(db,'logs'), orderBy('ts','desc'));
     const snap = await getDocs(q);
