@@ -784,7 +784,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
     </div>
 
-    <div class="panel" id="panel-ajuda">
+        <div class="panel" id="panel-ajuda">
       <div class="help-content">
 
         <!-- 1. APRESENTAÇÃO -->
@@ -792,8 +792,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h2>1. Apresentação do AgoraVAP!</h2>
           <p>O AgoraVAP! é um sistema, versão web e app, de gestão comercial desenvolvido para equipes de vendas B2B. Ele não é um sistema transacional como ERP ou CRM.</p>
           <p>A plataforma permite centralizar diariamente os registros feitos pelos agentes de vendas definidos pela empresa cliente, de seus contatos realizados, cotações, pedidos fechados e perdas. Assim, oferece visibilidade em tempo real da performance aos próprios profissionais e ao líder da equipe, para fins de tomada de decisão gerencial.</p>
-          <p>Com uma interface simples e intuitiva — dividida em 7 grandes módulos (Lançar, Histórico, Dashboard, Administrativo, Acesso, Configuração e Ajuda) — o AgoraVAP! minimiza o uso de planilhas, fichas e registros em geral dispersos, individualizados e que não trafegam entre todos os envolvidos na área comercial.</p>
-          <p>Ele permite que profissionais e seus líderes tomem decisões baseadas em dados atualizados e relevantes.</p>
+          <p>Com uma interface simples e intuitiva — dividida em 7 grandes módulos (Lançar, Histórico, Dashboard, Administrativo, Acesso, Configuração e Ajuda) — o AgoraVAP! minimiza o uso de planilhas e registros dispersos que não trafegam entre todos os envolvidos na área comercial.</p>
           <p>A partir da <b>versão 3.0</b>, o AgoraVAP! suporta <b>múltiplas empresas</b> em uma única plataforma — cada empresa com seus próprios usuários, dados, personalização visual e isolamento total de informações.</p>
           <div class="help-tip">O sistema é indicado para equipes com ciclo de vendas consultivo, onde o acompanhamento de funil, taxas de conversão e ticket médio são indicadores críticos de performance.</div>
         </div>
@@ -812,7 +811,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Cotações Perdidas</b> — Perdas por Preço (R$) · Estoque (R$) · Outras Causas (R$)</li>
             <li><b>Meta Mensal (R$)</b> — Campo somente leitura, exibe a meta do mês cadastrada no módulo Administrativo</li>
           </ul>
-          <div class="help-tip">Quatro boxes no topo exibem os dados do dia selecionado: Contatos, Pedidos Fechados, Cotações Enviadas e Perdas. Atualizados automaticamente após cada lançamento.</div>
+          <div class="help-tip">Quatro boxes no topo exibem os dados do dia selecionado. Atualizados automaticamente após cada lançamento.</div>
 
           <h3>2.2 Módulo Histórico</h3>
           <p>Exibe todos os registros lançados com três modos de filtro de data:</p>
@@ -821,19 +820,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Período</b> — campos "De" e "Até" para filtrar um intervalo de datas</li>
             <li><b>Mês</b> — seleciona um mês inteiro de uma vez</li>
           </ul>
-          <p>Combinado com filtros de Tipo (Contatos ou Cotações/Pedidos) e Profissional (apenas Líder). Uma linha de resumo exibe o total de registros, contatos e pedidos do período filtrado. Os registros são sempre ordenados do mais recente para o mais antigo.</p>
-          <div class="help-tip">O botão <b>⚠ Apagar Registros</b> fica à direita da barra de filtros para evitar cliques acidentais. Disponível apenas para o Líder.</div>
+          <p>Combinado com filtros de Tipo e Profissional (Líder). Uma linha de resumo exibe totais do período. Registros ordenados do mais recente para o mais antigo.</p>
+          <div class="help-tip">O botão <b>⚠ Apagar Registros</b> fica à direita da barra para evitar cliques acidentais. Apenas Líderes.</div>
 
           <h3>2.3 Módulo Dashboard</h3>
-          <p>Consolida os registros do mês atual em KPIs e gráficos atualizados em tempo real. Líderes visualizam o ranking completo da equipe com barra de progresso em relação à meta.</p>
+          <p>Consolida os registros do mês atual em KPIs e gráficos em tempo real. Líderes visualizam o ranking completo com barra de progresso.</p>
           <ul>
-            <li><b>Vendas do Mês</b> — Quantidade de pedidos + receita total acumulada</li>
+            <li><b>Vendas do Mês</b> — Quantidade de pedidos + receita total</li>
             <li><b>Pedidos/Cotações</b> — Pedidos ÷ Cotações (R$) × 100</li>
             <li><b>Ticket Médio</b> — Receita total ÷ número de pedidos</li>
             <li><b>Total Perdido</b> — Soma de todas as perdas do mês</li>
             <li><b>Vendas vs. Cotações</b> — Gráfico de linhas com 31 dias e linha de meta tracejada</li>
-            <li><b>Motivos de Perda</b> — Rosca: Preço (vermelho), Estoque (azul), Outras (verde)</li>
-            <li><b>Contatos por Origem</b> — Barras horizontais com 7 cores distintas</li>
+            <li><b>Motivos de Perda</b> — Rosca: Preço, Estoque, Outras</li>
+            <li><b>Contatos por Origem</b> — Barras horizontais com 7 origens</li>
           </ul>
         </div>
         <div class="divider"></div>
@@ -843,13 +842,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h2>3. Módulo Acesso</h2>
 
           <h3>Código da Empresa</h3>
-          <p>Na tela de login, o primeiro passo é informar o <b>Código da Empresa</b> (ex: <i>alpha</i>). O sistema busca a empresa, aplica o logo e cores personalizadas e exibe os campos de e-mail e senha. O código é definido pelo Super Admin no módulo de gestão de empresas.</p>
+          <p>Na tela de login, o primeiro passo é informar o <b>Código da Empresa</b> (ex: <i>dealer</i>). O sistema aplica o logo e cores personalizadas e exibe os campos de e-mail e senha. O código é definido pelo Super Admin.</p>
 
           <h3>Como funciona o cadastro</h3>
-          <p>Somente o Líder cadastra os profissionais pelo módulo Administrativo. A senha temporária é gerada automaticamente e exibida na tela para o Líder repassar ao profissional.</p>
+          <p>Somente o Líder cadastra os profissionais pelo módulo Administrativo. A senha temporária é gerada automaticamente e exibida na tela para repasse.</p>
 
           <h3>Primeiro acesso</h3>
-          <p>No primeiro login, o profissional vê a tela "Primeiro Acesso" onde informa nome completo (nome e sobrenome) e cria sua própria senha.</p>
+          <p>No primeiro login, o profissional informa nome completo e cria sua própria senha.</p>
 
           <h3>Critérios da senha</h3>
           <ul>
@@ -859,11 +858,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li>Pelo menos <b>1 caractere especial</b> (!@#$%)</li>
           </ul>
 
-          <h3>Recuperar senha esquecida</h3>
-          <p>Na tela de login, clique em "Recuperar acesso". Um e-mail com link de redefinição será enviado se o e-mail estiver cadastrado pelo Líder.</p>
+          <h3>Recuperar senha</h3>
+          <p>Na tela de login, clique em "Recuperar acesso". Um e-mail com link de redefinição será enviado.</p>
 
           <h3>Logout automático por inatividade</h3>
-          <p>Após 2 minutos sem atividade, o sistema encerra a sessão automaticamente e retorna à tela de login com os campos limpos.</p>
+          <p>Após <b>4 minutos</b> sem atividade, o sistema encerra a sessão automaticamente e retorna à tela de login.</p>
         </div>
         <div class="divider"></div>
 
@@ -872,32 +871,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h2>4. Módulo Administrativo</h2>
 
           <h3>Profissionais</h3>
-          <p>Cadastre novos profissionais informando nome completo, e-mail e perfil. A senha temporária é exibida na tela para repasse. Para <b>editar</b>, clique em "Editar" — apenas Nome e Meta podem ser alterados.</p>
+          <p>Cadastre, edite ou remova profissionais. A edição permite alterar apenas Nome e Meta. Ao cadastrar, o profissional recebe automaticamente o <b>companyId</b> da empresa do Líder.</p>
 
           <h3>Download do histórico do mês anterior</h3>
-          <p>No <b>primeiro dia de cada mês</b>, aparece um banner verde com duas etapas:</p>
-          <ul>
-            <li><b>Etapa 1</b> — "Quer fazer o download dos históricos do mês passado?" → Sim ou Pular</li>
-            <li><b>Etapa 2</b> — "Já fez backup dos históricos dos vendedores?" → Confirmar ou Ainda não</li>
-          </ul>
-          <p>O CSV gerado contém todos os registros do mês anterior de todos os profissionais e líderes. Aparece uma vez por dia.</p>
+          <p>No <b>primeiro dia de cada mês</b>, aparece um banner com duas etapas: download do histórico + confirmação de backup.</p>
 
           <h3>Metas Mensais</h3>
-          <p>Defina a meta de cada profissional por mês — incluindo Líderes. Alimenta as barras de progresso no Ranking, o card do Dashboard e a linha tracejada no gráfico de Vendas vs. Cotações.</p>
+          <p>Defina a meta de cada profissional por mês — incluindo Líderes. Alimenta os gráficos do Dashboard e a linha tracejada no gráfico de Vendas.</p>
 
           <h3>Exportar Excel</h3>
-          <p>Gera arquivo CSV do período selecionado com todos os registros da equipe. Colunas de visitas abreviadas como <b>Vis.Ativos</b> e <b>Vis.Inativos</b>. Abrível no Excel ou Google Sheets.</p>
+          <p>Gera arquivo CSV do período selecionado com todos os registros da empresa. Abrível no Excel ou Google Sheets.</p>
 
           <h3>Logs do Sistema</h3>
-          <p>A aba <b>Logs</b> no módulo Administrativo exibe o registro de todas as ações e erros do sistema em tempo real. Disponível apenas para o Líder.</p>
+          <p>A aba <b>Logs</b> exibe todas as ações e erros do sistema. Filtre por nível e profissional.</p>
           <ul>
-            <li><b>INFO</b> — operações normais (login, lançamentos, navegação)</li>
-            <li><b>WARNING</b> — comportamentos inesperados (tentativa de login falha)</li>
-            <li><b>ERROR</b> — falhas recuperáveis (erro ao salvar)</li>
-            <li><b>CRITICAL</b> — falhas graves (erros não tratados)</li>
+            <li><b>INFO</b> — operações normais</li>
+            <li><b>WARNING</b> — comportamentos inesperados</li>
+            <li><b>ERROR</b> — falhas recuperáveis</li>
+            <li><b>CRITICAL</b> — falhas graves</li>
           </ul>
-          <p>Filtre por nível e por profissional. Use <b>"Exportar CSV"</b> para baixar os logs filtrados ou <b>"Baixar Log Sessão"</b> para um arquivo JSON completo da sessão atual — útil para enviar ao suporte técnico quando houver um problema.</p>
-
           <div class="help-tip">Apenas Líderes têm acesso ao módulo Administrativo.</div>
         </div>
         <div class="divider"></div>
@@ -906,34 +898,37 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="help-section">
           <h2>5. Perfis de Acesso</h2>
           <ul>
-            <li><b>Vendedor / Profissional</b> — Lança e consulta apenas seus próprios dados nos módulos Lançar, Histórico e Dashboard.</li>
-            <li><b>Líder</b> — Visualiza dados de toda a equipe da sua empresa, gerencia profissionais, metas e exportações. Pode ter metas individuais.</li>
-            <li><b>Super Admin</b> — Perfil exclusivo da ECS Consultoria. Gerencia todas as empresas cadastradas na plataforma, visualiza dados de qualquer empresa pelo botão "Ver Dados" e cadastra/edita/exclui empresas.</li>
+            <li><b>Vendedor / Profissional</b> — Lança e consulta apenas seus próprios dados.</li>
+            <li><b>Líder</b> — Visualiza dados de toda a equipe da sua empresa, gerencia profissionais, metas e exportações.</li>
+            <li><b>Super Admin</b> — Perfil exclusivo ECS. Gerencia todas as empresas da plataforma e visualiza dados de qualquer empresa.</li>
           </ul>
-          <div class="help-tip">Cada empresa tem seus dados completamente isolados — um Líder de uma empresa nunca vê dados de outra empresa.</div>
+          <div class="help-tip">Cada empresa tem seus dados completamente isolados — um Líder nunca vê dados de outra empresa.</div>
         </div>
         <div class="divider"></div>
 
+        <!-- 5.1 SUPER ADMIN -->
         <div class="help-section">
           <h2>5.1 Módulo Super Admin</h2>
-          <p>Acessível apenas pelo perfil Super Admin (ECS Consultoria). Permite gerenciar todas as empresas da plataforma.</p>
+          <p>Acessível apenas pelo perfil Super Admin (ECS Consultoria). Gerencia todas as empresas da plataforma.</p>
+
           <h3>Gestão de Empresas</h3>
           <ul>
-            <li><b>+ Nova Empresa</b> — cadastra uma nova empresa com nome, código de acesso, logo (URL), cor e imagem de fundo</li>
-            <li><b>Editar</b> — altera dados da empresa incluindo personalização visual</li>
-            <li><b>Ver Dados</b> — filtra todos os módulos (Dashboard, Histórico, Administrativo) pelos dados daquela empresa</li>
-            <li><b>Excluir</b> — remove o cadastro da empresa (requer dupla confirmação)</li>
+            <li><b>+ Nova Empresa</b> — cadastra empresa com nome, código, logo (URL), cor e imagem de fundo</li>
+            <li><b>Editar</b> — altera dados e personalização visual da empresa</li>
+            <li><b>Ver Dados</b> — filtra Dashboard, Histórico e Administrativo pelos dados daquela empresa</li>
+            <li><b>Excluir</b> — remove o cadastro da empresa (dupla confirmação)</li>
           </ul>
+
           <h3>Visão Global</h3>
-          <p>Cards com totais consolidados: empresas ativas, total de usuários e total de registros em toda a plataforma.</p>
-          <div class="help-tip">Ao clicar em "Ver Dados", todos os módulos passam a exibir apenas os dados daquela empresa. Para voltar à visão global, faça logout e entre novamente.</div>
+          <p>Cards com totais consolidados: empresas ativas, total de usuários e total de registros.</p>
+          <div class="help-tip">Após clicar em "Ver Dados", todos os módulos exibem apenas dados daquela empresa. Para voltar à visão global, faça logout e entre novamente.</div>
         </div>
         <div class="divider"></div>
 
         <!-- 6. SIMULAÇÃO DE VENDAS B2B -->
         <div class="help-section">
           <h2>6. Simulação de Vendas B2B</h2>
-          <p>Simulação completa de três meses de operação comercial para uma equipe de três vendedores B2B. Ciclo de vendas dividido em quatro etapas: Descoberta, Ativação, Negociação e Fechamento.</p>
+          <p>Simulação completa de três meses de operação para uma equipe de três vendedores B2B. Ciclo dividido em: Descoberta, Ativação, Negociação e Fechamento.</p>
 
           <h3>6.1 Perfil dos Vendedores e Metas</h3>
           <div style="overflow-x:auto;margin:.5rem 0">
@@ -944,86 +939,62 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
               <tr><td>Roberto Farias</td><td>R$ 98.000,00</td><td>R$ 990,00</td><td>R$ 98.000,00</td><td>R$ 107.800,00</td><td>R$ 83.300,00</td></tr>
             </table>
           </div>
-          <p style="font-size:.8rem;color:var(--gray)">Jan = bate a meta · Fev = supera em 10% · Mar = fica 15% abaixo da meta</p>
+          <p style="font-size:.8rem;color:var(--gray)">Jan = bate a meta · Fev = supera em 10% · Mar = fica 15% abaixo</p>
 
-          <h3>6.2 Funil de Vendas — Carlos Mendes</h3>
+          <h3>6.2 Funil — Carlos Mendes</h3>
           <div style="overflow-x:auto;margin:.5rem 0">
             <table class="help-table">
-              <tr><th>Etapa</th><th>Prospects</th><th>Val. Médio Est.</th><th>Volume Est.</th><th>Taxa de Passagem</th></tr>
-              <tr><td>Descoberta</td><td>40</td><td>R$ 3.000,00</td><td>R$ 120.000,00</td><td>55%</td></tr>
-              <tr><td>Ativação</td><td>22</td><td>R$ 7.000,00</td><td>R$ 154.000,00</td><td>55%</td></tr>
-              <tr><td>Negociação</td><td>12</td><td>R$ 12.000,00</td><td>R$ 144.000,00</td><td>50%</td></tr>
-              <tr><td>Fechamento</td><td>6</td><td>R$ 22.000,00</td><td>R$ 132.000,00</td><td>—</td></tr>
+              <tr><th>Etapa</th><th>Prospects</th><th>Val. Médio</th><th>Volume Est.</th><th>Taxa</th></tr>
+              <tr><td>Descoberta</td><td>40</td><td>R$ 3.000</td><td>R$ 120.000</td><td>55%</td></tr>
+              <tr><td>Ativação</td><td>22</td><td>R$ 7.000</td><td>R$ 154.000</td><td>55%</td></tr>
+              <tr><td>Negociação</td><td>12</td><td>R$ 12.000</td><td>R$ 144.000</td><td>50%</td></tr>
+              <tr><td>Fechamento</td><td>6</td><td>R$ 22.000</td><td>R$ 132.000</td><td>—</td></tr>
             </table>
           </div>
-          <ul>
-            <li><b>Janeiro:</b> R$ 150.000,00 (+0%) — Bate a meta. ~100 vendas com ticket de R$ 1.500,00.</li>
-            <li><b>Fevereiro:</b> R$ 165.000,00 (+10%) — Supera em 10%. Diferença: +R$ 15.000,00. ~110 vendas.</li>
-            <li><b>Março:</b> R$ 127.500,00 (-15%) — Abaixo da meta. Diferença: -R$ 22.500,00. ~85 vendas.</li>
-          </ul>
 
-          <h3>6.3 Funil de Vendas — Patrícia Lemos</h3>
+          <h3>6.3 Funil — Patrícia Lemos</h3>
           <div style="overflow-x:auto;margin:.5rem 0">
             <table class="help-table">
-              <tr><th>Etapa</th><th>Prospects</th><th>Val. Médio Est.</th><th>Volume Est.</th><th>Taxa de Passagem</th></tr>
-              <tr><td>Descoberta</td><td>55</td><td>R$ 4.000,00</td><td>R$ 220.000,00</td><td>55%</td></tr>
-              <tr><td>Ativação</td><td>30</td><td>R$ 9.000,00</td><td>R$ 270.000,00</td><td>60%</td></tr>
-              <tr><td>Negociação</td><td>18</td><td>R$ 18.000,00</td><td>R$ 324.000,00</td><td>50%</td></tr>
-              <tr><td>Fechamento</td><td>9</td><td>R$ 28.000,00</td><td>R$ 252.000,00</td><td>—</td></tr>
+              <tr><th>Etapa</th><th>Prospects</th><th>Val. Médio</th><th>Volume Est.</th><th>Taxa</th></tr>
+              <tr><td>Descoberta</td><td>55</td><td>R$ 4.000</td><td>R$ 220.000</td><td>55%</td></tr>
+              <tr><td>Ativação</td><td>30</td><td>R$ 9.000</td><td>R$ 270.000</td><td>60%</td></tr>
+              <tr><td>Negociação</td><td>18</td><td>R$ 18.000</td><td>R$ 324.000</td><td>50%</td></tr>
+              <tr><td>Fechamento</td><td>9</td><td>R$ 28.000</td><td>R$ 252.000</td><td>—</td></tr>
             </table>
           </div>
-          <ul>
-            <li><b>Janeiro:</b> R$ 230.000,00 (+0%) — Bate a meta. ~192 vendas com ticket de R$ 1.200,00.</li>
-            <li><b>Fevereiro:</b> R$ 253.000,00 (+10%) — Supera em 10%. Diferença: +R$ 23.000,00. ~211 vendas.</li>
-            <li><b>Março:</b> R$ 195.500,00 (-15%) — Abaixo da meta. Diferença: -R$ 34.500,00. ~163 vendas.</li>
-          </ul>
 
-          <h3>6.4 Funil de Vendas — Roberto Farias</h3>
+          <h3>6.4 Funil — Roberto Farias</h3>
           <div style="overflow-x:auto;margin:.5rem 0">
             <table class="help-table">
-              <tr><th>Etapa</th><th>Prospects</th><th>Val. Médio Est.</th><th>Volume Est.</th><th>Taxa de Passagem</th></tr>
-              <tr><td>Descoberta</td><td>28</td><td>R$ 2.500,00</td><td>R$ 70.000,00</td><td>54%</td></tr>
-              <tr><td>Ativação</td><td>15</td><td>R$ 5.500,00</td><td>R$ 82.500,00</td><td>60%</td></tr>
-              <tr><td>Negociação</td><td>9</td><td>R$ 9.000,00</td><td>R$ 81.000,00</td><td>44%</td></tr>
-              <tr><td>Fechamento</td><td>4</td><td>R$ 18.000,00</td><td>R$ 72.000,00</td><td>—</td></tr>
+              <tr><th>Etapa</th><th>Prospects</th><th>Val. Médio</th><th>Volume Est.</th><th>Taxa</th></tr>
+              <tr><td>Descoberta</td><td>28</td><td>R$ 2.500</td><td>R$ 70.000</td><td>54%</td></tr>
+              <tr><td>Ativação</td><td>15</td><td>R$ 5.500</td><td>R$ 82.500</td><td>60%</td></tr>
+              <tr><td>Negociação</td><td>9</td><td>R$ 9.000</td><td>R$ 81.000</td><td>44%</td></tr>
+              <tr><td>Fechamento</td><td>4</td><td>R$ 18.000</td><td>R$ 72.000</td><td>—</td></tr>
             </table>
           </div>
-          <ul>
-            <li><b>Janeiro:</b> R$ 98.000,00 (+0%) — Bate a meta. ~99 vendas com ticket de R$ 990,00.</li>
-            <li><b>Fevereiro:</b> R$ 107.800,00 (+10%) — Supera em 10%. Diferença: +R$ 9.800,00. ~109 vendas.</li>
-            <li><b>Março:</b> R$ 83.300,00 (-15%) — Abaixo da meta. Diferença: -R$ 14.700,00. ~84 vendas.</li>
-          </ul>
 
-          <h3>6.5 Cotações Perdidas por Vendedor</h3>
-          <p>O registro sistemático das perdas permite identificar padrões e aprimorar a abordagem comercial.</p>
+          <h3>6.5 Cotações Perdidas</h3>
           <div style="overflow-x:auto;margin:.5rem 0">
             <table class="help-table">
               <tr><th>Vendedor</th><th>Cliente</th><th>Valor</th><th>Motivo</th></tr>
-              <tr><td>Carlos Mendes</td><td>Distribuidora Alfa Ltda</td><td>R$ 12.000,00</td><td>Preço</td></tr>
-              <tr><td>Carlos Mendes</td><td>Indústria Betamax S/A</td><td>R$ 9.500,00</td><td>Concorrente</td></tr>
-              <tr><td>Carlos Mendes</td><td>Grupo Sigma Comércio</td><td>R$ 15.000,00</td><td>Sem orçamento</td></tr>
-              <tr><td>Patrícia Lemos</td><td>TechSol Sistemas Ltda</td><td>R$ 18.500,00</td><td>Prazo</td></tr>
-              <tr><td>Patrícia Lemos</td><td>Construtora Horizonte</td><td>R$ 22.000,00</td><td>Preço</td></tr>
-              <tr><td>Patrícia Lemos</td><td>Grupo Médico Saúde+</td><td>R$ 14.000,00</td><td>Concorrente</td></tr>
-              <tr><td>Roberto Farias</td><td>Mercado Regional Express</td><td>R$ 7.800,00</td><td>Sem decisão</td></tr>
-              <tr><td>Roberto Farias</td><td>Escritório Contábil Nova</td><td>R$ 5.900,00</td><td>Preço</td></tr>
-              <tr><td>Roberto Farias</td><td>Farmácia Popular Plus</td><td>R$ 9.200,00</td><td>Concorrente</td></tr>
+              <tr><td>Carlos Mendes</td><td>Distribuidora Alfa</td><td>R$ 12.000</td><td>Preço</td></tr>
+              <tr><td>Carlos Mendes</td><td>Indústria Betamax</td><td>R$ 9.500</td><td>Concorrente</td></tr>
+              <tr><td>Carlos Mendes</td><td>Grupo Sigma</td><td>R$ 15.000</td><td>Sem orçamento</td></tr>
+              <tr><td>Patrícia Lemos</td><td>TechSol Sistemas</td><td>R$ 18.500</td><td>Prazo</td></tr>
+              <tr><td>Patrícia Lemos</td><td>Construtora Horizonte</td><td>R$ 22.000</td><td>Preço</td></tr>
+              <tr><td>Patrícia Lemos</td><td>Grupo Médico Saúde+</td><td>R$ 14.000</td><td>Concorrente</td></tr>
+              <tr><td>Roberto Farias</td><td>Mercado Regional</td><td>R$ 7.800</td><td>Sem decisão</td></tr>
+              <tr><td>Roberto Farias</td><td>Escritório Contábil</td><td>R$ 5.900</td><td>Preço</td></tr>
+              <tr><td>Roberto Farias</td><td>Farmácia Popular</td><td>R$ 9.200</td><td>Concorrente</td></tr>
             </table>
           </div>
 
           <h3>6.6 Dashboard — Resultados do Trimestre</h3>
           <div style="overflow-x:auto;margin:.5rem 0">
             <table class="help-table">
-              <tr><th>Total Receita</th><th>Total Vendas</th><th>Conversão</th><th>Ticket Médio</th><th>Perdas</th><th>Volume Perdido</th></tr>
-              <tr><td>R$ 1.410.100,00</td><td>1153 negócios</td><td>99,2%</td><td>R$ 1.223,00</td><td>9 cotações</td><td>R$ 113.900,00</td></tr>
-            </table>
-          </div>
-          <div style="overflow-x:auto;margin:.5rem 0">
-            <table class="help-table">
-              <tr><th>Vendedor</th><th>Meta</th><th>Janeiro</th><th>%</th><th>Fevereiro</th><th>%</th><th>Março</th><th>%</th></tr>
-              <tr><td>Carlos Mendes</td><td>R$ 150.000</td><td>R$ 150.000</td><td>+0%</td><td>R$ 165.000</td><td>+10%</td><td>R$ 127.500</td><td style="color:#C53030">-15%</td></tr>
-              <tr><td>Patrícia Lemos</td><td>R$ 230.000</td><td>R$ 230.000</td><td>+0%</td><td>R$ 253.000</td><td>+10%</td><td>R$ 195.500</td><td style="color:#C53030">-15%</td></tr>
-              <tr><td>Roberto Farias</td><td>R$ 98.000</td><td>R$ 98.000</td><td>+0%</td><td>R$ 107.800</td><td>+10%</td><td>R$ 83.300</td><td style="color:#C53030">-15%</td></tr>
+              <tr><th>Receita Total</th><th>Vendas</th><th>Conversão</th><th>Ticket Médio</th><th>Perdas</th><th>Vol. Perdido</th></tr>
+              <tr><td>R$ 1.410.100</td><td>1153 negócios</td><td>99,2%</td><td>R$ 1.223</td><td>9 cotações</td><td>R$ 113.900</td></tr>
             </table>
           </div>
         </div>
@@ -1041,7 +1012,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <p style="margin-top:1rem">Para suporte técnico ou dúvidas, entre em contato:</p>
           <p><b>E-mail:</b> contato@ernestocostasantos.com.br</p>
           <p><b>Site:</b> <a href="https://ernestocostasantos.com.br/agoravap" target="_blank" style="color:#C53030">https://ernestocostasantos.com.br/agoravap</a></p>
-          <p style="margin-top:.8rem;color:var(--gray);font-size:.85rem">AgoraVAP! — Versão 2.0 · 2026</p>
+          <p style="margin-top:.8rem;color:var(--gray);font-size:.85rem">AgoraVAP! — Versão 3.0 · 2026</p>
         </div>
 
       </div>
@@ -1612,8 +1583,8 @@ $('btn-logout').onclick = async () => {
   window.location.reload();
 };
 
-// ── INATIVIDADE (2 minutos) ────────────────────────────────
-const INACTIVITY_MS = 2 * 60 * 1000;
+// ── INATIVIDADE (4 minutos) ────────────────────────────────
+const INACTIVITY_MS = 4 * 60 * 1000;
 let _inactTimer = null;
 
 function resetInactivityTimer() {
