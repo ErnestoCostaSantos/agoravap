@@ -2524,7 +2524,7 @@ async function recoverDeletedUser(email, name, role, meta) {
       setTimeout(()=>{
         alert('PROFISSIONAL RESTAURADO COM SUCESSO!\n\nNome: ' + name + '\nE-mail: ' + email + '\n\nUm e-mail de redefinição de senha foi enviado.\nApós redefinir, no primeiro acesso criará nome e senha definitiva.');
       }, 300);
-      VapLogger.info('Usuário restaurado', { email, role, cid, uid });
+      VapLogger.info('Usuário restaurado', { email, role, cid, uid: currentUid });
       resetAdmForm();
     } else {
       // console.log('[recover] nao encontrado em deleted_users');
