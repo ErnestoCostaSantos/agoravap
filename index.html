@@ -2470,46 +2470,55 @@ $('btn-adm-save').onclick = async () => {
 
 async function recoverDeletedUser(email, name, role, meta) {
   try {
-    console.log('[recover] buscando:', email);
+    // console.log('[recover] buscando:', email);
     const snap = await getDocs(collection(db, 'deleted_users'));
     let found = null;
     snap.forEach(d => {
-      console.log('[recover] doc:', d.id, '| email:', d.data().email, '| cid:', d.data().companyId);
+      // console.log('[recover] doc:', d.id, '| email:', d.data().email, '| cid:', d.data().companyId);
       if (d.data().email === email) found = d;
     });
-    console.log('[recover] found:', found ? found.id : 'NAO ENCONTRADO');
+    // console.log('[recover] found:', found ? found.id : 'NAO ENCONTRADO');
 
     const isSuperAdm = cp?.role === 'superadmin';
     const cid = isSuperAdm ? (_companyId || cp?.companyId || 'default')
                            : (cp?.companyId || _companyId || 'default');
-    console.log('[recover] cid:', cid);
+    // console.log('[recover] cid:', cid);
 
     if (found) {
-      const uid = found.data().uid || found.id;
-      console.log('[recover] uid:', uid);
+      const oldUid = found.data().uid || found.id;
+      // console.log('[recover] oldUid:', oldUid);
 
-      // Remove duplicatas silenciosamente
+      // Busca o UID atual do usuário no Auth via documento existente em users
+      // O usuário pode ter um UID diferente do antigo (redefinição de senha cria novo UID)
+      let currentUid = oldUid;
       try {
         const existingSnap = await getDocs(query(collection(db,'users'), where('email','==',email)));
         for(const d of existingSnap.docs){
-          if(d.id !== uid){
-            try { await deleteDoc(doc(db,'users',d.id)); } catch(e9){ console.log('[recover] dup delete err:', e9.message); }
+          // Usa o documento mais recente (firstLogin:false = já logou antes = UID atual)
+          if(d.data().firstLogin === false){
+            currentUid = d.id;
+            // console.log('[recover] found active uid:', currentUid);
+          }
+          // Deleta documentos antigos com UID diferente do atual
+          if(d.id !== currentUid){
+            try { await deleteDoc(doc(db,'users',d.id)); } catch(e9){}
           }
         }
-      } catch(e8){ console.log('[recover] dup search err:', e8.message); }
+      } catch(e8){ // console.log('[recover] search err:', e8.message); }
 
-      console.log('[recover] setDoc...');
-      await setDoc(doc(db, 'users', uid), {
+      // console.log('[recover] usando uid:', currentUid);
+      // console.log('[recover] setDoc...');
+      await setDoc(doc(db, 'users', currentUid), {
         name, email, role, meta,
         companyId: cid,
         firstLogin: true,
         updatedAt: new Date().toISOString()
       });
-      console.log('[recover] setDoc OK');
+      // console.log('[recover] setDoc OK');
       await deleteDoc(doc(db, 'deleted_users', found.id));
-      console.log('[recover] deleteDoc OK');
+      // console.log('[recover] deleteDoc OK');
       await sendPasswordResetEmail(auth, email);
-      console.log('[recover] email reset OK');
+      // console.log('[recover] email reset OK');
 
       toast('Profissional "' + name + '" restaurado!', 5000);
       setTimeout(()=>{
@@ -2518,12 +2527,12 @@ async function recoverDeletedUser(email, name, role, meta) {
       VapLogger.info('Usuário restaurado', { email, role, cid, uid });
       resetAdmForm();
     } else {
-      console.log('[recover] nao encontrado em deleted_users');
+      // console.log('[recover] nao encontrado em deleted_users');
       await sendPasswordResetEmail(auth, email);
       toast('E-mail de redefinição enviado para ' + email, 8000);
     }
   } catch (err) {
-    console.error('[recover] ERRO:', err.code, err.message);
+    // console.error('[recover] ERRO:', err.code, err.message);
     VapLogger.error('Erro ao restaurar usuario', { msg: err.message, code: err.code, email });
     toast('Erro ao restaurar: ' + (err.code || err.message));
   }
