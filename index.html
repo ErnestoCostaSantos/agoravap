@@ -1067,7 +1067,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-         signOut, onAuthStateChanged, sendPasswordResetEmail, updatePassword,
+         signOut, onAuthStateChanged, sendPasswordResetEmail, updatePassword, deleteUser,
          browserSessionPersistence, setPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc,
@@ -2437,75 +2437,109 @@ $('btn-adm-save').onclick = async () => {
       await setDoc(doc(db, 'users', newUid), {
         name: n, email: e, role: r, meta: metaIni,
         companyId: cp.companyId || _companyId || 'default',
+        tempPass: tempPass,
         firstLogin: true,
         createdAt: new Date().toISOString()
       });
-      // Mostra senha temporaria para o Lider repassar ao vendedor
-      toast('Usuario "' + n + '" cadastrado! Senha temporaria: ' + tempPass + ' — Repasse ao vendedor para o primeiro acesso.', 8000);
-      // Tambem mostra em alert para facil copia
+      // Mostra senha temporaria para o Lider repassar ao profissional
+      toast('Profissional "' + n + '" cadastrado!', 5000);
       setTimeout(()=>{
-        alert('Vendedor: ' + n + '\nE-mail: ' + e + '\nSenha temporaria: ' + tempPass + '\n\nRepasse essas informacoes ao vendedor. No primeiro acesso ele criara uma senha propria.');
+        const msg = 'PROFISSIONAL CADASTRADO COM SUCESSO!\n\n'
+          + 'Nome: ' + n + '\n'
+          + 'E-mail: ' + e + '\n'
+          + 'Perfil: ' + r + '\n'
+          + 'Senha provisória: ' + tempPass + '\n\n'
+          + '⚠️ ATENÇÃO: A senha provisória é sensível a maiúsculas/minúsculas.\n'
+          + 'Copie exatamente como aparece acima.\n\n'
+          + 'No primeiro acesso, o profissional criará nome completo e senha definitiva.';
+        alert(msg);
       }, 300);
+      VapLogger.info('Usuário criado', { email: e, role: r, cid: cp?.companyId || _companyId });
       resetAdmForm();
     } catch (err) {
       if (err.code === 'auth/email-already-in-use') {
+        // E-mail já existe no Auth — tenta restaurar automaticamente
         await recoverDeletedUser(e, n, r, metaIni);
       } else {
         VapLogger.error('Erro ao criar usuario', { code: err.code, msg: err.message, email: e });
-    toast('Erro ao criar usuario: ' + (err.code || err.message));
+        toast('Erro ao criar usuario: ' + (err.code || err.message));
       }
     }
   }
 };
 
 async function recoverDeletedUser(email, name, role, meta) {
-  // E-mail já existe no Auth — restaura documento Firestore e redefine senha via auth2
+  // E-mail já existe no Auth — restaura com nova senha provisória via auth2
   try {
     const snap = await getDocs(collection(db, 'deleted_users'));
     let found = null;
     snap.forEach(d => { if (d.data().email === email) found = d; });
 
-    // companyId: SuperAdmin usa _companyId (empresa sendo visualizada)
-    //            Líder usa seu próprio companyId
     const isSuperAdm = cp?.role === 'superadmin';
     const cid = isSuperAdm ? (_companyId || cp?.companyId || 'default')
                            : (cp?.companyId || _companyId || 'default');
-
     const tempPassR = 'Vap@' + Math.random().toString(36).slice(2,8).toUpperCase() + '1!';
 
     if (found) {
       const uid = found.data().uid || found.id;
 
-      // Redefine a senha usando auth2 (instância secundária — não afeta sessão atual)
+      // Tenta redefinir senha via auth2:
+      // 1. Faz login com auth2 usando a senha provisória antiga (se existir)
+      // 2. Se não conseguir, usa deleteUser + createUser para recriar com nova senha
+      let senhaRedefinida = false;
       try {
-        await signInWithEmailAndPassword(auth2, email, found.data().lastPass || '');
-      } catch(e0) { /* ignora — só precisamos do auth2 para updatePassword */ }
+        // Tenta login com auth2 para obter credencial e atualizar senha
+        const tempOld = found.data().tempPass || '';
+        if(tempOld){
+          const c2 = await signInWithEmailAndPassword(auth2, email, tempOld);
+          await updatePassword(c2.user, tempPassR);
+          await signOut(auth2);
+          senhaRedefinida = true;
+        }
+      } catch(e0) { /* senha antiga não funciona — usa deleteUser + create */ }
 
-      // Cria nova credencial com senha temporária via auth2
-      // Como não podemos atualizar senha de outro usuário diretamente,
-      // usamos sendPasswordResetEmail para que o usuário defina nova senha
-      // E marcamos firstLogin:true para que crie nome/senha na entrada
+      if(!senhaRedefinida){
+        // Não foi possível redefinir via auth2
+        // Exclui o usuário do Auth e recria com nova senha provisória
+        try {
+          const c2 = await signInWithEmailAndPassword(auth2, email, found.data().tempPass || '!!invalid!!');
+          await deleteUser(c2.user);
+        } catch(e1) { /* ignora — usuário provavelmente não tem senha conhecida */ }
+        // Recria o usuário com nova senha provisória
+        try {
+          const c3 = await createUserWithEmailAndPassword(auth2, email, tempPassR);
+          await signOut(auth2);
+          senhaRedefinida = true;
+        } catch(e2) {
+          // Se ainda falhar (e-mail ainda ativo), informa lider
+          toast('Não foi possível redefinir a senha automaticamente para "' + email + '". Acesse Firebase Console → Authentication → exclua o e-mail → tente novamente.');
+          return;
+        }
+      }
+
+      // Restaura/atualiza documento Firestore
       await setDoc(doc(db, 'users', uid), {
         name, email, role, meta,
         companyId: cid,
+        tempPass: tempPassR,
         firstLogin: true,
         updatedAt: new Date().toISOString()
       });
       await deleteDoc(doc(db, 'deleted_users', found.id));
 
-      // Envia e-mail de redefinição de senha
-      await sendPasswordResetEmail(auth, email);
-
-      toast('Profissional "' + name + '" restaurado! E-mail de redefinição de senha enviado para ' + email + '.', 8000);
+      toast('Profissional "' + name + '" restaurado!', 5000);
       setTimeout(()=>{
-        alert('Profissional restaurado com sucesso!\n\nNome: ' + name + '\nE-mail: ' + email + '\nEmpresa: ' + cid + '\n\nUm e-mail de redefinição de senha foi enviado.\nApós redefinir a senha, no primeiro acesso o profissional definirá seu nome definitivo.');
+        alert('PROFISSIONAL RESTAURADO COM SUCESSO!\n\n'
+          + 'Nome: ' + name + '\n'
+          + 'E-mail: ' + email + '\n'
+          + 'Senha provisória: ' + tempPassR + '\n\n'
+          + '⚠️ Copie a senha exatamente como aparece (maiúsculas/minúsculas).\n'
+          + 'No primeiro acesso o profissional criará sua senha definitiva.');
       }, 300);
       VapLogger.info('Usuário restaurado', { email, role, cid, uid });
       resetAdmForm();
     } else {
-      // E-mail existe no Auth mas não em deleted_users
-      // Pode ser de outra empresa ou cadastro externo
-      toast('O e-mail "' + email + '" já existe no sistema mas não foi encontrado nos registros de usuários removidos. Verifique com o Super Admin.');
+      toast('O e-mail "' + email + '" já existe mas não foi encontrado nos registros de usuários removidos desta empresa.');
     }
   } catch (err) {
     VapLogger.error('Erro ao restaurar usuario', { msg: err.message, code: err.code, email });
