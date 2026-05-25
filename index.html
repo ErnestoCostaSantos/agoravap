@@ -2469,57 +2469,65 @@ $('btn-adm-save').onclick = async () => {
 };
 
 async function recoverDeletedUser(email, name, role, meta) {
-  // E-mail já existe no Auth — restaura documento Firestore e envia reset de senha
   try {
+    console.log('[recover] buscando:', email);
     const snap = await getDocs(collection(db, 'deleted_users'));
     let found = null;
-    snap.forEach(d => { if (d.data().email === email) found = d; });
+    snap.forEach(d => {
+      console.log('[recover] doc:', d.id, '| email:', d.data().email, '| cid:', d.data().companyId);
+      if (d.data().email === email) found = d;
+    });
+    console.log('[recover] found:', found ? found.id : 'NAO ENCONTRADO');
 
     const isSuperAdm = cp?.role === 'superadmin';
     const cid = isSuperAdm ? (_companyId || cp?.companyId || 'default')
                            : (cp?.companyId || _companyId || 'default');
+    console.log('[recover] cid:', cid);
 
     if (found) {
       const uid = found.data().uid || found.id;
+      console.log('[recover] uid:', uid);
 
-      // Verifica se já existe outro documento com este e-mail (evita duplicatas)
-      const existingSnap = await getDocs(query(collection(db,'users'), where('email','==',email)));
-      existingSnap.forEach(async d => {
-        if(d.id !== uid) await deleteDoc(doc(db,'users',d.id));
-      });
+      // Remove duplicatas silenciosamente
+      try {
+        const existingSnap = await getDocs(query(collection(db,'users'), where('email','==',email)));
+        for(const d of existingSnap.docs){
+          if(d.id !== uid){
+            try { await deleteDoc(doc(db,'users',d.id)); } catch(e9){ console.log('[recover] dup delete err:', e9.message); }
+          }
+        }
+      } catch(e8){ console.log('[recover] dup search err:', e8.message); }
 
-      // Restaura documento Firestore com firstLogin:true
+      console.log('[recover] setDoc...');
       await setDoc(doc(db, 'users', uid), {
         name, email, role, meta,
         companyId: cid,
         firstLogin: true,
         updatedAt: new Date().toISOString()
       });
+      console.log('[recover] setDoc OK');
       await deleteDoc(doc(db, 'deleted_users', found.id));
-
-      // Envia e-mail de redefinição de senha
-      // O usuário redefine a senha e no primeiro acesso cria nome/senha definitivos
+      console.log('[recover] deleteDoc OK');
       await sendPasswordResetEmail(auth, email);
+      console.log('[recover] email reset OK');
 
       toast('Profissional "' + name + '" restaurado!', 5000);
       setTimeout(()=>{
-        alert('PROFISSIONAL RESTAURADO COM SUCESSO!\n\n'
-          + 'Nome: ' + name + '\n'
-          + 'E-mail: ' + email + '\n\n'
-          + 'Um e-mail de redefinição de senha foi enviado para ' + email + '.\n'
-          + 'O profissional deve acessar o e-mail, redefinir a senha e\n'
-          + 'no primeiro acesso criará seu nome completo e senha definitiva.');
+        alert('PROFISSIONAL RESTAURADO COM SUCESSO!\n\nNome: ' + name + '\nE-mail: ' + email + '\n\nUm e-mail de redefinição de senha foi enviado.\nApós redefinir, no primeiro acesso criará nome e senha definitiva.');
       }, 300);
       VapLogger.info('Usuário restaurado', { email, role, cid, uid });
       resetAdmForm();
     } else {
-      // E-mail existe no Auth mas não em deleted_users
-      // Envia reset de senha e cria documento novo
-      const newUid = 'pending_' + Date.now();
+      console.log('[recover] nao encontrado em deleted_users');
       await sendPasswordResetEmail(auth, email);
-      toast('E-mail de redefinição enviado para ' + email + '. Após redefinir a senha, o profissional poderá acessar o sistema.', 8000);
+      toast('E-mail de redefinição enviado para ' + email, 8000);
     }
   } catch (err) {
+    console.error('[recover] ERRO:', err.code, err.message);
+    VapLogger.error('Erro ao restaurar usuario', { msg: err.message, code: err.code, email });
+    toast('Erro ao restaurar: ' + (err.code || err.message));
+  }
+}
     VapLogger.error('Erro ao restaurar usuario', { msg: err.message, code: err.code, email });
     toast('Erro ao restaurar: ' + (err.code || err.message));
   }
