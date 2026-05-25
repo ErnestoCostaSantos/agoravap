@@ -2504,7 +2504,7 @@ async function recoverDeletedUser(email, name, role, meta) {
             try { await deleteDoc(doc(db,'users',d.id)); } catch(e9){}
           }
         }
-      } catch(e8){ // console.log('[recover] search err:', e8.message); }
+      } catch(e8){ /* search err ignored */ }
 
       // console.log('[recover] usando uid:', currentUid);
       // console.log('[recover] setDoc...');
