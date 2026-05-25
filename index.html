@@ -2528,10 +2528,6 @@ async function recoverDeletedUser(email, name, role, meta) {
     toast('Erro ao restaurar: ' + (err.code || err.message));
   }
 }
-    VapLogger.error('Erro ao restaurar usuario', { msg: err.message, code: err.code, email });
-    toast('Erro ao restaurar: ' + (err.code || err.message));
-  }
-}
 
 function resetAdmForm(){
   ['adm-nome','adm-email','adm-uid'].forEach(id=>{ const el=$(id); if(el) el.value=''; });
