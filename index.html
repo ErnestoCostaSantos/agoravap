@@ -2482,6 +2482,12 @@ async function recoverDeletedUser(email, name, role, meta) {
     if (found) {
       const uid = found.data().uid || found.id;
 
+      // Verifica se já existe outro documento com este e-mail (evita duplicatas)
+      const existingSnap = await getDocs(query(collection(db,'users'), where('email','==',email)));
+      existingSnap.forEach(async d => {
+        if(d.id !== uid) await deleteDoc(doc(db,'users',d.id));
+      });
+
       // Restaura documento Firestore com firstLogin:true
       await setDoc(doc(db, 'users', uid), {
         name, email, role, meta,
