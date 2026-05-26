@@ -1690,7 +1690,7 @@ onAuthStateChanged(auth, async user => {
     if($('hist-mes'))  $('hist-mes').value  = thisMes();
     if($('hist-ate'))  $('hist-ate').value  = tod();
     if($('lancar-data')){
-      $('lancar-data').value = tod();
+      if(!$('lancar-data').value) $('lancar-data').value = tod();
       $('lancar-data').max   = tod(); // bloqueia datas futuras no picker
     }
     $('meta-mes').value  = thisMes();
@@ -1796,6 +1796,7 @@ const lancarDataEl = $('lancar-data');
 if(lancarDataEl){
   lancarDataEl.addEventListener('change', ()=>{
     renderMetricsDia();
+    preencherCamposLancar();
   });
 }
 
@@ -1827,6 +1828,35 @@ function calcTotalPerdas(){
 
 // ── Data do lançamento ────────────────────────────────────
 function getLancarData(){ return $('lancar-data').value || tod(); }
+
+// Preenche os campos de lançamento com dados existentes do dia selecionado
+async function preencherCamposLancar(){
+  const recCt  = await getRecDia('contatos');
+  const recCot = await getRecDia('cotacoes');
+
+  // Campos de Contatos
+  const ctCampos = ['carteira','prospint','ativos','inativos','prospext','outras','invalidos'];
+  ctCampos.forEach(k => {
+    const el = $('ct-' + k);
+    if(el) el.value = recCt ? (recCt[k] || '') : '';
+  });
+
+  // Campos de Cotações/Pedidos
+  if(recCot){
+    const setVal = (id, val) => { const el=$(id); if(el) el.value = val>0 ? String(val).replace('.',',') : ''; };
+    setVal('cot-qtd',    recCot.cotQtd   || 0);
+    setVal('cot-valor',  recCot.cotValor  || 0);
+    setVal('ped-qtd',    recCot.pedQtd    || 0);
+    setVal('ped-valor',  recCot.pedValor  || 0);
+    setVal('per-preco',  recCot.perPreco  || 0);
+    setVal('per-estoque',recCot.perEstoque|| 0);
+    setVal('per-outras', recCot.perOutras || 0);
+  } else {
+    ['cot-qtd','cot-valor','ped-qtd','ped-valor','per-preco','per-estoque','per-outras']
+      .forEach(id => { const el=$(id); if(el) el.value=''; });
+  }
+  calcTotalPerdas();
+}
 
 // ── Busca registro existente do dia para o usuario ────────
 async function getRecDia(tipo){
@@ -2125,38 +2155,81 @@ function renderHistorico(){
 
   // el e empty já tratados acima
 
-  el.innerHTML=recs.map(r=>{
-    if(r.tipo==='contatos'){
-      const origens=['interno','receptivo','ativos','inativos','prospeccao','outras'];
-      const labels=['Carteira','Receptivo','At. Ativos','At. Inativos','Prospecção','Outras'];
-      const detalhe=origens.map((k,i)=>r[k]>0?`${labels[i]}: ${r[k]}`:'').filter(Boolean).join(' · ');
-      return `<div class="rec-item">
-        <div class="rec-icon ri-contato">◎</div>
-        <div class="rec-body">
-          <div class="rec-title">Contatos — Total: <b>${r.total||0}</b> <span class="badge bg-gray">Contatos</span></div>
-          <div class="rec-meta">${fD(r.date)} · ${detalhe||'–'}${isLider?' · '+r.seller:''}</div>
-        </div>
-        <div class="rec-right"><div class="rec-val" style="color:#C53030">${r.total||0}</div></div>
+  // Agrupa por data (decrescente) e dentro de cada data por vendedor
+  const byDate = {};
+  recs.forEach(r => {
+    if(!byDate[r.date]) byDate[r.date] = {};
+    const key = r.uid || r.seller || 'x';
+    if(!byDate[r.date][key]) byDate[r.date][key] = { seller: r.seller||'–', ct: null, cot: null };
+    if(r.tipo==='contatos') byDate[r.date][key].ct = r;
+    else byDate[r.date][key].cot = r;
+  });
+
+  const dates = Object.keys(byDate).sort((a,b) => b.localeCompare(a));
+
+  const camposCt = [
+    {k:'carteira',l:'Carteira'},{k:'prospint',l:'Prosp. Int.'},
+    {k:'ativos',l:'Vis. Ativos'},{k:'inativos',l:'Vis. Inativos'},
+    {k:'prospext',l:'Prosp. Ext.'},{k:'outras',l:'Outras Ext.'},
+    {k:'invalidos',l:'Inválidos'}
+  ];
+
+  const cardCt = r => {
+    const tags = camposCt.filter(c=>r[c.k]>0)
+      .map(c=>`<span style="background:var(--bg2);padding:2px 8px;border-radius:6px;font-size:11px;color:var(--gray)">${c.l}: ${r[c.k]}</span>`).join('');
+    return `<div style="background:var(--white);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px${tags?';margin-bottom:8px':''}">
+        <span style="width:26px;height:26px;border-radius:50%;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:13px;color:#185FA5;flex-shrink:0">◎</span>
+        <span style="font-weight:500;font-size:13px">Contatos Efetivos</span>
+        <span style="margin-left:auto;background:#E6F1FB;color:#185FA5;font-weight:500;font-size:11px;padding:3px 10px;border-radius:6px;white-space:nowrap">Total: \${r.total||0}</span>
+      </div>
+      \${tags?`<div style="display:flex;gap:5px;flex-wrap:wrap">\${tags}</div>`:''}
+    </div>`;
+  };
+
+  const cardCot = r => {
+    const perds = [
+      r.perPreco>0?`Preço: \${fC(r.perPreco)}`:'',
+      r.perEstoque>0?`Estoque: \${fC(r.perEstoque)}`:'',
+      r.perOutras>0?`Outras: \${fC(r.perOutras)}`:''
+    ].filter(Boolean);
+    const hasDetail = r.cotQtd>0 || perds.length>0;
+    return `<div style="background:var(--white);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px">
+      <div style="display:flex;align-items:center;gap:8px\${hasDetail?';margin-bottom:8px':''}">
+        <span style="width:26px;height:26px;border-radius:50%;background:#EAF3DE;display:flex;align-items:center;justify-content:center;font-size:13px;color:#3B6D11;flex-shrink:0">$</span>
+        <span style="font-weight:500;font-size:13px">Cotações e Pedidos</span>
+        <span style="margin-left:auto;background:#EAF3DE;color:#3B6D11;font-weight:500;font-size:11px;padding:3px 10px;border-radius:6px;white-space:nowrap">Pedidos: \${r.pedQtd||0} · \${fC(r.pedValor)}</span>
+      </div>
+      \${hasDetail?`<div style="display:flex;gap:5px;flex-wrap:wrap">
+        \${r.cotQtd>0?`<span style="background:var(--bg2);padding:2px 8px;border-radius:6px;font-size:11px;color:var(--gray)">Cotações: \${r.cotQtd} · \${fC(r.cotValor)}</span>`:''}
+        \${perds.map(p=>`<span style="background:#FCEBEB;color:#A32D2D;padding:2px 8px;border-radius:6px;font-size:11px">\${p}</span>`).join('')}
+      </div>`:''}
+    </div>`;
+  };
+
+  el.innerHTML = dates.map(date => {
+    const sellers = Object.values(byDate[date]);
+    const isMulti = sellers.length > 1;
+
+    const sellersHtml = sellers.map(s => {
+      const cards = (s.ct ? cardCt(s.ct) : '') + (s.cot ? cardCot(s.cot) : '');
+      if(!isMulti) return cards;
+      const ini = s.seller.split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+      return `<div style="padding-left:8px;border-left:2px solid var(--border);margin-bottom:10px">
+        <div style="font-size:11px;font-weight:500;color:var(--gray);margin-bottom:6px;display:flex;align-items:center;gap:6px">
+          <span style="width:20px;height:20px;border-radius:50%;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:10px;color:#185FA5;flex-shrink:0">\${ini}</span>
+          \${s.seller}
+        </div>\${cards}
       </div>`;
-    } else {
-      const perdaDetalhe=[
-        r.perPreco>0?`Preço: ${fC(r.perPreco)}`:'',
-        r.perEstoque>0?`Estoque: ${fC(r.perEstoque)}`:'',
-        r.perOutras>0?`Outras: ${fC(r.perOutras)}`:''
-      ].filter(Boolean).join(' · ');
-      return `<div class="rec-item">
-        <div class="rec-icon ri-cotacao">◈</div>
-        <div class="rec-body">
-          <div class="rec-title">
-            Cotações: ${r.cotQtd||0} (${fC(r.cotValor)})&nbsp;
-            <span class="badge bg-green">Pedidos: ${r.pedQtd||0} (${fC(r.pedValor)})</span>
-            ${r.totalPerdas>0?`<span class="badge bg-red" style="margin-left:4px">Perdas: ${fC(r.totalPerdas)}</span>`:''}
-          </div>
-          <div class="rec-meta">${fD(r.date)}${perdaDetalhe?' · '+perdaDetalhe:''}${isLider?' · '+r.seller:''}</div>
-        </div>
-        <div class="rec-right"><div class="rec-val" style="color:var(--g)">${fC(r.pedValor)}</div></div>
-      </div>`;
-    }
+    }).join('');
+
+    return `<div style="border-left:3px solid #378ADD;padding-left:12px;margin-bottom:1.5rem">
+      <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px">
+        <span style="background:#E6F1FB;color:#185FA5;border-radius:6px;padding:2px 10px;font-size:12px;font-weight:500">📅 \${fD(date)}</span>
+        \${!isMulti&&(isLider||isSuperAdm)?`<span style="font-size:12px;color:var(--gray)">\${sellers[0].seller}</span>`:''}
+      </div>
+      \${sellersHtml}
+    </div>`;
   }).join('');
 }
 
@@ -2445,6 +2518,15 @@ $('btn-adm-save').onclick = async () => {
         firstLogin: true,
         createdAt: new Date().toISOString()
       });
+      // Salva meta inicial na coleção metas se informada
+      if(metaIni > 0){
+        const mesAtual = thisMes();
+        await setDoc(doc(db,'metas', newUid+'_'+mesAtual),{
+          uid: newUid, mes: mesAtual, valor: metaIni,
+          companyId: cp.companyId || _companyId || 'default',
+          sellerName: n, createdAt: new Date().toISOString()
+        });
+      }
       // Mostra senha temporaria para o Lider repassar ao profissional
       toast('Profissional "' + n + '" cadastrado!', 5000);
       setTimeout(()=>{
@@ -2871,10 +2953,13 @@ window.switchTab = tab => {
   if(panel) panel.classList.add('active');
   if(tab==='lancar'){
     if($('lancar-data')){
-      $('lancar-data').value = tod();
-      $('lancar-data').max   = tod(); // bloqueia datas futuras no picker
+      // Só inicializa a data se ainda estiver vazia (primeira vez)
+      // Não reseta ao voltar da aba Histórico ou outras abas
+      if(!$('lancar-data').value) $('lancar-data').value = tod();
+      $('lancar-data').max = tod();
     }
     renderMetricsDia();
+    preencherCamposLancar(); // carrega valores existentes do dia selecionado
   }
   if(tab==='historico'){ setupHistoricoListeners(); renderHistorico(); }
   if(tab==='superadmin'){ loadEmpresas(); }
