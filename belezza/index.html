@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Belezza — Studio Luna</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  :root {
+    --pink-50:#FBEAF0;--pink-100:#F4C0D1;--pink-200:#ED93B1;
+    --pink-400:#D4537E;--pink-600:#993556;--pink-800:#72243E;--pink-900:#4B1528;
+    --teal-50:#E1F5EE;--teal-100:#9FE1CB;--teal-400:#1D9E75;--teal-800:#085041;
+    --purple-50:#EEEDFE;--purple-100:#CECBF6;--purple-400:#7F77DD;--purple-800:#3C3489;
+    --coral-50:#FAECE7;--coral-100:#F5C4B3;--coral-800:#712B13;
+    --amber-400:#BA7517;
+    --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0eeea;
+    --text:#1a1a1a;--text2:#555;--text3:#999;
+    --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
+    --radius:8px;--radius-lg:12px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#1a1a1a;--bg2:#242424;--bg3:#2e2e2e;
+      --text:#f0f0f0;--text2:#aaa;--text3:#666;
+      --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.18);
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+
+  /* ── APP SHELL ── */
+  .app-shell{display:flex;height:100vh;overflow:hidden}
+
+  /* ── SIDEBAR ── */
+  .sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:transform .25s}
+  .sb-brand{padding:16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .sb-av{width:36px;height:36px;border-radius:10px;background:var(--pink-50);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--pink-600);flex-shrink:0}
+  .sb-name{font-size:14px;font-weight:600}
+  .sb-plan{font-size:10px;color:var(--teal-400);background:var(--teal-50);padding:1px 7px;border-radius:20px;display:inline-block;margin-top:2px}
+  .sb-nav{padding:10px 8px;flex:1;overflow-y:auto}
+  .sb-sec{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:10px 8px 4px}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;margin-bottom:2px;border:none;background:transparent;width:100%;text-align:left}
+  .nav-item:hover{background:var(--bg3);color:var(--text)}
+  .nav-item.active{background:var(--bg);color:var(--pink-600);font-weight:600;border:1px solid var(--border)}
+  .nav-item i{font-size:17px;flex-shrink:0}
+  .sb-footer{padding:10px 8px;border-top:1px solid var(--border)}
+  .sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--radius);cursor:pointer}
+  .sb-uav{width:30px;height:30px;border-radius:50%;background:var(--pink-50);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--pink-800)}
+  .sb-uname{font-size:12px;font-weight:600}
+  .sb-urole{font-size:10px;color:var(--text3)}
+
+  /* ── MAIN ── */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+  .tb-left{display:flex;align-items:center;gap:10px}
+  .tb-menu-btn{display:none;background:none;border:none;cursor:pointer;color:var(--text);font-size:20px;padding:2px}
+  .tb-title{font-size:15px;font-weight:600}
+  .tb-right{display:flex;align-items:center;gap:8px}
+  .btn{padding:7px 14px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border2);cursor:pointer;background:transparent;color:var(--text);display:inline-flex;align-items:center;gap:5px;transition:all .15s;font-weight:500}
+  .btn:hover{background:var(--bg3)}
+  .btn.primary{background:var(--pink-600);border-color:var(--pink-600);color:#fff}
+  .btn.primary:hover{background:var(--pink-800)}
+  .btn.success{background:var(--teal-400);border-color:var(--teal-400);color:#fff}
+
+  /* ── CONTENT ── */
+  .content{flex:1;overflow-y:auto;padding:20px}
+
+  /* ── ROLE TOGGLE ── */
+  .role-bar{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+  .role-lbl{font-size:11px;color:var(--text3);font-weight:500}
+  .role-toggle{display:flex;gap:3px;background:var(--bg3);border-radius:var(--radius);padding:3px}
+  .role-btn{padding:5px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12px;background:transparent;color:var(--text2);transition:all .15s;font-weight:500}
+  .role-btn.active{background:var(--bg);color:var(--text);border:1px solid var(--border);font-weight:600}
+
+  /* ── PANES ── */
+  .pane{display:none}.pane.active{display:block}
+
+  /* ── STATS ── */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+  .stat-card{background:var(--bg2);border-radius:var(--radius);padding:13px 14px}
+  .stat-lbl{font-size:11px;color:var(--text2);margin-bottom:4px}
+  .stat-val{font-size:22px;font-weight:700}
+  .stat-sub{font-size:10px;color:var(--text3);margin-top:2px}
+  .v-pink{color:var(--pink-600)}.v-teal{color:var(--teal-400)}.v-purple{color:var(--purple-400)}.v-amber{color:var(--amber-400)}
+
+  /* ── CARDS ── */
+  .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px}
+  .card-title{font-size:12px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+  .card-link{font-size:11px;color:var(--pink-600);cursor:pointer;font-weight:500}
+
+  /* ── TWO COL ── */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+
+  /* ── CHART ── */
+  .chart-wrap{background:var(--bg2);border-radius:var(--radius);padding:14px;margin-bottom:18px}
+  .chart-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .chart-title{font-size:12px;font-weight:600}
+  .chart-legend{display:flex;gap:12px}
+  .leg{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)}
+  .leg-dot{width:8px;height:8px;border-radius:50%}
+  .bars-row{display:flex;align-items:flex-end;gap:6px;height:90px}
+  .bar-g{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px}
+  .bar-pair{display:flex;gap:2px;align-items:flex-end;width:100%}
+  .b{border-radius:3px 3px 0 0;width:100%;transition:opacity .15s}
+  .b:hover{opacity:.7}
+  .b-pk{background:var(--pink-200)}.b-tl{background:var(--teal-100)}
+  .bar-lbl{font-size:9px;color:var(--text3)}
+
+  /* ── ROWS ── */
+  .row-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+  .row-item:last-child{border-bottom:none}
+  .av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+  .av-sm{width:28px;height:28px;font-size:10px}
+  .row-name{font-size:13px;font-weight:600}
+  .row-sub{font-size:11px;color:var(--text2);margin-top:1px}
+  .row-right{margin-left:auto;text-align:right;flex-shrink:0}
+
+  /* ── BADGES ── */
+  .badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px}
+  .badge-ok{background:var(--teal-50);color:var(--teal-800)}
+  .badge-pend{background:var(--coral-50);color:var(--coral-800)}
+  .badge-new{background:var(--purple-50);color:var(--purple-800)}
+  .status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .dot-ok{background:var(--teal-400)}.dot-off{background:var(--border2)}
+
+  /* ── AGENDA CARDS ── */
+  .ag-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 14px;margin-bottom:7px;display:flex;align-items:center;gap:10px}
+  .ag-time{min-width:38px;font-size:12px;font-weight:600;color:var(--text2)}
+  .ag-bar{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0}
+  .ag-info{flex:1;min-width:0}
+  .ag-svc{font-size:13px;font-weight:600}
+  .ag-meta{font-size:11px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+  /* ── PRO CARDS ── */
+  .pro-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 15px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+  .pro-info{flex:1;min-width:0}
+  .pro-stats-row{display:flex;gap:10px;margin-top:5px;flex-wrap:wrap}
+  .pro-stat{font-size:10px;color:var(--text2);display:flex;align-items:center;gap:3px}
+  .pro-right{text-align:right;flex-shrink:0}
+  .pro-ticket{font-size:13px;font-weight:700;color:var(--teal-400)}
+  .pro-actions{display:flex;gap:5px;margin-top:6px;justify-content:flex-end}
+  .btn-sm{padding:4px 10px;font-size:11px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:transparent;color:var(--text2)}
+
+  /* ── CLIENT ROWS ── */
+  .cli-row{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 14px;margin-bottom:7px;display:flex;align-items:center;gap:10px}
+  .cli-wpp{font-size:11px;color:var(--teal-400);display:flex;align-items:center;gap:3px;margin-top:2px}
+
+  /* ── SERVICE GRID ── */
+  .svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+  .svc-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;cursor:pointer;transition:border-color .15s}
+  .svc-card:hover{border-color:var(--pink-200)}
+  .svc-icon{font-size:24px;color:var(--pink-400);margin-bottom:8px}
+  .svc-name{font-size:13px;font-weight:600;margin-bottom:3px}
+  .svc-desc{font-size:11px;color:var(--text2);line-height:1.4}
+  .svc-price{font-size:13px;font-weight:600;color:var(--teal-400);margin-top:8px}
+
+  /* ── PROMO CARDS ── */
+  .promo-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:10px}
+  .promo-top{background:var(--pink-50);padding:12px 15px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--pink-100)}
+  .promo-badge{font-size:11px;font-weight:600;color:var(--pink-800);background:var(--pink-100);border-radius:20px;padding:3px 10px}
+  .promo-body{padding:12px 15px}
+  .promo-title{font-size:14px;font-weight:600;margin-bottom:4px}
+  .promo-pills{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+  .pill{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--bg2);color:var(--text2);border:1px solid var(--border)}
+  .promo-ft{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+  .price-old{font-size:12px;color:var(--text3);text-decoration:line-through;margin-right:6px}
+  .price-new{font-size:18px;font-weight:700;color:var(--teal-400)}
+
+  /* ── CHAT ── */
+  .chat-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+  .chat-hd{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px}
+  .chat-online{font-size:11px;color:var(--teal-400);display:flex;align-items:center;gap:4px}
+  .chat-online::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--teal-400)}
+  .msgs{padding:14px;min-height:200px;display:flex;flex-direction:column;gap:8px}
+  .msg{max-width:78%}
+  .msg.r{align-self:flex-start}
+  .msg.s{align-self:flex-end}
+  .bbl{padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.5}
+  .msg.r .bbl{background:var(--bg2);border-radius:3px 10px 10px 10px}
+  .msg.s .bbl{background:var(--pink-600);color:#fff;border-radius:10px 3px 10px 10px}
+  .mtime{font-size:10px;color:var(--text3);margin-top:2px;padding:0 3px}
+  .msg.s .mtime{text-align:right}
+  .chat-inp{padding:9px 12px;border-top:1px solid var(--border);display:flex;gap:7px;align-items:center}
+  .chat-input{flex:1;padding:8px 12px;border-radius:20px;border:1px solid var(--border);font-size:13px;background:var(--bg2);color:var(--text);outline:none}
+  .chat-send{width:32px;height:32px;border-radius:50%;border:none;background:var(--pink-600);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+
+  /* ── GROUPS ── */
+  .grp-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 15px;margin-bottom:9px}
+  .grp-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+  .grp-name{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px}
+  .grp-count{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px}
+  .grp-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:9px}
+  .grp-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+  .grp-ft{display:flex;gap:7px}
+
+  /* ── SCHEDULE ── */
+  .sched-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .scd-left{display:flex;gap:11px;align-items:center}
+  .scd-dt{text-align:center;background:var(--pink-50);border-radius:var(--radius);padding:6px 10px;min-width:42px}
+  .scd-day{font-size:18px;font-weight:700;color:var(--pink-800);line-height:1}
+  .scd-mo{font-size:10px;color:var(--pink-600);text-transform:uppercase;letter-spacing:.04em}
+  .scd-svc{font-size:13px;font-weight:600}
+  .scd-sub{font-size:11px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:4px}
+
+  /* ── SEARCH ── */
+  .search-bar{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:var(--radius);padding:8px 12px;margin-bottom:14px;border:1px solid var(--border)}
+  .search-bar i{font-size:15px;color:var(--text3)}
+  .search-bar input{border:none;background:transparent;font-size:13px;color:var(--text);outline:none;flex:1}
+
+  /* ── DAY HEADER ── */
+  .day-hdr{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin:14px 0 8px}
+
+  /* ── FUTURE BANNER ── */
+  .future-banner{background:var(--purple-50);border:1px solid var(--purple-100);border-radius:var(--radius-lg);padding:13px 15px;margin-top:16px;display:flex;gap:9px}
+  .fb-icon{color:var(--purple-400);font-size:18px;flex-shrink:0;margin-top:1px}
+  .fb-title{font-size:12px;font-weight:600;color:var(--purple-800);margin-bottom:2px}
+  .fb-desc{font-size:12px;color:var(--purple-400);line-height:1.5}
+
+  /* ── ADD BTN ── */
+  .add-btn{width:100%;padding:9px;border:1px dashed var(--border2);border-radius:var(--radius-lg);background:transparent;cursor:pointer;font-size:12px;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:5px;margin-top:4px}
+  .add-btn:hover{background:var(--bg2)}
+
+  /* ── HELP MODULE ── */
+  .help-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-end;justify-content:center}
+  .help-overlay.open{display:flex}
+  @media(min-width:600px){.help-overlay{align-items:center}}
+  .help-panel{background:var(--bg);border-radius:16px 16px 0 0;width:100%;max-width:560px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+  @media(min-width:600px){.help-panel{border-radius:16px;max-height:80vh}}
+  .help-hd{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .help-title{font-size:15px;font-weight:600}
+  .help-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--text2);padding:2px}
+  .help-search{padding:12px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .help-body{overflow-y:auto;flex:1;padding:14px 18px}
+  .help-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .help-cat{padding:5px 13px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:transparent;color:var(--text2);transition:all .15s}
+  .help-cat.active{background:var(--pink-600);border-color:var(--pink-600);color:#fff}
+  .faq-item{border-bottom:1px solid var(--border);padding:12px 0}
+  .faq-item:last-child{border-bottom:none}
+  .faq-q{font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .faq-a{font-size:12px;color:var(--text2);line-height:1.6;margin-top:8px;display:none}
+  .faq-a.open{display:block}
+  .faq-icon{font-size:16px;color:var(--text3);flex-shrink:0;transition:transform .2s}
+  .faq-icon.open{transform:rotate(180deg)}
+  .help-contact{margin-top:16px;background:var(--bg2);border-radius:var(--radius-lg);padding:14px;display:flex;gap:10px;align-items:center}
+  .help-contact-text{flex:1}
+  .help-contact-title{font-size:13px;font-weight:600;margin-bottom:2px}
+  .help-contact-sub{font-size:11px;color:var(--text2)}
+
+  /* ── MOBILE ── */
+  .mob-nav{display:none;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+  .mob-tabs{display:flex}
+  .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 7px;cursor:pointer;font-size:10px;color:var(--text2);border:none;background:transparent;transition:color .15s;font-weight:500}
+  .mob-tab.active{color:var(--pink-600)}
+  .mob-tab i{font-size:21px}
+
+  @media(max-width:700px){
+    .sidebar{position:fixed;top:0;left:0;height:100vh;z-index:500;transform:translateX(-100%)}
+    .sidebar.open{transform:translateX(0)}
+    .tb-menu-btn{display:block}
+    .mob-nav{display:block}
+    .stats-grid{grid-template-columns:repeat(2,1fr)}
+    .two-col{grid-template-columns:1fr}
+    .content{padding:14px}
+    .pro-card{flex-wrap:wrap}
+  }
+  @media(max-width:400px){
+    .stats-grid{grid-template-columns:1fr 1fr}
+  }
+
+  /* sidebar overlay for mobile */
+  .sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:499}
+  .sb-backdrop.open{display:block}
+
+  /* section label */
+  .sec-lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-av">SL</div>
+      <div>
+        <div class="sb-name">Studio Luna</div>
+        <span class="sb-plan">Clínica Pro</span>
+      </div>
+    </div>
+    <div class="sb-nav" id="sb-nav-pro" style="display:none">
+      <div class="sb-sec">Gestão</div>
+      <button class="nav-item active" onclick="goTo('p-dash',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+      <button class="nav-item" onclick="goTo('p-agenda',this)"><i class="ti ti-calendar"></i>Agenda</button>
+      <button class="nav-item" onclick="goTo('p-clientes',this)"><i class="ti ti-users"></i>Clientes</button>
+      <button class="nav-item" onclick="goTo('p-equipe',this)"><i class="ti ti-user-circle"></i>Equipe</button>
+      <div class="sb-sec">Marketing</div>
+      <button class="nav-item" onclick="goTo('p-grupos',this)"><i class="ti ti-brand-whatsapp"></i>Grupos WhatsApp</button>
+      <button class="nav-item" onclick="goTo('p-promos',this)"><i class="ti ti-tag"></i>Promoções</button>
+    </div>
+    <div class="sb-nav" id="sb-nav-cli" style="display:block">
+      <div class="sb-sec">Navegação</div>
+      <button class="nav-item active" onclick="goTo('c-servicos',this)"><i class="ti ti-sparkles"></i>Serviços</button>
+      <button class="nav-item" onclick="goTo('c-promos',this)"><i class="ti ti-tag"></i>Promoções</button>
+      <button class="nav-item" onclick="goTo('c-chat',this)"><i class="ti ti-message-circle"></i>Dúvidas</button>
+      <button class="nav-item" onclick="goTo('c-agenda',this)"><i class="ti ti-calendar-check"></i>Agendamentos</button>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-uav" id="user-av">CL</div>
+        <div>
+          <div class="sb-uname" id="user-name">Carla Lima</div>
+          <div class="sb-urole" id="user-role">Administradora</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="sb-backdrop" id="sb-backdrop" onclick="closeSidebar()"></div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- role bar -->
+    <div class="role-bar">
+      <span class="role-lbl">Visualizar como:</span>
+      <div class="role-toggle">
+        <button class="role-btn" onclick="setRole('cliente',this)">Cliente</button>
+        <button class="role-btn active" onclick="setRole('profissional',this)">Profissional</button>
+      </div>
+    </div>
+
+    <!-- topbar -->
+    <div class="topbar">
+      <div class="tb-left">
+        <button class="tb-menu-btn" onclick="toggleSidebar()" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+        <span class="tb-title" id="tb-title">Dashboard</span>
+      </div>
+      <div class="tb-right">
+        <button class="btn" onclick="openHelp()"><i class="ti ti-help-circle"></i> Ajuda</button>
+        <button class="btn primary" id="tb-action-btn" onclick="handleAction()"><i class="ti ti-plus"></i> <span id="tb-action-lbl">Novo agendamento</span></button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content" id="content">
+
+      <!-- ══════ PROFISSIONAL PANES ══════ -->
+
+      <!-- P: DASHBOARD -->
+      <div class="pane active" id="pane-p-dash">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-lbl">Atendimentos (mês)</div><div class="stat-val v-pink">47</div><div class="stat-sub">+12% vs abril</div></div>
+          <div class="stat-card"><div class="stat-lbl">Ticket médio</div><div class="stat-val v-teal">R$ 312</div><div class="stat-sub">+R$ 28 vs abril</div></div>
+          <div class="stat-card"><div class="stat-lbl">Clientes ativas</div><div class="stat-val v-purple">89</div><div class="stat-sub">6 novas este mês</div></div>
+          <div class="stat-card"><div class="stat-lbl">Taxa de retorno</div><div class="stat-val v-amber">68%</div><div class="stat-sub">meta: 70%</div></div>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-hd">
+            <span class="chart-title">Atendimentos &amp; receita — últimos 6 meses</span>
+            <div class="chart-legend">
+              <div class="leg"><div class="leg-dot" style="background:var(--pink-200)"></div>Atend.</div>
+              <div class="leg"><div class="leg-dot" style="background:var(--teal-100)"></div>Receita (÷100)</div>
+            </div>
+          </div>
+          <div class="bars-row" id="dash-bars"></div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title">Equipe hoje <span class="card-link" onclick="goTo('p-equipe',null)">ver todos →</span></div>
+            <div class="row-item"><div class="status-dot dot-ok"></div><div class="av av-sm" style="background:var(--pink-50);color:var(--pink-800)">CM</div><div><div class="row-name" style="font-size:12px">Carla Mendes</div><div class="row-sub">Estética facial</div></div><div class="row-right" style="font-size:11px;color:var(--text2)">5 hoje</div></div>
+            <div class="row-item"><div class="status-dot dot-ok"></div><div class="av av-sm" style="background:var(--teal-50);color:var(--teal-800)">FR</div><div><div class="row-name" style="font-size:12px">Fernanda Rocha</div><div class="row-sub">Dermato estética</div></div><div class="row-right" style="font-size:11px;color:var(--text2)">4 hoje</div></div>
+            <div class="row-item"><div class="status-dot dot-off"></div><div class="av av-sm" style="background:var(--purple-50);color:var(--purple-800)">JS</div><div><div class="row-name" style="font-size:12px">Juliana Santos</div><div class="row-sub">Design &amp; micropigm.</div></div><div class="row-right" style="font-size:11px;color:var(--text3)">folga</div></div>
+            <div class="row-item"><div class="status-dot dot-ok"></div><div class="av av-sm" style="background:var(--coral-50);color:var(--coral-800)">BL</div><div><div class="row-name" style="font-size:12px">Beatriz Lima</div><div class="row-sub">Massoterapia</div></div><div class="row-right" style="font-size:11px;color:var(--text2)">3 hoje</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Agenda — hoje <span class="card-link" onclick="goTo('p-agenda',null)">ver tudo →</span></div>
+            <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--text2);min-width:36px">09h00</div><div><div class="row-name" style="font-size:12px">Limpeza de pele</div><div class="row-sub">Ana Paula F. · Carla M.</div></div></div>
+            <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--text2);min-width:36px">10h30</div><div><div class="row-name" style="font-size:12px">Botox</div><div class="row-sub">Mariana C. · Fernanda R.</div></div></div>
+            <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--text2);min-width:36px">14h00</div><div><div class="row-name" style="font-size:12px">Microblading</div><div class="row-sub">Renata S. · Juliana S.</div></div></div>
+            <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--text2);min-width:36px">15h30</div><div><div class="row-name" style="font-size:12px">Massagem</div><div class="row-sub">Leticia B. · Beatriz L.</div></div></div>
+            <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--text2);min-width:36px">17h00</div><div><div class="row-name" style="font-size:12px">Peeling químico</div><div class="row-sub">Camila D. · Carla M.</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- P: AGENDA -->
+      <div class="pane" id="pane-p-agenda">
+        <div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn primary">Hoje</button>
+          <button class="btn">Semana</button>
+          <button class="btn">Mês</button>
+          <button class="btn success" style="margin-left:auto"><i class="ti ti-plus"></i> Novo agendamento</button>
+        </div>
+        <div class="day-hdr">Hoje · 31 de maio</div>
+        <div class="ag-card"><div class="ag-time">09h00</div><div class="ag-bar" style="background:var(--teal-400)"></div><div class="ag-info"><div class="ag-svc">Limpeza de pele profunda</div><div class="ag-meta"><i class="ti ti-user" style="font-size:11px"></i>Ana Paula F. · <i class="ti ti-user-circle" style="font-size:11px"></i>Carla M. · 60 min</div></div><span class="badge badge-ok">Confirmado</span></div>
+        <div class="ag-card"><div class="ag-time">10h30</div><div class="ag-bar" style="background:var(--pink-400)"></div><div class="ag-info"><div class="ag-svc">Botox — glabela e testa</div><div class="ag-meta"><i class="ti ti-user" style="font-size:11px"></i>Mariana Costa · <i class="ti ti-user-circle" style="font-size:11px"></i>Fernanda R. · 45 min</div></div><span class="badge badge-ok">Confirmado</span></div>
+        <div class="ag-card"><div class="ag-time">14h00</div><div class="ag-bar" style="background:var(--purple-400)"></div><div class="ag-info"><div class="ag-svc">Microblading fio a fio</div><div class="ag-meta"><i class="ti ti-user" style="font-size:11px"></i>Renata Souza · <i class="ti ti-user-circle" style="font-size:11px"></i>Juliana S. · 90 min</div></div><span class="badge badge-pend">Aguardando</span></div>
+        <div class="ag-card"><div class="ag-time">15h30</div><div class="ag-bar" style="background:var(--amber-400)"></div><div class="ag-info"><div class="ag-svc">Massagem relaxante</div><div class="ag-meta"><i class="ti ti-user" style="font-size:11px"></i>Leticia Barros · <i class="ti ti-user-circle" style="font-size:11px"></i>Beatriz L. · 60 min</div></div><span class="badge badge-ok">Confirmado</span></div>
+        <div class="ag-card"><div class="ag-time">17h00</div><div class="ag-bar" style="background:var(--teal-400)"></div><div class="ag-info"><div class="ag-svc">Peeling químico superficial</div><div class="ag-meta"><i class="ti ti-user" style="font-size:11px"></i>Camila Dias · <i class="ti ti-user-circle" style="font-size:11px"></i>Carla M. · 50 min</div></div><span class="badge badge-new">Novo</span></div>
+        <div class="day-hdr">Amanhã · 1 de junho</div>
+        <div class="ag-card"><div class="ag-time">09h30</div><div class="ag-bar" style="background:var(--pink-400)"></div><div class="ag-info"><div class="ag-svc">Preenchimento labial</div><div class="ag-meta"><i class="ti ti-user" style="font-size:11px"></i>Sofia Alves · <i class="ti ti-user-circle" style="font-size:11px"></i>Fernanda R. · 45 min</div></div><span class="badge badge-new">Novo</span></div>
+      </div>
+
+      <!-- P: CLIENTES -->
+      <div class="pane" id="pane-p-clientes">
+        <div class="search-bar"><i class="ti ti-search"></i><input placeholder="Buscar cliente, procedimento..."></div>
+        <div class="cli-row"><div class="av" style="background:var(--pink-50);color:var(--pink-800)">AP</div><div style="flex:1;min-width:0"><div class="row-name">Ana Paula Ferreira</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Limpeza de pele · Carla M.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 98765-4321</div></div><div class="row-right"><div style="font-size:10px;color:var(--text3)">28/05/2026</div><div style="font-size:11px;font-weight:600;color:var(--pink-600)">3 visitas</div></div></div>
+        <div class="cli-row"><div class="av" style="background:var(--teal-50);color:var(--teal-800)">MC</div><div style="flex:1;min-width:0"><div class="row-name">Mariana Costa</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Botox · Fernanda R.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 91234-5678</div></div><div class="row-right"><div style="font-size:10px;color:var(--text3)">15/05/2026</div><div style="font-size:11px;font-weight:600;color:var(--pink-600)">5 visitas</div></div></div>
+        <div class="cli-row"><div class="av" style="background:var(--purple-50);color:var(--purple-800)">LB</div><div style="flex:1;min-width:0"><div class="row-name">Leticia Barros</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Design sobrancelha · Juliana S.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 97890-1234</div></div><div class="row-right"><div style="font-size:10px;color:var(--text3)">02/05/2026</div><div style="font-size:11px;font-weight:600;color:var(--pink-600)">2 visitas</div></div></div>
+        <div class="cli-row"><div class="av" style="background:var(--coral-50);color:var(--coral-800)">RS</div><div style="flex:1;min-width:0"><div class="row-name">Renata Souza</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Microblading · Juliana S.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 94567-8901</div></div><div class="row-right"><div style="font-size:10px;color:var(--text3)">20/04/2026</div><div style="font-size:11px;font-weight:600;color:var(--pink-600)">1 visita</div></div></div>
+        <button class="add-btn"><i class="ti ti-plus"></i> Cadastrar nova cliente</button>
+      </div>
+
+      <!-- P: EQUIPE -->
+      <div class="pane" id="pane-p-equipe">
+        <div class="search-bar"><i class="ti ti-search"></i><input placeholder="Buscar profissional..."></div>
+        <div class="pro-card">
+          <div class="av" style="background:var(--pink-50);color:var(--pink-800);width:42px;height:42px;font-size:14px">CM</div>
+          <div class="pro-info"><div class="row-name">Carla Mendes</div><div class="row-sub">Estética facial · Dermato</div><div class="pro-stats-row"><div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>18/mês</div><div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>4.9</div><div class="status-dot dot-ok"></div></div></div>
+          <div class="pro-right"><div class="pro-ticket">R$ 340</div><div style="font-size:10px;color:var(--text3)">ticket médio</div><div class="pro-actions"><button class="btn-sm">Agenda</button><button class="btn-sm">Editar</button></div></div>
+        </div>
+        <div class="pro-card">
+          <div class="av" style="background:var(--teal-50);color:var(--teal-800);width:42px;height:42px;font-size:14px">FR</div>
+          <div class="pro-info"><div class="row-name">Fernanda Rocha</div><div class="row-sub">Dermato estética · Botox</div><div class="pro-stats-row"><div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>15/mês</div><div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>4.8</div><div class="status-dot dot-ok"></div></div></div>
+          <div class="pro-right"><div class="pro-ticket">R$ 410</div><div style="font-size:10px;color:var(--text3)">ticket médio</div><div class="pro-actions"><button class="btn-sm">Agenda</button><button class="btn-sm">Editar</button></div></div>
+        </div>
+        <div class="pro-card">
+          <div class="av" style="background:var(--purple-50);color:var(--purple-800);width:42px;height:42px;font-size:14px">JS</div>
+          <div class="pro-info"><div class="row-name">Juliana Santos</div><div class="row-sub">Design · Micropigmentação</div><div class="pro-stats-row"><div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>9/mês</div><div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>5.0</div><div class="status-dot dot-off"></div></div></div>
+          <div class="pro-right"><div class="pro-ticket">R$ 280</div><div style="font-size:10px;color:var(--text3)">ticket médio</div><div class="pro-actions"><button class="btn-sm">Agenda</button><button class="btn-sm">Editar</button></div></div>
+        </div>
+        <div class="pro-card">
+          <div class="av" style="background:var(--coral-50);color:var(--coral-800);width:42px;height:42px;font-size:14px">BL</div>
+          <div class="pro-info"><div class="row-name">Beatriz Lima</div><div class="row-sub">Massoterapia · Drenagem</div><div class="pro-stats-row"><div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>11/mês</div><div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>4.7</div><div class="status-dot dot-ok"></div></div></div>
+          <div class="pro-right"><div class="pro-ticket">R$ 195</div><div style="font-size:10px;color:var(--text3)">ticket médio</div><div class="pro-actions"><button class="btn-sm">Agenda</button><button class="btn-sm">Editar</button></div></div>
+        </div>
+        <button class="add-btn"><i class="ti ti-plus"></i> Adicionar profissional</button>
+      </div>
+
+      <!-- P: GRUPOS -->
+      <div class="pane" id="pane-p-grupos">
+        <div class="grp-card">
+          <div class="grp-hd"><div class="grp-name"><i class="ti ti-brand-whatsapp" style="color:var(--teal-400);font-size:18px"></i>Grupo VIP Studio Luna</div><div class="grp-count"><i class="ti ti-users" style="font-size:13px"></i>43 clientes</div></div>
+          <div class="grp-desc">Clientes fiéis com 3+ visitas. Recebem ofertas exclusivas antes de qualquer outra pessoa.</div>
+          <div class="grp-tags"><span class="pill">Alta frequência</span><span class="pill">Ofertas exclusivas</span><span class="pill">Prioridade de agenda</span></div>
+          <div class="grp-ft"><button class="btn primary"><i class="ti ti-send"></i> Enviar mensagem</button><button class="btn">Gerenciar</button></div>
+        </div>
+        <div class="grp-card">
+          <div class="grp-hd"><div class="grp-name"><i class="ti ti-brand-whatsapp" style="color:var(--teal-400);font-size:18px"></i>Dia dos Namorados 2026</div><div class="grp-count"><i class="ti ti-users" style="font-size:13px"></i>28 clientes</div></div>
+          <div class="grp-desc">Criado para a campanha de Dia dos Namorados com o pacote Ritual Duo. Ativo até 12/06/2026.</div>
+          <div class="grp-tags"><span class="pill">Data comemorativa</span><span class="pill">Campanha ativa</span><span class="pill">Até 12/06</span></div>
+          <div class="grp-ft"><button class="btn primary"><i class="ti ti-send"></i> Enviar mensagem</button><button class="btn">Gerenciar</button></div>
+        </div>
+        <div class="grp-card">
+          <div class="grp-hd"><div class="grp-name"><i class="ti ti-brand-whatsapp" style="color:var(--teal-400);font-size:18px"></i>Dia da Beleza — Junho</div><div class="grp-count"><i class="ti ti-users" style="font-size:13px"></i>61 clientes</div></div>
+          <div class="grp-desc">Grupo aberto para todas as clientes. Promoções flash, novidades e dicas de cuidados da pele.</div>
+          <div class="grp-tags"><span class="pill">Todas as clientes</span><span class="pill">Promoções flash</span><span class="pill">Novidades</span></div>
+          <div class="grp-ft"><button class="btn primary"><i class="ti ti-send"></i> Enviar mensagem</button><button class="btn">Gerenciar</button></div>
+        </div>
+        <button class="add-btn"><i class="ti ti-plus"></i> Criar novo grupo de divulgação</button>
+        <div class="future-banner">
+          <i class="ti ti-credit-card fb-icon"></i>
+          <div><div class="fb-title">Em breve: financeiro &amp; checkout</div><div class="fb-desc">Pagamento antecipado no agendamento, relatório de receita por campanha e gestão financeira completa.</div></div>
+        </div>
+      </div>
+
+      <!-- P: PROMOS -->
+      <div class="pane" id="pane-p-promos">
+        <div class="sec-lbl">Nova promoção</div>
+        <div class="card">
+          <div style="margin-bottom:12px"><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:5px">Nome da promoção</label><input type="text" placeholder="Ex: Dia da Beleza de Junho" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);font-size:13px;background:var(--bg2);color:var(--text)"></div>
+          <div style="margin-bottom:12px"><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:5px">Serviços incluídos</label><input type="text" placeholder="Ex: Limpeza de pele, Design de sobrancelha" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);font-size:13px;background:var(--bg2);color:var(--text)"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:5px">Preço original (R$)</label><input type="text" placeholder="280,00" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);font-size:13px;background:var(--bg2);color:var(--text)"></div>
+            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:5px">Preço promocional (R$)</label><input type="text" placeholder="189,00" style="width:100%;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);font-size:13px;background:var(--bg2);color:var(--text)"></div>
+          </div>
+          <button class="btn primary" style="width:100%;padding:10px;justify-content:center;font-size:14px"><i class="ti ti-megaphone"></i> Publicar promoção</button>
+        </div>
+      </div>
+
+      <!-- ══════ CLIENTE PANES ══════ -->
+
+      <!-- C: SERVIÇOS -->
+      <div class="pane" id="pane-c-servicos">
+        <div class="sec-lbl">Nossos serviços</div>
+        <div class="svc-grid">
+          <div class="svc-card"><div class="svc-icon"><i class="ti ti-sparkles"></i></div><div class="svc-name">Limpeza de pele</div><div class="svc-desc">Extração profunda, esfoliação e hidratação intensa</div><div class="svc-price">A partir de R$ 180</div></div>
+          <div class="svc-card"><div class="svc-icon"><i class="ti ti-droplet"></i></div><div class="svc-name">Botox</div><div class="svc-desc">Toxina botulínica com resultado natural e duradouro</div><div class="svc-price">A partir de R$ 650</div></div>
+          <div class="svc-card"><div class="svc-icon"><i class="ti ti-heart"></i></div><div class="svc-name">Design de sobrancelha</div><div class="svc-desc">Mapeamento facial e design personalizado</div><div class="svc-price">A partir de R$ 80</div></div>
+          <div class="svc-card"><div class="svc-icon"><i class="ti ti-sun"></i></div><div class="svc-name">Preenchimento labial</div><div class="svc-desc">Ácido hialurônico com anestesia tópica inclusa</div><div class="svc-price">A partir de R$ 550</div></div>
+          <div class="svc-card"><div class="svc-icon"><i class="ti ti-stars"></i></div><div class="svc-name">Microblading</div><div class="svc-desc">Fio a fio com pigmento de longa duração</div><div class="svc-price">A partir de R$ 420</div></div>
+          <div class="svc-card"><div class="svc-icon"><i class="ti ti-leaf"></i></div><div class="svc-name">Peeling químico</div><div class="svc-desc">Renovação celular para manchas e textura</div><div class="svc-price">A partir de R$ 220</div></div>
+        </div>
+        <button class="btn primary" style="width:100%;justify-content:center;padding:10px"><i class="ti ti-calendar"></i> Agendar um serviço</button>
+      </div>
+
+      <!-- C: PROMOS -->
+      <div class="pane" id="pane-c-promos">
+        <div class="sec-lbl">Promoções especiais</div>
+        <div class="promo-card">
+          <div class="promo-top"><span style="font-size:13px;font-weight:600">Studio Luna</span><span class="promo-badge"><i class="ti ti-sun"></i> Dia da Beleza</span></div>
+          <div class="promo-body"><div class="promo-title">Pacote Noiva Radiante</div><div style="font-size:11px;color:var(--text2);margin-bottom:6px">Válido até 30/06/2026</div><div class="promo-pills"><span class="pill">Limpeza de pele</span><span class="pill">Design de sobrancelha</span><span class="pill">Hidratação facial</span></div><div class="promo-ft"><div><span class="price-old">R$ 280</span><span class="price-new">R$ 189</span></div><button class="btn primary">Agendar</button></div></div>
+        </div>
+        <div class="promo-card">
+          <div class="promo-top"><span style="font-size:13px;font-weight:600">Studio Luna</span><span class="promo-badge"><i class="ti ti-heart"></i> Dia dos Namorados</span></div>
+          <div class="promo-body"><div class="promo-title">Ritual Duo — casal</div><div style="font-size:11px;color:var(--text2);margin-bottom:6px">Válido até 12/06/2026</div><div class="promo-pills"><span class="pill">Massagem relaxante</span><span class="pill">Peeling</span><span class="pill">Vinho de boas-vindas</span></div><div class="promo-ft"><div><span class="price-old">R$ 520</span><span class="price-new">R$ 360</span></div><button class="btn primary">Agendar</button></div></div>
+        </div>
+      </div>
+
+      <!-- C: CHAT -->
+      <div class="pane" id="pane-c-chat">
+        <div class="sec-lbl">Fale com o Studio Luna</div>
+        <div class="chat-wrap">
+          <div class="chat-hd">
+            <div class="av" style="background:var(--pink-50);color:var(--pink-600)"><i class="ti ti-sparkles"></i></div>
+            <div style="flex:1"><div class="row-name" style="font-size:13px">Studio Luna</div><div class="chat-online">Online agora</div></div>
+            <i class="ti ti-phone" style="font-size:18px;color:var(--text2)"></i>
+          </div>
+          <div class="msgs" id="chat-msgs">
+            <div class="msg r"><div class="bbl">Olá! Bem-vinda ao Studio Luna 💕 Como posso te ajudar hoje?</div><div class="mtime">09:41</div></div>
+            <div class="msg s"><div class="bbl">Quanto tempo dura o efeito do botox?</div><div class="mtime">09:43</div></div>
+            <div class="msg r"><div class="bbl">O efeito do botox dura em média 4 a 6 meses, dependendo da região e do metabolismo. Nas primeiras aplicações tende a durar menos e vai aumentando com o tempo. Quer agendar uma avaliação gratuita? 😊</div><div class="mtime">09:44</div></div>
+          </div>
+          <div class="chat-inp">
+            <input class="chat-input" id="chat-in" placeholder="Escreva sua dúvida..." onkeydown="if(event.key==='Enter')sendMsg()">
+            <button class="chat-send" onclick="sendMsg()"><i class="ti ti-send"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- C: AGENDAMENTOS -->
+      <div class="pane" id="pane-c-agenda">
+        <div class="sec-lbl">Seus agendamentos</div>
+        <div class="sched-card"><div class="scd-left"><div class="scd-dt"><div class="scd-day">07</div><div class="scd-mo">Jun</div></div><div><div class="scd-svc">Limpeza de pele profunda</div><div class="scd-sub"><i class="ti ti-clock" style="font-size:11px"></i>14h30 · 60 min</div></div></div><span class="badge badge-ok">Confirmado</span></div>
+        <div class="sched-card"><div class="scd-left"><div class="scd-dt"><div class="scd-day">15</div><div class="scd-mo">Jun</div></div><div><div class="scd-svc">Design de sobrancelha</div><div class="scd-sub"><i class="ti ti-clock" style="font-size:11px"></i>11h00 · 45 min</div></div></div><span class="badge badge-pend">Aguardando</span></div>
+        <button class="add-btn"><i class="ti ti-plus"></i> Novo agendamento</button>
+      </div>
+
+    </div><!-- /content -->
+
+    <!-- MOBILE BOTTOM NAV -->
+    <div class="mob-nav" id="mob-nav-pro">
+      <div class="mob-tabs">
+        <button class="mob-tab active" onclick="goToMob('p-dash',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+        <button class="mob-tab" onclick="goToMob('p-agenda',this)"><i class="ti ti-calendar"></i>Agenda</button>
+        <button class="mob-tab" onclick="goToMob('p-clientes',this)"><i class="ti ti-users"></i>Clientes</button>
+        <button class="mob-tab" onclick="goToMob('p-equipe',this)"><i class="ti ti-user-circle"></i>Equipe</button>
+        <button class="mob-tab" onclick="goToMob('p-grupos',this)"><i class="ti ti-brand-whatsapp"></i>Grupos</button>
+      </div>
+    </div>
+    <div class="mob-nav" id="mob-nav-cli" style="display:none">
+      <div class="mob-tabs">
+        <button class="mob-tab active" onclick="goToMob('c-servicos',this)"><i class="ti ti-sparkles"></i>Serviços</button>
+        <button class="mob-tab" onclick="goToMob('c-promos',this)"><i class="ti ti-tag"></i>Promoções</button>
+        <button class="mob-tab" onclick="goToMob('c-chat',this)"><i class="ti ti-message-circle"></i>Dúvidas</button>
+        <button class="mob-tab" onclick="goToMob('c-agenda',this)"><i class="ti ti-calendar-check"></i>Agenda</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ HELP OVERLAY ══════ -->
+<div class="help-overlay" id="help-overlay" onclick="handleOverlayClick(event)">
+  <div class="help-panel" id="help-panel">
+    <div class="help-hd">
+      <span class="help-title"><i class="ti ti-help-circle" style="font-size:18px;vertical-align:-3px;margin-right:6px;color:var(--pink-600)"></i>Central de ajuda</span>
+      <button class="help-close" onclick="closeHelp()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="help-search">
+      <div class="search-bar" style="margin-bottom:0">
+        <i class="ti ti-search"></i>
+        <input placeholder="Pesquisar dúvidas..." id="help-search-input" oninput="filterFaq(this.value)">
+      </div>
+    </div>
+    <div class="help-body">
+      <div class="help-cats">
+        <button class="help-cat active" onclick="filterCat('todos',this)">Todos</button>
+        <button class="help-cat" onclick="filterCat('agenda',this)">Agenda</button>
+        <button class="help-cat" onclick="filterCat('clientes',this)">Clientes</button>
+        <button class="help-cat" onclick="filterCat('whatsapp',this)">WhatsApp</button>
+        <button class="help-cat" onclick="filterCat('equipe',this)">Equipe</button>
+        <button class="help-cat" onclick="filterCat('conta',this)">Conta</button>
+      </div>
+      <div id="faq-list"></div>
+      <div class="help-contact">
+        <div class="av" style="background:var(--teal-50);color:var(--teal-800);font-size:18px"><i class="ti ti-brand-whatsapp"></i></div>
+        <div class="help-contact-text">
+          <div class="help-contact-title">Não encontrou o que precisava?</div>
+          <div class="help-contact-sub">Fale com nosso suporte via WhatsApp</div>
+        </div>
+        <button class="btn success"><i class="ti ti-brand-whatsapp"></i> Chamar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────
+const faqData = [
+  {cat:'agenda', q:'Como criar um novo agendamento?', a:'Clique no botão "Novo agendamento" no canto superior direito ou acesse a aba Agenda. Selecione a cliente, o serviço, a profissional responsável, a data e o horário. Confirme para salvar.'},
+  {cat:'agenda', q:'Como cancelar ou reagendar um atendimento?', a:'Na aba Agenda, clique sobre o agendamento desejado. Nas opções que aparecem, escolha "Reagendar" para alterar data/hora, ou "Cancelar" para remover o compromisso. O sistema notifica a cliente automaticamente.'},
+  {cat:'agenda', q:'Como visualizar a agenda por profissional?', a:'Na tela de Agenda, use o filtro de profissional no topo da lista. Você pode ver a agenda de uma profissional específica ou a visão consolidada de toda a equipe.'},
+  {cat:'clientes', q:'Como cadastrar uma nova cliente?', a:'Acesse Clientes e clique em "+ Cadastrar nova cliente". Preencha nome, WhatsApp, e-mail (opcional) e salve. A partir daí, cada atendimento realizado fica registrado automaticamente no perfil dela.'},
+  {cat:'clientes', q:'Como ver o histórico de procedimentos de uma cliente?', a:'Na tela de Clientes, clique no nome da cliente para abrir o perfil completo. Lá você verá todos os atendimentos, procedimentos realizados, profissional responsável e datas.'},
+  {cat:'clientes', q:'Como filtrar clientes por procedimento ou profissional?', a:'Use a barra de busca na tela de Clientes. Você pode digitar o nome do procedimento (ex: "botox") ou o nome da profissional para filtrar os resultados.'},
+  {cat:'whatsapp', q:'Como criar um grupo de divulgação?', a:'Acesse Grupos WhatsApp e clique em "+ Criar novo grupo". Dê um nome ao grupo, selecione as clientes que farão parte (pode filtrar por frequência de visitas ou data) e defina o tipo: VIP, Data Comemorativa ou Promoção Flash.'},
+  {cat:'whatsapp', q:'Como enviar uma mensagem para um grupo?', a:'Na tela de Grupos WhatsApp, clique em "Enviar mensagem" no grupo desejado. Escolha ou edite o modelo de mensagem, personalize com [nome] para mensagens individualizadas e defina se o envio será imediato ou agendado para uma data e hora específica.'},
+  {cat:'whatsapp', q:'O que é a personalização com [nome]?', a:'Ao usar [nome] na mensagem, o sistema substitui automaticamente pelo nome de cada cliente na hora do envio. Assim, todas recebem uma mensagem personalizada, não um disparo genérico — o que aumenta muito o engajamento.'},
+  {cat:'equipe', q:'Como adicionar uma nova profissional?', a:'Acesse Equipe e clique em "+ Adicionar profissional". Preencha nome, especialidade, contato e defina as permissões de acesso. A profissional receberá um convite por e-mail ou WhatsApp para criar sua senha.'},
+  {cat:'equipe', q:'Uma profissional pode ver os dados de outra?', a:'Não por padrão. Cada profissional acessa apenas sua própria agenda e clientes. Somente a administradora do estúdio tem visão completa de toda a equipe e dados consolidados.'},
+  {cat:'conta', q:'Como personalizar o app com o nome e logo do estúdio?', a:'Acesse Configurações > Perfil do Estúdio. Lá você pode alterar o nome exibido, upload do logotipo, cores principais e informações de contato. As alterações aparecem imediatamente para todas as clientes.'},
+  {cat:'conta', q:'O que está incluído no plano Clínica Pro?', a:'O plano Clínica Pro inclui: equipe com até 10 profissionais, banco ilimitado de clientes, grupos de WhatsApp ilimitados, dashboard com métricas e relatórios mensais. Integração financeira e checkout estarão disponíveis em breve como módulo adicional.'},
+];
+
+let currentCat = 'todos';
+let currentSearch = '';
+
+function renderFaq() {
+  const list = document.getElementById('faq-list');
+  const filtered = faqData.filter(f => {
+    const matchCat = currentCat === 'todos' || f.cat === currentCat;
+    const matchQ = f.q.toLowerCase().includes(currentSearch.toLowerCase()) || f.a.toLowerCase().includes(currentSearch.toLowerCase());
+    return matchCat && matchQ;
+  });
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:13px;padding:24px 0">Nenhuma dúvida encontrada para essa busca.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map((f,i) => `
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(${i})">
+        <span>${f.q}</span>
+        <i class="ti ti-chevron-down faq-icon" id="faq-icon-${i}"></i>
+      </div>
+      <div class="faq-a" id="faq-a-${i}">${f.a}</div>
+    </div>
+  `).join('');
+}
+
+function toggleFaq(i) {
+  const a = document.getElementById('faq-a-'+i);
+  const ic = document.getElementById('faq-icon-'+i);
+  if (!a) return;
+  a.classList.toggle('open');
+  ic.classList.toggle('open');
+}
+
+function filterCat(cat, el) {
+  currentCat = cat;
+  document.querySelectorAll('.help-cat').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderFaq();
+}
+
+function filterFaq(val) {
+  currentSearch = val;
+  renderFaq();
+}
+
+function openHelp() {
+  document.getElementById('help-overlay').classList.add('open');
+  renderFaq();
+}
+function closeHelp() {
+  document.getElementById('help-overlay').classList.remove('open');
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('help-overlay')) closeHelp();
+}
+
+// ── NAVIGATION ──────────────────────────
+const pageTitles = {
+  'p-dash':'Dashboard','p-agenda':'Agenda','p-clientes':'Clientes',
+  'p-equipe':'Equipe','p-grupos':'Grupos WhatsApp','p-promos':'Promoções',
+  'c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'
+};
+const proActionLabel = {'p-dash':'Novo agendamento','p-agenda':'Novo agendamento','p-clientes':'Nova cliente','p-equipe':'Add profissional','p-grupos':'Novo grupo','p-promos':'Publicar promo'};
+
+let currentRole = 'profissional';
+let currentPane = 'p-dash';
+
+function showPane(id) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  const p = document.getElementById('pane-'+id);
+  if (p) p.classList.add('active');
+  currentPane = id;
+  const t = document.getElementById('tb-title');
+  if (t) t.textContent = pageTitles[id] || id;
+  const lbl = document.getElementById('tb-action-lbl');
+  if (lbl && proActionLabel[id]) lbl.textContent = proActionLabel[id];
+}
+
+function goTo(id, el) {
+  if (el) {
+    const navEl = el.closest('.sb-nav');
+    navEl.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+  }
+  showPane(id);
+  closeSidebar();
+}
+
+function goToMob(id, el) {
+  const nav = el.closest('.mob-tabs');
+  nav.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  showPane(id);
+  // sync sidebar
+  const sideNav = document.getElementById(currentRole==='profissional'?'sb-nav-pro':'sb-nav-cli');
+  sideNav.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'"));
+  });
+}
+
+function setRole(role, el) {
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const isPro = role === 'profissional';
+  document.getElementById('sb-nav-pro').style.display = isPro ? 'block' : 'none';
+  document.getElementById('sb-nav-cli').style.display = isPro ? 'none' : 'block';
+  document.getElementById('mob-nav-pro').style.display = isPro ? 'block' : 'none';
+  document.getElementById('mob-nav-cli').style.display = isPro ? 'none' : 'block';
+  document.getElementById('user-av').textContent = isPro ? 'CL' : 'AP';
+  document.getElementById('user-name').textContent = isPro ? 'Carla Lima' : 'Ana Paula F.';
+  document.getElementById('user-role').textContent = isPro ? 'Administradora' : 'Cliente';
+  document.getElementById('tb-action-btn').style.display = isPro ? 'inline-flex' : 'none';
+  const firstPane = isPro ? 'p-dash' : 'c-servicos';
+  // reset nav items
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`button[onclick="goTo('${firstPane}',this)"]`)?.classList.add('active');
+  document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
+  const firstMob = isPro ? 'p-dash' : 'c-servicos';
+  document.querySelector(`button[onclick="goToMob('${firstMob}',this)"]`)?.classList.add('active');
+  showPane(firstPane);
+}
+
+function handleAction() {}
+
+// ── SIDEBAR MOBILE ──────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sb-backdrop').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sb-backdrop').classList.remove('open');
+}
+
+// ── CHAT ────────────────────────────────
+function sendMsg() {
+  const inp = document.getElementById('chat-in');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  const msgs = document.getElementById('chat-msgs');
+  const now = new Date();
+  const t = now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  msgs.innerHTML += `<div class="msg s"><div class="bbl">${txt}</div><div class="mtime">${t}</div></div>`;
+  inp.value = '';
+  msgs.scrollTop = msgs.scrollHeight;
+  setTimeout(() => {
+    msgs.innerHTML += `<div class="msg r"><div class="bbl">Obrigada pela mensagem! Nossa equipe responde em breve. Posso agendar uma avaliação gratuita para você? 💕</div><div class="mtime">${t}</div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 800);
+}
+
+// ── CHART ───────────────────────────────
+const months = ['Dez','Jan','Fev','Mar','Abr','Mai'];
+const atend = [28,32,29,38,41,47];
+const rec = [210,245,218,290,318,365];
+const maxA = Math.max(...atend), maxR = Math.max(...rec);
+window.addEventListener('load', () => {
+  const c = document.getElementById('dash-bars');
+  if (!c) return;
+  months.forEach((m,i) => {
+    const hA = Math.round((atend[i]/maxA)*78);
+    const hR = Math.round((rec[i]/maxR)*78);
+    c.innerHTML += `<div class="bar-g"><div class="bar-pair"><div class="b b-pk" style="height:${hA}px" title="${atend[i]} atendimentos"></div><div class="b b-tl" style="height:${hR}px" title="R$ ${rec[i]*100}"></div></div><div class="bar-lbl">${m}</div></div>`;
+  });
+});
+</script>
+</body>
+</html>
