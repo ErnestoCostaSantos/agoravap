@@ -395,7 +395,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
               <div class="step-title">2. Aquecimento <span class="badge badge-pend" style="margin-left:4px">Hoje</span></div>
               <div class="step-sub">Envie uma mensagem de engajamento: depoimento, dica ou lembrete do prazo.</div>
               <div class="step-actions" id="a2">
-                <button class="btn tl sm" onclick="abrirWpp('Oi meninas! Passando para lembrar que nossa promocao Ritual Duo encerra em 12/06. Ja agendaram? Qualquer duvida e so chamar! Studio Luna')"><i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp</button>
+                <button class="btn tl sm" onclick="abrirWpp('Oi meninas! 💕 Nossa campanha de Dia dos Namorados está chegando ao fim — o Pacote Ritual Duo encerra em 12/06. Já agendaram? Qualquer dúvida é só chamar! — Studio Luna')"><i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp</button>
                 <button class="btn sm" onclick="feito2()"><i class="ti ti-check"></i> Marcar enviado</button>
               </div>
             </div>
@@ -629,14 +629,14 @@ function adj(t,d){
   if(t==='part'){part=Math.max(0,part+d);document.getElementById('part-v').textContent=part;document.getElementById('part-d').textContent=part;}
   else{ag=Math.max(0,ag+d);document.getElementById('ag-v').textContent=ag;document.getElementById('ag-d').textContent=ag;}
 }
-function abrirWpp(msg){window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');}
+function abrirWpp(msg){window.open('https://wa.me/?text='+encodeURIComponent(msg).replace(/%20/g,'+'),'_blank');}
 function feito2(){
   const c=document.getElementById('c2');c.className='step-circle done';c.innerHTML='<i class="ti ti-check"></i>';
   document.getElementById('a2').closest('.step-body').querySelector('.step-title').innerHTML='2. Aquecimento <span class="badge badge-done" style="margin-left:4px">Concluído</span>';
   document.getElementById('a2').innerHTML='<span style="font-size:11px;color:var(--tx3)">Enviado hoje</span>';
   const c3=document.getElementById('c3');c3.className='step-circle active';
   document.getElementById('b3').className='badge badge-pend';document.getElementById('b3').textContent='Disponível';
-  document.getElementById('a3').innerHTML=`<button class="btn tl sm" onclick="abrirWpp('Meninas, chegamos ao final da campanha Dia dos Namorados! Foi uma alegria enorme ter voces no grupo. Obrigada por confiarem no Studio Luna!')"><i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp</button><button class="btn sm" onclick="encerrarCamp()"><i class="ti ti-check"></i> Encerrar campanha</button>`;
+  document.getElementById('a3').innerHTML=`<button class="btn tl sm" onclick="abrirWpp('Meninas, chegamos ao final da nossa campanha de Dia dos Namorados! 💕 Foi uma alegria enorme ter vocês no grupo. Obrigada por confiarem no Studio Luna! Até a próxima! — Studio Luna')"><i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp</button><button class="btn sm" onclick="encerrarCamp()"><i class="ti ti-check"></i> Encerrar campanha</button>`;
 }
 function encerrarCamp(){document.getElementById('c3').className='step-circle done';document.getElementById('c3').innerHTML='<i class="ti ti-check"></i>';document.getElementById('a3').innerHTML='<span style="font-size:11px;color:var(--tx3)">Campanha encerrada</span>';}
 function toggleNovaCamp(){const f=document.getElementById('nova-camp');f.style.display=f.style.display==='none'?'block':'none';}
