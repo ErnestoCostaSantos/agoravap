@@ -1219,12 +1219,7 @@ function enviarFidelidade(){
   toast.style.display='flex';
   setTimeout(()=>{ toast.style.display='none'; }, 4000);
 }
-function doLogin(){
-  const screen = document.getElementById('login-screen');
-  screen.style.opacity='0';
-  screen.style.transition='opacity 0.4s ease';
-  setTimeout(()=>{ screen.style.display='none'; },400);
-}
+// doLogin handled by Firebase Auth above
 function previewPromoImg(input){
   if(!input.files||!input.files[0])return;
   const file=input.files[0];
