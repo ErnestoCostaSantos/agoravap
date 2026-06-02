@@ -205,6 +205,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .help-cat{padding:5px 13px;border-radius:20px;border:1px solid var(--br);font-size:12px;cursor:pointer;background:transparent;color:var(--tx2);transition:all .15s}
 .help-cat.active{background:var(--pk600);border-color:var(--pk600);color:#fff}
 .faq-item{border-bottom:1px solid var(--br);padding:12px 0}
+/* Fidelidade */
+.fidel-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--r);border:1px solid var(--br)}
+.fidel-pos{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.fidel-av{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.fidel-info{flex:1;min-width:0}
+.fidel-name{font-size:12px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fidel-sub{font-size:10px;color:var(--tx3)}
+.fidel-score{font-size:13px;font-weight:700;color:#c49b00;min-width:28px;text-align:right}
+.btn-periodo{padding:5px 12px;border-radius:20px;border:1px solid var(--br);background:var(--bg2);color:var(--tx2);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-periodo.active{background:#fffbea;border-color:#f5d84a;color:#7a5f00;font-weight:600}
 .faq-item:last-child{border-bottom:none}
 .faq-q{font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .faq-a{font-size:12px;color:var(--tx2);line-height:1.6;margin-top:8px;display:none}
@@ -284,7 +294,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <!-- Fields -->
     <div style="max-width:360px;margin:0 auto">
       <div style="margin-bottom:14px">
-        <input type="text" placeholder="Nome de usuário" style="
+        <input type="email" placeholder="E-mail" autocomplete="email" style="
           width:100%;padding:13px 16px;
           background:#fff;border:1px solid #e0d6d0;border-radius:10px;
           font-size:14px;color:#3a1f2e;outline:none;
@@ -309,14 +319,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         Entrar
       </button>
       <div style="text-align:center;margin-top:14px">
-        <span style="font-size:12px;color:#9a7a8a;cursor:pointer;letter-spacing:0.03em">Esqueci minha senha</span>
+        <span style="font-size:12px;color:#9a7a8a;cursor:pointer;letter-spacing:0.03em;text-decoration:underline" onclick="recuperarSenha()">Esqueci minha senha</span>
       </div>
     </div>
   </div>
   </div>
 </div>
 
-<div class="app">
+<div class="app" style="display:none">
 <nav class="sidebar" id="sidebar">
   <div class="sb-brand">
     <div class="sb-av">SL</div>
@@ -342,7 +352,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="sb-footer">
     <div class="sb-user">
       <div class="sb-uav" id="u-av">CL</div>
-      <div><div class="sb-name" style="font-size:12px" id="u-name">Carla Lima</div><div style="font-size:10px;color:var(--tx3)" id="u-role">Administradora</div></div>
+      <div style="flex:1;min-width:0"><div class="sb-name" style="font-size:12px" id="u-name">Carla Lima</div><div style="font-size:10px;color:var(--tx3)" id="u-role">Administradora</div></div>
+      <button onclick="doLogout()" title="Sair" style="background:none;border:none;cursor:pointer;color:var(--tx3);padding:4px;display:flex;align-items:center;flex-shrink:0" onmouseover="this.style.color='var(--pk600)'" onmouseout="this.style.color='var(--tx3)'"><i class="ti ti-logout" style="font-size:18px"></i></button>
     </div>
   </div>
 </nav>
@@ -437,9 +448,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <div class="pane" id="pane-p-clientes">
       <div class="search-bar"><i class="ti ti-search"></i><input placeholder="Buscar cliente, procedimento..."></div>
-      <div class="cli-row"><div class="av" style="background:var(--pk50);color:var(--pk800)">AP</div><div style="flex:1;min-width:0"><div class="row-name">Ana Paula Ferreira</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Limpeza de pele · Carla M.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 98765-4321</div></div><div class="row-right"><div style="font-size:10px;color:var(--tx3)">28/05/2026</div><div style="font-size:11px;font-weight:600;color:var(--pk600)">3 visitas</div></div></div>
-      <div class="cli-row"><div class="av" style="background:var(--tl50);color:var(--tl800)">MC</div><div style="flex:1;min-width:0"><div class="row-name">Mariana Costa</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Botox · Fernanda R.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 91234-5678</div></div><div class="row-right"><div style="font-size:10px;color:var(--tx3)">15/05/2026</div><div style="font-size:11px;font-weight:600;color:var(--pk600)">5 visitas</div></div></div>
-      <div class="cli-row"><div class="av" style="background:var(--pu50);color:var(--pu800)">LB</div><div style="flex:1;min-width:0"><div class="row-name">Leticia Barros</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Design sobrancelha · Juliana S.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 97890-1234</div></div><div class="row-right"><div style="font-size:10px;color:var(--tx3)">02/05/2026</div><div style="font-size:11px;font-weight:600;color:var(--pk600)">2 visitas</div></div></div>
+      <!-- legenda top 10 -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:6px 10px;background:linear-gradient(90deg,#fffbea,#fef9e0);border-radius:var(--r);border:1px solid #f5d84a">
+        <i class="ti ti-crown" style="font-size:14px;color:#c49b00"></i>
+        <span style="font-size:11px;color:#7a5f00;font-weight:600">Top 10 do mês anterior — clientes destaque</span>
+      </div>
+      <!-- cliente 1 — TOP (score alto) -->
+      <div class="cli-row" style="border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent)">
+        <div style="position:relative">
+          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaCosta&backgroundColor=e1f5ee" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Mariana Costa">
+          <div style="position:absolute;top:-4px;right:-4px;background:#f5d84a;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="font-size:9px;color:#7a5f00"></i></div>
+        </div>
+        <div style="flex:1;min-width:0"><div class="row-name">Mariana Costa</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Botox · Fernanda R.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 91234-5678</div></div>
+        <div class="row-right"><div style="font-size:10px;color:var(--tx3)">15/05/2026</div><div style="font-size:11px;font-weight:600;color:#c49b00">5 visitas</div><div style="font-size:10px;color:#c49b00;font-weight:700">score 4.8</div></div>
+      </div>
+      <!-- cliente 2 — TOP -->
+      <div class="cli-row" style="border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent)">
+        <div style="position:relative">
+          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaPaula&backgroundColor=fbeaf0" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Ana Paula">
+          <div style="position:absolute;top:-4px;right:-4px;background:#f5d84a;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="font-size:9px;color:#7a5f00"></i></div>
+        </div>
+        <div style="flex:1;min-width:0"><div class="row-name">Ana Paula Ferreira</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Limpeza de pele · Carla M.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 98765-4321</div></div>
+        <div class="row-right"><div style="font-size:10px;color:var(--tx3)">28/05/2026</div><div style="font-size:11px;font-weight:600;color:#c49b00">3 visitas</div><div style="font-size:10px;color:#c49b00;font-weight:700">score 3.2</div></div>
+      </div>
+      <!-- cliente 3 — normal -->
+      <div class="cli-row">
+        <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Leticia Barros">
+        <div style="flex:1;min-width:0"><div class="row-name">Leticia Barros</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Design sobrancelha · Juliana S.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 97890-1234</div></div>
+        <div class="row-right"><div style="font-size:10px;color:var(--tx3)">02/05/2026</div><div style="font-size:11px;font-weight:600;color:var(--pk600)">2 visitas</div></div>
+      </div>
       <button class="add-btn"><i class="ti ti-plus"></i> Cadastrar nova cliente</button>
     </div>
 
@@ -511,72 +548,218 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="info-box"><i class="ti ti-info-circle" style="font-size:16px;flex-shrink:0"></i>O app calcula automaticamente as datas de cada etapa.</div>
         <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="toggleNovaCamp()">Cancelar</button><button class="btn pk"><i class="ti ti-check"></i> Criar campanha</button></div>
       </div>
+
+      <!-- ══ FIDELIDADE ══ -->
+      <div style="margin-top:24px;padding-top:18px;border-top:2px dashed #f5d84a">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <i class="ti ti-crown" style="font-size:18px;color:#c49b00"></i>
+          <span style="font-size:13px;font-weight:700;color:#7a5f00;letter-spacing:.02em">Campanha Fidelidade</span>
+          <span class="badge" style="background:#fffbea;color:#c49b00;border:1px solid #f5d84a;font-size:10px">Disparo único</span>
+        </div>
+        <div style="font-size:11px;color:var(--tx3);margin-bottom:14px">Recompense suas melhores clientes do período. O ranking é calculado automaticamente pelo app.</div>
+
+        <!-- Periodicidade -->
+        <div class="card" style="margin-bottom:12px;padding:12px 14px">
+          <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Periodicidade</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-periodo active" id="per-men" onclick="setPeriodo('mensal',this)">Mensal</button>
+            <button class="btn-periodo" id="per-bi" onclick="setPeriodo('bimestral',this)">Bimestral</button>
+            <button class="btn-periodo" id="per-liv" onclick="setPeriodo('livre',this)">Livre</button>
+          </div>
+          <div id="per-livre-wrap" style="display:none;margin-top:10px">
+            <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Próximo disparo</label>
+            <input type="date" style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
+          </div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:8px" id="per-hint">Próximo disparo sugerido: <strong>01/07/2026</strong></div>
+        </div>
+
+        <!-- Top 10 do período -->
+        <div class="card" style="padding:12px 14px;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">
+            Top 10 — Maio 2026
+            <span style="font-size:10px;font-weight:400;color:var(--tx3);text-transform:none;margin-left:6px">score = visitas (60%) + valor gasto (40%)</span>
+          </div>
+          <!-- ranking rows -->
+          <div style="display:flex;flex-direction:column;gap:6px" id="fidelidade-lista">
+            <div class="fidel-row" style="background:linear-gradient(90deg,#fffdf0,transparent)">
+              <div class="fidel-pos" style="background:#f5d84a;color:#7a5f00">1</div>
+              <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaCosta&backgroundColor=e1f5ee" class="fidel-av">
+              <div class="fidel-info"><div class="fidel-name">Mariana Costa</div><div class="fidel-sub">5 visitas · R$ 820</div></div>
+              <div class="fidel-score">4.8</div>
+              <button class="btn tl sm" onclick="abrirWppFidel('(11) 91234-5678','Mariana')"><i class="ti ti-brand-whatsapp"></i></button>
+            </div>
+            <div class="fidel-row" style="background:linear-gradient(90deg,#fffdf0,transparent)">
+              <div class="fidel-pos" style="background:#e8e0c8;color:#5a4f2a">2</div>
+              <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaPaula&backgroundColor=fbeaf0" class="fidel-av">
+              <div class="fidel-info"><div class="fidel-name">Ana Paula Ferreira</div><div class="fidel-sub">3 visitas · R$ 540</div></div>
+              <div class="fidel-score">3.2</div>
+              <button class="btn tl sm" onclick="abrirWppFidel('(11) 98765-4321','Ana Paula')"><i class="ti ti-brand-whatsapp"></i></button>
+            </div>
+            <div class="fidel-row">
+              <div class="fidel-pos" style="background:#e8e0c8;color:#5a4f2a">3</div>
+              <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe" class="fidel-av">
+              <div class="fidel-info"><div class="fidel-name">Leticia Barros</div><div class="fidel-sub">2 visitas · R$ 280</div></div>
+              <div class="fidel-score">1.9</div>
+              <button class="btn tl sm" onclick="abrirWppFidel('(11) 97890-1234','Leticia')"><i class="ti ti-brand-whatsapp"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Peça promocional -->
+        <div class="card" style="padding:12px 14px;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Peça promocional</div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center">
+            <div>
+              <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Mensagem personalizada</label>
+              <textarea id="fidel-msg" rows="3" style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);resize:none;font-family:inherit;box-sizing:border-box">Ola! Voce foi uma das nossas clientes destaque em maio. Como agradecimento, preparamos uma surpresa especial para voce! Fala com a gente para saber mais. - Studio Luna</textarea>
+            </div>
+            <div>
+              <label id="fidel-img-label" style="
+                display:flex;flex-direction:column;align-items:center;justify-content:center;
+                width:80px;height:80px;border-radius:var(--r);border:1px dashed var(--br2);
+                cursor:pointer;background:var(--bg2);color:var(--tx3);font-size:10px;gap:3px;
+              ">
+                <i class="ti ti-photo-plus" style="font-size:22px;color:var(--pk400)"></i>
+                <span>Imagem</span>
+                <input type="file" accept="image/*" style="display:none" onchange="previewFidelImg(this)">
+              </label>
+              <img id="fidel-img-preview" style="display:none;width:80px;height:80px;object-fit:cover;border-radius:var(--r);cursor:pointer" onclick="document.querySelector('#fidel-img-label input').click()">
+            </div>
+          </div>
+        </div>
+
+        <!-- botão enviar -->
+        <button class="btn pk" style="width:100%;justify-content:center;padding:11px;font-size:13px" onclick="enviarFidelidade()">
+          <i class="ti ti-crown"></i> Enviar para o Top 10
+        </button>
+        <div id="fidel-toast" style="display:none;background:linear-gradient(90deg,#fffbea,#fef9e0);border:1px solid #f5d84a;border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:#7a5f00;align-items:center;gap:8px">
+          <i class="ti ti-crown" style="font-size:18px;color:#c49b00"></i>
+          Mensagem preparada! Abra o WhatsApp de cada cliente para enviar.
+        </div>
+      </div>
+
     </div>
 
     <div class="pane" id="pane-p-promos">
       <div class="sec-lbl">Nova promoção</div>
-      <div class="card">
-        <!-- Row 1: Nome + Canal + Imagem -->
-        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px;align-items:start">
-          <div>
-            <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Nome</label>
-            <input type="text" placeholder="Ex: Dia da Beleza" style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
-          </div>
-          <div>
-            <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Canal</label>
-            <select style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
-              <option>WhatsApp</option>
-              <option>Instagram</option>
-              <option>App (visão cliente)</option>
-              <option>Todos</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Imagem</label>
-            <label style="
-              display:flex;flex-direction:column;align-items:center;justify-content:center;
-              width:72px;height:60px;border-radius:var(--r);border:1px dashed var(--br2);
-              cursor:pointer;background:var(--bg2);color:var(--tx3);font-size:10px;gap:3px;
-              transition:border-color .15s;
-            " onmouseover="this.style.borderColor='var(--pk600)'" onmouseout="this.style.borderColor='var(--br2)'" id="img-label">
-              <i class="ti ti-photo" style="font-size:20px"></i>
-              <span>Foto</span>
-              <input type="file" accept="image/*" style="display:none" onchange="previewPromoImg(this)">
-            </label>
-            <img id="promo-img-preview" style="display:none;width:72px;height:60px;object-fit:cover;border-radius:var(--r);border:1px solid var(--br);cursor:pointer" onclick="document.querySelector('#img-label input').click()">
-          </div>
-        </div>
-        <!-- Row 2: Serviços + Período de Validade -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div>
-            <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Serviços incluídos</label>
-            <input type="text" placeholder="Ex: Limpeza de pele, Design" style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
-          </div>
-          <div>
-            <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Período de validade</label>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-              <input type="date" style="width:100%;padding:7px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)">
-              <input type="date" style="width:100%;padding:7px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)">
+      <div class="card" style="padding:0;overflow:hidden">
+
+        <!-- LAYOUT: info esquerda | imagem direita -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;min-height:260px">
+
+          <!-- COLUNA ESQUERDA: campos -->
+          <div style="padding:14px;display:flex;flex-direction:column;gap:10px">
+
+            <!-- Nome -->
+            <div>
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Nome</label>
+              <input type="text" placeholder="Ex: Ritual Duo — Dia dos Namorados" style="width:100%;padding:6px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
             </div>
-          </div>
+
+            <!-- Canal -->
+            <div>
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Canal</label>
+              <select style="width:100%;padding:6px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
+                <option>WhatsApp</option>
+                <option>Instagram</option>
+                <option>TikTok</option>
+                <option>App (visão cliente)</option>
+                <option>Todos</option>
+              </select>
+            </div>
+
+            <!-- Serviços incluídos — 2 linhas com scroll -->
+            <div style="flex:1">
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Serviços incluídos</label>
+              <textarea placeholder="Ex: Limpeza de pele&#10;Design de sobrancelha" rows="2" style="width:100%;padding:6px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);resize:none;overflow-y:auto;line-height:1.5;box-sizing:border-box;font-family:inherit"></textarea>
+            </div>
+
+            <!-- Período de validade -->
+            <div>
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Validade</label>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-size:10px;color:var(--tx3);width:28px;flex-shrink:0">Início</span>
+                  <input type="date" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)">
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-size:10px;color:var(--tx3);width:28px;flex-shrink:0">Fim</span>
+                  <input type="date" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)">
+                </div>
+              </div>
+            </div>
+
+            <!-- Preços -->
+            <div>
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Preço (R$)</label>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-size:10px;color:var(--tx3);width:28px;flex-shrink:0;text-decoration:line-through">De</span>
+                  <input type="text" placeholder="280,00" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx3);text-decoration:line-through">
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-size:10px;color:var(--pk700);font-weight:700;width:28px;flex-shrink:0">Por</span>
+                  <input type="text" placeholder="189,00" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--pk200);font-size:13px;background:var(--pk50);color:var(--pk700);font-weight:700">
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /coluna esquerda -->
+
+          <!-- COLUNA DIREITA: imagem -->
+          <div style="position:relative;background:var(--bg2);border-left:1px solid var(--br)">
+
+            <!-- área de upload / preview -->
+            <label id="img-label" style="
+              display:flex;flex-direction:column;align-items:center;justify-content:center;
+              position:absolute;inset:0;cursor:pointer;
+              color:var(--tx3);gap:8px;
+              transition:background .15s;
+            " onmouseover="this.style.background='var(--pk50)'" onmouseout="this.style.background='transparent'">
+              <i class="ti ti-photo-plus" style="font-size:36px;color:var(--pk400)"></i>
+              <div style="text-align:center;padding:0 12px">
+                <div style="font-size:12px;font-weight:600;color:var(--tx2)">Adicionar imagem</div>
+                <div style="font-size:10px;color:var(--tx3);margin-top:2px">Post, Reels ou TikTok</div>
+                <div style="font-size:10px;color:var(--tx3)">JPG, PNG ou MP4</div>
+              </div>
+              <input type="file" accept="image/*,video/*" style="display:none" onchange="previewPromoImg(this)">
+            </label>
+
+            <!-- preview da imagem carregada -->
+            <img id="promo-img-preview" style="
+              display:none;
+              position:absolute;inset:0;
+              width:100%;height:100%;
+              object-fit:cover;
+              cursor:pointer;
+            " onclick="document.querySelector('#img-label input').click()" title="Clique para trocar a imagem">
+
+            <!-- badge "trocar" ao fazer hover no preview -->
+            <div id="promo-img-badge" style="
+              display:none;
+              position:absolute;bottom:8px;right:8px;
+              background:rgba(0,0,0,.55);color:#fff;
+              font-size:10px;padding:3px 8px;border-radius:20px;
+              pointer-events:none;
+            ">Trocar</div>
+
+          </div><!-- /coluna direita -->
+
+        </div><!-- /grid -->
+
+        <!-- botão publicar -->
+        <div style="padding:12px 14px;border-top:1px solid var(--br)">
+          <button class="btn pk" style="width:100%;justify-content:center;padding:10px" onclick="publicarPromo()">
+            <i class="ti ti-megaphone"></i> Publicar promoção
+          </button>
         </div>
-        <!-- Row 3: Preços -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div>
-            <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Preço original (R$)</label>
-            <input type="text" placeholder="280,00" style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
-          </div>
-          <div>
-            <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Preço promocional (R$)</label>
-            <input type="text" placeholder="189,00" style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
-          </div>
-        </div>
-        <button class="btn pk" style="width:100%;justify-content:center;padding:10px" onclick="publicarPromo()"><i class="ti ti-megaphone"></i> Publicar promoção</button>
-      </div>
-      <!-- Success toast -->
-      <div id="promo-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);display:none;align-items:center;gap:8px">
+
+      </div><!-- /card -->
+
+      <!-- toast sucesso -->
+      <div id="promo-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
         <i class="ti ti-circle-check" style="font-size:18px"></i>
-        Promoção publicada! Ela ja aparece na visao Cliente.
+        Promoção publicada! Ela já aparece na visão Cliente.
       </div>
     </div>
 
@@ -660,6 +843,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button class="help-cat" onclick="filterCat('agenda',this)">Agenda</button>
         <button class="help-cat" onclick="filterCat('clientes',this)">Clientes</button>
         <button class="help-cat" onclick="filterCat('campanhas',this)">Campanhas</button>
+        <button class="help-cat" onclick="filterCat('promos',this)">Promoções</button>
+        <button class="help-cat" onclick="filterCat('fidelidade',this)">Fidelidade</button>
         <button class="help-cat" onclick="filterCat('agendamentos',this)">Agendamentos</button>
         <button class="help-cat" onclick="filterCat('equipe',this)">Equipe</button>
         <button class="help-cat" onclick="filterCat('conta',this)">Conta</button>
@@ -674,7 +859,198 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<script>
+<script type="module">
+// ── Firebase SDK ──────────────────────────────────────────────────────────
+import { initializeApp }                        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword,
+         signOut, onAuthStateChanged,
+         browserSessionPersistence,
+         setPersistence, sendPasswordResetEmail,
+         updatePassword, EmailAuthProvider,
+         reauthenticateWithCredential,
+         createUserWithEmailAndPassword,
+         initializeApp as initApp2 }            from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc,
+         collection, query, where, orderBy,
+         onSnapshot, addDoc, updateDoc,
+         serverTimestamp }                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ── Configuração ──────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyB_HHHQQwJk_-45HpNn8GTHJF7CutIYawg",
+  authDomain:        "belezza-50e76.firebaseapp.com",
+  projectId:         "belezza-50e76",
+  storageBucket:     "belezza-50e76.firebasestorage.app",
+  messagingSenderId: "140544598500",
+  appId:             "1:140544598500:web:20aa563bd2ed293a6d67f1"
+};
+
+// Instância principal
+const FA   = initializeApp(firebaseConfig);
+const auth = getAuth(FA);
+const db   = getFirestore(FA);
+
+// Instância secundária — para criar usuários sem derrubar sessão do admin
+const FA2   = initializeApp(firebaseConfig, 'admin');
+const auth2 = getAuth(FA2);
+
+// Sessão expira ao fechar o navegador
+setPersistence(auth, browserSessionPersistence);
+
+// ── Estado global ─────────────────────────────────────────────────────────
+let cu = null;   // current user (Firebase Auth)
+let cp = null;   // current profile (Firestore /users/{uid})
+
+// ── Inatividade (10 minutos) ──────────────────────────────────────────────
+const INACTIVITY_MS = 10 * 60 * 1000;
+let _inactTimer;
+function resetInactivityTimer() {
+  clearTimeout(_inactTimer);
+  _inactTimer = setTimeout(async () => {
+    await signOut(auth);
+    setTimeout(() => window.location.reload(), 1500);
+  }, INACTIVITY_MS);
+}
+['click','keydown','mousemove','touchstart','scroll'].forEach(ev => {
+  document.addEventListener(ev, () => { if (cu) resetInactivityTimer(); });
+});
+
+// ── Auth: controlador central ─────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  const loginScreen = document.getElementById('login-screen');
+  const appDiv      = document.querySelector('.app');
+
+  if (user) {
+    // Busca perfil no Firestore
+    const snap = await getDoc(doc(db, 'users', user.uid));
+
+    if (!snap.exists()) {
+      // Auth existe mas Firestore não — bloqueia
+      await signOut(auth);
+      showLoginError('Usuário não encontrado. Contate o administrador.');
+      return;
+    }
+
+    cp = snap.data();
+    cu = user;
+
+    // Esconde login, mostra app
+    if (loginScreen) loginScreen.style.display = 'none';
+    if (appDiv)      appDiv.style.display = 'flex';
+
+    // Atualiza nome/perfil na topbar
+    const uName = document.getElementById('u-name');
+    const uRole = document.getElementById('u-role');
+    const uAv   = document.getElementById('u-av');
+    if (uName) uName.textContent = cp.name || user.email;
+    if (uRole) uRole.textContent = cp.role === 'admin' ? 'Administradora'
+                                 : cp.role === 'profissional' ? 'Profissional'
+                                 : 'Cliente';
+    if (uAv)   uAv.textContent = (cp.name || 'U').charAt(0).toUpperCase();
+
+    resetInactivityTimer();
+
+  } else {
+    // Deslogado — mostra login
+    cu = null; cp = null;
+    if (loginScreen) {
+      loginScreen.style.display = 'flex';
+      loginScreen.style.opacity = '1';
+    }
+    if (appDiv) appDiv.style.display = 'none';
+  }
+});
+
+// ── Auth: login ───────────────────────────────────────────────────────────
+async function doLogin() {
+  const emailEl = document.querySelector('#login-screen input[type="text"]');
+  const passEl  = document.querySelector('#login-screen input[type="password"]');
+  const btn     = document.querySelector('#login-screen button[onclick="doLogin()"]');
+
+  const email = (emailEl?.value || '').trim();
+  const pass  = passEl?.value || '';
+
+  if (!email || !pass) {
+    showLoginError('Preencha o e-mail e a senha.');
+    return;
+  }
+
+  // Loading state
+  if (btn) { btn.textContent = 'Entrando...'; btn.disabled = true; }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    // onAuthStateChanged cuida do resto
+  } catch (e) {
+    const msgs = {
+      'auth/user-not-found':   'E-mail não cadastrado.',
+      'auth/wrong-password':   'Senha incorreta.',
+      'auth/invalid-email':    'E-mail inválido.',
+      'auth/too-many-requests':'Muitas tentativas. Tente mais tarde.',
+      'auth/invalid-credential': 'E-mail ou senha incorretos.'
+    };
+    showLoginError(msgs[e.code] || 'Erro ao entrar. Tente novamente.');
+  } finally {
+    if (btn) { btn.textContent = 'Entrar'; btn.disabled = false; }
+  }
+}
+
+function showLoginError(msg) {
+  let el = document.getElementById('login-error');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'login-error';
+    el.style.cssText = 'color:#c0392b;font-size:12px;text-align:center;margin-top:-10px;margin-bottom:8px;font-weight:600';
+    const btn = document.querySelector('#login-screen button[onclick="doLogin()"]');
+    if (btn) btn.parentNode.insertBefore(el, btn);
+  }
+  el.textContent = msg;
+  setTimeout(() => { el.textContent = ''; }, 4000);
+}
+
+// ── Auth: logout ──────────────────────────────────────────────────────────
+async function doLogout() {
+  await signOut(auth);
+  window.location.reload();
+}
+
+// ── Auth: recuperar senha ─────────────────────────────────────────────────
+async function recuperarSenha() {
+  const emailEl = document.querySelector('#login-screen input[type="text"]');
+  const email   = (emailEl?.value || '').trim();
+  if (!email) {
+    showLoginError('Digite seu e-mail acima para recuperar a senha.');
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showLoginError('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
+  } catch(e) {
+    showLoginError('E-mail não encontrado.');
+  }
+}
+
+// Expõe funções globalmente (necessário com type="module")
+window.doLogin        = doLogin;
+window.doLogout       = doLogout;
+window.recuperarSenha = recuperarSenha;
+
+// ── Enter no campo de senha faz login ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const passEl = document.querySelector('#login-screen input[type="password"]');
+  if (passEl) passEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+  const emailEl = document.querySelector('#login-screen input[type="text"]');
+  if (emailEl) emailEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// APP — restante do JS original abaixo
+// ─────────────────────────────────────────────────────────────────────────
+
 const faqs=[
   {cat:'agenda',q:'Como criar um novo agendamento?',a:'Clique em "Novo agendamento" no canto superior direito ou acesse a aba Agenda. Selecione a cliente, o serviço, a profissional, a data e o horário disponível. Salve para registrar.'},
   {cat:'agenda',q:'Como cancelar ou reagendar?',a:'Na aba Agenda, clique no agendamento desejado e escolha "Reagendar" ou "Cancelar". O horário volta a ficar disponível automaticamente.'},
@@ -695,6 +1071,14 @@ const faqs=[
   {cat:'conta',q:'O que está incluído no plano Clínica Pro?',a:'Equipe com até 10 profissionais, clientes ilimitadas, campanhas de WhatsApp ilimitadas, dashboard com métricas e agenda completa com controle de overbooking.'},
   {cat:'conta',q:'Como ficará o módulo financeiro?',a:'O módulo financeiro com checkout integrado está previsto para a versão 2.0. Ele permitirá pagamento no agendamento, relatório de receita por serviço e campanha.'},
   {cat:'conta',q:'Como fazer backup dos dados da clínica?',a:'Os dados ficam armazenados no Firebase (nuvem) e são atualizados em tempo real. Não é necessário backup manual — seus dados estão sempre seguros e acessíveis.'},
+  {cat:'promos',q:'Qual a diferença entre Campanha e Promoção?',a:'A Campanha é o evento — tem período, grupo de WhatsApp e sequência de mensagens (ex: Dia dos Namorados). A Promoção é o serviço com desconto — tem nome, preço, validade e imagem. Uma campanha pode ter várias promoções vinculadas.'},
+  {cat:'promos',q:'Como vincular uma Promoção a uma Campanha?',a:'Ao criar uma promoção, use o campo "Vincular à campanha" para associá-la a uma campanha ativa. Promoções avulsas (sem campanha) aparecem apenas na visão Cliente do app.'},
+  {cat:'promos',q:'Que formatos de imagem posso usar na Promoção?',a:'O app aceita imagens (JPG, PNG) e vídeos (MP4) no formato de Post, Reels ou TikTok. Assim você cria a peça na rede social e carrega o mesmo arquivo no app.'},
+  {cat:'fidelidade',q:'O que é a Campanha Fidelidade?',a:'É uma campanha especial com disparo único para recompensar as clientes que mais frequentaram ou gastaram no período. Diferente das campanhas comuns (3 etapas), ela é enviada de uma só vez para as eleitas.'},
+  {cat:'fidelidade',q:'Como o app calcula o ranking de fidelidade?',a:'O score é calculado automaticamente: visitas no período valem 60% e valor gasto vale 40%. Você não precisa configurar nada — o app faz o cálculo e exibe o Top 10 do mês anterior.'},
+  {cat:'fidelidade',q:'Com que frequência devo disparar a Campanha Fidelidade?',a:'Você escolhe: Mensal (todo fim de mês), Bimestral (acumula 2 meses de score — bom para períodos mais tranquilos) ou Livre (você define a data quando quiser). Pode mudar a periodicidade a qualquer momento.'},
+  {cat:'fidelidade',q:'Como as clientes do Top 10 aparecem no app?',a:'Na tela de Clientes, as clientes do Top 10 do mês anterior ficam com um destaque dourado com ícone de coroa. Isso facilita identificar quem deve receber a campanha antes mesmo de abrir a aba Campanhas.'},
+  {cat:'fidelidade',q:'Como enviar a premiação para as clientes eleitas?',a:'Na seção Fidelidade (aba Campanhas, no final da tela), escreva a mensagem, carregue a peça promocional e clique em "Enviar para o Top 10". O app abre o WhatsApp com a mensagem pronta para cada cliente — você confirma e envia.'},
 ];
 let curCat='todos',curSearch='';
 function renderFaq(){
@@ -805,6 +1189,36 @@ window.addEventListener('load',()=>{
   months.forEach((m,i)=>{const hA=Math.round((atend[i]/maxA)*78);const hR=Math.round((rec[i]/maxR)*78);c.innerHTML+=`<div class="bar-g"><div class="bar-pair"><div class="b b-pk" style="height:${hA}px"></div><div class="b b-tl" style="height:${hR}px"></div></div><div class="bar-lbl">${m}</div></div>`;});
 });
 
+function setPeriodo(p, el){
+  document.querySelectorAll('.btn-periodo').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const hints = {
+    mensal: 'Próximo disparo sugerido: <strong>01/07/2026</strong>',
+    bimestral: 'Próximo disparo sugerido: <strong>01/08/2026</strong> — acumula junho e julho',
+    livre: 'Escolha a data abaixo'
+  };
+  document.getElementById('per-hint').innerHTML = hints[p] || '';
+  document.getElementById('per-livre-wrap').style.display = p === 'livre' ? 'block' : 'none';
+}
+function previewFidelImg(input){
+  if(!input.files||!input.files[0])return;
+  const url=URL.createObjectURL(input.files[0]);
+  const preview=document.getElementById('fidel-img-preview');
+  const label=document.getElementById('fidel-img-label');
+  preview.src=url;
+  preview.style.display='block';
+  label.style.display='none';
+}
+function abrirWppFidel(tel, nome){
+  const msg = document.getElementById('fidel-msg')?.value || '';
+  const num = tel.replace(/\D/g,'');
+  window.open('https://wa.me/55'+num+'?text='+encodeURIComponent(msg),'_blank');
+}
+function enviarFidelidade(){
+  const toast=document.getElementById('fidel-toast');
+  toast.style.display='flex';
+  setTimeout(()=>{ toast.style.display='none'; }, 4000);
+}
 function doLogin(){
   const screen = document.getElementById('login-screen');
   screen.style.opacity='0';
@@ -813,11 +1227,14 @@ function doLogin(){
 }
 function previewPromoImg(input){
   if(!input.files||!input.files[0])return;
-  const url=URL.createObjectURL(input.files[0]);
+  const file=input.files[0];
+  const url=URL.createObjectURL(file);
   const preview=document.getElementById('promo-img-preview');
   const label=document.getElementById('img-label');
+  const badge=document.getElementById('promo-img-badge');
   preview.src=url;
   preview.style.display='block';
+  badge.style.display='block';
   label.style.display='none';
 }
 function publicarPromo(){
