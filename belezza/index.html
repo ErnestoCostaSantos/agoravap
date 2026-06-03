@@ -893,9 +893,6 @@ const db   = getFirestore(FA);
 const FA2   = initializeApp(firebaseConfig, 'admin');
 const auth2 = getAuth(FA2);
 
-// Sessão expira ao fechar o navegador
-setPersistence(auth, browserSessionPersistence);
-
 // ── Estado global ─────────────────────────────────────────────────────────
 let cu = null;   // current user (Firebase Auth)
 let cp = null;   // current profile (Firestore /users/{uid})
@@ -915,49 +912,62 @@ function resetInactivityTimer() {
 });
 
 // ── Auth: controlador central ─────────────────────────────────────────────
-onAuthStateChanged(auth, async user => {
-  const loginScreen = document.getElementById('login-screen');
-  const appDiv      = document.querySelector('.app');
+// Sessão expira ao fechar o navegador — wrapped corretamente
+setPersistence(auth, browserSessionPersistence).then(() => {
 
-  if (user) {
-    // Busca perfil no Firestore
-    const snap = await getDoc(doc(db, 'users', user.uid));
+  onAuthStateChanged(auth, async user => {
+    const loginScreen = document.getElementById('login-screen');
+    const appDiv      = document.querySelector('.app');
 
-    if (!snap.exists()) {
-      // Auth existe mas Firestore não — bloqueia
-      await signOut(auth);
-      showLoginError('Usuário não encontrado. Contate o administrador.');
-      return;
+    console.log('[Belezza] onAuthStateChanged:', user ? user.email : 'null');
+
+    if (user) {
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        console.log('[Belezza] Firestore snap exists:', snap.exists());
+
+        if (!snap.exists()) {
+          await signOut(auth);
+          showLoginError('Usuário não encontrado. Contate o administrador.');
+          return;
+        }
+
+        cp = snap.data();
+        cu = user;
+
+        if (loginScreen) loginScreen.style.display = 'none';
+        if (appDiv)      appDiv.style.display = 'flex';
+
+        const uName = document.getElementById('u-name');
+        const uRole = document.getElementById('u-role');
+        const uAv   = document.getElementById('u-av');
+        if (uName) uName.textContent = cp.name || user.email;
+        if (uRole) uRole.textContent = cp.role === 'admin' ? 'Administradora'
+                                     : cp.role === 'profissional' ? 'Profissional'
+                                     : 'Cliente';
+        if (uAv)   uAv.textContent = (cp.name || 'U').charAt(0).toUpperCase();
+
+        resetInactivityTimer();
+
+      } catch(e) {
+        console.error('[Belezza] Erro ao carregar perfil:', e);
+        showLoginError('Erro ao carregar perfil. Tente novamente.');
+      }
+
+    } else {
+      cu = null; cp = null;
+      if (loginScreen) {
+        loginScreen.style.display = 'flex';
+        loginScreen.style.opacity = '1';
+      }
+      if (appDiv) appDiv.style.display = 'none';
     }
+  });
 
-    cp = snap.data();
-    cu = user;
+}).catch(e => {
+  console.error('[Belezza] setPersistence error:', e);
+});
 
-    // Esconde login, mostra app
-    if (loginScreen) loginScreen.style.display = 'none';
-    if (appDiv)      appDiv.style.display = 'flex';
-
-    // Atualiza nome/perfil na topbar
-    const uName = document.getElementById('u-name');
-    const uRole = document.getElementById('u-role');
-    const uAv   = document.getElementById('u-av');
-    if (uName) uName.textContent = cp.name || user.email;
-    if (uRole) uRole.textContent = cp.role === 'admin' ? 'Administradora'
-                                 : cp.role === 'profissional' ? 'Profissional'
-                                 : 'Cliente';
-    if (uAv)   uAv.textContent = (cp.name || 'U').charAt(0).toUpperCase();
-
-    resetInactivityTimer();
-
-  } else {
-    // Deslogado — mostra login
-    cu = null; cp = null;
-    if (loginScreen) {
-      loginScreen.style.display = 'flex';
-      loginScreen.style.opacity = '1';
-    }
-    if (appDiv) appDiv.style.display = 'none';
-  }
 });
 
 // ── Auth: login ───────────────────────────────────────────────────────────
