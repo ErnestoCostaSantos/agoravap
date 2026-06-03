@@ -214,19 +214,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fidel-sub{font-size:10px;color:var(--tx3)}
 .fidel-score{font-size:13px;font-weight:700;color:#c49b00;min-width:28px;text-align:right}
 /* Botões lótus */
-.lotus-btn{
-  display:flex;flex-direction:column;align-items:center;gap:8px;
-  width:88px;padding:16px 8px 14px;
-  background:rgba(255,255,255,.75);
-  border:1.5px solid rgba(153,53,86,.2);
-  border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
-  cursor:pointer;font-family:inherit;
-  color:#993556;font-size:11px;font-weight:600;
-  letter-spacing:.03em;
-  box-shadow:0 4px 16px rgba(153,53,86,.12);
-  transition:all .2s;
-  backdrop-filter:blur(8px);
+.rosa-btn{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:none;border:none;cursor:pointer;
+  font-family:Georgia,serif;color:#993556;
+  font-size:12px;font-weight:500;letter-spacing:.03em;
+  transition:transform .2s;padding:4px;
 }
+.rosa-btn:hover{ transform:translateY(-4px) scale(1.05); }
+.rosa-svg{ width:76px;height:76px;filter:drop-shadow(0 3px 8px rgba(153,53,86,.2)); }
 /* Mobile: foto ocupa a maior parte, form compacto */
 #cli-foto { flex: 1 1 auto; min-height: 60vh; }
 #cli-form { flex: 0 0 auto; }
@@ -250,18 +246,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     flex: 0 0 auto;
   }
 }
-.lotus-btn:hover{
-  background:rgba(153,53,86,.1);
-  border-color:rgba(153,53,86,.5);
-  transform:translateY(-3px);
-  box-shadow:0 8px 24px rgba(153,53,86,.2);
-}
-.lotus-icon{
-  width:52px;height:52px;border-radius:50%;
-  background:linear-gradient(135deg,#fbeaf0,#f4c0d1);
-  display:flex;align-items:center;justify-content:center;
-  border:1px solid rgba(153,53,86,.15);
-}
+
 .btn-periodo{padding:5px 12px;border-radius:20px;border:1px solid var(--br);background:var(--bg2);color:var(--tx2);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
 .btn-periodo.active{background:#fffbea;border-color:#f5d84a;color:#7a5f00;font-weight:600}
 .faq-item:last-child{border-bottom:none}
@@ -1480,8 +1465,8 @@ function sairCli(){ if(window._sairCli) window._sairCli(); }
 <div id="home-cli-screen" style="position:fixed;inset:0;z-index:9050;display:none;flex-direction:column;overflow:hidden">
   <!-- Fundo marca dagua -->
   <div style="position:absolute;inset:0">
-    <img src="hero-cliente.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center 15%;opacity:.07">
-    <div style="position:absolute;inset:0;background:linear-gradient(180deg,#fdf5f8 0%,#f8eef3 100%)"></div>
+    <img src="hero-cliente.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block">
+    <div style="position:absolute;inset:0;background:rgba(253,245,248,0.82)"></div>
   </div>
   <!-- Conteúdo -->
   <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;overflow:auto">
@@ -1493,33 +1478,97 @@ function sairCli(){ if(window._sairCli) window._sairCli(); }
       <div style="font-size:10px;color:#9a7a8a;letter-spacing:.2em;text-transform:uppercase;margin-top:2px">Studio Luna</div>
       <div style="font-size:14px;color:#993556;margin-top:10px;font-weight:500" id="cli-welcome">Ola!</div>
     </div>
-    <!-- Botões lótus -->
-    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 16px 16px;gap:16px">
-      <div style="display:flex;justify-content:center;gap:14px">
-        <button class="lotus-btn" onclick="goToCliSection('c-servicos')">
-          <div class="lotus-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3 Q8 5 8 9 Q8 14 12 17 Q16 14 16 9 Q16 5 12 3Z"/><path d="M6 7 Q3 9 3 12 Q3 16 8 18" stroke-opacity=".5"/><path d="M18 7 Q21 9 21 12 Q21 16 16 18" stroke-opacity=".5"/></svg></div>
+    <!-- Botões rosa -->
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 16px 16px;gap:20px">
+      <div style="display:flex;justify-content:center;gap:18px">
+        <button class="rosa-btn" onclick="goToCliSection('c-servicos')">
+          <svg class="rosa-svg" viewBox="-40 -40 80 80">
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f9d0df" transform="rotate(0)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f9d0df" transform="rotate(60)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f9d0df" transform="rotate(120)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f4b8ce" transform="rotate(180)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f4b8ce" transform="rotate(240)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f4b8ce" transform="rotate(300)"/>
+            <circle cx="0" cy="0" r="20" fill="white" stroke="#f0a0c0" stroke-width="1"/>
+            <path d="M0,-11 Q-4,-7 -4,0 Q-4,7 0,10 Q4,7 4,0 Q4,-7 0,-11Z" fill="none" stroke="#993556" stroke-width="1.3"/>
+            <path d="M-9,-4 Q-12,0 -10,5 Q-7,8 -3,7" fill="none" stroke="#993556" stroke-width="1" opacity=".6"/>
+            <path d="M9,-4 Q12,0 10,5 Q7,8 3,7" fill="none" stroke="#993556" stroke-width="1" opacity=".6"/>
+          </svg>
           <span>Serviços</span>
         </button>
-        <button class="lotus-btn" onclick="goToCliSection('c-promos')">
-          <div class="lotus-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 2 L14.5 9H22L16 13.5L18.5 20.5L12 16L5.5 20.5L8 13.5L2 9H9.5Z"/></svg></div>
+        <button class="rosa-btn" onclick="goToCliSection('c-promos')">
+          <svg class="rosa-svg" viewBox="-40 -40 80 80">
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f9d0df" transform="rotate(0)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f9d0df" transform="rotate(60)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f9d0df" transform="rotate(120)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f4b8ce" transform="rotate(180)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f4b8ce" transform="rotate(240)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f4b8ce" transform="rotate(300)"/>
+            <circle cx="0" cy="0" r="20" fill="white" stroke="#f0a0c0" stroke-width="1"/>
+            <path d="M0,-11 L2.5,-4.5 L10,-4.5 L4,0 L6,7 L0,3.5 L-6,7 L-4,0 L-10,-4.5 L-2.5,-4.5 Z" fill="none" stroke="#993556" stroke-width="1.3"/>
+          </svg>
           <span>Promoções</span>
         </button>
-        <button class="lotus-btn" onclick="goToCliSection('c-agenda')">
-          <div class="lotus-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9 L21 9"/><path d="M8 2 L8 6M16 2 L16 6"/><path d="M8 14 L10 16 L16 12"/></svg></div>
+        <button class="rosa-btn" onclick="goToCliSection('c-agenda')">
+          <svg class="rosa-svg" viewBox="-40 -40 80 80">
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f9d0df" transform="rotate(0)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f9d0df" transform="rotate(60)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#efafc8" transform="rotate(120)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#efafc8" transform="rotate(180)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#efafc8" transform="rotate(240)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f9d0df" transform="rotate(300)"/>
+            <circle cx="0" cy="0" r="20" fill="white" stroke="#f0a0c0" stroke-width="1"/>
+            <rect x="-9" y="-11" width="18" height="16" rx="2" fill="none" stroke="#993556" stroke-width="1.3"/>
+            <line x1="-9" y1="-5" x2="9" y2="-5" stroke="#993556" stroke-width="1"/>
+            <line x1="-4" y1="-13" x2="-4" y2="-9" stroke="#993556" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="4" y1="-13" x2="4" y2="-9" stroke="#993556" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M-4,1 L-2,4 L5,-1" fill="none" stroke="#993556" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
           <span>Reservar</span>
         </button>
       </div>
-      <div style="display:flex;justify-content:center;gap:14px">
-        <button class="lotus-btn" onclick="goToCliSection('c-chat')">
-          <div class="lotus-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div style="display:flex;justify-content:center;gap:18px">
+        <button class="rosa-btn" onclick="goToCliSection('c-chat')">
+          <svg class="rosa-svg" viewBox="-40 -40 80 80">
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(0)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(60)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(120)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#e8a8cc" transform="rotate(180)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#e8a8cc" transform="rotate(240)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#e8a8cc" transform="rotate(300)"/>
+            <circle cx="0" cy="0" r="20" fill="white" stroke="#e090b8" stroke-width="1"/>
+            <path d="M-9,-9 Q-9,-13 -5,-13 L5,-13 Q9,-13 9,-9 L9,-2 Q9,2 5,2 L-2,2 L-5,7 L-4,2 Q-9,2 -9,-2 Z" fill="none" stroke="#993556" stroke-width="1.3"/>
+          </svg>
           <span>Ajuda</span>
         </button>
-        <button class="lotus-btn" onclick="abrirWpp('Ola Studio Luna')">
-          <div class="lotus-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+        <button class="rosa-btn" onclick="abrirWpp('Ola Studio Luna')">
+          <svg class="rosa-svg" viewBox="-40 -40 80 80">
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(0)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(60)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(120)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#e8a8cc" transform="rotate(180)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#e8a8cc" transform="rotate(240)"/>
+            <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#e8a8cc" transform="rotate(300)"/>
+            <circle cx="0" cy="0" r="20" fill="white" stroke="#e090b8" stroke-width="1"/>
+            <path d="M0,-11 Q-8,-11 -11,-6 Q-14,0 -10,6 L-12,11 L-6,9 Q-3,11 0,11 Q8,11 11,6 Q14,0 10,-6 Q7,-11 0,-11Z" fill="none" stroke="#993556" stroke-width="1.3"/>
+            <path d="M-5,-1 Q-4,3 0,4 Q3,4 5,2" fill="none" stroke="#993556" stroke-width="1"/>
+          </svg>
           <span>Contato</span>
         </button>
-        <button class="lotus-btn" onclick="sairCli()">
-          <div class="lotus-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+        <button class="rosa-btn" onclick="sairCli()">
+          <svg class="rosa-svg" viewBox="-40 -40 80 80">
+            <ellipse cx="0" cy="-26" rx="10" ry="16" fill="#f0c8d8" transform="rotate(0)"/>
+            <ellipse cx="0" cy="-26" rx="10" ry="16" fill="#f0c8d8" transform="rotate(60)"/>
+            <ellipse cx="0" cy="-26" rx="10" ry="16" fill="#f0c8d8" transform="rotate(120)"/>
+            <ellipse cx="0" cy="-26" rx="10" ry="16" fill="#e8b8cc" transform="rotate(180)"/>
+            <ellipse cx="0" cy="-26" rx="10" ry="16" fill="#e8b8cc" transform="rotate(240)"/>
+            <ellipse cx="0" cy="-26" rx="10" ry="16" fill="#e8b8cc" transform="rotate(300)"/>
+            <circle cx="0" cy="0" r="18" fill="white" stroke="#dda0bc" stroke-width="1"/>
+            <path d="M-2,-7 L-2,7" stroke="#993556" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M-2,-7 L-7,-7 L-7,7 L-2,7" fill="none" stroke="#993556" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3,-3 L9,-3" stroke="#993556" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M6,-6 L9,-3 L6,0" fill="none" stroke="#993556" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
           <span>Sair</span>
         </button>
       </div>
