@@ -1427,14 +1427,24 @@ function sairCli(){ if(window._sairCli) window._sairCli(); }
   <style>
     /* ── MOBILE (portrait) ── */
     @media(max-width:699px){
-      /* Sem altura fixa — rola naturalmente quando teclado abre */
-      #cli-layout{ display:block; }
-      /* Foto: altura fixa sem position:absolute na img */
-      #cli-foto{ position:relative; width:100%; height:75vw; max-height:72vh; overflow:hidden; background:#f0d0e8; }
-      #cli-foto img.mob{ display:block; width:100%; height:100%; object-fit:cover; object-position:center 12%; }
+      /* Imagem ocupa tela toda, form flutua em baixo */
+      #cli-layout{ position:relative; width:100%; height:100vh; }
+      #cli-foto{ position:absolute; inset:0; }
+      #cli-foto img.mob{
+        display:block; width:100%; height:100%;
+        object-fit:cover; object-position:center top;
+      }
       #cli-foto img.dsk{ display:none; }
-      /* Form: altura natural */
-      #cli-form{ background:linear-gradient(180deg,#9B3D8B,#5a1f6e); padding:16px 20px 28px; }
+      /* Card de login flutua na parte inferior */
+      #cli-form{
+        position:absolute;
+        bottom:0; left:0; right:0;
+        background:linear-gradient(180deg,rgba(107,45,139,.92),rgba(90,31,110,.98));
+        backdrop-filter:blur(8px);
+        -webkit-backdrop-filter:blur(8px);
+        padding:20px 20px env(safe-area-inset-bottom,20px);
+        border-radius:24px 24px 0 0;
+      }
     }
     /* ── TABLET + DESKTOP ── */
     @media(min-width:700px){
