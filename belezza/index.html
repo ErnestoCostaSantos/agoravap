@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.4.3</title>
+<title>Belezza — Studio Luna v1.4.4</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -921,7 +921,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="mob-tab active" onclick="goToMob('c-servicos',this)"><i class="ti ti-sparkles"></i>Serviços</button>
       <button class="mob-tab" onclick="goToMob('c-promos',this)"><i class="ti ti-tag"></i>Promoções</button>
       <button class="mob-tab" onclick="goToMob('c-chat',this)"><i class="ti ti-message-circle"></i>Dúvidas</button>
-      <button class="mob-tab" onclick="goToMob('c-agenda',this)"><i class="ti ti-calendar-check"></i>Reservas</button>
+      <button class="mob-tab" onclick="goToMob('c-agenda',this)"><i class="ti ti-calendar-check"></i>Agendamentos</button>
     </div>
   </div>
 </div>
@@ -1208,8 +1208,8 @@ const faqs=[
   {cat:'fidelidade',q:'Com que frequência devo disparar a Campanha Fidelidade?',a:'Você escolhe: Mensal (todo fim de mês), Bimestral (acumula 2 meses de score — bom para períodos mais tranquilos) ou Livre (você define a data quando quiser). Pode mudar a periodicidade a qualquer momento.'},
   {cat:'fidelidade',q:'Como as clientes do Top 10 aparecem no app?',a:'Na tela de Clientes, as clientes do Top 10 do mês anterior ficam com um destaque dourado com ícone de coroa. Isso facilita identificar quem deve receber a campanha antes mesmo de abrir a aba Campanhas.'},
   {cat:'fidelidade',q:'Como enviar a premiação para as clientes eleitas?',a:'Na seção Fidelidade (aba Campanhas, no final da tela), escreva a mensagem, carregue a peça promocional e clique em "Enviar para o Top 10". O app abre o WhatsApp com a mensagem pronta para cada cliente — você confirma e envia.'},
-  {cat:'versaocliente',q:'Como a cliente acessa o app?',a:'A cliente abre o app e é direcionada automaticamente para a tela de login do MeCuidar Studio Luna. Após entrar com e-mail e senha, ela chega à tela com os botões de flores: Serviços, Promoções, Reservar, Ajuda, Contato e Sair.'},
-  {cat:'versaocliente',q:'Como a cliente agenda um serviço?',a:'Ela pode clicar em "Reservar" ou "Serviços" → "Agendar um serviço". O app abre um calendário com os próximos 15 dias úteis (sem domingos). Ela escolhe o dia, depois o horário disponível e clica em "Enviar solicitação".'},
+  {cat:'versaocliente',q:'Como a cliente acessa o app?',a:'A cliente abre o app e é direcionada automaticamente para a tela de login do MeCuidar Studio Luna. Após entrar com e-mail e senha, ela chega à tela com os botões de flores: Serviços, Promoções, Agendamentos, Ajuda, Contato e Sair.'},
+  {cat:'versaocliente',q:'Como a cliente agenda um serviço?',a:'Ela pode clicar em "Agendamentos" ou "Serviços" → "Agendar um serviço". O app abre um calendário com os próximos 15 dias úteis (sem domingos). Ela escolhe o dia, depois o horário disponível e clica em "Enviar solicitação".'},
   {cat:'versaocliente',q:'Quem confirma o agendamento da cliente?',a:'A líder do Studio Luna recebe a solicitação e faz a confirmação. A cliente recebe a confirmação via WhatsApp ou pelo próprio app (a partir da v1.4 com dados reais no Firestore).'},
   {cat:'versaocliente',q:'Como a cliente agenda uma promoção?',a:'Na aba Promoções, cada card tem um botão "Agendar". Ao clicar, o app abre o calendário já identificando qual promoção foi selecionada. O fluxo é o mesmo do agendamento normal.'},
   {cat:'versaocliente',q:'Quem responde as dúvidas no chat?',a:'A líder do Studio Luna — identificada pelo nome e avatar no cabeçalho do chat. As mensagens são respondidas em breve após o envio.'},
@@ -1886,7 +1886,7 @@ function abrirAgendaServico(){ if(window.abrirAgendaServico) window.abrirAgendaS
             <line x1="4" y1="-13" x2="4" y2="-9" stroke="#993556" stroke-width="1.3" stroke-linecap="round"/>
             <path d="M-4,1 L-2,4 L5,-1" fill="none" stroke="#993556" stroke-width="1.3" stroke-linecap="round"/>
           </svg>
-          <span>Reservar</span>
+          <span>Agendamentos</span>
         </button>
       </div>
       <div style="display:flex;justify-content:center;gap:18px">
