@@ -1382,6 +1382,8 @@ function sairCli(){
   signOut(auth);
   // onAuthStateChanged já redireciona para login-cli-screen
 }
+function handleCliKey(e){ if(e.key==='Enter') doLoginCli(); }
+window.handleCliKey      = handleCliKey;
 window.toggleCliPass     = toggleCliPass;
 window.doLoginCli        = doLoginCli;
 window.recuperarSenhaCli = recuperarSenhaCli;
@@ -1427,20 +1429,7 @@ window.publicarPromo = publicarPromo;
     <img src="hero-cliente.jpg" alt="MeCuidar" style="width:100%;height:100%;object-fit:cover;object-position:center 18%;display:block">
     <!-- Overlay gradiente base -->
     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 45%,rgba(107,45,139,.6) 80%,rgba(107,45,139,.92) 100%)"></div>
-    <!-- Logo topo -->
-    <div style="position:absolute;top:24px;left:0;right:0;text-align:center;z-index:2">
-      <svg width="44" height="44" viewBox="0 0 52 52" fill="none" style="display:block;margin:0 auto 6px">
-        <circle cx="26" cy="26" r="24" stroke="white" stroke-width="1.5" fill="rgba(255,255,255,.15)"/>
-        <path d="M26 36 C26 36 17 28 17 21 C17 16 21 13 26 16 C31 13 35 16 35 21 C35 28 26 36 26 36Z" stroke="white" stroke-width="1.2" fill="rgba(255,255,255,.2)"/>
-        <path d="M26 13 L26 9" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
-        <path d="M26 10 C24 8 21 8 20 10" stroke="white" stroke-width="1" fill="none" stroke-linecap="round"/>
-        <path d="M26 10 C28 8 31 8 32 10" stroke="white" stroke-width="1" fill="none" stroke-linecap="round"/>
-      </svg>
-      <div style="font-family:Georgia,serif;font-size:26px;letter-spacing:.04em;line-height:1.1;text-shadow:0 2px 8px rgba(0,0,0,.3)">
-        <span style="color:#ffb3cc;font-weight:700">Me</span><span style="color:white">Cuidar</span>
-      </div>
-      <div style="font-size:11px;color:rgba(255,255,255,.85);letter-spacing:.18em;text-transform:uppercase;margin-top:4px">Studio Luna</div>
-    </div>
+
 
     <!-- Onda roxa base -->
     <svg style="position:absolute;bottom:-1px;left:0;width:100%" viewBox="0 0 390 50" preserveAspectRatio="none">
@@ -1454,12 +1443,12 @@ window.publicarPromo = publicarPromo;
       <!-- Campo email -->
       <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:10px 16px;margin-bottom:10px;border:1px solid rgba(255,255,255,.25)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20 Q4 16 12 16 Q20 16 20 20"/></svg>
-        <input id="cli-email" type="email" placeholder="E-mail" autocomplete="email" style="background:none;border:none;outline:none;color:white;font-size:14px;flex:1;font-family:inherit" onkeydown="if(event.key==='Enter')doLoginCli()">
+        <input id="cli-email" type="email" placeholder="E-mail" autocomplete="email" style="background:none;border:none;outline:none;color:white;font-size:14px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
       </div>
       <!-- Campo senha -->
       <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:10px 16px;margin-bottom:8px;border:1px solid rgba(255,255,255,.25)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 Q8 3 12 3 Q16 3 16 7 V11"/></svg>
-        <input id="cli-pass" type="password" placeholder="Senha" autocomplete="current-password" style="background:none;border:none;outline:none;color:white;font-size:14px;flex:1;font-family:inherit" onkeydown="if(event.key==='Enter')doLoginCli()">
+        <input id="cli-pass" type="password" placeholder="Senha" autocomplete="current-password" style="background:none;border:none;outline:none;color:white;font-size:14px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
         <span id="cli-eye" onclick="toggleCliPass()" style="cursor:pointer;color:rgba(255,255,255,.6);font-size:16px;user-select:none">👁</span>
       </div>
       <!-- Erro -->
