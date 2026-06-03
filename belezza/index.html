@@ -840,23 +840,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <div class="pane" id="pane-c-agenda">
       <div class="sec-lbl">Solicitar agendamento</div>
-      <div id="agenda-promo-badge" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:7px 12px;margin-bottom:10px;font-size:12px;color:var(--pk700);font-weight:600"></div>
+      <!-- Badge de promoção selecionada -->
+      <div id="agenda-promo-badge" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:7px 12px;margin-bottom:10px;font-size:12px;color:var(--pk700);font-weight:600;align-items:center;gap:6px">
+        <i class="ti ti-tag"></i> <span id="agenda-promo-nome"></span>
+      </div>
+      <!-- Passo 1: Escolha o dia -->
       <div class="card" style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">Escolha o dia</div>
-        <div id="cli-cal" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">1. Escolha o dia</div>
+        <div id="cli-cal" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px"></div>
       </div>
+      <!-- Passo 2: Escolha o horário -->
       <div class="card" id="cli-horarios-card" style="display:none;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px" id="cli-horarios-label">Horários disponíveis</div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px" id="cli-horarios-label">2. Escolha o horário</div>
         <div class="avail-grid" id="cli-avail-grid"></div>
+        <div style="display:flex;gap:10px;margin-top:10px;font-size:11px;color:var(--tx3);align-items:center">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:var(--bg3);border:1px solid var(--br);display:inline-block"></span>Disponível</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#e8e8e8;display:inline-block"></span>Ocupado</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:var(--pk600);display:inline-block"></span>Selecionado</span>
+        </div>
       </div>
-      <button class="btn pk" id="cli-enviar-btn" style="width:100%;justify-content:center;padding:10px;margin-top:4px;display:none" onclick="enviarSolicitacao()"><i class="ti ti-calendar"></i> Enviar solicitação</button>
-      <div id="cli-agenda-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
-        <i class="ti ti-circle-check" style="font-size:18px"></i>
-        Solicitação enviada! A líder do Studio Luna confirmará em breve.
+      <!-- Passo 3: Enviar -->
+      <div id="cli-enviar-wrap" style="display:none">
+        <div class="info-box" style="margin-bottom:10px">
+          <i class="ti ti-info-circle" style="font-size:16px;flex-shrink:0"></i>
+          Sua solicitação será enviada para a líder do Studio Luna, que confirmará em breve via WhatsApp.
+        </div>
+        <button class="btn pk" style="width:100%;justify-content:center;padding:11px" onclick="enviarSolicitacao()">
+          <i class="ti ti-send"></i> Enviar solicitação
+        </button>
       </div>
-        <div style="font-size:11px;color:var(--tx3);text-align:center;margin-top:6px">A profissional confirmará em breve</div>
+      <!-- Toast confirmação -->
+      <div id="cli-agenda-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:12px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
+        <i class="ti ti-circle-check" style="font-size:20px"></i>
+        <div><strong>Solicitação enviada!</strong><br>A líder do Studio Luna confirmará em breve.</div>
       </div>
-      <div class="sec-lbl">Seus agendamentos</div>
+      <!-- Agendamentos existentes -->
+      <div class="sec-lbl" style="margin-top:16px">Seus agendamentos</div>
       <div class="sched-card"><div class="scd-left"><div class="scd-dt"><div class="scd-day">07</div><div class="scd-mo">Jun</div></div><div><div class="scd-svc">Limpeza de pele profunda</div><div class="scd-sub"><i class="ti ti-clock" style="font-size:11px"></i>14h30 · 60 min</div></div></div><span class="badge badge-pend">Aguardando</span></div>
       <div class="sched-card"><div class="scd-left"><div class="scd-dt"><div class="scd-day">15</div><div class="scd-mo">Jun</div></div><div><div class="scd-svc">Design de sobrancelha</div><div class="scd-sub"><i class="ti ti-clock" style="font-size:11px"></i>11h00 · 45 min</div></div></div><span class="badge badge-ok">Confirmado</span></div>
     </div>
@@ -893,7 +912,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="help-cats">
         <button class="help-cat active" onclick="filterCat('todos',this)">Todos</button>
         <button class="help-cat" onclick="filterCat('acesso',this)">Acesso</button>
-        <button class="help-cat" onclick="filterCat('agenda',this)">Agenda</button>
+        <button class="help-cat" onclick="filterCat('agenda',this)">Agenda Prof.</button>
         <button class="help-cat" onclick="filterCat('clientes',this)">Clientes</button>
         <button class="help-cat" onclick="filterCat('campanhas',this)">Campanhas</button>
         <button class="help-cat" onclick="filterCat('promos',this)">Promoções</button>
@@ -1085,6 +1104,10 @@ function showLoginError(msg) {
 
 // ── Auth: logout ──────────────────────────────────────────────────────────
 async function doLogout() {
+  const e = document.getElementById('cli-email');
+  const p = document.getElementById('cli-pass');
+  if(e) e.value = '';
+  if(p) p.value = '';
   await signOut(auth);
   window.location.reload();
 }
@@ -1380,14 +1403,27 @@ function goToCliSection(id){
   document.getElementById('home-cli-screen').style.display = 'none';
   const appDiv = document.querySelector('.app');
   if(appDiv) appDiv.style.display = 'flex';
-  // Mostra barra voltar, esconde role-bar
-  const backBar = document.getElementById('cli-back-bar');
+
+  // Esconde elementos da visão profissional
   const roleBar = document.querySelector('.role-bar');
-  if(backBar) backBar.style.display = 'flex';
+  const sidebar = document.querySelector('.sidebar');
+  const topbar  = document.querySelector('.topbar');
+  const mobPro  = document.getElementById('mob-pro');
   if(roleBar) roleBar.style.display = 'none';
+  if(sidebar) sidebar.style.display = 'none';
+  if(topbar)  topbar.style.display  = 'none';
+  if(mobPro)  mobPro.style.display  = 'none';
+
+  // Mostra barra voltar e nav cliente
+  const backBar = document.getElementById('cli-back-bar');
+  const mobCli  = document.getElementById('mob-cli');
+  if(backBar) backBar.style.display = 'flex';
+  if(mobCli)  mobCli.style.display  = 'block';
+
   // Ativa visão cliente
   const allBtns = document.querySelectorAll('.rbtn');
   allBtns.forEach(b => { if(b.textContent.trim()==='Cliente') setRole('c', b); });
+
   // Vai para a aba correta
   setTimeout(() => {
     const navBtns = document.querySelectorAll('.nav-item, .mob-tab');
@@ -1398,18 +1434,32 @@ function goToCliSection(id){
   }, 50);
 }
 function voltarHomeCliente(){
-  // Volta para a home das flores
   const appDiv = document.querySelector('.app');
   if(appDiv) appDiv.style.display = 'none';
-  const backBar = document.getElementById('cli-back-bar');
+
+  // Restaura elementos da visão profissional para próximo uso
   const roleBar = document.querySelector('.role-bar');
-  if(backBar) backBar.style.display = 'none';
+  const sidebar = document.querySelector('.sidebar');
+  const topbar  = document.querySelector('.topbar');
+  const mobPro  = document.getElementById('mob-pro');
+  const backBar = document.getElementById('cli-back-bar');
+  const mobCli  = document.getElementById('mob-cli');
   if(roleBar) roleBar.style.display = '';
+  if(sidebar) sidebar.style.display = '';
+  if(topbar)  topbar.style.display  = '';
+  if(mobPro)  mobPro.style.display  = '';
+  if(backBar) backBar.style.display = 'none';
+  if(mobCli)  mobCli.style.display  = 'none';
+
   document.getElementById('home-cli-screen').style.display = 'flex';
 }
 function sairCli(){
+  // Limpa campos de login
+  const e = document.getElementById('cli-email');
+  const p = document.getElementById('cli-pass');
+  if(e) e.value = '';
+  if(p) p.value = '';
   signOut(auth);
-  // onAuthStateChanged já redireciona para login-cli-screen
 }
 function handleCliKey(e){ if(e.key==='Enter') doLoginCli(); }
 
@@ -1457,7 +1507,7 @@ function initCalendario(){
       const btn = document.createElement('button');
       btn.className = 'dia-btn';
       btn.innerHTML = `<span style="font-size:10px;color:var(--tx3)">${semana}</span><span style="font-size:14px;font-weight:700">${dia}</span><span style="font-size:10px;color:var(--tx3)">${String(mes).padStart(2,'0')}</span>`;
-      btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:8px 10px;border-radius:var(--r);border:1px solid var(--br);background:var(--bg2);cursor:pointer;min-width:48px;gap:2px;font-family:inherit;transition:all .15s';
+      btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:7px 4px;border-radius:var(--r);border:1px solid var(--br);background:var(--bg2);cursor:pointer;gap:2px;font-family:inherit;transition:all .15s;width:100%';
       btn.dataset.label = label;
       btn.onclick = function(){ selecionarDia(this, label, semana); };
       cal.appendChild(btn);
@@ -1497,26 +1547,23 @@ function selecionarHorario(btn, horario){
   document.querySelectorAll('.slot:not(.busy)').forEach(b => b.classList.remove('sel'));
   btn.classList.add('sel');
   selHorario = horario;
-  document.getElementById('cli-enviar-btn').style.display = 'flex';
+  document.getElementById('cli-enviar-wrap').style.display = 'block';
 }
 
 function enviarSolicitacao(){
   if(!selDia || !selHorario) return;
-  const promo = promoSelecionada ? ` (${promoSelecionada})` : '';
+  document.getElementById('cli-enviar-wrap').style.display = 'none';
   const toast = document.getElementById('cli-agenda-toast');
-  document.getElementById('cli-enviar-btn').style.display = 'none';
   toast.style.display = 'flex';
-  setTimeout(() => { toast.style.display = 'none'; }, 5000);
-  // Reset
-  selDia = null; selHorario = null; promoSelecionada = null;
+  // Reset após 5s
   setTimeout(() => {
+    toast.style.display = 'none';
     document.getElementById('cli-horarios-card').style.display = 'none';
-    document.querySelectorAll('.dia-btn').forEach(b => {
-      b.style.background = 'var(--bg2)';
-      b.style.borderColor = 'var(--br)';
-      b.style.color = 'var(--tx)';
-    });
     document.getElementById('agenda-promo-badge').style.display = 'none';
+    document.querySelectorAll('.dia-btn').forEach(b => {
+      b.style.background = 'var(--bg2)'; b.style.borderColor = 'var(--br)'; b.style.color = 'var(--tx)';
+    });
+    selDia = null; selHorario = null; promoSelecionada = null;
   }, 5000);
 }
 
@@ -1525,8 +1572,12 @@ function abrirAgendaPromo(nome){
   goToCliSection('c-agenda');
   setTimeout(() => {
     const badge = document.getElementById('agenda-promo-badge');
-    if(badge){ badge.textContent = '🌸 Agendando: ' + nome; badge.style.display = 'block'; }
-  }, 100);
+    const nomeEl = document.getElementById('agenda-promo-nome');
+    if(badge && nomeEl){
+      nomeEl.textContent = 'Agendando promoção: ' + nome;
+      badge.style.display = 'flex';
+    }
+  }, 150);
 }
 
 // Inicializa calendário quando aba agenda é aberta
