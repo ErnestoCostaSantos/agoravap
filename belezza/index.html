@@ -1422,47 +1422,78 @@ function sairCli(){ if(window._sairCli) window._sairCli(); }
 <!-- LOGIN CLIENTE -->
 <div id="login-cli-screen" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9100;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#f0d0e8">
 
-  <!-- MOBILE: flex coluna. DESKTOP: imagem fundo + form sobreposto -->
   <style>
-    @media(max-width:599px){
-      #cli-layout{display:flex;flex-direction:column;min-height:100dvh}
-      #cli-foto{flex:0 0 67vh;position:relative;overflow:hidden}
-      #cli-foto img{width:100%;height:100%;object-fit:cover;object-position:center 8%;display:block}
-      #cli-form{flex-shrink:0;background:linear-gradient(180deg,#9B3D8B,#5a1f6e);padding:16px 20px 24px}
+    /* ── MOBILE (portrait) ── */
+    @media(max-width:699px){
+      #cli-layout{ display:flex; flex-direction:column; min-height:100dvh; }
+      #cli-foto{ flex:0 0 65vw; max-height:65dvh; position:relative; overflow:hidden; }
+      #cli-foto img.mob{ display:block; width:100%; height:100%; object-fit:cover; object-position:center 8%; }
+      #cli-foto img.dsk{ display:none; }
+      #cli-form{ flex-shrink:0; background:linear-gradient(180deg,#9B3D8B,#5a1f6e); padding:16px 20px 28px; }
     }
-    @media(min-width:600px){
-      #cli-layout{position:relative;width:100%;height:100%}
-      #cli-foto{position:absolute;inset:0}
-      #cli-foto img{width:100%;height:100%;object-fit:contain;object-position:center top;background:#f0d0e8;display:block}
-      #cli-form{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(107,45,139,.85),rgba(90,31,110,.97));padding:20px 32px 28px;backdrop-filter:blur(8px)}
+    /* ── TABLET + DESKTOP ── */
+    @media(min-width:700px){
+      #cli-layout{ position:relative; width:100%; height:100dvh; }
+      #cli-foto{ position:absolute; inset:0; }
+      #cli-foto img.dsk{ display:block; width:100%; height:100%; object-fit:cover; object-position:center center; }
+      #cli-foto img.mob{ display:none; }
+      /* Card de login flutua sobre a imagem — lado direito */
+      #cli-form{
+        position:absolute;
+        top:50%; right:6%;
+        transform:translateY(-50%);
+        width:320px;
+        background:rgba(90,31,110,.88);
+        backdrop-filter:blur(12px);
+        border-radius:20px;
+        padding:28px 24px 24px;
+        border:1px solid rgba(255,255,255,.2);
+        box-shadow:0 8px 40px rgba(0,0,0,.25);
+      }
     }
   </style>
 
   <div id="cli-layout">
     <div id="cli-foto">
-      <img src="hero-cliente.jpg" alt="MeCuidar">
+      <!-- Mobile: imagem portrait 9:19 -->
+      <img class="mob" src="hero-cliente.jpg" alt="MeCuidar">
+      <!-- Desktop/Tablet: imagem landscape 16:9 -->
+      <img class="dsk" src="hero-cliente-desktop.jpg" alt="MeCuidar">
       <div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(to bottom,transparent,#9B3D8B)"></div>
     </div>
+
     <div id="cli-form">
-      <div style="max-width:480px;margin:0 auto;width:100%">
-        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:9px 16px;margin-bottom:8px;border:1px solid rgba(255,255,255,.25)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20 Q4 16 12 16 Q20 16 20 20"/></svg>
-          <input id="cli-email" type="email" placeholder="E-mail" autocomplete="username" style="background:none;border:none;outline:none;color:white;font-size:16px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
+      <!-- Título só no desktop -->
+      <div style="text-align:center;margin-bottom:16px;display:none" id="cli-form-title">
+        <div style="font-size:11px;color:rgba(255,255,255,.7);letter-spacing:.18em;text-transform:uppercase">Bem-vinda ao</div>
+        <div style="font-family:Georgia,serif;font-size:22px;margin-top:2px">
+          <span style="color:#ffb3cc;font-weight:700">Me</span><span style="color:white">Cuidar</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:9px 16px;margin-bottom:6px;border:1px solid rgba(255,255,255,.25)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 Q8 3 12 3 Q16 3 16 7 V11"/></svg>
-          <input id="cli-pass" type="password" placeholder="Senha" autocomplete="current-password" style="background:none;border:none;outline:none;color:white;font-size:16px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
-          <span id="cli-eye" onclick="toggleCliPass()" style="cursor:pointer;color:rgba(255,255,255,.6);font-size:18px;user-select:none;padding:4px">👁</span>
-        </div>
-        <div id="cli-error" style="color:#ffb3c6;font-size:11px;text-align:center;margin-bottom:5px;min-height:14px;font-weight:600"></div>
-        <button onclick="doLoginCli()" style="width:100%;padding:12px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:15px;font-weight:700;letter-spacing:.06em;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(153,53,86,.4)">Entrar</button>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-          <span onclick="recuperarSenhaCli()" style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;text-decoration:underline">Esqueci minha senha</span>
-          <span onclick="voltarLoginPro()" style="font-size:11px;color:rgba(255,255,255,.4);cursor:pointer">Acesso profissional →</span>
-        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:10px 16px;margin-bottom:8px;border:1px solid rgba(255,255,255,.25)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20 Q4 16 12 16 Q20 16 20 20"/></svg>
+        <input id="cli-email" type="email" placeholder="E-mail" autocomplete="username" style="background:none;border:none;outline:none;color:white;font-size:16px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:10px 16px;margin-bottom:6px;border:1px solid rgba(255,255,255,.25)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 Q8 3 12 3 Q16 3 16 7 V11"/></svg>
+        <input id="cli-pass" type="password" placeholder="Senha" autocomplete="current-password" style="background:none;border:none;outline:none;color:white;font-size:16px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
+        <span id="cli-eye" onclick="toggleCliPass()" style="cursor:pointer;color:rgba(255,255,255,.6);font-size:18px;user-select:none;padding:4px">👁</span>
+      </div>
+      <div id="cli-error" style="color:#ffb3c6;font-size:11px;text-align:center;margin-bottom:5px;min-height:14px;font-weight:600"></div>
+      <button onclick="doLoginCli()" style="width:100%;padding:12px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:15px;font-weight:700;letter-spacing:.06em;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(153,53,86,.4)">Entrar</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+        <span onclick="recuperarSenhaCli()" style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;text-decoration:underline">Esqueci minha senha</span>
+        <span onclick="voltarLoginPro()" style="font-size:11px;color:rgba(255,255,255,.4);cursor:pointer">Profissional →</span>
       </div>
     </div>
   </div>
+
+  <script>
+    // Mostra título no card desktop
+    if(window.innerWidth >= 700){
+      document.getElementById('cli-form-title').style.display='block';
+    }
+  </script>
 </div>
 <!-- HOME CLIENTE (após login) -->
 <div id="home-cli-screen" style="position:fixed;inset:0;z-index:9050;display:none;flex-direction:column;overflow:hidden">
