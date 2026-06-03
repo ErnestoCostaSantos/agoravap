@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.4.8</title>
+<title>Belezza — Studio Luna v1.4.9</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1338,6 +1338,24 @@ function initDashboard(){
   const de = document.getElementById('dash-data');
   if(el) el.textContent = saud + ', Carla!';
   if(de) de.textContent = dataStr;
+  // Atualiza badge de pendentes
+  atualizarPendentes();
+  // Renderiza agendamentos confirmados na agenda
+  renderAgendaConfirmados();
+}
+
+function renderAgendaConfirmados(){
+  const hdr = document.querySelector('#pane-p-agenda .day-hdr');
+  if(!hdr) return;
+  // Remove cards gerados dinamicamente anteriormente
+  document.querySelectorAll('.ag-card.dinamico').forEach(c => c.remove());
+  // Adiciona confirmados
+  agendamentos.filter(a => a.status === 'confirmado').forEach(ag => {
+    const card = document.createElement('div');
+    card.className = 'ag-card dinamico';
+    card.innerHTML = `<div class="ag-time">${ag.data}</div><div class="ag-bar" style="background:var(--pk400)"></div><div class="ag-info"><div class="ag-svc">${ag.servico} — ${ag.cliente}</div><div class="ag-meta"><i class="ti ti-clock" style="font-size:11px"></i>${ag.hora} · ${ag.prof} · <span style="color:var(--pk600);font-size:10px">${ag.origem}</span></div></div><span class="badge badge-ok">Confirmado</span>`;
+    hdr.insertAdjacentElement('afterend', card);
+  });
 }
 function goTo(id,el){
   if(id==='p-dash') setTimeout(initDashboard, 50);
@@ -1399,6 +1417,8 @@ function toggleNovaCamp(){const f=document.getElementById('nova-camp');f.style.d
 let agendamentos = [
   {id:'req1', cliente:'Ana Paula Ferreira', servico:'Limpeza de pele', data:'07/06', hora:'14h30', prof:'Carla M.', origem:'Módulo Serviços', status:'pendente'},
   {id:'req2', cliente:'Sofia Alves', servico:'Preenchimento labial', data:'08/06', hora:'10h00', prof:'Fernanda R.', origem:'Módulo Serviços', status:'pendente'},
+  {id:'ag-test1', cliente:'Mariana Costa', servico:'Botox', data:'05/06', hora:'10h00', prof:'Fernanda R.', origem:'Agendamento direto', status:'confirmado'},
+  {id:'ag-test2', cliente:'Leticia Barros', servico:'Design de sobrancelha', data:'10/06', hora:'14h00', prof:'Juliana S.', origem:'Módulo Promoções', status:'confirmado'},
 ];
 
 function confirmar(id){
@@ -1847,11 +1867,11 @@ window.abrirWpp = abrirWpp;
 window.feito2 = feito2;
 window.encerrarCamp = encerrarCamp;
 window.toggleNovaCamp = toggleNovaCamp;
-window.confirmar      = confirmar;
-window.abrirModalAg   = abrirModalAg;
-window.fecharModalAg  = fecharModalAg;
-window.salvarNovoAg   = salvarNovoAg;
-window.recusar = recusar;
+window._confirmar      = confirmar;
+window._recusar        = recusar;
+window._abrirModalAg   = abrirModalAg;
+window._fecharModalAg  = fecharModalAg;
+window._salvarNovoAg   = salvarNovoAg;
 window.renderSlots = renderSlots;
 window.setPeriodo = setPeriodo;
 window.previewFidelImg = previewFidelImg;
@@ -1884,9 +1904,9 @@ function enviarSolicitacao(){ if(window.enviarSolicitacao) window.enviarSolicita
 function abrirAgendaPromo(n){ if(window.abrirAgendaPromo) window.abrirAgendaPromo(n); }
 function selecionarServico(c,n,p){ if(window.selecionarServico) window.selecionarServico(c,n,p); }
 function abrirAgendaServico(){ if(window.abrirAgendaServico) window.abrirAgendaServico(); }
-function abrirModalAg(){ if(window.abrirModalAg) window.abrirModalAg(); }
-function fecharModalAg(){ if(window.fecharModalAg) window.fecharModalAg(); }
-function salvarNovoAg(){ if(window.salvarNovoAg) window.salvarNovoAg(); }
+function abrirModalAg(){ if(window._abrirModalAg) window._abrirModalAg(); }
+function fecharModalAg(){ if(window._fecharModalAg) window._fecharModalAg(); }
+function salvarNovoAg(){ if(window._salvarNovoAg) window._salvarNovoAg(); }
 </script>
 
 <!-- LOGIN CLIENTE -->
