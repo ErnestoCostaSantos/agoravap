@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.4.4</title>
+<title>Belezza — Studio Luna v1.4.5</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -426,31 +426,104 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <!-- ── PROFISSIONAL ── -->
     <div class="pane active" id="pane-p-dash">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-lbl">Atendimentos (mês)</div><div class="stat-val v-pk">47</div><div style="font-size:10px;color:var(--tx3)">+12% vs abril</div></div>
-        <div class="stat-card"><div class="stat-lbl">Ticket médio</div><div class="stat-val v-tl">R$ 312</div><div style="font-size:10px;color:var(--tx3)">+R$ 28 vs abril</div></div>
-        <div class="stat-card"><div class="stat-lbl">Clientes ativas</div><div class="stat-val v-pu">89</div><div style="font-size:10px;color:var(--tx3)">6 novas este mês</div></div>
-        <div class="stat-card"><div class="stat-lbl">Taxa de retorno</div><div class="stat-val v-am">68%</div><div style="font-size:10px;color:var(--tx3)">meta: 70%</div></div>
+
+      <!-- Data e saudação -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--tx)" id="dash-saudacao">Bom dia!</div>
+          <div style="font-size:11px;color:var(--tx3)" id="dash-data"></div>
+        </div>
+        <!-- Badge solicitações pendentes -->
+        <div id="dash-pendentes-badge" onclick="goTo('p-agenda',null)" style="display:flex;align-items:center;gap:6px;background:var(--pk50);border:1px solid var(--pk100);border-radius:20px;padding:6px 12px;cursor:pointer">
+          <i class="ti ti-calendar" style="font-size:14px;color:var(--pk600)"></i>
+          <span style="font-size:12px;font-weight:700;color:var(--pk600)">2 pendentes</span>
+          <i class="ti ti-chevron-down" style="font-size:12px;color:var(--pk400)"></i>
+        </div>
       </div>
+
+      <!-- Métricas -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-lbl">Atendimentos (mês)</div>
+          <div class="stat-val v-pk">47</div>
+          <div style="font-size:10px;color:var(--tl400)">▲ +12% vs maio</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-lbl">Receita (mês)</div>
+          <div class="stat-val v-tl">R$ 14.664</div>
+          <div style="font-size:10px;color:var(--tl400)">▲ +R$ 1.316 vs maio</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-lbl">Ticket médio</div>
+          <div class="stat-val v-pu">R$ 312</div>
+          <div style="font-size:10px;color:var(--tl400)">▲ +R$ 28 vs maio</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-lbl">Taxa de retorno</div>
+          <div class="stat-val v-am">68%</div>
+          <div style="font-size:10px;color:var(--am400)">meta: 70%</div>
+        </div>
+      </div>
+
+      <!-- Gráfico -->
       <div class="chart-wrap">
-        <div class="chart-hd"><span class="chart-title">Atendimentos &amp; receita — últimos 6 meses</span><div class="chart-leg"><div class="leg"><div class="leg-dot" style="background:var(--pk100)"></div>Atend.</div><div class="leg"><div class="leg-dot" style="background:var(--tl100)"></div>Receita</div></div></div>
+        <div class="chart-hd">
+          <span class="chart-title">Atendimentos &amp; receita — últimos 6 meses</span>
+          <div class="chart-leg">
+            <div class="leg"><div class="leg-dot" style="background:var(--pk400)"></div>Atend.</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--tl400)"></div>Receita (R$k)</div>
+          </div>
+        </div>
         <div class="bars-row" id="dash-bars"></div>
       </div>
+
+      <!-- Solicitações pendentes -->
+      <div class="card" style="margin-bottom:12px;border-left:3px solid var(--pk400)">
+        <div class="card-title">
+          <i class="ti ti-clock" style="color:var(--pk500)"></i>
+          Solicitações pendentes
+          <span class="card-link" onclick="goTo('p-agenda',null)">ver todas →</span>
+        </div>
+        <div class="row-item">
+          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaPaula&backgroundColor=fbeaf0" style="width:32px;height:32px;border-radius:50%">
+          <div style="flex:1;min-width:0">
+            <div class="row-name" style="font-size:12px">Ana Paula Ferreira</div>
+            <div class="row-sub">Limpeza de pele · 07/06 às 14h30 · Carla M.</div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button class="btn tl sm" onclick="confirmar('req1')"><i class="ti ti-check"></i></button>
+            <button class="btn sm" onclick="recusar('req1')"><i class="ti ti-x"></i></button>
+          </div>
+        </div>
+        <div class="row-item">
+          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=SofiaAlves&backgroundColor=e1f5ee" style="width:32px;height:32px;border-radius:50%">
+          <div style="flex:1;min-width:0">
+            <div class="row-name" style="font-size:12px">Sofia Alves</div>
+            <div class="row-sub">Preenchimento labial · 08/06 às 10h00 · Fernanda R.</div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button class="btn tl sm" onclick="confirmar('req2')"><i class="ti ti-check"></i></button>
+            <button class="btn sm" onclick="recusar('req2')"><i class="ti ti-x"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Equipe + Agenda hoje -->
       <div class="two-col">
         <div class="card">
           <div class="card-title">Equipe hoje <span class="card-link" onclick="goTo('p-equipe',null)">ver todos →</span></div>
-          <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaM&backgroundColor=fbeaf0" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--pk50)" alt="Carla M."><div><div class="row-name" style="font-size:12px">Carla Mendes</div><div class="row-sub">Estética facial</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">5 hoje</div></div>
-          <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=FernandaR&backgroundColor=e1f5ee" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--tl50)" alt="Fernanda R."><div><div class="row-name" style="font-size:12px">Fernanda Rocha</div><div class="row-sub">Dermato estética</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">4 hoje</div></div>
-          <div class="row-item"><div class="dot dot-off"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=JulianaS&backgroundColor=eeedfe" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--pu50)" alt="Juliana S."><div><div class="row-name" style="font-size:12px">Juliana Santos</div><div class="row-sub">Design &amp; micropigm.</div></div><div class="row-right" style="font-size:11px;color:var(--tx3)">folga</div></div>
-          <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=BeatrizL&backgroundColor=faece7" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--co50)" alt="Beatriz L."><div><div class="row-name" style="font-size:12px">Beatriz Lima</div><div class="row-sub">Massoterapia</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">3 hoje</div></div>
+          <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaM&backgroundColor=fbeaf0" style="width:28px;height:28px;border-radius:50%" alt="Carla M."><div><div class="row-name" style="font-size:12px">Carla Mendes</div><div class="row-sub">Estética facial</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">5 hoje</div></div>
+          <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=FernandaR&backgroundColor=e1f5ee" style="width:28px;height:28px;border-radius:50%" alt="Fernanda R."><div><div class="row-name" style="font-size:12px">Fernanda Rocha</div><div class="row-sub">Dermato estética</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">4 hoje</div></div>
+          <div class="row-item"><div class="dot dot-off"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=JulianaS&backgroundColor=eeedfe" style="width:28px;height:28px;border-radius:50%" alt="Juliana S."><div><div class="row-name" style="font-size:12px">Juliana Santos</div><div class="row-sub">Design &amp; micropigm.</div></div><div class="row-right" style="font-size:11px;color:var(--tx3)">folga</div></div>
+          <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=BeatrizL&backgroundColor=faece7" style="width:28px;height:28px;border-radius:50%" alt="Beatriz L."><div><div class="row-name" style="font-size:12px">Beatriz Lima</div><div class="row-sub">Massoterapia</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">3 hoje</div></div>
         </div>
         <div class="card">
           <div class="card-title">Agenda hoje <span class="card-link" onclick="goTo('p-agenda',null)">ver tudo →</span></div>
-          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--tx2);min-width:36px">09h00</div><div><div class="row-name" style="font-size:12px">Limpeza de pele</div><div class="row-sub">Ana Paula F. · Carla M.</div></div></div>
-          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--tx2);min-width:36px">10h30</div><div><div class="row-name" style="font-size:12px">Botox</div><div class="row-sub">Mariana C. · Fernanda R.</div></div></div>
-          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--tx2);min-width:36px">14h00</div><div><div class="row-name" style="font-size:12px">Microblading</div><div class="row-sub">Renata S. · Juliana S.</div></div></div>
-          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--tx2);min-width:36px">15h30</div><div><div class="row-name" style="font-size:12px">Massagem</div><div class="row-sub">Leticia B. · Beatriz L.</div></div></div>
-          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--tx2);min-width:36px">17h00</div><div><div class="row-name" style="font-size:12px">Peeling químico</div><div class="row-sub">Camila D. · Carla M.</div></div></div>
+          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--pk600);min-width:36px">09h00</div><div><div class="row-name" style="font-size:12px">Limpeza de pele</div><div class="row-sub">Ana Paula F. · Carla M.</div></div><span class="badge badge-ok" style="font-size:9px">✓</span></div>
+          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--pk600);min-width:36px">10h30</div><div><div class="row-name" style="font-size:12px">Botox</div><div class="row-sub">Mariana C. · Fernanda R.</div></div><span class="badge badge-ok" style="font-size:9px">✓</span></div>
+          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--pk600);min-width:36px">14h00</div><div><div class="row-name" style="font-size:12px">Microblading</div><div class="row-sub">Renata S. · Juliana S.</div></div><span class="badge badge-pend" style="font-size:9px">●</span></div>
+          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--pk600);min-width:36px">15h30</div><div><div class="row-name" style="font-size:12px">Massagem</div><div class="row-sub">Leticia B. · Beatriz L.</div></div><span class="badge badge-ok" style="font-size:9px">✓</span></div>
+          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--pk600);min-width:36px">17h00</div><div><div class="row-name" style="font-size:12px">Peeling químico</div><div class="row-sub">Camila D. · Carla M.</div></div><span class="badge badge-ok" style="font-size:9px">✓</span></div>
         </div>
       </div>
     </div>
@@ -1254,7 +1327,20 @@ function showPane(id){
   const lbl=actLbl[id];if(lbl)document.getElementById('tb-act-lbl').textContent=lbl;
   document.getElementById('tb-act').style.display=id.startsWith('c-')?'none':'inline-flex';
 }
+function initDashboard(){
+  const now = new Date();
+  const h = now.getHours();
+  const saud = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  const dias = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const dataStr = `${dias[now.getDay()]}, ${now.getDate()} de ${meses[now.getMonth()]} de ${now.getFullYear()}`;
+  const el = document.getElementById('dash-saudacao');
+  const de = document.getElementById('dash-data');
+  if(el) el.textContent = saud + ', Carla!';
+  if(de) de.textContent = dataStr;
+}
 function goTo(id,el){
+  if(id==='p-dash') setTimeout(initDashboard, 50);
   if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(el){const n=el.closest('.sb-nav');n.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
   showPane(id);closeSB();
@@ -1330,6 +1416,7 @@ const months=['Dez','Jan','Fev','Mar','Abr','Mai'];
 const atend=[28,32,29,38,41,47];const rec=[210,245,218,290,318,365];
 const maxA=Math.max(...atend),maxR=Math.max(...rec);
 window.addEventListener('load',()=>{
+  initDashboard();
   renderSlots();
   const c=document.getElementById('dash-bars');if(!c)return;
   months.forEach((m,i)=>{const hA=Math.round((atend[i]/maxA)*78);const hR=Math.round((rec[i]/maxR)*78);c.innerHTML+=`<div class="bar-g"><div class="bar-pair"><div class="b b-pk" style="height:${hA}px"></div><div class="b b-tl" style="height:${hR}px"></div></div><div class="bar-lbl">${m}</div></div>`;});
@@ -1662,6 +1749,7 @@ function abrirAgendaPromo(nome){
 const _origGoTo = window.goTo;
 
 // ── Expor funções globalmente (necessário com type="module") ──────────────
+window.initDashboard = initDashboard;
 window.toggleFaq = toggleFaq;
 window.filterCat = filterCat;
 window.filterFaq = filterFaq;
