@@ -1421,29 +1421,32 @@ function sairCli(){ if(window._sairCli) window._sairCli(); }
 <!-- LOGIN CLIENTE -->
 <div id="login-cli-screen" style="position:fixed;inset:0;z-index:9100;display:flex;flex-direction:column;background:#7B2D8B;overflow:hidden;height:100dvh">
 
-  <!-- FOTO: ocupa espaço disponível, encolhe quando teclado abre -->
+  <!-- FOTO: 2/3 da tela — imagem limpa sem campos desenhados -->
   <div id="cli-foto" style="position:relative;overflow:hidden;flex:2;min-height:0">
-    <img src="hero-cliente.jpg" alt="MeCuidar" style="width:100%;height:100%;object-fit:cover;object-position:center 35%;display:block">
-    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.05) 0%,transparent 40%,rgba(107,45,139,.55) 75%,rgba(107,45,139,.95) 100%)"></div>
-    <svg style="position:absolute;bottom:-1px;left:0;width:100%" viewBox="0 0 390 50" preserveAspectRatio="none">
-      <path d="M0,25 Q65,0 130,18 Q195,36 260,18 Q325,0 390,22 L390,50 L0,50 Z" fill="#7B2D8B"/>
-    </svg>
+    <img src="hero-cliente.jpg" alt="MeCuidar" style="
+      width:100%;height:100%;
+      object-fit:cover;
+      object-position:center 30%;
+      display:block;
+    ">
+    <!-- Overlay gradiente — funde com o roxo da onda que já está na imagem -->
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.02) 0%,transparent 50%,rgba(107,45,139,.15) 85%,rgba(107,45,139,.5) 100%)"></div>
   </div>
 
-  <!-- FORMULÁRIO: altura fixa, sempre visível -->
-  <div id="cli-form" style="background:linear-gradient(180deg,#7B2D8B,#5a1f6e);padding:12px 24px env(safe-area-inset-bottom, 16px);flex-shrink:0">
+  <!-- FORMULÁRIO: 1/3 da tela -->
+  <div id="cli-form" style="background:linear-gradient(180deg,#9B3D8B,#5a1f6e);padding:14px 24px env(safe-area-inset-bottom, 16px);flex:1;display:flex;flex-direction:column;justify-content:center">
     <div style="max-width:400px;margin:0 auto;width:100%">
-      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:8px 16px;margin-bottom:8px;border:1px solid rgba(255,255,255,.25)">
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:9px 16px;margin-bottom:8px;border:1px solid rgba(255,255,255,.25)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20 Q4 16 12 16 Q20 16 20 20"/></svg>
         <input id="cli-email" type="email" placeholder="E-mail" autocomplete="username" style="background:none;border:none;outline:none;color:white;font-size:16px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
       </div>
-      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:8px 16px;margin-bottom:6px;border:1px solid rgba(255,255,255,.25)">
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:9px 16px;margin-bottom:6px;border:1px solid rgba(255,255,255,.25)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 Q8 3 12 3 Q16 3 16 7 V11"/></svg>
         <input id="cli-pass" type="password" placeholder="Senha" autocomplete="current-password" style="background:none;border:none;outline:none;color:white;font-size:16px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
         <span id="cli-eye" onclick="toggleCliPass()" style="cursor:pointer;color:rgba(255,255,255,.6);font-size:18px;user-select:none;padding:4px">👁</span>
       </div>
-      <div id="cli-error" style="color:#ffb3c6;font-size:11px;text-align:center;margin-bottom:6px;min-height:14px;font-weight:600"></div>
-      <button onclick="doLoginCli()" style="width:100%;padding:11px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:15px;font-weight:700;letter-spacing:.06em;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(153,53,86,.4)">Entrar</button>
+      <div id="cli-error" style="color:#ffb3c6;font-size:11px;text-align:center;margin-bottom:5px;min-height:14px;font-weight:600"></div>
+      <button onclick="doLoginCli()" style="width:100%;padding:12px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:15px;font-weight:700;letter-spacing:.06em;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(153,53,86,.4)">Entrar</button>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
         <span onclick="recuperarSenhaCli()" style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;text-decoration:underline">Esqueci minha senha</span>
         <span onclick="voltarLoginPro()" style="font-size:11px;color:rgba(255,255,255,.4);cursor:pointer">Acesso profissional →</span>
