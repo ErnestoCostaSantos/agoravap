@@ -213,6 +213,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fidel-name{font-size:12px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fidel-sub{font-size:10px;color:var(--tx3)}
 .fidel-score{font-size:13px;font-weight:700;color:#c49b00;min-width:28px;text-align:right}
+/* Botões lótus */
+.lotus-btn{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  width:88px;padding:16px 8px 14px;
+  background:rgba(255,255,255,.75);
+  border:1.5px solid rgba(153,53,86,.2);
+  border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+  cursor:pointer;font-family:inherit;
+  color:#993556;font-size:11px;font-weight:600;
+  letter-spacing:.03em;
+  box-shadow:0 4px 16px rgba(153,53,86,.12);
+  transition:all .2s;
+  backdrop-filter:blur(8px);
+}
+.lotus-btn:hover{
+  background:rgba(153,53,86,.1);
+  border-color:rgba(153,53,86,.5);
+  transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(153,53,86,.2);
+}
+.lotus-icon{
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,#fbeaf0,#f4c0d1);
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(153,53,86,.15);
+}
 .btn-periodo{padding:5px 12px;border-radius:20px;border:1px solid var(--br);background:var(--bg2);color:var(--tx2);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
 .btn-periodo.active{background:#fffbea;border-color:#f5d84a;color:#7a5f00;font-weight:600}
 .faq-item:last-child{border-bottom:none}
@@ -252,7 +278,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="login-screen" style="
   position:fixed;inset:0;z-index:9000;overflow:hidden;
   background:#f0ebe6;
-  display:flex;flex-direction:column;
+  display:none;flex-direction:column;
 ">
   <!-- Hero image -->
   <div style="flex:1;overflow:hidden;position:relative;min-height:0;background:#f0ebe6;">
@@ -320,6 +346,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </button>
       <div style="text-align:center;margin-top:14px">
         <span style="font-size:12px;color:#9a7a8a;cursor:pointer;letter-spacing:0.03em;text-decoration:underline" onclick="recuperarSenha()">Esqueci minha senha</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0 4px">
+        <div style="flex:1;height:1px;background:#e8dde3"></div>
+        <span style="font-size:11px;color:#c9aab8">ou</span>
+        <div style="flex:1;height:1px;background:#e8dde3"></div>
+      </div>
+      <div style="text-align:center">
+        <span style="font-size:13px;color:#9a7a8a">Sou cliente? </span>
+        <span onclick="abrirLoginCliente()" style="font-size:13px;color:#6B2D8B;font-weight:700;cursor:pointer;text-decoration:underline">Entrar aqui</span>
       </div>
     </div>
   </div>
@@ -936,17 +971,28 @@ setPersistence(auth, browserSessionPersistence).then(() => {
         cp = snap.data();
         cu = user;
 
+        // Oculta AMBAS as telas de login
+        const cliLogin = document.getElementById('login-cli-screen');
         if (loginScreen) loginScreen.style.display = 'none';
-        if (appDiv)      appDiv.style.display = 'flex';
+        if (cliLogin)    cliLogin.style.display = 'none';
 
-        const uName = document.getElementById('u-name');
-        const uRole = document.getElementById('u-role');
-        const uAv   = document.getElementById('u-av');
-        if (uName) uName.textContent = cp.name || user.email;
-        if (uRole) uRole.textContent = cp.role === 'admin' ? 'Administradora'
-                                     : cp.role === 'profissional' ? 'Profissional'
-                                     : 'Cliente';
-        if (uAv)   uAv.textContent = (cp.name || 'U').charAt(0).toUpperCase();
+        if (cp.role === 'cliente') {
+          // ── Rota Cliente → home MeCuidar ──
+          const homeCliente = document.getElementById('home-cli-screen');
+          if (homeCliente) homeCliente.style.display = 'flex';
+          const welcome = document.getElementById('cli-welcome');
+          if (welcome) welcome.textContent = 'Olá, ' + (cp.name || user.email.split('@')[0]) + '! 👋';
+
+        } else {
+          // ── Rota Profissional/Admin → app principal ──
+          if (appDiv) appDiv.style.display = 'flex';
+          const uName = document.getElementById('u-name');
+          const uRole = document.getElementById('u-role');
+          const uAv   = document.getElementById('u-av');
+          if (uName) uName.textContent = cp.name || user.email;
+          if (uRole) uRole.textContent = cp.role === 'admin' ? 'Administradora' : 'Profissional';
+          if (uAv)   uAv.textContent = (cp.name || 'U').charAt(0).toUpperCase();
+        }
 
         resetInactivityTimer();
 
@@ -957,11 +1003,14 @@ setPersistence(auth, browserSessionPersistence).then(() => {
 
     } else {
       cu = null; cp = null;
-      if (loginScreen) {
-        loginScreen.style.display = 'flex';
-        loginScreen.style.opacity = '1';
-      }
+      // Oculta tudo
+      if (loginScreen) loginScreen.style.display = 'none';
       if (appDiv) appDiv.style.display = 'none';
+      const homeCliente = document.getElementById('home-cli-screen');
+      if (homeCliente) homeCliente.style.display = 'none';
+      // Mostra tela de entrada (cliente)
+      const cliLogin = document.getElementById('login-cli-screen');
+      if (cliLogin) cliLogin.style.display = 'flex';
     }
   });
 
@@ -1252,6 +1301,70 @@ function publicarPromo(){
   setTimeout(()=>{ toast.style.display='none'; },3500);
 }
 
+
+function abrirLoginCliente(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('login-cli-screen').style.display = 'flex';
+}
+function voltarLoginPro(){
+  document.getElementById('login-cli-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+window.abrirLoginCliente = abrirLoginCliente;
+window.voltarLoginPro    = voltarLoginPro;
+
+// ── Login Cliente ─────────────────────────────────────────────────────────
+function toggleCliPass(){
+  const el = document.getElementById('cli-pass');
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+async function doLoginCli(){
+  const email = (document.getElementById('cli-email')?.value || '').trim();
+  const pass  = document.getElementById('cli-pass')?.value || '';
+  const errEl = document.getElementById('cli-error');
+  const btn   = document.querySelector('#login-cli-screen button[onclick="doLoginCli()"]');
+  if (!email || !pass) { if(errEl) errEl.textContent='Preencha e-mail e senha.'; return; }
+  if (btn) { btn.textContent = 'Entrando...'; btn.disabled = true; }
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    // onAuthStateChanged cuida do roteamento por role automaticamente
+  } catch(e) {
+    const msgs = {
+      'auth/invalid-credential':'E-mail ou senha incorretos.',
+      'auth/wrong-password':'Senha incorreta.',
+      'auth/user-not-found':'E-mail não cadastrado.',
+      'auth/too-many-requests':'Muitas tentativas. Tente mais tarde.'
+    };
+    if(errEl) errEl.textContent = msgs[e.code] || 'Erro ao entrar.';
+  } finally {
+    if (btn) { btn.textContent = 'Entrar'; btn.disabled = false; }
+  }
+}
+function recuperarSenhaCli(){
+  const email = (document.getElementById('cli-email')?.value || '').trim();
+  const errEl = document.getElementById('cli-error');
+  if (!email) { if(errEl) errEl.textContent='Digite seu e-mail acima.'; return; }
+  sendPasswordResetEmail(auth, email)
+    .then(() => { if(errEl) errEl.textContent='E-mail de recuperação enviado!'; errEl.style.color='#b3ffda'; })
+    .catch(() => { if(errEl) errEl.textContent='E-mail não encontrado.'; });
+}
+function goToCliSection(id){
+  document.getElementById('home-cli-screen').style.display = 'none';
+  // Ativa visão cliente e vai para a aba correta
+  const cliBtn = document.querySelector('button[onclick="setRole('c',this)"]');
+  if(cliBtn) setRole('c', cliBtn);
+  goTo(id, document.querySelector(`button[onclick="goTo('${id}',this)"]`));
+}
+function sairCli(){
+  signOut(auth);
+  // onAuthStateChanged já redireciona para login-cli-screen
+}
+window.toggleCliPass     = toggleCliPass;
+window.doLoginCli        = doLoginCli;
+window.recuperarSenhaCli = recuperarSenhaCli;
+window.goToCliSection    = goToCliSection;
+window.sairCli           = sairCli;
+
 // ── Expor funções globalmente (necessário com type="module") ──────────────
 window.toggleFaq = toggleFaq;
 window.filterCat = filterCat;
@@ -1282,5 +1395,185 @@ window.previewPromoImg = previewPromoImg;
 window.publicarPromo = publicarPromo;
 
 </script>
+
+<!-- LOGIN CLIENTE -->
+<div id="login-cli-screen" style="
+  position:fixed;inset:0;z-index:9100;
+  display:flex;flex-direction:column;
+  background:#fff;overflow:hidden;
+">
+  <!-- Parte superior: foto + nome + especialidades -->
+  <div style="flex:1;position:relative;overflow:hidden;min-height:0">
+    <!-- Foto de fundo -->
+    <img src="hero-cliente.jpg" style="
+      position:absolute;inset:0;width:100%;height:100%;
+      object-fit:cover;object-position:center 20%;
+    ">
+    <!-- Overlay gradiente suave no topo -->
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.15) 0%,transparent 40%,rgba(120,40,120,.55) 85%,rgba(120,40,120,.9) 100%)"></div>
+    <!-- Logo e nome -->
+    <div style="position:absolute;top:28px;left:0;right:0;text-align:center">
+      <!-- ícone lótus SVG -->
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 6px">
+        <circle cx="26" cy="26" r="24" stroke="#993556" stroke-width="1.5" fill="none"/>
+        <path d="M26 38 C26 38 16 30 16 22 C16 17 20 14 26 18 C32 14 36 17 36 22 C36 30 26 38 26 38Z" stroke="#993556" stroke-width="1.2" fill="none"/>
+        <path d="M26 18 C26 18 22 20 22 24 C22 28 26 31 26 31 C26 31 30 28 30 24 C30 20 26 18 26 18Z" fill="#993556" opacity="0.3"/>
+        <path d="M26 14 L26 10" stroke="#993556" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M26 11 C24 9 21 9 20 11" stroke="#993556" stroke-width="1" fill="none" stroke-linecap="round"/>
+        <path d="M26 11 C28 9 31 9 32 11" stroke="#993556" stroke-width="1" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div style="font-family:Georgia,serif;font-size:30px;font-weight:400;letter-spacing:.05em">
+        <span style="color:#993556">Me</span><span style="color:#6B2D8B">Cuidar</span>
+      </div>
+      <div style="font-size:13px;color:#6B2D8B;letter-spacing:.18em;text-transform:uppercase;margin-top:2px">Studio Luna</div>
+    </div>
+    <!-- Especialidades lado direito -->
+    <div style="position:absolute;right:18px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;align-items:center">
+      <div style="text-align:center">
+        <div style="width:48px;height:48px;border:1.5px solid rgba(153,53,86,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15);backdrop-filter:blur(4px)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(153,53,86,.9)" stroke-width="1.3"><circle cx="12" cy="8" r="4"/><path d="M8 8 Q6 10 7 13 Q8 15 12 16 Q16 15 17 13 Q18 10 16 8"/></svg>
+        </div>
+        <div style="font-size:9px;color:rgba(255,255,255,.95);margin-top:3px;text-align:center;font-weight:500;line-height:1.2">Estética<br>Facial</div>
+      </div>
+      <div style="text-align:center">
+        <div style="width:48px;height:48px;border:1.5px solid rgba(153,53,86,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15);backdrop-filter:blur(4px)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(153,53,86,.9)" stroke-width="1.3"><path d="M12 4 Q8 6 8 10 Q8 16 12 20 Q16 16 16 10 Q16 6 12 4Z"/></svg>
+        </div>
+        <div style="font-size:9px;color:rgba(255,255,255,.95);margin-top:3px;text-align:center;font-weight:500;line-height:1.2">Estética<br>Corporal</div>
+      </div>
+      <div style="text-align:center">
+        <div style="width:48px;height:48px;border:1.5px solid rgba(153,53,86,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15);backdrop-filter:blur(4px)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(153,53,86,.9)" stroke-width="1.3"><path d="M7 17 Q9 12 14 10 Q18 9 19 11 Q20 14 17 16 Q14 18 10 17 Q8 16 7 17Z"/></svg>
+        </div>
+        <div style="font-size:9px;color:rgba(255,255,255,.95);margin-top:3px;text-align:center;font-weight:500;line-height:1.2">Beleza e<br>Bem-estar</div>
+      </div>
+    </div>
+    <!-- onda roxa na base -->
+    <svg style="position:absolute;bottom:-1px;left:0;width:100%" viewBox="0 0 390 60" preserveAspectRatio="none">
+      <path d="M0,30 Q60,0 120,20 Q180,40 240,20 Q300,0 360,25 Q375,30 390,28 L390,60 L0,60 Z" fill="#7B2D8B"/>
+    </svg>
+  </div>
+
+  <!-- Parte inferior: formulário roxo -->
+  <div style="background:linear-gradient(180deg,#7B2D8B,#5a1f6e);padding:28px 24px 36px;flex-shrink:0">
+    <!-- Campo login -->
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:12px 18px;margin-bottom:14px;border:1px solid rgba(255,255,255,.25)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20 Q4 16 12 16 Q20 16 20 20"/></svg>
+      <input id="cli-email" type="email" placeholder="Login" autocomplete="email" style="background:none;border:none;outline:none;color:white;font-size:15px;flex:1;font-family:inherit;letter-spacing:.02em">
+      <div style="width:20px"></div>
+    </div>
+    <!-- Campo senha -->
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:12px 18px;margin-bottom:20px;border:1px solid rgba(255,255,255,.25)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 Q8 3 12 3 Q16 3 16 7 V11"/></svg>
+      <input id="cli-pass" type="password" placeholder="Senha" autocomplete="current-password" style="background:none;border:none;outline:none;color:white;font-size:15px;flex:1;font-family:inherit">
+      <svg id="cli-eye" onclick="toggleCliPass()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5" style="cursor:pointer"><path d="M2 12 Q12 4 22 12 Q12 20 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+    </div>
+    <!-- Erro -->
+    <div id="cli-error" style="color:#ffb3c6;font-size:12px;text-align:center;margin-top:-10px;margin-bottom:10px;min-height:16px;font-weight:600"></div>
+    <!-- Botão entrar -->
+    <button onclick="doLoginCli()" style="
+      width:100%;padding:15px;border:none;border-radius:30px;
+      background:linear-gradient(90deg,#D4537E,#993556);
+      color:white;font-size:16px;font-weight:700;
+      letter-spacing:.06em;cursor:pointer;font-family:inherit;
+      box-shadow:0 4px 20px rgba(153,53,86,.4);
+    ">Entrar</button>
+    <!-- Links -->
+    <div style="text-align:center;margin-top:16px">
+      <span onclick="recuperarSenhaCli()" style="font-size:13px;color:rgba(255,255,255,.7);cursor:pointer;text-decoration:underline">Esqueci minha senha</span>
+    </div>
+    <div style="text-align:center;margin-top:8px">
+      <span onclick="voltarLoginPro()" style="font-size:12px;color:rgba(255,255,255,.5);cursor:pointer">← Acesso profissional</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.2)"></div>
+      <span style="font-size:12px;color:rgba(255,255,255,.5)">ou</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.2)"></div>
+    </div>
+    <div style="text-align:center">
+      <span style="font-size:13px;color:rgba(255,255,255,.6)">Não tem conta? </span>
+      <span style="font-size:13px;color:#ffb3d9;font-weight:700;cursor:pointer">Cadastre-se</span>
+    </div>
+  </div>
+</div>
+
+<!-- HOME CLIENTE (após login) -->
+<div id="home-cli-screen" style="
+  position:fixed;inset:0;z-index:9050;
+  display:none;flex-direction:column;
+  overflow:hidden;
+">
+  <!-- Fundo com marca d'água suave da foto -->
+  <div style="position:absolute;inset:0">
+    <img src="hero-cliente.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center 15%;opacity:.07">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,#fdf5f8 0%,#f8eef3 100%)"></div>
+  </div>
+  <!-- Conteúdo -->
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%">
+    <!-- Header -->
+    <div style="padding:48px 20px 16px;text-align:center">
+      <div style="font-family:Georgia,serif;font-size:26px;font-weight:400;letter-spacing:.05em">
+        <span style="color:#993556">Me</span><span style="color:#6B2D8B">Cuidar</span>
+      </div>
+      <div style="font-size:11px;color:#9a7a8a;letter-spacing:.2em;text-transform:uppercase;margin-top:2px">Studio Luna</div>
+      <div style="font-size:13px;color:#993556;margin-top:8px;font-weight:500" id="cli-welcome">Olá! 👋</div>
+    </div>
+
+    <!-- Botões lótus -->
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 16px;gap:14px">
+
+      <!-- Linha 1 -->
+      <div style="display:flex;justify-content:center;gap:12px">
+        <button class="lotus-btn" onclick="goToCliSection('c-servicos')">
+          <div class="lotus-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 3 Q8 5 8 9 Q8 14 12 17 Q16 14 16 9 Q16 5 12 3Z"/><path d="M6 7 Q3 9 3 12 Q3 16 8 18" stroke-opacity=".6"/><path d="M18 7 Q21 9 21 12 Q21 16 16 18" stroke-opacity=".6"/></svg>
+          </div>
+          <span>Serviços</span>
+        </button>
+        <button class="lotus-btn" onclick="goToCliSection('c-promos')">
+          <div class="lotus-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 2 L15 9 L22 9 L17 14 L19 21 L12 17 L5 21 L7 14 L2 9 L9 9 Z"/></svg>
+          </div>
+          <span>Promoções</span>
+        </button>
+        <button class="lotus-btn" onclick="goToCliSection('c-agenda')">
+          <div class="lotus-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9 L21 9"/><path d="M8 2 L8 6"/><path d="M16 2 L16 6"/><path d="M8 13 L10 15 L16 12"/></svg>
+          </div>
+          <span>Reservar</span>
+        </button>
+      </div>
+
+      <!-- Linha 2 -->
+      <div style="display:flex;justify-content:center;gap:12px">
+        <button class="lotus-btn" onclick="goToCliSection('c-chat')">
+          <div class="lotus-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 4 Q4 3 12 3 Q20 3 20 8 Q20 13 12 13 Q10 13 8 12 L4 14 L5 11 Q4 10 4 8 Q4 6 4 4Z"/></svg>
+          </div>
+          <span>Ajuda</span>
+        </button>
+        <button class="lotus-btn" onclick="abrirWpp('Ola! Gostaria de falar com o Studio Luna.')">
+          <div class="lotus-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </div>
+          <span>Contato</span>
+        </button>
+        <button class="lotus-btn" onclick="sairCli()">
+          <div class="lotus-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </div>
+          <span>Sair</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Rodapé -->
+    <div style="text-align:center;padding:16px 0 32px">
+      <div style="font-size:10px;color:#c9aab8;letter-spacing:.1em">belezza · Studio Luna</div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
