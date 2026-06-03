@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.4.5</title>
+<title>Belezza — Studio Luna v1.4.8</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -418,7 +418,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="tb-right">
       <button class="btn" onclick="openHelp()"><i class="ti ti-help-circle"></i> Ajuda</button>
-      <button class="btn pk" id="tb-act"><i class="ti ti-plus"></i> <span id="tb-act-lbl">Novo agendamento</span></button>
+      <button class="btn pk" id="tb-act" onclick="abrirModalAg()"><i class="ti ti-plus"></i> <span id="tb-act-lbl">Novo agendamento</span></button>
     </div>
   </div>
 
@@ -485,7 +485,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <span class="card-link" onclick="goTo('p-agenda',null)">ver todas →</span>
         </div>
         <div class="row-item">
-          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaPaula&backgroundColor=fbeaf0" style="width:32px;height:32px;border-radius:50%">
+          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaFlor&backgroundColor=fbeaf0" style="width:32px;height:32px;border-radius:50%">
           <div style="flex:1;min-width:0">
             <div class="row-name" style="font-size:12px">Ana Paula Ferreira</div>
             <div class="row-sub">Limpeza de pele · 07/06 às 14h30 · Carla M.</div>
@@ -512,7 +512,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="two-col">
         <div class="card">
           <div class="card-title">Equipe hoje <span class="card-link" onclick="goTo('p-equipe',null)">ver todos →</span></div>
-          <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaM&backgroundColor=fbeaf0" style="width:28px;height:28px;border-radius:50%" alt="Carla M."><div><div class="row-name" style="font-size:12px">Carla Mendes</div><div class="row-sub">Estética facial</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">5 hoje</div></div>
+          <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaLuna&backgroundColor=fbeaf0" style="width:28px;height:28px;border-radius:50%" alt="Carla M."><div><div class="row-name" style="font-size:12px">Carla Mendes</div><div class="row-sub">Estética facial</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">5 hoje</div></div>
           <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=FernandaR&backgroundColor=e1f5ee" style="width:28px;height:28px;border-radius:50%" alt="Fernanda R."><div><div class="row-name" style="font-size:12px">Fernanda Rocha</div><div class="row-sub">Dermato estética</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">4 hoje</div></div>
           <div class="row-item"><div class="dot dot-off"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=JulianaS&backgroundColor=eeedfe" style="width:28px;height:28px;border-radius:50%" alt="Juliana S."><div><div class="row-name" style="font-size:12px">Juliana Santos</div><div class="row-sub">Design &amp; micropigm.</div></div><div class="row-right" style="font-size:11px;color:var(--tx3)">folga</div></div>
           <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=BeatrizL&backgroundColor=faece7" style="width:28px;height:28px;border-radius:50%" alt="Beatriz L."><div><div class="row-name" style="font-size:12px">Beatriz Lima</div><div class="row-sub">Massoterapia</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">3 hoje</div></div>
@@ -573,7 +573,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <!-- cliente 1 — TOP (score alto) -->
       <div class="cli-row" style="border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent)">
         <div style="position:relative">
-          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaCosta&backgroundColor=e1f5ee" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Mariana Costa">
+          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaRosa&backgroundColor=e1f5ee" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Mariana Costa">
           <div style="position:absolute;top:-4px;right:-4px;background:#f5d84a;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="font-size:9px;color:#7a5f00"></i></div>
         </div>
         <div style="flex:1;min-width:0"><div class="row-name">Mariana Costa</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Botox · Fernanda R.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 91234-5678</div></div>
@@ -582,7 +582,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <!-- cliente 2 — TOP -->
       <div class="cli-row" style="border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent)">
         <div style="position:relative">
-          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaPaula&backgroundColor=fbeaf0" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Ana Paula">
+          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaFlor&backgroundColor=fbeaf0" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Ana Paula">
           <div style="position:absolute;top:-4px;right:-4px;background:#f5d84a;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="font-size:9px;color:#7a5f00"></i></div>
         </div>
         <div style="flex:1;min-width:0"><div class="row-name">Ana Paula Ferreira</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Limpeza de pele · Carla M.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 98765-4321</div></div>
@@ -599,7 +599,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <div class="pane" id="pane-p-equipe">
       <div class="search-bar"><i class="ti ti-search"></i><input placeholder="Buscar profissional..."></div>
-      <div class="pro-card"><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaM&backgroundColor=fbeaf0" style="width:42px;height:42px;border-radius:50%;object-fit:cover;background:var(--pk50);flex-shrink:0" alt="Carla Mendes"><div class="pro-info"><div class="row-name">Carla Mendes</div><div class="row-sub">Estética facial · Dermato</div><div class="pro-stats-row"><div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>18/mês</div><div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>4.9</div><div class="dot dot-ok"></div></div></div><div class="pro-right"><div class="pro-ticket">R$ 340</div><div style="font-size:10px;color:var(--tx3)">ticket médio</div><div class="pro-actions"><button class="btn-sm2">Agenda</button><button class="btn-sm2">Editar</button></div></div></div>
+      <div class="pro-card"><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaLuna&backgroundColor=fbeaf0" style="width:42px;height:42px;border-radius:50%;object-fit:cover;background:var(--pk50);flex-shrink:0" alt="Carla Mendes"><div class="pro-info"><div class="row-name">Carla Mendes</div><div class="row-sub">Estética facial · Dermato</div><div class="pro-stats-row"><div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>18/mês</div><div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>4.9</div><div class="dot dot-ok"></div></div></div><div class="pro-right"><div class="pro-ticket">R$ 340</div><div style="font-size:10px;color:var(--tx3)">ticket médio</div><div class="pro-actions"><button class="btn-sm2">Agenda</button><button class="btn-sm2">Editar</button></div></div></div>
       <div class="pro-card"><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=FernandaR&backgroundColor=e1f5ee" style="width:42px;height:42px;border-radius:50%;object-fit:cover;background:var(--tl50);flex-shrink:0" alt="Fernanda Rocha"><div class="pro-info"><div class="row-name">Fernanda Rocha</div><div class="row-sub">Dermato estética · Botox</div><div class="pro-stats-row"><div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>15/mês</div><div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>4.8</div><div class="dot dot-ok"></div></div></div><div class="pro-right"><div class="pro-ticket">R$ 410</div><div style="font-size:10px;color:var(--tx3)">ticket médio</div><div class="pro-actions"><button class="btn-sm2">Agenda</button><button class="btn-sm2">Editar</button></div></div></div>
       <div class="pro-card"><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=JulianaS&backgroundColor=eeedfe" style="width:42px;height:42px;border-radius:50%;object-fit:cover;background:var(--pu50);flex-shrink:0" alt="Juliana Santos"><div class="pro-info"><div class="row-name">Juliana Santos</div><div class="row-sub">Design · Micropigmentação</div><div class="pro-stats-row"><div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>9/mês</div><div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>5.0</div><div class="dot dot-off"></div></div></div><div class="pro-right"><div class="pro-ticket">R$ 280</div><div style="font-size:10px;color:var(--tx3)">ticket médio</div><div class="pro-actions"><button class="btn-sm2">Agenda</button><button class="btn-sm2">Editar</button></div></div></div>
       <button class="add-btn"><i class="ti ti-plus"></i> Adicionar profissional</button>
@@ -700,14 +700,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <div style="display:flex;flex-direction:column;gap:6px" id="fidelidade-lista">
             <div class="fidel-row" style="background:linear-gradient(90deg,#fffdf0,transparent)">
               <div class="fidel-pos" style="background:#f5d84a;color:#7a5f00">1</div>
-              <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaCosta&backgroundColor=e1f5ee" class="fidel-av">
+              <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaRosa&backgroundColor=e1f5ee" class="fidel-av">
               <div class="fidel-info"><div class="fidel-name">Mariana Costa</div><div class="fidel-sub">5 visitas · R$ 820</div></div>
               <div class="fidel-score">4.8</div>
               <button class="btn tl sm" onclick="abrirWppFidel('(11) 91234-5678','Mariana')"><i class="ti ti-brand-whatsapp"></i></button>
             </div>
             <div class="fidel-row" style="background:linear-gradient(90deg,#fffdf0,transparent)">
               <div class="fidel-pos" style="background:#e8e0c8;color:#5a4f2a">2</div>
-              <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaPaula&backgroundColor=fbeaf0" class="fidel-av">
+              <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaFlor&backgroundColor=fbeaf0" class="fidel-av">
               <div class="fidel-info"><div class="fidel-name">Ana Paula Ferreira</div><div class="fidel-sub">3 visitas · R$ 540</div></div>
               <div class="fidel-score">3.2</div>
               <button class="btn tl sm" onclick="abrirWppFidel('(11) 98765-4321','Ana Paula')"><i class="ti ti-brand-whatsapp"></i></button>
@@ -912,7 +912,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="pane" id="pane-c-chat">
       <div class="sec-lbl">Fale com o Studio Luna</div>
       <div class="chat-wrap">
-        <div class="chat-hd"><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaM&backgroundColor=fbeaf0" style="width:32px;height:32px;border-radius:50%"><div style="flex:1"><div class="row-name" style="font-size:13px">Carla Lima · Líder</div><div class="chat-online">Studio Luna</div></div><i class="ti ti-phone" style="font-size:18px;color:var(--tx2)" onclick="abrirWpp('Ola! Vim pelo app Studio Luna.')"></i></div>
+        <div class="chat-hd"><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaLuna&backgroundColor=fbeaf0" style="width:32px;height:32px;border-radius:50%"><div style="flex:1"><div class="row-name" style="font-size:13px">Carla Lima · Líder</div><div class="chat-online">Studio Luna</div></div><i class="ti ti-phone" style="font-size:18px;color:var(--tx2)" onclick="abrirWpp('Ola! Vim pelo app Studio Luna.')"></i></div>
         <div class="msgs" id="chat-msgs">
           <div class="msg r"><div class="bbl">Olá! Bem-vinda ao Studio Luna 💕 Como posso te ajudar?</div><div class="mtime">09:41</div></div>
           <div class="msg s"><div class="bbl">Quanto tempo dura o botox?</div><div class="mtime">09:43</div></div>
@@ -1395,12 +1395,91 @@ function feito2(){
 function encerrarCamp(){document.getElementById('c3').className='step-circle done';document.getElementById('c3').innerHTML='<i class="ti ti-check"></i>';document.getElementById('a3').innerHTML='<span style="font-size:11px;color:var(--tx3)">Campanha encerrada</span>';}
 function toggleNovaCamp(){const f=document.getElementById('nova-camp');f.style.display=f.style.display==='none'?'block':'none';}
 
+// Dados de agendamentos em memória
+let agendamentos = [
+  {id:'req1', cliente:'Ana Paula Ferreira', servico:'Limpeza de pele', data:'07/06', hora:'14h30', prof:'Carla M.', origem:'Módulo Serviços', status:'pendente'},
+  {id:'req2', cliente:'Sofia Alves', servico:'Preenchimento labial', data:'08/06', hora:'10h00', prof:'Fernanda R.', origem:'Módulo Serviços', status:'pendente'},
+];
+
 function confirmar(id){
-  const c=document.getElementById(id);if(!c)return;
-  c.style.background='var(--tl50)';c.querySelector('div:last-child').innerHTML='<span class="badge badge-ok">Confirmado</span>';
-  setTimeout(()=>c.remove(),1200);
+  const ag = agendamentos.find(a => a.id === id);
+  if(ag) ag.status = 'confirmado';
+  const el = document.getElementById(id);
+  if(el){
+    el.style.background = 'var(--tl50)';
+    el.style.transition = 'all .3s';
+    const btns = el.querySelector('div:last-child');
+    if(btns) btns.innerHTML = '<span class="badge badge-ok">Confirmado ✓</span>';
+    setTimeout(() => { el.remove(); atualizarPendentes(); adicionarConfirmado(ag); }, 1000);
+  }
 }
-function recusar(id){const c=document.getElementById(id);if(!c)return;c.style.opacity='.4';setTimeout(()=>c.remove(),500);}
+
+function recusar(id){
+  const ag = agendamentos.find(a => a.id === id);
+  if(ag) ag.status = 'recusado';
+  const el = document.getElementById(id);
+  if(!el) return;
+  // Mostra aviso de contato
+  const aviso = document.createElement('div');
+  aviso.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;border-radius:var(--r);padding:10px 14px;margin:4px 0;font-size:12px;color:#856404;display:flex;align-items:center;gap:8px;transition:opacity .4s';
+  aviso.innerHTML = '<i class="ti ti-phone" style="font-size:16px;flex-shrink:0"></i><span>Solicitação recusada. <strong>Entre em contato com ' + (ag ? ag.cliente : 'a cliente') + '</strong> para informar e oferecer uma nova data.</span>';
+  el.insertAdjacentElement('afterend', aviso);
+  // Remove card e aviso
+  el.style.opacity = '.3';
+  el.style.transition = 'opacity .3s';
+  setTimeout(() => { el.remove(); atualizarPendentes(); }, 400);
+  setTimeout(() => { aviso.style.opacity = '0'; setTimeout(() => aviso.remove(), 400); }, 4000);
+}
+
+function atualizarPendentes(){
+  const pendentes = agendamentos.filter(a => a.status === 'pendente');
+  const badge = document.getElementById('dash-pendentes-badge');
+  if(badge){
+    if(pendentes.length === 0){
+      badge.innerHTML = '<i class="ti ti-calendar-check" style="font-size:14px;color:var(--tl400)"></i><span style="font-size:12px;font-weight:700;color:var(--tl600)">Tudo confirmado!</span>';
+    } else {
+      badge.querySelector('span').textContent = pendentes.length + ' pendente' + (pendentes.length > 1 ? 's' : '');
+    }
+  }
+}
+
+function adicionarConfirmado(ag){
+  if(!ag) return;
+  const hdr = document.querySelector('#pane-p-agenda .day-hdr');
+  if(!hdr) return;
+  const card = document.createElement('div');
+  card.className = 'ag-card';
+  card.innerHTML = `<div class="ag-time">${ag.data}</div><div class="ag-bar" style="background:var(--pk400)"></div><div class="ag-info"><div class="ag-svc">${ag.servico} — ${ag.cliente}</div><div class="ag-meta"><i class="ti ti-clock" style="font-size:11px"></i>${ag.hora} · ${ag.prof} · <span style="color:var(--pk600);font-size:10px">${ag.origem}</span></div></div><span class="badge badge-ok">Confirmado</span>`;
+  hdr.insertAdjacentElement('afterend', card);
+}
+
+function abrirModalAg(){
+  const hoje = new Date().toISOString().split('T')[0];
+  const dataEl = document.getElementById('ag-data');
+  if(dataEl){ dataEl.min = hoje; dataEl.value = hoje; }
+  document.getElementById('modal-novo-ag').style.display = 'flex';
+}
+function fecharModalAg(){
+  document.getElementById('modal-novo-ag').style.display = 'none';
+  document.getElementById('ag-toast').style.display = 'none';
+}
+function salvarNovoAg(){
+  const cliente = document.getElementById('ag-cliente').value;
+  const servico = document.getElementById('ag-servico').value;
+  const data    = document.getElementById('ag-data').value;
+  const hora    = document.getElementById('ag-hora').value;
+  const prof    = document.getElementById('ag-prof').value;
+  const origem  = document.getElementById('ag-origem').value;
+  if(!cliente || !servico || !data){ alert('Preencha cliente, serviço e data.'); return; }
+  const d = new Date(data + 'T00:00:00');
+  const dataFmt = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+  const profAbrev = prof.split(' ')[0] + ' ' + prof.split(' ')[1][0] + '.';
+  const novoAg = { id:'ag-'+Date.now(), cliente, servico, data:dataFmt, hora, prof:profAbrev, origem, status:'confirmado' };
+  agendamentos.push(novoAg);
+  adicionarConfirmado(novoAg);
+  document.getElementById('ag-toast').style.display = 'flex';
+  setTimeout(() => fecharModalAg(), 2000);
+}
 
 const slots=['08h00','09h00','10h00','11h00','14h00','15h00','16h00','17h00'];
 const busy=[2,4];let selSlot=-1;
@@ -1768,7 +1847,10 @@ window.abrirWpp = abrirWpp;
 window.feito2 = feito2;
 window.encerrarCamp = encerrarCamp;
 window.toggleNovaCamp = toggleNovaCamp;
-window.confirmar = confirmar;
+window.confirmar      = confirmar;
+window.abrirModalAg   = abrirModalAg;
+window.fecharModalAg  = fecharModalAg;
+window.salvarNovoAg   = salvarNovoAg;
 window.recusar = recusar;
 window.renderSlots = renderSlots;
 window.setPeriodo = setPeriodo;
@@ -1802,6 +1884,9 @@ function enviarSolicitacao(){ if(window.enviarSolicitacao) window.enviarSolicita
 function abrirAgendaPromo(n){ if(window.abrirAgendaPromo) window.abrirAgendaPromo(n); }
 function selecionarServico(c,n,p){ if(window.selecionarServico) window.selecionarServico(c,n,p); }
 function abrirAgendaServico(){ if(window.abrirAgendaServico) window.abrirAgendaServico(); }
+function abrirModalAg(){ if(window.abrirModalAg) window.abrirModalAg(); }
+function fecharModalAg(){ if(window.fecharModalAg) window.fecharModalAg(); }
+function salvarNovoAg(){ if(window.salvarNovoAg) window.salvarNovoAg(); }
 </script>
 
 <!-- LOGIN CLIENTE -->
