@@ -1374,9 +1374,10 @@ function recuperarSenhaCli(){
 function goToCliSection(id){
   document.getElementById('home-cli-screen').style.display = 'none';
   // Ativa visão cliente e vai para a aba correta
-  const cliBtn = document.querySelector('button[onclick="setRole('c',this)"]');
-  if(cliBtn) setRole('c', cliBtn);
-  goTo(id, document.querySelector(`button[onclick="goTo('${id}',this)"]`));
+  const allBtns = document.querySelectorAll('.rbtn');
+  allBtns.forEach(b => { if(b.textContent.trim()==='Cliente') setRole('c', b); });
+  const navBtns = document.querySelectorAll('.nav-item, .mob-tab');
+  navBtns.forEach(b => { if(b.getAttribute('onclick') && b.getAttribute('onclick').includes(id)) goTo(id, b); });
 }
 function sairCli(){
   signOut(auth);
