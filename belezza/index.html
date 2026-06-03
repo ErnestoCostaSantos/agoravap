@@ -218,11 +218,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   display:flex;flex-direction:column;align-items:center;gap:6px;
   background:none;border:none;cursor:pointer;
   font-family:Georgia,serif;color:#993556;
-  font-size:12px;font-weight:500;letter-spacing:.03em;
+  font-size:clamp(10px,1.5vw,13px);font-weight:500;letter-spacing:.03em;
   transition:transform .2s;padding:4px;
 }
 .rosa-btn:hover{ transform:translateY(-4px) scale(1.05); }
-.rosa-svg{ width:76px;height:76px;filter:drop-shadow(0 3px 8px rgba(153,53,86,.2)); }
+.rosa-svg{ width:clamp(60px,10vw,90px);height:clamp(60px,10vw,90px);filter:drop-shadow(0 3px 8px rgba(153,53,86,.2)); }
 /* Mobile: foto ocupa a maior parte, form compacto */
 #cli-foto { flex: 1 1 0; min-height: 0; }
 #cli-form { flex-shrink: 0; }
@@ -1425,11 +1425,13 @@ function sairCli(){ if(window._sairCli) window._sairCli(); }
   <style>
     /* ── MOBILE (portrait) ── */
     @media(max-width:699px){
-      #cli-layout{ display:flex; flex-direction:column; min-height:100dvh; }
-      #cli-foto{ flex:0 0 65vw; max-height:65dvh; position:relative; overflow:hidden; }
-      #cli-foto img.mob{ display:block; width:100%; height:100%; object-fit:cover; object-position:center 8%; }
+      #cli-layout{ display:flex; flex-direction:column; height:100dvh; }
+      /* Foto ocupa exatamente 65% da tela — mostra logo + rosto + cotovelo */
+      #cli-foto{ flex:0 0 65%; position:relative; overflow:hidden; }
+      #cli-foto img.mob{ display:block; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; object-position:center 12%; }
       #cli-foto img.dsk{ display:none; }
-      #cli-form{ flex-shrink:0; background:linear-gradient(180deg,#9B3D8B,#5a1f6e); padding:16px 20px 28px; }
+      /* Form ocupa exatamente 35% — sem espaço extra */
+      #cli-form{ flex:0 0 35%; background:linear-gradient(180deg,#9B3D8B,#5a1f6e); padding:14px 20px env(safe-area-inset-bottom,14px); display:flex; flex-direction:column; justify-content:center; overflow:hidden; }
     }
     /* ── TABLET + DESKTOP ── */
     @media(min-width:700px){
@@ -1437,10 +1439,10 @@ function sairCli(){ if(window._sairCli) window._sairCli(); }
       #cli-foto{ position:absolute; inset:0; }
       #cli-foto img.dsk{ display:block; width:100%; height:100%; object-fit:cover; object-position:center center; }
       #cli-foto img.mob{ display:none; }
-      /* Card de login flutua sobre a imagem — lado direito */
+      /* Card de login — 20% abaixo do topo */
       #cli-form{
         position:absolute;
-        top:50%; right:6%;
+        top:60%; right:6%;
         transform:translateY(-50%);
         width:320px;
         background:rgba(90,31,110,.88);
@@ -1498,19 +1500,23 @@ function sairCli(){ if(window._sairCli) window._sairCli(); }
 <!-- HOME CLIENTE (após login) -->
 <div id="home-cli-screen" style="position:fixed;inset:0;z-index:9050;display:none;flex-direction:column;overflow:hidden">
   <!-- Fundo marca dagua -->
-  <div style="position:absolute;inset:0;display:flex;justify-content:center;background:#fdf5f8">
-    <img src="hero-cliente.jpg" style="height:100%;max-width:480px;width:100%;object-fit:cover;object-position:center 20%;display:block">
-    <div style="position:absolute;inset:0;background:rgba(253,245,248,0.82)"></div>
+  <div style="position:absolute;inset:0;background:#fdf5f8">
+    <img src="hero-cliente.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block;opacity:.15">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(253,245,248,.7) 0%,rgba(248,238,243,.85) 100%)"></div>
   </div>
   <!-- Conteúdo -->
   <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;overflow:auto">
-    <!-- Header — só saudação, logo já está na foto -->
-    <div style="padding:36px 20px 8px;text-align:center;flex-shrink:0">
-      <div style="font-size:15px;color:#993556;font-weight:600;font-family:Georgia,serif" id="cli-welcome">Olá!</div>
+    <!-- Header -->
+    <div style="padding:40px 20px 8px;text-align:center;flex-shrink:0">
+      <div style="font-family:Georgia,serif;font-size:22px;letter-spacing:.05em">
+        <span style="color:#993556;font-weight:700">Me</span><span style="color:#6B2D8B">Cuidar</span>
+      </div>
+      <div style="font-size:10px;color:#9a7a8a;letter-spacing:.2em;text-transform:uppercase;margin-top:2px">Studio Luna</div>
+      <div style="font-size:14px;color:#993556;margin-top:8px;font-weight:500" id="cli-welcome">Olá!</div>
     </div>
-    <!-- Botões rosa -->
-    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 16px 16px;gap:20px">
-      <div style="display:flex;justify-content:center;gap:18px">
+    <!-- Botões rosa — responsivos -->
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 16px 20px;gap:clamp(12px,3vw,24px)">
+      <div style="display:flex;justify-content:center;gap:clamp(10px,3vw,24px)">
         <button class="rosa-btn" onclick="goToCliSection('c-servicos')">
           <svg class="rosa-svg" viewBox="-40 -40 80 80">
             <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#f9d0df" transform="rotate(0)"/>
