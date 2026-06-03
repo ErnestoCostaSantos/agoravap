@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.4.2</title>
+<title>Belezza — Studio Luna v1.4.3</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -943,6 +943,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button class="help-cat" onclick="filterCat('fidelidade',this)">Fidelidade</button>
         <button class="help-cat" onclick="filterCat('agendamentos',this)">Agendamentos</button>
         <button class="help-cat" onclick="filterCat('versaocliente',this)">Versão Cliente</button>
+        <button class="help-cat" onclick="filterCat('imagens',this)">Imagens</button>
         <button class="help-cat" onclick="filterCat('equipe',this)">Equipe</button>
         <button class="help-cat" onclick="filterCat('conta',this)">Conta</button>
       </div>
@@ -1216,6 +1217,13 @@ const faqs=[
   {cat:'versaocliente',q:'Como a cliente volta para a tela de flores?',a:'Pelo botão "← Voltar" que aparece na barra roxa no topo da tela ao navegar pelas seções. O botão "Sair" encerra a sessão e volta para o login.'},
   {cat:'agendamentos',q:'Quais dias aparecem no calendário de agendamento?',a:'Os próximos 15 dias úteis a partir de amanhã, excluindo domingos. O app calcula automaticamente as datas disponíveis.'},
   {cat:'agendamentos',q:'O que significa horário ocupado no calendário?',a:'Horários em cinza já foram reservados por outra cliente e não podem ser selecionados. Apenas os horários em branco estão disponíveis.'},
+  {cat:'imagens',q:'Qual o tamanho ideal da imagem de login para celular?',a:'Proporção 9:19 (portrait), resolução recomendada 863 × 1822 px, formato JPG ou PNG, máximo 300KB. Essa proporção corresponde à tela de celular e evita cortes indesejados.'},
+  {cat:'imagens',q:'Qual o tamanho ideal da imagem de login para desktop?',a:'Proporção 16:9 (landscape), resolução recomendada 1672 × 941 px, formato JPG ou PNG, máximo 400KB. A mulher deve ocupar o lado direito e o logo/ícones o lado esquerdo.'},
+  {cat:'imagens',q:'Quanto espaço livre deixar acima do rosto na imagem mobile?',a:'O rosto deve estar posicionado entre 25% e 55% da altura da imagem. Deixe mínimo 15% de espaço livre no topo acima do logo para evitar corte em telas pequenas.'},
+  {cat:'imagens',q:'Quanto espaço livre deixar na base da imagem mobile?',a:'Mínimo 30% da altura em rosa/degradê na parte inferior. Essa é a área onde o formulário de login se sobrepõe — não colocar elementos importantes ali.'},
+  {cat:'imagens',q:'Quanto espaço livre deixar na lateral direita da imagem mobile?',a:'Mínimo 35% da largura livre à direita do rosto. Esse espaço é usado para os ícones de especialidades (Estética Facial, Corporal, Beleza e Bem-estar).'},
+  {cat:'imagens',q:'Como personalizar a imagem para cada clínica no modelo SaaS?',a:'Siga o checklist: nome da clínica na arte (não depender de overlay CSS), proporção 9:19 mobile e 16:9 desktop, 30% de espaço na base, 35% de largura livre à direita, cores da identidade visual, ícones adaptados. Nome do arquivo: hero-cliente-[nome-clinica].jpg'},
+  {cat:'imagens',q:'Como trocar a imagem de login no app?',a:'Substitua o arquivo hero-cliente.jpg (mobile) ou hero-cliente-desktop.jpg (desktop) na pasta belezza/ do GitHub. O Vercel publica automaticamente em ~30 segundos. Mantenha o mesmo nome de arquivo.'},
 ];
 let curCat='todos',curSearch='';
 function renderFaq(){
