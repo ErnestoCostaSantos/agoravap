@@ -225,6 +225,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 }
 .rosa-btn:hover{ transform:translateY(-4px) scale(1.05); }
 .dia-btn:hover:not([disabled]){ border-color:var(--pk400) !important; }
+.svc-card{ cursor:pointer; transition:border-color .15s, background .15s; }
+.svc-card:hover{ border-color:var(--pk400) !important; background:var(--pk50) !important; }
 .rosa-svg{ width:clamp(60px,10vw,90px);height:clamp(60px,10vw,90px);filter:drop-shadow(0 3px 8px rgba(153,53,86,.2)); }
 /* Mobile: foto ocupa a maior parte, form compacto */
 #cli-foto { flex: 1 1 0; min-height: 0; }
@@ -808,15 +810,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <!-- ── CLIENTE ── -->
     <div class="pane" id="pane-c-servicos">
       <div class="sec-lbl">Nossos serviços</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:8px">Toque no serviço para selecioná-lo</div>
       <div class="svc-grid">
-        <div class="svc-card"><div class="svc-icon"><i class="ti ti-sparkles"></i></div><div class="svc-name">Limpeza de pele</div><div class="svc-desc">Extração profunda, esfoliação e hidratação</div><div class="svc-price">A partir de R$ 180</div></div>
-        <div class="svc-card"><div class="svc-icon"><i class="ti ti-droplet"></i></div><div class="svc-name">Botox</div><div class="svc-desc">Resultado natural e duradouro</div><div class="svc-price">A partir de R$ 650</div></div>
-        <div class="svc-card"><div class="svc-icon"><i class="ti ti-heart"></i></div><div class="svc-name">Design de sobrancelha</div><div class="svc-desc">Mapeamento facial personalizado</div><div class="svc-price">A partir de R$ 80</div></div>
-        <div class="svc-card"><div class="svc-icon"><i class="ti ti-sun"></i></div><div class="svc-name">Preenchimento labial</div><div class="svc-desc">Ácido hialurônico com anestesia inclusa</div><div class="svc-price">A partir de R$ 550</div></div>
-        <div class="svc-card"><div class="svc-icon"><i class="ti ti-stars"></i></div><div class="svc-name">Microblading</div><div class="svc-desc">Fio a fio com pigmento duradouro</div><div class="svc-price">A partir de R$ 420</div></div>
-        <div class="svc-card"><div class="svc-icon"><i class="ti ti-leaf"></i></div><div class="svc-name">Peeling químico</div><div class="svc-desc">Renovação celular para manchas</div><div class="svc-price">A partir de R$ 220</div></div>
+        <div class="svc-card" onclick="selecionarServico(this,'Limpeza de pele','R$ 180')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-sparkles"></i></div><div class="svc-name">Limpeza de pele</div><div class="svc-desc">Extração profunda, esfoliação e hidratação</div><div class="svc-price">A partir de R$ 180</div></div>
+        <div class="svc-card" onclick="selecionarServico(this,'Botox','R$ 650')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-droplet"></i></div><div class="svc-name">Botox</div><div class="svc-desc">Resultado natural e duradouro</div><div class="svc-price">A partir de R$ 650</div></div>
+        <div class="svc-card" onclick="selecionarServico(this,'Design de sobrancelha','R$ 80')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-heart"></i></div><div class="svc-name">Design de sobrancelha</div><div class="svc-desc">Mapeamento facial personalizado</div><div class="svc-price">A partir de R$ 80</div></div>
+        <div class="svc-card" onclick="selecionarServico(this,'Preenchimento labial','R$ 550')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-sun"></i></div><div class="svc-name">Preenchimento labial</div><div class="svc-desc">Ácido hialurônico com anestesia inclusa</div><div class="svc-price">A partir de R$ 550</div></div>
+        <div class="svc-card" onclick="selecionarServico(this,'Microblading','R$ 420')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-stars"></i></div><div class="svc-name">Microblading</div><div class="svc-desc">Fio a fio com pigmento duradouro</div><div class="svc-price">A partir de R$ 420</div></div>
+        <div class="svc-card" onclick="selecionarServico(this,'Peeling químico','R$ 220')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-leaf"></i></div><div class="svc-name">Peeling químico</div><div class="svc-desc">Renovação celular para manchas</div><div class="svc-price">A partir de R$ 220</div></div>
       </div>
-      <button class="btn pk" style="width:100%;justify-content:center;padding:10px" onclick="goToCliSection('c-agenda')"><i class="ti ti-calendar"></i> Agendar um serviço</button>
+      <!-- Botão Agendar aparece após selecionar serviço -->
+      <div id="svc-selecionado" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:10px 14px;margin-top:10px;align-items:center;justify-content:space-between;gap:10px">
+        <div>
+          <div style="font-size:11px;color:var(--tx2)">Serviço selecionado</div>
+          <div style="font-size:13px;font-weight:700;color:var(--pk700)" id="svc-nome-sel"></div>
+          <div style="font-size:11px;color:var(--pk600)" id="svc-preco-sel"></div>
+        </div>
+        <button class="btn pk" onclick="abrirAgendaServico()" style="flex-shrink:0"><i class="ti ti-calendar"></i> Agendar</button>
+      </div>
     </div>
 
     <div class="pane" id="pane-c-promos">
@@ -840,6 +851,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <div class="pane" id="pane-c-agenda">
       <div class="sec-lbl">Solicitar agendamento</div>
+      <div id="agenda-svc-info" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--pk700)"><i class="ti ti-sparkles"></i> <span id="agenda-svc-nome"></span></div>
       <!-- Badge de promoção selecionada -->
       <div id="agenda-promo-badge" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:7px 12px;margin-bottom:10px;font-size:12px;color:var(--pk700);font-weight:600;align-items:center;gap:6px">
         <i class="ti ti-tag"></i> <span id="agenda-promo-nome"></span>
@@ -861,9 +873,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
       <!-- Passo 3: Enviar -->
       <div id="cli-enviar-wrap" style="display:none">
+        <!-- Resumo do agendamento -->
+        <div class="card" style="margin-bottom:10px;padding:12px 14px">
+          <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Resumo</div>
+          <div style="display:flex;flex-direction:column;gap:5px;font-size:13px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Serviço</span><span style="font-weight:600;color:var(--pk700)" id="resumo-svc">—</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Data</span><span style="font-weight:600" id="resumo-dia">—</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Horário</span><span style="font-weight:600" id="resumo-hora">—</span></div>
+          </div>
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--br);display:flex;align-items:center;gap:6px">
+            <span style="background:#fff3cd;color:#856404;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;border:1px solid #ffc107">Aguardando confirmação</span>
+          </div>
+        </div>
         <div class="info-box" style="margin-bottom:10px">
           <i class="ti ti-info-circle" style="font-size:16px;flex-shrink:0"></i>
-          Sua solicitação será enviada para a líder do Studio Luna, que confirmará em breve via WhatsApp.
+          A líder do Studio Luna confirmará em breve via WhatsApp.
         </div>
         <button class="btn pk" style="width:100%;justify-content:center;padding:11px" onclick="enviarSolicitacao()">
           <i class="ti ti-send"></i> Enviar solicitação
@@ -897,7 +921,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="mob-tab active" onclick="goToMob('c-servicos',this)"><i class="ti ti-sparkles"></i>Serviços</button>
       <button class="mob-tab" onclick="goToMob('c-promos',this)"><i class="ti ti-tag"></i>Promoções</button>
       <button class="mob-tab" onclick="goToMob('c-chat',this)"><i class="ti ti-message-circle"></i>Dúvidas</button>
-      <button class="mob-tab" onclick="goToMob('c-agenda',this)"><i class="ti ti-calendar-check"></i>Agenda</button>
+      <button class="mob-tab" onclick="goToMob('c-agenda',this)"><i class="ti ti-calendar-check"></i>Reservas</button>
     </div>
   </div>
 </div>
@@ -1488,6 +1512,44 @@ window._voltarHomeCliente = voltarHomeCliente;
 let selDia = null;
 let selHorario = null;
 let promoSelecionada = null;
+let servicoSelecionado = null;
+
+function selecionarServico(card, nome, preco){
+  // Highlight card selecionado
+  document.querySelectorAll('.svc-card').forEach(c => {
+    c.style.borderColor = 'var(--br)';
+    c.style.background = 'var(--bg)';
+  });
+  card.style.borderColor = 'var(--pk600)';
+  card.style.background = 'var(--pk50)';
+  servicoSelecionado = { nome, preco };
+  // Mostra badge de selecionado
+  const wrap = document.getElementById('svc-selecionado');
+  const nomeEl = document.getElementById('svc-nome-sel');
+  const precoEl = document.getElementById('svc-preco-sel');
+  if(wrap && nomeEl && precoEl){
+    nomeEl.textContent = nome;
+    precoEl.textContent = 'A partir de ' + preco;
+    wrap.style.display = 'flex';
+  }
+}
+
+function abrirAgendaServico(){
+  if(!servicoSelecionado) return;
+  promoSelecionada = null;
+  goToCliSection('c-agenda');
+  setTimeout(() => {
+    const badge = document.getElementById('agenda-promo-badge');
+    const nomeEl = document.getElementById('agenda-promo-nome');
+    const svcInfo = document.getElementById('agenda-svc-info');
+    const svcNome = document.getElementById('agenda-svc-nome');
+    if(badge) badge.style.display = 'none';
+    if(svcInfo && svcNome){
+      svcNome.textContent = 'Serviço: ' + servicoSelecionado.nome + ' — ' + servicoSelecionado.preco;
+      svcInfo.style.display = 'block';
+    }
+  }, 150);
+}
 
 function initCalendario(){
   const cal = document.getElementById('cli-cal');
@@ -1547,6 +1609,14 @@ function selecionarHorario(btn, horario){
   document.querySelectorAll('.slot:not(.busy)').forEach(b => b.classList.remove('sel'));
   btn.classList.add('sel');
   selHorario = horario;
+  // Preenche resumo
+  const svcNome = promoSelecionada || (servicoSelecionado ? servicoSelecionado.nome : '—');
+  const resumoSvc  = document.getElementById('resumo-svc');
+  const resumoDia  = document.getElementById('resumo-dia');
+  const resumoHora = document.getElementById('resumo-hora');
+  if(resumoSvc)  resumoSvc.textContent  = svcNome;
+  if(resumoDia)  resumoDia.textContent  = selDia || '—';
+  if(resumoHora) resumoHora.textContent = horario;
   document.getElementById('cli-enviar-wrap').style.display = 'block';
 }
 
@@ -1628,6 +1698,8 @@ function selecionarDia(b,l,s){ if(window.selecionarDia) window.selecionarDia(b,l
 function selecionarHorario(b,h){ if(window.selecionarHorario) window.selecionarHorario(b,h); }
 function enviarSolicitacao(){ if(window.enviarSolicitacao) window.enviarSolicitacao(); }
 function abrirAgendaPromo(n){ if(window.abrirAgendaPromo) window.abrirAgendaPromo(n); }
+function selecionarServico(c,n,p){ if(window.selecionarServico) window.selecionarServico(c,n,p); }
+function abrirAgendaServico(){ if(window.abrirAgendaServico) window.abrirAgendaServico(); }
 </script>
 
 <!-- LOGIN CLIENTE -->
