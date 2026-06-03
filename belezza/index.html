@@ -1333,8 +1333,8 @@ function voltarLoginPro(){
   document.getElementById('login-cli-screen').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
 }
-window.abrirLoginCliente = abrirLoginCliente;
-window.voltarLoginPro    = voltarLoginPro;
+window._abrirLoginCliente = abrirLoginCliente;
+window._voltarLoginPro    = voltarLoginPro;
 
 // ── Login Cliente ─────────────────────────────────────────────────────────
 function toggleCliPass(){
@@ -1383,12 +1383,12 @@ function sairCli(){
   // onAuthStateChanged já redireciona para login-cli-screen
 }
 function handleCliKey(e){ if(e.key==='Enter') doLoginCli(); }
-window.handleCliKey      = handleCliKey;
-window.toggleCliPass     = toggleCliPass;
-window.doLoginCli        = doLoginCli;
-window.recuperarSenhaCli = recuperarSenhaCli;
-window.goToCliSection    = goToCliSection;
-window.sairCli           = sairCli;
+window._handleCliKey      = handleCliKey;
+window._toggleCliPass     = toggleCliPass;
+window._doLoginCli        = doLoginCli;
+window._recuperarSenhaCli = recuperarSenhaCli;
+window._goToCliSection    = goToCliSection;
+window._sairCli           = sairCli;
 
 // ── Expor funções globalmente (necessário com type="module") ──────────────
 window.toggleFaq = toggleFaq;
@@ -1419,6 +1419,17 @@ window.enviarFidelidade = enviarFidelidade;
 window.previewPromoImg = previewPromoImg;
 window.publicarPromo = publicarPromo;
 
+</script>
+<script>
+// Bridge — garante que funções do module estejam disponíveis para onclick inline
+function handleCliKey(e){ if(window._handleCliKey) window._handleCliKey(e); }
+function doLoginCli(){ if(window._doLoginCli) window._doLoginCli(); }
+function toggleCliPass(){ if(window._toggleCliPass) window._toggleCliPass(); }
+function recuperarSenhaCli(){ if(window._recuperarSenhaCli) window._recuperarSenhaCli(); }
+function voltarLoginPro(){ if(window._voltarLoginPro) window._voltarLoginPro(); }
+function abrirLoginCliente(){ if(window._abrirLoginCliente) window._abrirLoginCliente(); }
+function goToCliSection(id){ if(window._goToCliSection) window._goToCliSection(id); }
+function sairCli(){ if(window._sairCli) window._sairCli(); }
 </script>
 
 <!-- LOGIN CLIENTE -->
