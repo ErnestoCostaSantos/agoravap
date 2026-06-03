@@ -224,6 +224,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   transition:transform .2s;padding:4px;
 }
 .rosa-btn:hover{ transform:translateY(-4px) scale(1.05); }
+.dia-btn:hover:not([disabled]){ border-color:var(--pk400) !important; }
 .rosa-svg{ width:clamp(60px,10vw,90px);height:clamp(60px,10vw,90px);filter:drop-shadow(0 3px 8px rgba(153,53,86,.2)); }
 /* Mobile: foto ocupa a maior parte, form compacto */
 #cli-foto { flex: 1 1 0; min-height: 0; }
@@ -815,19 +816,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="svc-card"><div class="svc-icon"><i class="ti ti-stars"></i></div><div class="svc-name">Microblading</div><div class="svc-desc">Fio a fio com pigmento duradouro</div><div class="svc-price">A partir de R$ 420</div></div>
         <div class="svc-card"><div class="svc-icon"><i class="ti ti-leaf"></i></div><div class="svc-name">Peeling químico</div><div class="svc-desc">Renovação celular para manchas</div><div class="svc-price">A partir de R$ 220</div></div>
       </div>
-      <button class="btn pk" style="width:100%;justify-content:center;padding:10px"><i class="ti ti-calendar"></i> Agendar um serviço</button>
+      <button class="btn pk" style="width:100%;justify-content:center;padding:10px" onclick="goToCliSection('c-agenda')"><i class="ti ti-calendar"></i> Agendar um serviço</button>
     </div>
 
     <div class="pane" id="pane-c-promos">
       <div class="sec-lbl">Promoções especiais</div>
-      <div class="promo-card"><div class="promo-top"><span style="font-size:13px;font-weight:600">Studio Luna</span><span class="promo-badge"><i class="ti ti-sun"></i> Dia da Beleza</span></div><div class="promo-body"><div class="promo-title">Pacote Noiva Radiante</div><div style="font-size:11px;color:var(--tx2);margin-bottom:6px">Válido até 30/06/2026</div><div class="pills"><span class="pill">Limpeza de pele</span><span class="pill">Design de sobrancelha</span><span class="pill">Hidratação facial</span></div><div class="promo-ft"><div><span class="p-old">R$ 280</span><span class="p-new">R$ 189</span></div><button class="btn pk">Agendar</button></div></div></div>
-      <div class="promo-card"><div class="promo-top"><span style="font-size:13px;font-weight:600">Studio Luna</span><span class="promo-badge"><i class="ti ti-heart"></i> Dia dos Namorados</span></div><div class="promo-body"><div class="promo-title">Ritual Duo — casal</div><div style="font-size:11px;color:var(--tx2);margin-bottom:6px">Válido até 12/06/2026</div><div class="pills"><span class="pill">Massagem relaxante</span><span class="pill">Peeling</span><span class="pill">Vinho de boas-vindas</span></div><div class="promo-ft"><div><span class="p-old">R$ 520</span><span class="p-new">R$ 360</span></div><button class="btn pk">Agendar</button></div></div></div>
+      <div class="promo-card"><div class="promo-top"><span class="promo-badge"><i class="ti ti-sun"></i> Dia da Beleza</span><span style="font-size:12px;font-weight:600;color:var(--tx2)">Studio Luna</span></div><div class="promo-body"><div class="promo-title">Pacote Noiva Radiante</div><div style="font-size:11px;color:var(--tx2);margin-bottom:6px">Válido até 30/06/2026</div><div class="pills"><span class="pill">Limpeza de pele</span><span class="pill">Design de sobrancelha</span><span class="pill">Hidratação facial</span></div><div class="promo-ft"><div><span class="p-old">R$ 280</span><span class="p-new">R$ 189</span></div><button class="btn pk" onclick="abrirAgendaPromo('Pacote Noiva Radiante')"><i class="ti ti-calendar"></i> Agendar</button></div></div></div>
+      <div class="promo-card"><div class="promo-top"><span class="promo-badge"><i class="ti ti-heart"></i> Dia dos Namorados</span><span style="font-size:12px;font-weight:600;color:var(--tx2)">Studio Luna</span></div><div class="promo-body"><div class="promo-title">Ritual Duo — casal</div><div style="font-size:11px;color:var(--tx2);margin-bottom:6px">Válido até 12/06/2026</div><div class="pills"><span class="pill">Massagem relaxante</span><span class="pill">Peeling</span><span class="pill">Vinho de boas-vindas</span></div><div class="promo-ft"><div><span class="p-old">R$ 520</span><span class="p-new">R$ 360</span></div><button class="btn pk" onclick="abrirAgendaPromo('Ritual Duo')"><i class="ti ti-calendar"></i> Agendar</button></div></div></div>
     </div>
 
     <div class="pane" id="pane-c-chat">
       <div class="sec-lbl">Fale com o Studio Luna</div>
       <div class="chat-wrap">
-        <div class="chat-hd"><div class="av" style="background:var(--pk50);color:var(--pk600)"><i class="ti ti-sparkles"></i></div><div style="flex:1"><div class="row-name" style="font-size:13px">Studio Luna</div><div class="chat-online">Online agora</div></div><i class="ti ti-phone" style="font-size:18px;color:var(--tx2)"></i></div>
+        <div class="chat-hd"><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaM&backgroundColor=fbeaf0" style="width:32px;height:32px;border-radius:50%"><div style="flex:1"><div class="row-name" style="font-size:13px">Carla Lima · Líder</div><div class="chat-online">Studio Luna</div></div><i class="ti ti-phone" style="font-size:18px;color:var(--tx2)" onclick="abrirWpp('Ola! Vim pelo app Studio Luna.')"></i></div>
         <div class="msgs" id="chat-msgs">
           <div class="msg r"><div class="bbl">Olá! Bem-vinda ao Studio Luna 💕 Como posso te ajudar?</div><div class="mtime">09:41</div></div>
           <div class="msg s"><div class="bbl">Quanto tempo dura o botox?</div><div class="mtime">09:43</div></div>
@@ -839,10 +840,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <div class="pane" id="pane-c-agenda">
       <div class="sec-lbl">Solicitar agendamento</div>
-      <div class="card">
-        <div style="font-size:12px;color:var(--tx2);margin-bottom:12px">Selecione um horário disponível — Carla M. · 07/06</div>
+      <div id="agenda-promo-badge" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:7px 12px;margin-bottom:10px;font-size:12px;color:var(--pk700);font-weight:600"></div>
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">Escolha o dia</div>
+        <div id="cli-cal" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+      <div class="card" id="cli-horarios-card" style="display:none;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px" id="cli-horarios-label">Horários disponíveis</div>
         <div class="avail-grid" id="cli-avail-grid"></div>
-        <button class="btn pk" style="width:100%;justify-content:center;padding:10px;margin-top:4px"><i class="ti ti-calendar"></i> Enviar solicitação</button>
+      </div>
+      <button class="btn pk" id="cli-enviar-btn" style="width:100%;justify-content:center;padding:10px;margin-top:4px;display:none" onclick="enviarSolicitacao()"><i class="ti ti-calendar"></i> Enviar solicitação</button>
+      <div id="cli-agenda-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
+        <i class="ti ti-circle-check" style="font-size:18px"></i>
+        Solicitação enviada! A líder do Studio Luna confirmará em breve.
+      </div>
         <div style="font-size:11px;color:var(--tx3);text-align:center;margin-top:6px">A profissional confirmará em breve</div>
       </div>
       <div class="sec-lbl">Seus agendamentos</div>
@@ -888,6 +899,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button class="help-cat" onclick="filterCat('promos',this)">Promoções</button>
         <button class="help-cat" onclick="filterCat('fidelidade',this)">Fidelidade</button>
         <button class="help-cat" onclick="filterCat('agendamentos',this)">Agendamentos</button>
+        <button class="help-cat" onclick="filterCat('versaocliente',this)">Versão Cliente</button>
         <button class="help-cat" onclick="filterCat('equipe',this)">Equipe</button>
         <button class="help-cat" onclick="filterCat('conta',this)">Conta</button>
       </div>
@@ -1148,6 +1160,15 @@ const faqs=[
   {cat:'fidelidade',q:'Com que frequência devo disparar a Campanha Fidelidade?',a:'Você escolhe: Mensal (todo fim de mês), Bimestral (acumula 2 meses de score — bom para períodos mais tranquilos) ou Livre (você define a data quando quiser). Pode mudar a periodicidade a qualquer momento.'},
   {cat:'fidelidade',q:'Como as clientes do Top 10 aparecem no app?',a:'Na tela de Clientes, as clientes do Top 10 do mês anterior ficam com um destaque dourado com ícone de coroa. Isso facilita identificar quem deve receber a campanha antes mesmo de abrir a aba Campanhas.'},
   {cat:'fidelidade',q:'Como enviar a premiação para as clientes eleitas?',a:'Na seção Fidelidade (aba Campanhas, no final da tela), escreva a mensagem, carregue a peça promocional e clique em "Enviar para o Top 10". O app abre o WhatsApp com a mensagem pronta para cada cliente — você confirma e envia.'},
+  {cat:'versaocliente',q:'Como a cliente acessa o app?',a:'A cliente abre o app e é direcionada automaticamente para a tela de login do MeCuidar Studio Luna. Após entrar com e-mail e senha, ela chega à tela com os botões de flores: Serviços, Promoções, Reservar, Ajuda, Contato e Sair.'},
+  {cat:'versaocliente',q:'Como a cliente agenda um serviço?',a:'Ela pode clicar em "Reservar" ou "Serviços" → "Agendar um serviço". O app abre um calendário com os próximos 15 dias úteis (sem domingos). Ela escolhe o dia, depois o horário disponível e clica em "Enviar solicitação".'},
+  {cat:'versaocliente',q:'Quem confirma o agendamento da cliente?',a:'A líder do Studio Luna recebe a solicitação e faz a confirmação. A cliente recebe a confirmação via WhatsApp ou pelo próprio app (a partir da v1.4 com dados reais no Firestore).'},
+  {cat:'versaocliente',q:'Como a cliente agenda uma promoção?',a:'Na aba Promoções, cada card tem um botão "Agendar". Ao clicar, o app abre o calendário já identificando qual promoção foi selecionada. O fluxo é o mesmo do agendamento normal.'},
+  {cat:'versaocliente',q:'Quem responde as dúvidas no chat?',a:'A líder do Studio Luna — identificada pelo nome e avatar no cabeçalho do chat. As mensagens são respondidas em breve após o envio.'},
+  {cat:'versaocliente',q:'Como a cliente entra em contato direto?',a:'Pelo botão "Contato" na tela de flores, que abre o WhatsApp do Studio Luna (11.99726.1900) com uma mensagem pré-preenchida. Também pode ligar tocando no ícone de telefone na tela de Dúvidas.'},
+  {cat:'versaocliente',q:'Como a cliente volta para a tela de flores?',a:'Pelo botão "← Voltar" que aparece na barra roxa no topo da tela ao navegar pelas seções. O botão "Sair" encerra a sessão e volta para o login.'},
+  {cat:'agendamentos',q:'Quais dias aparecem no calendário de agendamento?',a:'Os próximos 15 dias úteis a partir de amanhã, excluindo domingos. O app calcula automaticamente as datas disponíveis.'},
+  {cat:'agendamentos',q:'O que significa horário ocupado no calendário?',a:'Horários em cinza já foram reservados por outra cliente e não podem ser selecionados. Apenas os horários em branco estão disponíveis.'},
 ];
 let curCat='todos',curSearch='';
 function renderFaq(){
@@ -1179,6 +1200,7 @@ function showPane(id){
   document.getElementById('tb-act').style.display=id.startsWith('c-')?'none':'inline-flex';
 }
 function goTo(id,el){
+  if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(el){const n=el.closest('.sb-nav');n.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
   showPane(id);closeSB();
 }
@@ -1212,7 +1234,7 @@ function sendMsg(){
   const m=document.getElementById('chat-msgs');const now=new Date();const ts=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
   m.innerHTML+=`<div class="msg s"><div class="bbl">${t}</div><div class="mtime">${ts}</div></div>`;
   i.value='';m.scrollTop=m.scrollHeight;
-  setTimeout(()=>{m.innerHTML+=`<div class="msg r"><div class="bbl">Obrigada pela mensagem! Responderei em breve. Posso agendar uma avaliação gratuita? 💕</div><div class="mtime">${ts}</div></div>`;m.scrollTop=m.scrollHeight;},800);
+  setTimeout(()=>{m.innerHTML+=`<div class="msg r"><div class="bbl">Obrigada pela mensagem! Responderei em breve. 💕</div><div class="mtime">${ts}</div></div>`;m.scrollTop=m.scrollHeight;},800);
 }
 
 let part=28,ag=7;
@@ -1412,6 +1434,104 @@ window._goToCliSection    = goToCliSection;
 window._sairCli           = sairCli;
 window._voltarHomeCliente = voltarHomeCliente;
 
+// ── Calendário de agendamento ─────────────────────────────────────────────
+let selDia = null;
+let selHorario = null;
+let promoSelecionada = null;
+
+function initCalendario(){
+  const cal = document.getElementById('cli-cal');
+  if(!cal) return;
+  cal.innerHTML = '';
+  selDia = null; selHorario = null;
+  const hoje = new Date();
+  const diasAdicionados = [];
+  let d = new Date(hoje);
+  d.setDate(d.getDate() + 1); // começa amanhã
+  while(diasAdicionados.length < 15){
+    if(d.getDay() !== 0){ // 0 = domingo
+      const dia = d.getDate();
+      const mes = d.getMonth() + 1;
+      const label = `${String(dia).padStart(2,'0')}/${String(mes).padStart(2,'0')}`;
+      const semana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()];
+      const btn = document.createElement('button');
+      btn.className = 'dia-btn';
+      btn.innerHTML = `<span style="font-size:10px;color:var(--tx3)">${semana}</span><span style="font-size:14px;font-weight:700">${dia}</span><span style="font-size:10px;color:var(--tx3)">${String(mes).padStart(2,'0')}</span>`;
+      btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:8px 10px;border-radius:var(--r);border:1px solid var(--br);background:var(--bg2);cursor:pointer;min-width:48px;gap:2px;font-family:inherit;transition:all .15s';
+      btn.dataset.label = label;
+      btn.onclick = function(){ selecionarDia(this, label, semana); };
+      cal.appendChild(btn);
+      diasAdicionados.push(label);
+    }
+    d.setDate(d.getDate() + 1);
+  }
+}
+
+function selecionarDia(btn, label, semana){
+  document.querySelectorAll('.dia-btn').forEach(b => {
+    b.style.background = 'var(--bg2)';
+    b.style.borderColor = 'var(--br)';
+    b.style.color = 'var(--tx)';
+  });
+  btn.style.background = 'var(--pk600)';
+  btn.style.borderColor = 'var(--pk600)';
+  btn.style.color = 'white';
+  selDia = label;
+  selHorario = null;
+  // Mostra horários
+  const card = document.getElementById('cli-horarios-card');
+  const label2 = document.getElementById('cli-horarios-label');
+  const grid = document.getElementById('cli-avail-grid');
+  card.style.display = 'block';
+  label2.textContent = `Horários disponíveis — ${semana} ${label}`;
+  const horarios = ['09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
+  const ocupados = ['10:00','14:30','16:00'];
+  grid.innerHTML = horarios.map(h => {
+    const busy = ocupados.includes(h);
+    return `<button class="slot ${busy?'busy':''}" ${busy?'disabled':''} onclick="selecionarHorario(this,'${h}')">${h}</button>`;
+  }).join('');
+  document.getElementById('cli-enviar-btn').style.display = 'none';
+}
+
+function selecionarHorario(btn, horario){
+  document.querySelectorAll('.slot:not(.busy)').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  selHorario = horario;
+  document.getElementById('cli-enviar-btn').style.display = 'flex';
+}
+
+function enviarSolicitacao(){
+  if(!selDia || !selHorario) return;
+  const promo = promoSelecionada ? ` (${promoSelecionada})` : '';
+  const toast = document.getElementById('cli-agenda-toast');
+  document.getElementById('cli-enviar-btn').style.display = 'none';
+  toast.style.display = 'flex';
+  setTimeout(() => { toast.style.display = 'none'; }, 5000);
+  // Reset
+  selDia = null; selHorario = null; promoSelecionada = null;
+  setTimeout(() => {
+    document.getElementById('cli-horarios-card').style.display = 'none';
+    document.querySelectorAll('.dia-btn').forEach(b => {
+      b.style.background = 'var(--bg2)';
+      b.style.borderColor = 'var(--br)';
+      b.style.color = 'var(--tx)';
+    });
+    document.getElementById('agenda-promo-badge').style.display = 'none';
+  }, 5000);
+}
+
+function abrirAgendaPromo(nome){
+  promoSelecionada = nome;
+  goToCliSection('c-agenda');
+  setTimeout(() => {
+    const badge = document.getElementById('agenda-promo-badge');
+    if(badge){ badge.textContent = '🌸 Agendando: ' + nome; badge.style.display = 'block'; }
+  }, 100);
+}
+
+// Inicializa calendário quando aba agenda é aberta
+const _origGoTo = window.goTo;
+
 // ── Expor funções globalmente (necessário com type="module") ──────────────
 window.toggleFaq = toggleFaq;
 window.filterCat = filterCat;
@@ -1453,6 +1573,10 @@ function abrirLoginCliente(){ if(window._abrirLoginCliente) window._abrirLoginCl
 function goToCliSection(id){ if(window._goToCliSection) window._goToCliSection(id); }
 function sairCli(){ if(window._sairCli) window._sairCli(); }
 function voltarHomeCliente(){ if(window._voltarHomeCliente) window._voltarHomeCliente(); }
+function selecionarDia(b,l,s){ if(window.selecionarDia) window.selecionarDia(b,l,s); }
+function selecionarHorario(b,h){ if(window.selecionarHorario) window.selecionarHorario(b,h); }
+function enviarSolicitacao(){ if(window.enviarSolicitacao) window.enviarSolicitacao(); }
+function abrirAgendaPromo(n){ if(window.abrirAgendaPromo) window.abrirAgendaPromo(n); }
 </script>
 
 <!-- LOGIN CLIENTE -->
@@ -1624,7 +1748,7 @@ function voltarHomeCliente(){ if(window._voltarHomeCliente) window._voltarHomeCl
           </svg>
           <span>Ajuda</span>
         </button>
-        <button class="rosa-btn" onclick="abrirWpp('Ola Studio Luna')">
+        <button class="rosa-btn" onclick="window.open('https://wa.me/5511997261900?text=Ol%C3%A1%20Studio%20Luna%2C%20vim%20pelo%20app!','_blank')">
           <svg class="rosa-svg" viewBox="-40 -40 80 80">
             <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(0)"/>
             <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(60)"/>
