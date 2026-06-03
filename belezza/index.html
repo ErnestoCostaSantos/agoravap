@@ -968,11 +968,9 @@ setPersistence(auth, browserSessionPersistence).then(() => {
   console.error('[Belezza] setPersistence error:', e);
 });
 
-});
-
 // ── Auth: login ───────────────────────────────────────────────────────────
 async function doLogin() {
-  const emailEl = document.querySelector('#login-screen input[type="text"]');
+  const emailEl = document.querySelector('#login-screen input[type="email"]');
   const passEl  = document.querySelector('#login-screen input[type="password"]');
   const btn     = document.querySelector('#login-screen button[onclick="doLogin()"]');
 
@@ -1025,7 +1023,7 @@ async function doLogout() {
 
 // ── Auth: recuperar senha ─────────────────────────────────────────────────
 async function recuperarSenha() {
-  const emailEl = document.querySelector('#login-screen input[type="text"]');
+  const emailEl = document.querySelector('#login-screen input[type="email"]');
   const email   = (emailEl?.value || '').trim();
   if (!email) {
     showLoginError('Digite seu e-mail acima para recuperar a senha.');
@@ -1050,7 +1048,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (passEl) passEl.addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
-  const emailEl = document.querySelector('#login-screen input[type="text"]');
+  const emailEl = document.querySelector('#login-screen input[type="email"]');
   if (emailEl) emailEl.addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
