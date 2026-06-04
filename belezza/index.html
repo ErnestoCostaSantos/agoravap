@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.3.9</title>
+<title>Belezza — Studio Luna v2.4.2</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -2242,41 +2242,42 @@ async function recusarFS(id) {
 }
 
 function mostrarAvisoRecusa(nomeCliente) {
-  console.log('[Belezza] mostrarAvisoRecusa chamado para:', nomeCliente);
-  // Remove aviso anterior se existir
   const anterior = document.getElementById('aviso-recusa');
   if(anterior) anterior.remove();
 
   const aviso = document.createElement('div');
   aviso.id = 'aviso-recusa';
-  aviso.style.position = 'fixed';
-  aviso.style.top = '70px';
-  aviso.style.left = '50%';
-  aviso.style.transform = 'translateX(-50%)';
-  aviso.style.zIndex = '99999';
-  aviso.style.background = '#fff3cd';
-  aviso.style.border = '2px solid #ffc107';
-  aviso.style.borderRadius = '12px';
-  aviso.style.padding = '14px 18px';
-  aviso.style.fontSize = '13px';
-  aviso.style.color = '#856404';
-  aviso.style.display = 'flex';
-  aviso.style.alignItems = 'center';
-  aviso.style.gap = '10px';
-  aviso.style.maxWidth = '440px';
-  aviso.style.width = '90%';
-  aviso.style.boxShadow = '0 6px 24px rgba(0,0,0,.2)';
-  aviso.style.fontFamily = 'inherit';
-  aviso.style.fontWeight = '500';
-  aviso.style.opacity = '1';
+  aviso.setAttribute('style', [
+    'position:fixed',
+    'top:70px',
+    'left:50%',
+    'transform:translateX(-50%)',
+    'z-index:99999',
+    'background:#fff3cd',
+    'border:2px solid #ffc107',
+    'border-radius:12px',
+    'padding:14px 18px',
+    'font-size:13px',
+    'color:#856404',
+    'display:flex',
+    'align-items:center',
+    'gap:10px',
+    'max-width:440px',
+    'width:90%',
+    'box-shadow:0 6px 24px rgba(0,0,0,.2)',
+    'font-family:inherit',
+    'font-weight:500',
+    'opacity:1',
+  ].join(';'));
   aviso.innerHTML = '<i class="ti ti-phone" style="font-size:20px;flex-shrink:0"></i><span>Solicitação recusada. <strong>Entre em contato com ' + nomeCliente + '</strong> para informar e oferecer uma nova data.</span>';
-  aviso.style.opacity = '1'; // garante visível antes de qualquer transição
   document.body.appendChild(aviso);
-  console.log('[Belezza] aviso inserido no body:', aviso);
+  // requestAnimationFrame garante que o elemento é pintado antes da transição de saída
   setTimeout(() => {
-    aviso.style.transition = 'opacity .4s';
-    aviso.style.opacity = '0';
-    setTimeout(() => { if(aviso.parentNode) aviso.remove(); }, 400);
+    requestAnimationFrame(() => {
+      aviso.style.transition = 'opacity .5s';
+      aviso.style.opacity = '0';
+      setTimeout(() => { if(aviso.parentNode) aviso.remove(); }, 500);
+    });
   }, 5000);
 }
 window.mostrarAvisoRecusa = mostrarAvisoRecusa;
@@ -3000,7 +3001,7 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
       <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:10px 16px;margin-bottom:6px;border:1px solid rgba(255,255,255,.25)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 Q8 3 12 3 Q16 3 16 7 V11"/></svg>
         <input id="cli-pass" type="password" placeholder="Senha" autocomplete="current-password" style="background:none;border:none;outline:none;color:white;font-size:16px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
-        <span id="cli-eye" onclick="toggleCliPass()" style="cursor:pointer;color:rgba(255,255,255,.6);font-size:18px;user-select:none;padding:4px">👁</span>
+        <span id="cli-eye" onclick="toggleCliPass()" style="cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;user-select:none;padding:2px;line-height:1;flex-shrink:0">👁</span>
       </div>
       <div id="cli-error" style="color:#ffb3c6;font-size:11px;text-align:center;margin-bottom:5px;min-height:14px;font-weight:600"></div>
       <button id="cli-entrar-btn" onclick="doLoginCli()" style="width:100%;padding:12px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:15px;font-weight:700;letter-spacing:.06em;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(153,53,86,.4)">Entrar</button>
