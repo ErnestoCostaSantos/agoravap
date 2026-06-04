@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.4.9</title>
+<title>Belezza — Studio Luna v1.5.0</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -982,7 +982,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <!-- MOBILE NAV -->
   <div class="mob-nav" id="mob-pro">
     <div class="mob-tabs">
-      <button class="mob-tab active" onclick="goToMob('p-dash',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+      <button class="mob-tab" id="tab-p-dash" onclick="goToMob('p-dash',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
       <button class="mob-tab" onclick="goToMob('p-agenda',this)"><i class="ti ti-calendar"></i>Agenda</button>
       <button class="mob-tab" onclick="goToMob('p-clientes',this)"><i class="ti ti-users"></i>Clientes</button>
       <button class="mob-tab" onclick="goToMob('p-camp',this)"><i class="ti ti-brand-whatsapp"></i>Campanhas</button>
@@ -1328,6 +1328,10 @@ function showPane(id){
   document.getElementById('tb-act').style.display=id.startsWith('c-')?'none':'inline-flex';
 }
 function initDashboard(){
+  // Garante que tab Dashboard está ativo
+  document.querySelectorAll('#mob-pro .mob-tab').forEach(t => t.classList.remove('active'));
+  const tabDash = document.getElementById('tab-p-dash');
+  if(tabDash) tabDash.classList.add('active');
   const now = new Date();
   const h = now.getHours();
   const saud = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
@@ -1364,8 +1368,12 @@ function goTo(id,el){
   showPane(id);closeSB();
 }
 function goToMob(id,el){
-  el.closest('.mob-tabs').querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');showPane(id);
+  // Remove active de todos os tabs do mesmo grupo
+  el.closest('.mob-nav').querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(id==='p-dash') setTimeout(initDashboard, 50);
+  if(id==='c-agenda') setTimeout(initCalendario, 50);
+  showPane(id);
 }
 function setRole(r,el){
   role=r;
@@ -1904,9 +1912,9 @@ function enviarSolicitacao(){ if(window.enviarSolicitacao) window.enviarSolicita
 function abrirAgendaPromo(n){ if(window.abrirAgendaPromo) window.abrirAgendaPromo(n); }
 function selecionarServico(c,n,p){ if(window.selecionarServico) window.selecionarServico(c,n,p); }
 function abrirAgendaServico(){ if(window.abrirAgendaServico) window.abrirAgendaServico(); }
-function abrirModalAg(){ if(window._abrirModalAg) window._abrirModalAg(); }
-function fecharModalAg(){ if(window._fecharModalAg) window._fecharModalAg(); }
-function salvarNovoAg(){ if(window._salvarNovoAg) window._salvarNovoAg(); }
+function abrirModalAg(){ try{ window._abrirModalAg && window._abrirModalAg(); }catch(e){console.error('abrirModalAg:',e);} }
+function fecharModalAg(){ try{ window._fecharModalAg && window._fecharModalAg(); }catch(e){} }
+function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }catch(e){console.error('salvarNovoAg:',e);} }
 </script>
 
 <!-- LOGIN CLIENTE -->
