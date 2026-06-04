@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.6.1</title>
+<title>Belezza — Studio Luna v2.6.2-debug</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -2964,11 +2964,14 @@ function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.ab
 
 // Delegação para botões Reagendar gerados dinamicamente
 document.addEventListener('click', function(e){
-  const btn = e.target.closest ? e.target.closest('.btn-reag-cli') : null;
+  console.log('[Reag] click em:', e.target.tagName, e.target.className);
+  const btn = e.target.closest('.btn-reag-cli');
+  console.log('[Reag] btn encontrado:', btn);
   if(!btn) return;
   const id   = btn.getAttribute('data-id')  || '';
   const svc  = btn.getAttribute('data-svc') || '';
   const prof = btn.getAttribute('data-prof')|| '';
+  console.log('[Reag] abrindo reagendamento:', id, svc, prof);
   abrirReagendamento(id, svc, prof);
 });
 function salvarProfissional(){ try{ window.salvarProfissional && window.salvarProfissional(); }catch(e){} }
