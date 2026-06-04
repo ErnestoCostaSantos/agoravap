@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.3.2</title>
+<title>Belezza — Studio Luna v2.3.3</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -2261,23 +2261,32 @@ async function confirmarFS(id) {
 
 // ── Recusar agendamento no Firestore ─────────────────────────────────────────
 async function recusarFS(id) {
+  // Guarda nome da cliente ANTES do updateDoc (onSnapshot pode limpar o array)
+  const agAntes = agendamentos.find(a => a.id === id);
+  const nomeCliente = agAntes?.cliente || 'a cliente';
+
+  // Mostra aviso imediatamente — antes do updateDoc para não perder o elemento
+  const el = document.getElementById(id);
+  const avisoContainer = el?.parentElement || document.getElementById('ag-pendentes-wrap') || document.body;
+  const aviso = document.createElement('div');
+  aviso.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;border-radius:var(--r);padding:10px 14px;margin:4px 0;font-size:12px;color:#856404;display:flex;align-items:center;gap:8px;transition:opacity .4s';
+  aviso.innerHTML = '<i class="ti ti-phone" style="font-size:16px;flex-shrink:0"></i><span>Solicitação recusada. <strong>Entre em contato com ' + nomeCliente + '</strong> para informar e oferecer uma nova data.</span>';
+  if(el) {
+    el.insertAdjacentElement('afterend', aviso);
+    el.style.opacity = '.3';
+    el.style.transition = 'opacity .3s';
+    setTimeout(() => { if(el.parentNode) el.remove(); }, 400);
+  } else {
+    avisoContainer.prepend(aviso);
+  }
+  setTimeout(() => { aviso.style.opacity = '0'; setTimeout(() => { if(aviso.parentNode) aviso.remove(); }, 400); }, 4500);
+
   try {
     await updateDoc(doc(db, 'agendamentos', id), {
       status: 'recusado',
       recusadoEm: new Date().toISOString(),
       recusadoPor: cu?.uid || 'admin'
     });
-    const el = document.getElementById(id);
-    if (!el) return;
-    const ag = agendamentos.find(a => a.id === id);
-    const aviso = document.createElement('div');
-    aviso.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;border-radius:var(--r);padding:10px 14px;margin:4px 0;font-size:12px;color:#856404;display:flex;align-items:center;gap:8px;transition:opacity .4s';
-    aviso.innerHTML = '<i class="ti ti-phone" style="font-size:16px;flex-shrink:0"></i><span>Solicitação recusada. <strong>Entre em contato com ' + (ag?.cliente || 'a cliente') + '</strong> para informar e oferecer uma nova data.</span>';
-    el.insertAdjacentElement('afterend', aviso);
-    el.style.opacity = '.3';
-    el.style.transition = 'opacity .3s';
-    setTimeout(() => { el.remove(); }, 400);
-    setTimeout(() => { aviso.style.opacity = '0'; setTimeout(() => aviso.remove(), 400); }, 4000);
   } catch(e) {
     console.error('[Belezza] recusarFS:', e);
   }
