@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.5.2</title>
+<title>Belezza — Studio Luna v1.5.4</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1997,25 +1997,10 @@ function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }c
       <img class="mob" src="hero-cliente.jpg" alt="MeCuidar">
       <!-- Desktop/Tablet: imagem landscape 16:9 -->
       <img class="dsk" src="hero-cliente-desktop.jpg" alt="MeCuidar">
-      <!-- Substitui "Clinica" por "Studio Luna" — mobile e desktop -->
-      <div style="
-        position:absolute;
-        top:calc(100% * 0.27);
-        left:50%;
-        transform:translateX(-50%);
-        font-size:clamp(10px,3.5vw,14px);
-        font-weight:700;
-        letter-spacing:.18em;
-        text-transform:uppercase;
-        color:#6B2D8B;
-        font-family:Georgia,serif;
-        white-space:nowrap;
-        background:rgba(252,235,248,0.95);
-        padding:clamp(1px,0.5vw,3px) clamp(8px,3vw,16px);
-        border-radius:4px;
-        pointer-events:none;
-        z-index:2;
-      ">Studio Luna</div>
+      <!-- Mobile: entre MeCuidar e o traço -->
+      <div class="mob" style="position:absolute;top:calc(100% * 0.27);left:50%;transform:translateX(-50%);font-size:clamp(10px,3.5vw,14px);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#6B2D8B;font-family:Georgia,serif;white-space:nowrap;background:rgba(252,235,248,0.95);padding:2px 12px;border-radius:4px;pointer-events:none;z-index:2">Studio Luna</div>
+      <!-- Desktop: abaixo do ponto, lado esquerdo onde está "Clinica" -->
+      <div class="dsk" style="position:absolute;top:62%;left:28%;transform:translateY(-50%);font-size:14px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#6B2D8B;font-family:Georgia,serif;white-space:nowrap;background:rgba(252,235,248,0.95);padding:2px 14px;border-radius:4px;pointer-events:none;z-index:2">Studio Luna</div>
       <div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(to bottom,transparent,#9B3D8B)"></div>
     </div>
 
