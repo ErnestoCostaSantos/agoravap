@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.1.2</title>
+<title>Belezza — Studio Luna v2.2.0</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1170,77 +1170,70 @@ function resetInactivityTimer() {
 });
 
 // ── Auth: controlador central ─────────────────────────────────────────────
-// Sessão expira ao fechar o navegador — wrapped corretamente
-setPersistence(auth, browserSessionPersistence).then(() => {
+// onAuthStateChanged registrado IMEDIATAMENTE — não depende de setPersistence
+onAuthStateChanged(auth, async user => {
+  const appDiv = document.querySelector('.app');
 
-  onAuthStateChanged(auth, async user => {
-    const loginScreen = document.getElementById('login-screen');
-    const appDiv      = document.querySelector('.app');
+  console.log('[Belezza] onAuthStateChanged:', user ? user.email : 'null');
 
-    console.log('[Belezza] onAuthStateChanged:', user ? user.email : 'null');
+  if (user) {
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      console.log('[Belezza] Firestore snap exists:', snap.exists());
 
-    if (user) {
-      try {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        console.log('[Belezza] Firestore snap exists:', snap.exists());
-
-        if (!snap.exists()) {
-          await signOut(auth);
-          showLoginError('Usuário não encontrado. Contate o administrador.');
-          return;
-        }
-
-        cp = snap.data();
-        cu = user;
-
-        // Oculta AMBAS as telas de login
-        const cliLogin = document.getElementById('login-cli-screen');
-        if (loginScreen) loginScreen.style.display = 'none';
-        if (cliLogin)    cliLogin.style.display = 'none';
-
-        if (cp.role === 'cliente') {
-          // ── Rota Cliente → home MeCuidar ──
-          const homeCliente = document.getElementById('home-cli-screen');
-          if (homeCliente) homeCliente.style.display = 'flex';
-          const welcome = document.getElementById('cli-welcome');
-          if (welcome) welcome.textContent = 'Olá, ' + (cp.name || user.email.split('@')[0]) + '! 👋';
-
-        } else {
-          // ── Rota Profissional/Admin → app principal ──
-          if (appDiv) appDiv.style.display = 'flex';
-          const uName = document.getElementById('u-name');
-          const uRole = document.getElementById('u-role');
-          const uAv   = document.getElementById('u-av');
-          if (uName) uName.textContent = cp.name || user.email;
-          if (uRole) uRole.textContent = cp.role === 'admin' ? 'Administradora' : 'Profissional';
-          if (uAv)   uAv.textContent = (cp.name || 'U').charAt(0).toUpperCase();
-        }
-
-        resetInactivityTimer();
-
-      } catch(e) {
-        console.error('[Belezza] Erro ao carregar perfil:', e);
-        showLoginError('Erro ao carregar perfil. Tente novamente.');
+      if (!snap.exists()) {
+        await signOut(auth);
+        showLoginError('Usuário não encontrado. Contate o administrador.');
+        return;
       }
 
-    } else {
-      cu = null; cp = null;
-      // Oculta tudo
-      if (loginScreen) loginScreen.style.display = 'none';
-      if (appDiv) appDiv.style.display = 'none';
-      const homeCliente = document.getElementById('home-cli-screen');
-      if (homeCliente) homeCliente.style.display = 'none';
-      // Tela única de login — sempre o MeCuidar
-      const cliLogin = document.getElementById('login-cli-screen');
-      if (cliLogin) cliLogin.style.display = 'flex';
-      // Garante que tela profissional antiga nunca apareça
-      const loginOld = document.getElementById('login-screen');
-      if (loginOld) loginOld.style.display = 'none';
-    }
-  });
+      cp = snap.data();
+      cu = user;
 
-}).catch(e => {
-  console.error('[Belezza] setPersistence error:', e);
+      // Oculta tela de login
+      const cliLogin = document.getElementById('login-cli-screen');
+      if (cliLogin) cliLogin.style.display = 'none';
+
+      if (cp.role === 'cliente') {
+        // ── Rota Cliente → home MeCuidar (tela das flores) ──
+        const homeCliente = document.getElementById('home-cli-screen');
+        if (homeCliente) homeCliente.style.display = 'flex';
+        const welcome = document.getElementById('cli-welcome');
+        if (welcome) welcome.textContent = 'Olá, ' + (cp.name || user.email.split('@')[0]) + '! 💕';
+
+      } else {
+        // ── Rota Profissional/Admin → app principal ──
+        if (appDiv) appDiv.style.display = 'flex';
+        const uName = document.getElementById('u-name');
+        const uRole = document.getElementById('u-role');
+        const uAv   = document.getElementById('u-av');
+        if (uName) uName.textContent = cp.name || user.email;
+        if (uRole) uRole.textContent = cp.role === 'admin' ? 'Administradora' : 'Profissional';
+        if (uAv)   uAv.textContent = (cp.name || 'U').charAt(0).toUpperCase();
+      }
+
+      resetInactivityTimer();
+
+    } catch(e) {
+      console.error('[Belezza] Erro ao carregar perfil:', e);
+      showLoginError('Erro ao carregar perfil. Tente novamente.');
+    }
+
+  } else {
+    cu = null; cp = null;
+    // Oculta tudo
+    if (appDiv) appDiv.style.display = 'none';
+    const homeCliente = document.getElementById('home-cli-screen');
+    if (homeCliente) homeCliente.style.display = 'none';
+    // Mostra tela única de login
+    const cliLogin = document.getElementById('login-cli-screen');
+    if (cliLogin) cliLogin.style.display = 'flex';
+  }
+});
+
+// setPersistence em paralelo — não bloqueia o listener
+setPersistence(auth, browserSessionPersistence).catch(e => {
+  console.warn('[Belezza] setPersistence:', e);
 });
 
 // ── Auth: login ───────────────────────────────────────────────────────────
@@ -1432,21 +1425,36 @@ function goToMob(id,el){
 }
 function setRole(r,el){
   role=r;
-  document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
   const isPro=r==='p';
   document.getElementById('sb-pro').style.display=isPro?'block':'none';
   document.getElementById('sb-cli').style.display=isPro?'none':'block';
   document.getElementById('mob-pro').style.display=isPro?'block':'none';
   document.getElementById('mob-cli').style.display=isPro?'none':'block';
-  document.getElementById('u-av').textContent=isPro?'CL':'AP';
-  document.getElementById('u-name').textContent=isPro?'Carla Lima':'Ana Paula F.';
-  document.getElementById('u-role').textContent=isPro?'Administradora':'Cliente';
-  const fp=isPro?'p-dash':'c-servicos';
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.querySelector(`button[onclick="goTo('${fp}',this)"]`)?.classList.add('active');
-  document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelector(`button[onclick="goToMob('${fp}',this)"]`)?.classList.add('active');
-  showPane(fp);
+
+  if(!isPro){
+    // Vai para a tela das flores (home cliente real)
+    const app = document.querySelector('.app');
+    if(app) app.style.display = 'none';
+    const homeCliente = document.getElementById('home-cli-screen');
+    if(homeCliente) homeCliente.style.display = 'flex';
+    // Preenche nome se logado
+    const welcome = document.getElementById('cli-welcome');
+    if(welcome && cp) welcome.textContent = 'Olá, ' + (cp.name || 'Cliente') + '! 💕';
+    else if(welcome) welcome.textContent = 'Olá! 💕';
+  } else {
+    // Volta para app profissional
+    const homeCliente = document.getElementById('home-cli-screen');
+    if(homeCliente) homeCliente.style.display = 'none';
+    const app = document.querySelector('.app');
+    if(app) app.style.display = 'flex';
+    document.getElementById('u-av').textContent = cp ? (cp.name||'U').charAt(0).toUpperCase() : 'CL';
+    document.getElementById('u-name').textContent = cp ? (cp.name||'Profissional') : 'Carla Lima';
+    document.getElementById('u-role').textContent = cp ? (cp.role==='admin'?'Administradora':'Profissional') : 'Administradora';
+    showPane('p-dash');
+    setTimeout(initDashboard, 50);
+  }
 }
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-bd').classList.toggle('open');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-bd').classList.remove('open');}
