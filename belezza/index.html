@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.5.1</title>
+<title>Belezza — Studio Luna v1.5.2</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -544,7 +544,7 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
     <div class="pane" id="pane-p-agenda">
       <div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">
         <button class="btn pk">Hoje</button><button class="btn">Semana</button><button class="btn">Mês</button>
-        <button class="btn tl" style="margin-left:auto"><i class="ti ti-plus"></i> Novo agendamento</button>
+        <button class="btn tl" style="margin-left:auto" onclick="abrirModalAg()"><i class="ti ti-plus"></i> Novo agendamento</button>
       </div>
       <div class="sec-lbl">Solicitações pendentes</div>
       <div class="req-card" id="req1">
@@ -1497,7 +1497,21 @@ function adicionarConfirmado(ag){
 function abrirModalAg(){
   const hoje = new Date().toISOString().split('T')[0];
   const dataEl = document.getElementById('ag-data');
-  if(dataEl){ dataEl.min = hoje; dataEl.value = hoje; }
+  if(dataEl){
+    dataEl.min = hoje;
+    dataEl.value = hoje;
+    dataEl.addEventListener('change', function(){
+      const preview = document.getElementById('ag-data-preview');
+      if(preview && this.value){
+        const d = new Date(this.value + 'T00:00:00');
+        const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+        const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+        preview.textContent = dias[d.getDay()] + ', ' + d.getDate() + ' de ' + meses[d.getMonth()];
+      }
+    });
+    // Dispara para mostrar data inicial
+    dataEl.dispatchEvent(new Event('change'));
+  }
   document.getElementById('modal-novo-ag').style.display = 'flex';
 }
 function fecharModalAg(){
@@ -1983,8 +1997,8 @@ function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }c
       <img class="mob" src="hero-cliente.jpg" alt="MeCuidar">
       <!-- Desktop/Tablet: imagem landscape 16:9 -->
       <img class="dsk" src="hero-cliente-desktop.jpg" alt="MeCuidar">
-      <!-- Substitui "Clinica" por "Studio Luna" -->
-      <div class="mob" style="
+      <!-- Substitui "Clinica" por "Studio Luna" — mobile e desktop -->
+      <div style="
         position:absolute;
         top:calc(100% * 0.27);
         left:50%;
@@ -2000,6 +2014,7 @@ function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }c
         padding:clamp(1px,0.5vw,3px) clamp(8px,3vw,16px);
         border-radius:4px;
         pointer-events:none;
+        z-index:2;
       ">Studio Luna</div>
       <div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(to bottom,transparent,#9B3D8B)"></div>
     </div>
@@ -2210,7 +2225,8 @@ function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }c
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <div>
         <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Data</label>
-        <input type="date" id="ag-data" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+        <input type="date" id="ag-data" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)" lang="pt-BR">
+        <div id="ag-data-preview" style="font-size:11px;color:var(--tx2);margin-top:3px;text-align:center"></div>
       </div>
       <div>
         <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Horário</label>
