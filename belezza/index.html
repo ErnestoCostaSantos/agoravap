@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.9.0</title>
+<title>Belezza — Studio Luna v2.0.1</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -573,7 +573,12 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
       <div id="ag-view-hoje">
         <div class="sec-lbl" style="margin-top:1rem" id="ag-hoje-lbl">Confirmados — hoje</div>
         <div id="ag-hoje-lista"></div>
-        <div class="sec-lbl" style="margin-top:1rem">Horários disponíveis — hoje</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1rem;margin-bottom:6px">
+          <div class="sec-lbl" style="margin-bottom:0">Horários disponíveis</div>
+          <select id="slots-prof-sel" style="font-size:11px;padding:4px 8px;border-radius:var(--r);border:1px solid var(--br);background:var(--bg2);color:var(--tx)" onchange="renderSlots()">
+            <option value="geral">Todas as profissionais</option>
+          </select>
+        </div>
         <div class="avail-grid" id="avail-grid"></div>
         <div style="display:flex;gap:10px;font-size:11px;color:var(--tx2);flex-wrap:wrap;margin-top:6px">
           <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--bg);border:1px solid var(--br);display:inline-block"></span>Disponível</span>
@@ -1548,49 +1553,72 @@ function atualizarPendentes(){
 
 function adicionarConfirmado(ag){
   if(!ag) return;
-  const hdr = document.querySelector('#pane-p-agenda .day-hdr');
-  if(!hdr) return;
-  const card = document.createElement('div');
-  card.className = 'ag-card';
-  card.innerHTML = `<div class="ag-time">${ag.data}</div><div class="ag-bar" style="background:var(--pk400)"></div><div class="ag-info"><div class="ag-svc">${ag.servico} — ${ag.cliente}</div><div class="ag-meta"><i class="ti ti-clock" style="font-size:11px"></i>${ag.hora} · ${ag.prof} · <span style="color:var(--pk600);font-size:10px">${ag.origem}</span></div></div><span class="badge badge-ok">Confirmado</span>`;
-  hdr.insertAdjacentElement('afterend', card);
+  // Atualiza a view ativa da agenda
+  if(typeof agView !== 'undefined'){
+    if(agView==='hoje')   renderAgHoje();
+    else if(agView==='semana') renderAgSemana();
+    else if(agView==='mes')    renderAgMes();
+  }
 }
 
 function abrirModalAg(){
-  const hoje = new Date().toISOString().split('T')[0];
-  const dataEl = document.getElementById('ag-data');
-  if(dataEl){
-    dataEl.min = hoje;
-    dataEl.value = hoje;
-    dataEl.addEventListener('change', function(){
-      const preview = document.getElementById('ag-data-preview');
-      if(preview && this.value){
-        const d = new Date(this.value + 'T00:00:00');
-        const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-        const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-        preview.textContent = dias[d.getDay()] + ', ' + d.getDate() + ' de ' + meses[d.getMonth()];
-      }
-    });
-    // Dispara para mostrar data inicial
-    dataEl.dispatchEvent(new Event('change'));
+  // Popula selects de Dia / Mês / Ano
+  const hoje = new Date();
+  const diaEl  = document.getElementById('ag-dia');
+  const mesEl  = document.getElementById('ag-mes-sel');
+  const anoEl  = document.getElementById('ag-ano');
+  if(diaEl && mesEl && anoEl){
+    diaEl.innerHTML  = Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('');
+    const nomMes=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    mesEl.innerHTML  = nomMes.map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('');
+    const anoAtual   = hoje.getFullYear();
+    anoEl.innerHTML  = [anoAtual, anoAtual+1].map(a=>`<option value="${a}">${a}</option>`).join('');
+    diaEl.value      = String(hoje.getDate()).padStart(2,'0');
+    mesEl.value      = String(hoje.getMonth()+1).padStart(2,'0');
+    anoEl.value      = String(anoAtual);
+    previewDataAg();
   }
   document.getElementById('modal-novo-ag').style.display = 'flex';
+}
+function previewDataAg(){
+  const dia = document.getElementById('ag-dia')?.value;
+  const mes = document.getElementById('ag-mes-sel')?.value;
+  const ano = document.getElementById('ag-ano')?.value;
+  if(!dia||!mes||!ano) return;
+  // Atualiza hidden input legível por salvarNovoAg
+  const hidden = document.getElementById('ag-data');
+  if(hidden) hidden.value = ano+'-'+mes+'-'+dia;
+  const d = new Date(parseInt(ano), parseInt(mes)-1, parseInt(dia));
+  const semana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const meses  = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const preview = document.getElementById('ag-data-preview');
+  if(preview) preview.textContent = semana[d.getDay()] + ', ' + parseInt(dia) + ' de ' + meses[d.getMonth()] + ' de ' + ano;
 }
 function fecharModalAg(){
   document.getElementById('modal-novo-ag').style.display = 'none';
   document.getElementById('ag-toast').style.display = 'none';
 }
 function salvarNovoAg(){
-  const cliente = document.getElementById('ag-cliente').value;
-  const servico = document.getElementById('ag-servico').value;
-  const data    = document.getElementById('ag-data').value;
-  const hora    = document.getElementById('ag-hora').value;
-  const prof    = document.getElementById('ag-prof').value;
-  const origem  = document.getElementById('ag-origem').value;
-  if(!cliente || !servico || !data){ alert('Preencha cliente, serviço e data.'); return; }
+  const clienteEl = document.getElementById('ag-cliente');
+  const servicoEl = document.getElementById('ag-servico');
+  const dataEl    = document.getElementById('ag-data');
+  const horaEl    = document.getElementById('ag-hora');
+  const profEl    = document.getElementById('ag-prof');
+  const origemEl  = document.getElementById('ag-origem');
+  const cliente   = clienteEl ? clienteEl.options[clienteEl.selectedIndex]?.text || clienteEl.value : '';
+  const servico   = servicoEl ? servicoEl.value : '';
+  const data      = dataEl    ? dataEl.value : '';
+  const hora      = horaEl    ? horaEl.value : '';
+  const profNome  = profEl    ? (profEl.options[profEl.selectedIndex]?.text || profEl.value) : '';
+  const origem    = origemEl  ? origemEl.value : '';
+  if(!cliente || cliente==='Selecione...' || !servico || !data){
+    alert('Preencha cliente, serviço e data.'); return;
+  }
   const d = new Date(data + 'T00:00:00');
   const dataFmt = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
-  const profAbrev = prof.split(' ')[0] + ' ' + prof.split(' ')[1][0] + '.';
+  // Abrevia nome da profissional com segurança
+  const partes = profNome.trim().split(' ');
+  const profAbrev = partes.length >= 2 ? partes[0] + ' ' + partes[1][0] + '.' : profNome;
   const novoAg = { id:'ag-'+Date.now(), cliente, servico, data:dataFmt, hora, prof:profAbrev, origem, status:'confirmado' };
   agendamentos.push(novoAg);
   adicionarConfirmado(novoAg);
@@ -2018,10 +2046,11 @@ function abrirPerfilCliente(id){
         ${c.obs ? `<div style="background:var(--am50);border-radius:var(--r);padding:6px 8px;font-size:11px;color:var(--am800)"><i class="ti ti-note"></i> ${c.obs}</div>` : ''}
       </div>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;margin-bottom:8px">
       <button class="btn tl" style="flex:1" onclick="window.open('https://wa.me/55${c.wpp.replace(/\D/g,'')}','_blank')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
       <button class="btn pk" style="flex:1" onclick="fecharPerfilCliente();abrirModalAg()"><i class="ti ti-calendar-plus"></i> Agendar</button>
-    </div>`;
+    </div>
+    <button class="btn" style="width:100%" onclick="editarCliente('${c.id}')"><i class="ti ti-pencil"></i> Editar dados</button>`;
   drawer.style.display = 'flex';
 }
 
@@ -2268,6 +2297,7 @@ function detalhesDia(key){
   alert(key + ':\n' + ags.map(a => a.hora + ' — ' + a.servico + ' · ' + a.cliente).join('\n'));
 }
 
+window.previewDataAg = previewDataAg;
 window.setAgView   = setAgView;
 window.navSemana   = navSemana;
 window.navMes      = navMes;
@@ -2403,9 +2433,14 @@ function salvarProfissional(){
 
   const idx = editId ? equipeDB.findIndex(x => x.id === editId) : -1;
 
+  // Calcula se está ativa hoje (baseado nos dias selecionados)
+  const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+  const diaHoje = diasSemana[new Date().getDay()];
+  const ativaHoje = disp.length === 0 || disp.includes(diaHoje);
+
   if(idx >= 0){
     // Edição
-    equipeDB[idx] = { ...equipeDB[idx], nome, wpp, sexo, espec, disp, ticket, avaliacao:aval, domicilio:dom, obs };
+    equipeDB[idx] = { ...equipeDB[idx], nome, wpp, sexo, espec, disp, ticket, avaliacao:aval, domicilio:dom, obs, ativa:ativaHoje };
     // Atualiza select de profissional no modal de agendamento
     atualizarSelectProfissional();
     mostrarToastProf('Profissional atualizada!');
@@ -2415,7 +2450,7 @@ function salvarProfissional(){
     const seed = nome.replace(/\s/g,'') + id.slice(-4);
     const bgColor = BG_CORES[equipeDB.length % BG_CORES.length];
     equipeDB.push({id, nome, wpp, sexo, espec, disp, ticket, avaliacao:aval,
-      domicilio:dom, obs, ativa:true, agMes:0, seed, bgColor});
+      domicilio:dom, obs, ativa:ativaHoje, agMes:0, seed, bgColor});
     // Adiciona no select de agendamento
     atualizarSelectProfissional();
     mostrarToastProf('Profissional cadastrada!');
@@ -2465,18 +2500,99 @@ window.atualizarSelectProfissional = atualizarSelectProfissional;
 
 // Inicializa lista ao carregar
 document.addEventListener('DOMContentLoaded', () => {
+  // Recalcula ativa para as profissionais do DB com base no dia de hoje
+  const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+  const diaHoje = diasSemana[new Date().getDay()];
+  equipeDB.forEach(p => { p.ativa = p.disp.length === 0 || p.disp.includes(diaHoje); });
   renderEquipe(equipeDB);
   atualizarSelectProfissional();
+  // Popula select de profissional nos slots
+  const slotsSel = document.getElementById('slots-prof-sel');
+  if(slotsSel){
+    slotsSel.innerHTML = '<option value="geral">Todas as profissionais</option>' +
+      equipeDB.map(p => `<option value="${p.id}">${p.nome.split(' ')[0]} ${p.nome.split(' ')[1]?.[0]||''}.</option>`).join('');
+  }
 });
 
 // ── Expor funções globalmente (necessário com type="module") ──────────────
 window.initDashboard        = initDashboard;
+
+function editarCliente(id){
+  const c = clientesDB.find(x => x.id === id);
+  if(!c) return;
+  fecharPerfilCliente();
+  // Preenche o modal de cadastro com os dados existentes
+  document.getElementById('nc-nome').value      = c.nome || '';
+  document.getElementById('nc-wpp').value       = c.wpp  || '';
+  document.getElementById('nc-email').value     = c.email || '';
+  document.getElementById('nc-nasc').value      = c.nasc  || '';
+  document.getElementById('nc-interesse').value = c.interesse || '';
+  document.getElementById('nc-alergias').value  = c.alergias || '';
+  document.getElementById('nc-obs').value       = c.obs  || '';
+  const origemSel = document.getElementById('nc-origem');
+  if(origemSel) origemSel.value = c.origem || '';
+  document.querySelectorAll('input[name="nc-sexo"]').forEach(r => r.checked = r.value === c.sexo);
+  // Marca que é edição, não novo cadastro
+  const modal = document.getElementById('modal-cli');
+  const titulo = modal.querySelector('div[style*="font-size:15px"]');
+  if(titulo) titulo.textContent = 'Editar Cliente';
+  const btnCad = modal.querySelector('button.btn.pk');
+  if(btnCad){ btnCad.innerHTML = '<i class="ti ti-device-floppy"></i> Salvar'; btnCad.setAttribute('onclick','salvarEdicaoCliente(\'' + id + '\')'); }
+  document.getElementById('nc-error').textContent = '';
+  document.getElementById('nc-toast').style.display = 'none';
+  modal.style.display = 'flex';
+}
+
+function salvarEdicaoCliente(id){
+  const nome = document.getElementById('nc-nome').value.trim();
+  const wpp  = document.getElementById('nc-wpp').value.trim();
+  if(!nome || !wpp){ document.getElementById('nc-error').textContent = 'Nome e WhatsApp são obrigatórios.'; return; }
+  const idx = clientesDB.findIndex(x => x.id === id);
+  if(idx < 0) return;
+  const sexo = document.querySelector('input[name="nc-sexo"]:checked')?.value || clientesDB[idx].sexo;
+  clientesDB[idx] = {
+    ...clientesDB[idx],
+    nome, wpp, sexo,
+    email:      document.getElementById('nc-email').value,
+    nasc:       document.getElementById('nc-nasc').value,
+    origem:     document.getElementById('nc-origem').value,
+    interesse:  document.getElementById('nc-interesse').value,
+    alergias:   document.getElementById('nc-alergias').value,
+    obs:        document.getElementById('nc-obs').value,
+  };
+  // Atualiza card na lista
+  const lista = document.getElementById('clientes-lista');
+  if(lista){
+    const rows = lista.querySelectorAll('.cli-row');
+    rows.forEach(row => {
+      if(row.onclick && row.onclick.toString().includes(id)){
+        const nomeEl = row.querySelector('.row-name');
+        const wppEl  = row.querySelector('.cli-wpp');
+        if(nomeEl) nomeEl.innerHTML = nome + ' <span style="font-size:10px;color:var(--tx3);font-weight:400">· ' + sexo + '</span>';
+        if(wppEl)  wppEl.innerHTML  = '<i class="ti ti-brand-whatsapp" style="font-size:11px"></i>' + wpp;
+        row.dataset.busca = nome + ' ' + wpp;
+      }
+    });
+  }
+  const toast = document.getElementById('nc-toast');
+  const toastMsg = toast.querySelector ? toast : toast;
+  if(toast){ toast.innerHTML = '<i class="ti ti-circle-check" style="font-size:18px"></i> Dados atualizados!'; toast.style.display = 'flex'; }
+  // Restaura modal para modo cadastro
+  const modal = document.getElementById('modal-cli');
+  const titulo = modal.querySelector('div[style*="font-size:15px"]');
+  if(titulo) titulo.textContent = 'Cadastrar Cliente';
+  const btnCad = modal.querySelector('button.btn.pk');
+  if(btnCad){ btnCad.innerHTML = '<i class="ti ti-user-plus"></i> Cadastrar'; btnCad.setAttribute('onclick','salvarCliente()'); }
+  setTimeout(() => fecharModalCliente(), 1800);
+}
 window.filtrarClientes      = filtrarClientes;
 window.abrirPerfilCliente   = abrirPerfilCliente;
 window.fecharPerfilCliente  = fecharPerfilCliente;
 window.abrirModalCliente    = abrirModalCliente;
 window.fecharModalCliente   = fecharModalCliente;
 window.salvarCliente        = salvarCliente;
+window.editarCliente        = editarCliente;
+window.salvarEdicaoCliente  = salvarEdicaoCliente;
 window.toggleFaq = toggleFaq;
 window.filterCat = filterCat;
 window.filterFaq = filterFaq;
@@ -2538,6 +2654,8 @@ function salvarCliente(){ try{ window.salvarCliente && window.salvarCliente(); }
 function abrirPerfilCliente(id){ try{ window.abrirPerfilCliente && window.abrirPerfilCliente(id); }catch(e){} }
 function fecharPerfilCliente(){ try{ window.fecharPerfilCliente && window.fecharPerfilCliente(); }catch(e){} }
 function filtrarClientes(q){ try{ window.filtrarClientes && window.filtrarClientes(q); }catch(e){} }
+function editarCliente(id){ try{ window.editarCliente && window.editarCliente(id); }catch(e){} }
+function salvarEdicaoCliente(id){ try{ window.salvarEdicaoCliente && window.salvarEdicaoCliente(id); }catch(e){} }
 function abrirModalAg(){ try{ window._abrirModalAg && window._abrirModalAg(); }catch(e){console.error('abrirModalAg:',e);} }
 function fecharModalAg(){ try{ window._fecharModalAg && window._fecharModalAg(); }catch(e){} }
 function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }catch(e){console.error('salvarNovoAg:',e);} }
@@ -2551,6 +2669,7 @@ function setAgView(v,el){ try{ window.setAgView && window.setAgView(v,el); }catc
 function navSemana(d){ try{ window.navSemana && window.navSemana(d); }catch(e){} }
 function navMes(d){ try{ window.navMes && window.navMes(d); }catch(e){} }
 function detalhesDia(k){ try{ window.detalhesDia && window.detalhesDia(k); }catch(e){} }
+function previewDataAg(){ try{ window.previewDataAg && window.previewDataAg(); }catch(e){} }
 </script>
 
 <!-- LOGIN CLIENTE -->
@@ -2606,37 +2725,7 @@ function detalhesDia(k){ try{ window.detalhesDia && window.detalhesDia(k); }catc
       <img class="mob" src="hero-cliente.jpg" alt="MeCuidar">
       <!-- Desktop/Tablet: imagem landscape 16:9 -->
       <img class="dsk" src="hero-cliente-desktop.jpg" alt="MeCuidar">
-      <!-- Studio Luna overlay — entre MeCuidar e o traço/ponto -->
-      <div id="sln-overlay" style="
-        position:absolute;
-        pointer-events:none;
-        z-index:2;
-        font-weight:700;
-        letter-spacing:.22em;
-        text-transform:uppercase;
-        color:#6B2D8B;
-        font-family:Georgia,serif;
-        white-space:nowrap;
-        background:transparent;
-        padding:0;
-        top:24%;
-        left:50%;
-        transform:translateX(-50%);
-        font-size:clamp(9px,3.2vw,13px);
-        text-shadow:none;
-      ">Studio Luna</div>
-      <style>
-        @media(min-width:700px){
-          #sln-overlay{
-            top:43% !important;
-            left:20% !important;
-            transform:none !important;
-            font-size:15px !important;
-            letter-spacing:.22em !important;
-          }
-        }
-      </style>
-      <div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(to bottom,transparent,#9B3D8B)"></div>
+
     </div>
 
     <div id="cli-form">
@@ -2989,7 +3078,12 @@ function detalhesDia(k){ try{ window.detalhesDia && window.detalhesDia(k); }catc
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <div>
         <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Data</label>
-        <input type="date" id="ag-data" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)" lang="pt-BR">
+        <div style="display:flex;gap:5px;align-items:center">
+          <select id="ag-dia" style="flex:1;padding:9px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)" onchange="previewDataAg()"></select>
+          <select id="ag-mes-sel" style="flex:1.4;padding:9px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)" onchange="previewDataAg()"></select>
+          <select id="ag-ano" style="flex:1.2;padding:9px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)" onchange="previewDataAg()"></select>
+        </div>
+        <input type="hidden" id="ag-data">
         <div id="ag-data-preview" style="font-size:11px;color:var(--tx2);margin-top:3px;text-align:center"></div>
       </div>
       <div>
