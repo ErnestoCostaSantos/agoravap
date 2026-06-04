@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.4.4</title>
+<title>Belezza — Studio Luna v2.5.0</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1070,6 +1070,7 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
         <button class="help-cat" onclick="filterCat('promos',this)">Promoções</button>
         <button class="help-cat" onclick="filterCat('fidelidade',this)">Fidelidade</button>
         <button class="help-cat" onclick="filterCat('agendamentos',this)">Agendamentos</button>
+        <button class="help-cat" onclick="filterCat('agenda',this)">Agenda</button>
         <button class="help-cat" onclick="filterCat('versaocliente',this)">Versão Cliente</button>
         <button class="help-cat" onclick="filterCat('imagens',this)">Imagens</button>
         <button class="help-cat" onclick="filterCat('equipe',this)">Equipe</button>
@@ -1320,6 +1321,24 @@ const faqs=[
   {cat:'imagens',q:'Quanto espaço livre deixar na lateral direita da imagem mobile?',a:'Mínimo 35% da largura livre à direita do rosto. Esse espaço é usado para os ícones de especialidades (Estética Facial, Corporal, Beleza e Bem-estar).'},
   {cat:'imagens',q:'Como personalizar a imagem para cada clínica no modelo SaaS?',a:'Siga o checklist: nome da clínica na arte (não depender de overlay CSS), proporção 9:19 mobile e 16:9 desktop, 30% de espaço na base, 35% de largura livre à direita, cores da identidade visual, ícones adaptados. Nome do arquivo: hero-cliente-[nome-clinica].jpg'},
   {cat:'imagens',q:'Como trocar a imagem de login no app?',a:'Substitua o arquivo hero-cliente.jpg (mobile) ou hero-cliente-desktop.jpg (desktop) na pasta belezza/ do GitHub. O Vercel publica automaticamente em ~30 segundos. Mantenha o mesmo nome de arquivo.'},
+
+  // ── Novidades v1.6–v2.4 (Conversa 2) ─────────────────────────────────
+  {cat:'equipe',q:'Como cadastrar uma nova profissional?',a:'Acesse a aba Equipe e clique em "+ Nova". Preencha nome, WhatsApp, especialidades, dias de disponibilidade, ticket médio e marque "Faz Domicílio" se aplicável. Ao salvar, a profissional aparece na lista e no select de agendamentos.'},
+  {cat:'equipe',q:'Como editar os dados de uma profissional?',a:'No card da profissional, clique em "Editar". O modal abre pré-preenchido com os dados atuais. Altere o que precisar e clique em "Salvar". O card na lista é atualizado imediatamente.'},
+  {cat:'equipe',q:'O que significa o dot verde ou cinza no card da profissional?',a:'O dot verde indica que a profissional trabalha hoje conforme a disponibilidade cadastrada. O dot cinza (folga) indica que o dia atual não está na lista de dias de trabalho dela.'},
+  {cat:'equipe',q:'O que é "Faz Domicílio"?',a:'Indica que a profissional realiza atendimentos no endereço da cliente. Ao marcar essa opção, um badge "Domicílio" aparece no card dela na listagem da equipe.'},
+  {cat:'clientes',q:'Como cadastrar uma nova cliente?',a:'Na aba Clientes, clique em "+ Nova". Preencha nome, WhatsApp (obrigatórios) e dados opcionais como e-mail, data de nascimento, alergias e observações internas. A cliente aparece na lista e no select de agendamentos imediatamente.'},
+  {cat:'clientes',q:'Como editar os dados de uma cliente?',a:'Abra o perfil da cliente (clique no card) e clique em "Editar dados". O modal abre pré-preenchido. Após salvar, o card na lista é atualizado automaticamente.'},
+  {cat:'clientes',q:'Como agendar para uma cliente pelo perfil dela?',a:'Abra o perfil da cliente e clique em "Agendar". O app fecha o perfil e abre o modal de Novo Agendamento já pronto para preencher.'},
+  {cat:'agendamentos',q:'Como funciona o novo fluxo de agendamento com Firebase?',a:'Quando a cliente envia uma solicitação pelo app, ela é gravada em tempo real no Firestore com status "Aguardando". A líder vê a solicitação aparecer automaticamente no Dashboard e na Agenda, sem precisar recarregar a página.'},
+  {cat:'agendamentos',q:'O que acontece quando a líder confirma ou recusa um agendamento?',a:'Ao confirmar, o status muda para "Confirmado" no Firestore e a cliente vê o status atualizado em "Seus agendamentos" em tempo real. Ao recusar, o status muda para "Não disponível" e a líder recebe um aviso amarelo para entrar em contato com a cliente.'},
+  {cat:'agendamentos',q:'O que a cliente deve fazer quando o agendamento é recusado?',a:'A cliente verá o status "Não disponível" na aba Agendamentos e poderá clicar em "Reagendar". O app exibirá os horários disponíveis de todas as profissionais que realizam o serviço solicitado, organizados por profissional.'},
+  {cat:'agendamentos',q:'Como funciona o reagendamento após recusa?',a:'A cliente escolhe uma profissional disponível e um novo horário. Uma nova solicitação é enviada para a líder confirmar. Atenção: a líder deve revisar se a profissional escolhida é adequada para o serviço. Em casos de múltiplas recusas, é mais eficiente entrar em contato diretamente com a cliente pelo WhatsApp para resolver.'},
+  {cat:'agendamentos',q:'Como o app identifica quais profissionais fazem o serviço para reagendamento?',a:'O app busca pela palavra-chave do serviço no campo de especialidades de cada profissional. Por exemplo, se o serviço é "Botox", o app mostra todas as profissionais cujas especialidades contêm "Botox". Por isso é importante preencher as especialidades de forma detalhada no cadastro da equipe.'},
+  {cat:'acesso',q:'Como funciona o login único para profissional e cliente?',a:'O app possui uma única tela de login (MeCuidar). Ao entrar com e-mail e senha, o Firebase verifica o perfil (role): se for admin ou profissional, vai direto para o Dashboard profissional; se for cliente, vai para a tela de flores do MeCuidar.'},
+  {cat:'acesso',q:'Como sair da conta na versão profissional?',a:'No menu lateral esquerdo, role até o final. Clique no botão "Sair da conta" que aparece abaixo do seu nome e perfil. Você será desconectada e redirecionada para o login.'},
+  {cat:'agenda',q:'Quais as três visões da Agenda?',a:'Hoje: lista os agendamentos confirmados do dia atual com grade de horários disponíveis. Semana: grid de segunda a sábado com navegação por semana. Mês: calendário completo com dias destacados quando há agendamentos — clique no dia para ver os detalhes.'},
+  {cat:'agenda',q:'Como filtrar os slots de horários por profissional?',a:'Na aba Agenda, visão Hoje, use o select "Todas as profissionais" acima da grade de horários para filtrar os slots de uma profissional específica.'},
 ];
 let curCat='todos',curSearch='';
 function renderFaq(){
@@ -2147,19 +2166,25 @@ function iniciarListenerAgCliente(uid) {
       const s = statusMap[ag.status] || statusMap.pendente;
       const [dd, mm] = (ag.data || '').split('/');
       const meses = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      const btnReagendar = ag.status === 'recusado'
+        ? `<button onclick="abrirReagendamento('${ag.id}','${(ag.servico||'').replace(/'/g,'\\\'')}','${ag.prof||''}')" style="margin-top:6px;width:100%;padding:7px;border:none;border-radius:var(--r);background:var(--pk600);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit"><i class='ti ti-calendar-plus' style='font-size:12px'></i> Reagendar</button>`
+        : '';
       return `
-        <div class="sched-card" style="margin-bottom:8px">
-          <div class="scd-left">
-            <div class="scd-dt">
-              <div class="scd-day">${dd || '—'}</div>
-              <div class="scd-mo">${meses[parseInt(mm)] || ''}</div>
+        <div class="sched-card" style="margin-bottom:8px;flex-direction:column;align-items:stretch">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="scd-left" style="flex:1">
+              <div class="scd-dt">
+                <div class="scd-day">${dd || '—'}</div>
+                <div class="scd-mo">${meses[parseInt(mm)] || ''}</div>
+              </div>
+              <div>
+                <div class="scd-svc">${ag.servico || '—'}</div>
+                <div class="scd-sub"><i class="ti ti-clock" style="font-size:11px"></i>${ag.hora || ''} · ${ag.prof || ''}</div>
+              </div>
             </div>
-            <div>
-              <div class="scd-svc">${ag.servico || '—'}</div>
-              <div class="scd-sub"><i class="ti ti-clock" style="font-size:11px"></i>${ag.hora || ''} · ${ag.prof || ''}</div>
-            </div>
+            <span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;border:1px solid ${s.border};background:${s.bg};color:${s.color};white-space:nowrap">${s.label}</span>
           </div>
-          <span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;border:1px solid ${s.border};background:${s.bg};color:${s.color};white-space:nowrap">${s.label}</span>
+          ${btnReagendar}
         </div>`;
     }).join('');
   }, err => {
@@ -2529,6 +2554,178 @@ window.navSemana   = navSemana;
 window.navMes      = navMes;
 window.renderAgHoje= renderAgHoje;
 window.detalhesDia = detalhesDia;
+
+
+// ── Módulo Reagendamento ──────────────────────────────────────────────────
+let reagServico = '';
+let reagAgId    = '';
+let reagSelDia  = null;
+let reagSelHora = null;
+let reagSelProf = null;
+
+function abrirReagendamento(agId, servico, profAnterior) {
+  reagAgId    = agId;
+  reagServico = servico;
+  reagSelDia  = null;
+  reagSelHora = null;
+  reagSelProf = null;
+
+  // Label do serviço
+  const lbl = document.getElementById('reag-servico-label');
+  if(lbl) lbl.textContent = 'Serviço: ' + servico + (profAnterior ? ' · Prof. anterior: ' + profAnterior : '');
+
+  // Reseta passos
+  document.getElementById('reag-profs-wrap').style.display  = 'none';
+  document.getElementById('reag-enviar-wrap').style.display = 'none';
+  document.getElementById('reag-toast').style.display       = 'none';
+
+  // Gera calendário (mesma lógica do agendamento normal)
+  const cal = document.getElementById('reag-cal');
+  cal.innerHTML = '';
+  const hoje = new Date();
+  const diasAdicionados = [];
+  let d = new Date(hoje);
+  d.setDate(d.getDate() + 1);
+  while(diasAdicionados.length < 15){
+    if(d.getDay() !== 0){
+      const dia    = d.getDate();
+      const mes    = d.getMonth() + 1;
+      const label  = `${String(dia).padStart(2,'0')}/${String(mes).padStart(2,'0')}`;
+      const semana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()];
+      const btn    = document.createElement('button');
+      btn.className = 'dia-btn';
+      btn.innerHTML = `<span style="font-size:10px;color:var(--tx3)">${semana}</span><span style="font-size:14px;font-weight:700">${dia}</span><span style="font-size:10px;color:var(--tx3)">${String(mes).padStart(2,'0')}</span>`;
+      btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:7px 4px;border-radius:var(--r);border:1px solid var(--br);background:var(--bg2);cursor:pointer;gap:2px;font-family:inherit;transition:all .15s;width:100%';
+      btn.dataset.label  = label;
+      btn.dataset.semana = semana;
+      btn.onclick = function(){ reagSelecionarDia(this, label, semana); };
+      cal.appendChild(btn);
+      diasAdicionados.push(label);
+    }
+    d.setDate(d.getDate() + 1);
+  }
+
+  document.getElementById('modal-reag').style.display = 'flex';
+}
+
+function fecharReagendamento(){
+  document.getElementById('modal-reag').style.display = 'none';
+}
+
+function reagSelecionarDia(btn, label, semana) {
+  // Destaca dia selecionado
+  document.querySelectorAll('#reag-cal .dia-btn').forEach(b => {
+    b.style.background  = 'var(--bg2)';
+    b.style.borderColor = 'var(--br)';
+    b.style.color       = 'var(--tx)';
+  });
+  btn.style.background  = 'var(--pk600)';
+  btn.style.borderColor = 'var(--pk600)';
+  btn.style.color       = 'white';
+  reagSelDia  = label;
+  reagSelHora = null;
+  reagSelProf = null;
+  document.getElementById('reag-enviar-wrap').style.display = 'none';
+
+  // Busca profissionais que fazem o serviço (por palavra-chave)
+  const keyword = reagServico.split(/[\s·–-]/)[0].toLowerCase(); // primeira palavra do serviço
+  const profsFiltradas = (typeof equipeDB !== 'undefined' ? equipeDB : [])
+    .filter(p => p.ativa && p.espec.toLowerCase().includes(keyword));
+
+  const wrap = document.getElementById('reag-profs-wrap');
+  const lista = document.getElementById('reag-profs-lista');
+
+  if(profsFiltradas.length === 0){
+    lista.innerHTML = `<div style="color:var(--tx3);font-size:13px;padding:10px 0">Nenhuma profissional disponível para "${reagServico}" neste dia. Entre em contato pelo WhatsApp.</div>`;
+    wrap.style.display = 'block';
+    return;
+  }
+
+  const horarios = ['09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
+  const ocupados = ['10:00','14:30']; // mock — futuramente virá do Firestore
+
+  lista.innerHTML = profsFiltradas.map(p => {
+    const avatarUrl = `https://api.dicebear.com/9.x/lorelei/svg?seed=${p.seed}&backgroundColor=${p.bgColor}`;
+    const slots = horarios.map(h => {
+      const busy = ocupados.includes(h);
+      return `<button class="slot${busy?' busy':''}" ${busy?'disabled':''} 
+        onclick="reagSelecionarHorario(this,'${h}','${p.id}','${p.nome}')" 
+        style="font-size:11px">${h}</button>`;
+    }).join('');
+    return `
+      <div style="background:var(--bg2);border-radius:var(--r);padding:10px 12px;margin-bottom:10px;border:1px solid var(--br)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <img src="${avatarUrl}" style="width:32px;height:32px;border-radius:50%;flex-shrink:0">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--tx)">${p.nome}</div>
+            <div style="font-size:11px;color:var(--tx3)">${p.espec}</div>
+          </div>
+        </div>
+        <div class="avail-grid" style="gap:5px">${slots}</div>
+      </div>`;
+  }).join('');
+
+  wrap.style.display = 'block';
+}
+
+function reagSelecionarHorario(btn, hora, profId, profNome) {
+  // Remove seleção anterior
+  document.querySelectorAll('#reag-profs-lista .slot.sel').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  reagSelHora = hora;
+  reagSelProf = profNome;
+
+  // Preenche resumo
+  document.getElementById('reag-res-svc').textContent  = reagServico;
+  document.getElementById('reag-res-dia').textContent  = reagSelDia;
+  document.getElementById('reag-res-hora').textContent = hora;
+  document.getElementById('reag-res-prof').textContent = profNome;
+  document.getElementById('reag-enviar-wrap').style.display = 'block';
+}
+
+async function enviarReagendamento() {
+  if(!reagSelDia || !reagSelHora || !reagSelProf) return;
+  if(!cu){ alert('Sessão expirada. Faça login novamente.'); return; }
+
+  const btn = document.getElementById('reag-enviar-btn');
+  if(btn){ btn.textContent = 'Enviando...'; btn.disabled = true; }
+
+  try {
+    const [dd, mm] = reagSelDia.split('/');
+    await addDoc(collection(db, 'agendamentos'), {
+      clinicaId:    CLINICA_ID,
+      clienteId:    cu.uid,
+      cliente:      cp?.name || cu.email.split('@')[0],
+      clienteEmail: cu.email,
+      servico:      reagServico,
+      data:         dd + '/' + mm,
+      hora:         reagSelHora,
+      prof:         reagSelProf,
+      origem:       'Reagendamento',
+      status:       'pendente',
+      criadoEm:     new Date().toISOString(),
+      reagendadoDe: reagAgId,
+    });
+
+    document.getElementById('reag-enviar-wrap').style.display = 'none';
+    document.getElementById('reag-profs-wrap').style.display  = 'none';
+    const toast = document.getElementById('reag-toast');
+    if(toast) toast.style.display = 'flex';
+    setTimeout(fecharReagendamento, 2500);
+
+  } catch(e) {
+    console.error('[Belezza] enviarReagendamento:', e);
+    alert('Erro ao enviar. Verifique sua conexão.');
+  } finally {
+    if(btn){ btn.textContent = 'Enviar novo agendamento'; btn.disabled = false; }
+  }
+}
+
+window.abrirReagendamento   = abrirReagendamento;
+window.fecharReagendamento  = fecharReagendamento;
+window.reagSelecionarDia    = reagSelecionarDia;
+window.reagSelecionarHorario= reagSelecionarHorario;
+window.enviarReagendamento  = enviarReagendamento;
 
 // ── Módulo Equipe ─────────────────────────────────────────────────────────
 const BG_CORES = ['fbeaf0','e1f5ee','eeedfe','faece7','faeeda','e8f4ff'];
@@ -2905,6 +3102,11 @@ function fecharModalAg(){ try{ window._fecharModalAg && window._fecharModalAg();
 function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }catch(e){console.error('salvarNovoAg:',e);} }
 function abrirModalProfissional(id){ try{ window.abrirModalProfissional && window.abrirModalProfissional(id); }catch(e){} }
 function fecharModalProfissional(){ try{ window.fecharModalProfissional && window.fecharModalProfissional(); }catch(e){} }
+function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.abrirReagendamento(id,s,p); }catch(e){} }
+function fecharReagendamento(){ try{ window.fecharReagendamento && window.fecharReagendamento(); }catch(e){} }
+function reagSelecionarDia(el,l,s){ try{ window.reagSelecionarDia && window.reagSelecionarDia(el,l,s); }catch(e){} }
+function reagSelecionarHorario(el,h,id,n){ try{ window.reagSelecionarHorario && window.reagSelecionarHorario(el,h,id,n); }catch(e){} }
+function enviarReagendamento(){ try{ window.enviarReagendamento && window.enviarReagendamento(); }catch(e){} }
 function salvarProfissional(){ try{ window.salvarProfissional && window.salvarProfissional(); }catch(e){} }
 function editarProfissional(id){ try{ window.editarProfissional && window.editarProfissional(id); }catch(e){} }
 function verAgendaProfissional(id,nome){ try{ window.verAgendaProfissional && window.verAgendaProfissional(id,nome); }catch(e){} }
@@ -3136,6 +3338,52 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
     <!-- Rodapé -->
     <div style="text-align:center;padding:8px 0 24px;flex-shrink:0">
       <div style="font-size:10px;color:#c9aab8;letter-spacing:.1em">belezza · Studio Luna</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL REAGENDAMENTO -->
+<div id="modal-reag" style="display:none;position:fixed;inset:0;z-index:9200;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+  <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-size:15px;font-weight:700;color:var(--tx)">Reagendar</div>
+      <button onclick="fecharReagendamento()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">&#x2715;</button>
+    </div>
+    <div id="reag-servico-label" style="font-size:12px;color:var(--pk600);font-weight:600;margin-bottom:14px"></div>
+
+    <!-- Passo 1: Dia -->
+    <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">1. Escolha o dia</div>
+    <div id="reag-cal" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px"></div>
+
+    <!-- Passo 2: Profissional + horário -->
+    <div id="reag-profs-wrap" style="display:none">
+      <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">2. Escolha profissional e horário</div>
+      <div id="reag-profs-lista"></div>
+    </div>
+
+    <!-- Passo 3: Enviar -->
+    <div id="reag-enviar-wrap" style="display:none;margin-top:10px">
+      <div class="card" style="padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Resumo</div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:13px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Serviço</span><span style="font-weight:600;color:var(--pk700)" id="reag-res-svc">—</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Data</span><span style="font-weight:600" id="reag-res-dia">—</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Horário</span><span style="font-weight:600" id="reag-res-hora">—</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Profissional</span><span style="font-weight:600" id="reag-res-prof">—</span></div>
+        </div>
+      </div>
+      <div class="info-box" style="margin-bottom:10px;font-size:12px">
+        <i class="ti ti-info-circle" style="font-size:14px;flex-shrink:0"></i>
+        A líder do Studio Luna confirmará sua nova solicitação em breve.
+      </div>
+      <button id="reag-enviar-btn" onclick="enviarReagendamento()" class="btn pk" style="width:100%;justify-content:center;padding:11px">
+        <i class="ti ti-send"></i> Enviar novo agendamento
+      </button>
+    </div>
+    <div id="reag-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:12px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
+      <i class="ti ti-circle-check" style="font-size:20px"></i>
+      <div><strong>Solicitação enviada!</strong><br>Aguarde a confirmação da líder.</div>
     </div>
   </div>
 </div>
