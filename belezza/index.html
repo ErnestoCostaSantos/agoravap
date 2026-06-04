@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.5.4</title>
+<title>Belezza — Studio Luna v2.5.5</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -2172,7 +2172,7 @@ function iniciarListenerAgCliente(uid) {
       const [dd, mm] = (ag.data || '').split('/');
       const meses = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
       const btnReagendar = ag.status === 'recusado'
-        ? `<button onclick="abrirReagendamento('${ag.id}','${(ag.servico||'').replace(/'/g,'\\\'')}','${ag.prof||''}')" style="margin-top:6px;width:100%;padding:7px;border:none;border-radius:var(--r);background:var(--pk600);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit"><i class='ti ti-calendar-plus' style='font-size:12px'></i> Reagendar</button>`
+        ? `<button class="btn-reag-cli" data-id="${ag.id}" data-svc="${(ag.servico||'').replace(/"/g,'&quot;')}" data-prof="${(ag.prof||'').replace(/"/g,'&quot;')}" style="margin-top:6px;width:100%;padding:7px;border:none;border-radius:var(--r);background:var(--pk600);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit"><i class="ti ti-calendar-plus" style="font-size:12px"></i> Reagendar</button>`
         : '';
       return `
         <div class="sched-card" style="margin-bottom:8px;flex-direction:column;align-items:stretch">
@@ -2727,6 +2727,16 @@ async function enviarReagendamento() {
 }
 
 window.abrirReagendamento   = abrirReagendamento;
+
+// Delegação: captura clique nos botões Reagendar gerados dinamicamente
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn-reag-cli');
+  if(!btn) return;
+  const id   = btn.dataset.id  || '';
+  const svc  = btn.dataset.svc || '';
+  const prof = btn.dataset.prof|| '';
+  abrirReagendamento(id, svc, prof);
+});
 window.fecharReagendamento  = fecharReagendamento;
 window.reagSelecionarDia    = reagSelecionarDia;
 window.reagSelecionarHorario= reagSelecionarHorario;
