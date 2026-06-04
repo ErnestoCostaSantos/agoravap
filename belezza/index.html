@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.5.8</title>
+<title>Belezza — Studio Luna v1.9.0</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -542,80 +542,141 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
     </div>
 
     <div class="pane" id="pane-p-agenda">
-      <div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">
-        <button class="btn pk">Hoje</button><button class="btn">Semana</button><button class="btn">Mês</button>
+      <!-- Toolbar -->
+      <div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <button class="btn pk ag-view-btn" id="ag-btn-hoje" onclick="setAgView('hoje',this)">Hoje</button>
+        <button class="btn ag-view-btn" id="ag-btn-semana" onclick="setAgView('semana',this)">Semana</button>
+        <button class="btn ag-view-btn" id="ag-btn-mes" onclick="setAgView('mes',this)">Mês</button>
         <button class="btn tl" style="margin-left:auto" onclick="abrirModalAg()"><i class="ti ti-plus"></i> Novo agendamento</button>
       </div>
-      <div class="sec-lbl">Solicitações pendentes</div>
-      <div class="req-card" id="req1">
-        <div class="av" style="background:var(--pk50);color:var(--pk800)">AP</div>
-        <div class="req-info"><div class="req-name">Ana Paula Ferreira</div><div class="req-detail"><i class="ti ti-sparkles" style="font-size:11px"></i> Limpeza de pele · 07/06 às 14h30 · Carla M.</div></div>
-        <div style="display:flex;gap:5px">
-          <button class="btn tl sm" onclick="confirmar('req1')"><i class="ti ti-check"></i> Confirmar</button>
-          <button class="btn sm" onclick="recusar('req1')"><i class="ti ti-x"></i></button>
+      <!-- Pendentes (sempre visível) -->
+      <div id="ag-pendentes-wrap">
+        <div class="sec-lbl">Solicitações pendentes</div>
+        <div class="req-card" id="req1">
+          <div class="av" style="background:var(--pk50);color:var(--pk800)">AP</div>
+          <div class="req-info"><div class="req-name">Ana Paula Ferreira</div><div class="req-detail"><i class="ti ti-sparkles" style="font-size:11px"></i> Limpeza de pele · 07/06 às 14h30 · Carla M.</div></div>
+          <div style="display:flex;gap:5px">
+            <button class="btn tl sm" onclick="confirmar('req1')"><i class="ti ti-check"></i> Confirmar</button>
+            <button class="btn sm" onclick="recusar('req1')"><i class="ti ti-x"></i></button>
+          </div>
+        </div>
+        <div class="req-card" id="req2">
+          <div class="av" style="background:var(--tl50);color:var(--tl800)">SA</div>
+          <div class="req-info"><div class="req-name">Sofia Alves</div><div class="req-detail"><i class="ti ti-sparkles" style="font-size:11px"></i> Preenchimento labial · 08/06 às 10h00 · Fernanda R.</div></div>
+          <div style="display:flex;gap:5px">
+            <button class="btn tl sm" onclick="confirmar('req2')"><i class="ti ti-check"></i> Confirmar</button>
+            <button class="btn sm" onclick="recusar('req2')"><i class="ti ti-x"></i></button>
+          </div>
         </div>
       </div>
-      <div class="req-card" id="req2">
-        <div class="av" style="background:var(--tl50);color:var(--tl800)">SA</div>
-        <div class="req-info"><div class="req-name">Sofia Alves</div><div class="req-detail"><i class="ti ti-sparkles" style="font-size:11px"></i> Preenchimento labial · 08/06 às 10h00 · Fernanda R.</div></div>
-        <div style="display:flex;gap:5px">
-          <button class="btn tl sm" onclick="confirmar('req2')"><i class="ti ti-check"></i> Confirmar</button>
-          <button class="btn sm" onclick="recusar('req2')"><i class="ti ti-x"></i></button>
+      <!-- View: HOJE -->
+      <div id="ag-view-hoje">
+        <div class="sec-lbl" style="margin-top:1rem" id="ag-hoje-lbl">Confirmados — hoje</div>
+        <div id="ag-hoje-lista"></div>
+        <div class="sec-lbl" style="margin-top:1rem">Horários disponíveis — hoje</div>
+        <div class="avail-grid" id="avail-grid"></div>
+        <div style="display:flex;gap:10px;font-size:11px;color:var(--tx2);flex-wrap:wrap;margin-top:6px">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--bg);border:1px solid var(--br);display:inline-block"></span>Disponível</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--bg2);display:inline-block"></span>Ocupado</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--tl50);border:1px solid var(--tl400);display:inline-block"></span>Confirmado</span>
         </div>
       </div>
-      <div class="day-hdr" style="margin-top:1rem">Confirmados — junho</div>
-      <div class="ag-card"><div class="ag-time">07/06</div><div class="ag-bar" style="background:var(--pk400)"></div><div class="ag-info"><div class="ag-svc">Botox — glabela e testa</div><div class="ag-meta"><i class="ti ti-clock" style="font-size:11px"></i>10h30 · 45 min · Fernanda R.</div></div><span class="badge badge-ok">Confirmado</span></div>
-      <div class="ag-card"><div class="ag-time">08/06</div><div class="ag-bar" style="background:var(--pu400)"></div><div class="ag-info"><div class="ag-svc">Microblading fio a fio</div><div class="ag-meta"><i class="ti ti-clock" style="font-size:11px"></i>14h00 · 90 min · Juliana S.</div></div><span class="badge badge-ok">Confirmado</span></div>
-      <div class="ag-card"><div class="ag-time">10/06</div><div class="ag-bar" style="background:var(--tl400)"></div><div class="ag-info"><div class="ag-svc">Limpeza de pele profunda</div><div class="ag-meta"><i class="ti ti-clock" style="font-size:11px"></i>09h00 · 60 min · Carla M.</div></div><span class="badge badge-ok">Confirmado</span></div>
-      <div class="sec-lbl" style="margin-top:1rem">Horários disponíveis — Carla M. · 07/06</div>
-      <div class="avail-grid" id="avail-grid"></div>
-      <div style="display:flex;gap:10px;font-size:11px;color:var(--tx2);flex-wrap:wrap">
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--bg);border:1px solid var(--br);display:inline-block"></span>Disponível</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--bg2);display:inline-block"></span>Ocupado</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:var(--tl50);border:1px solid var(--tl400);display:inline-block"></span>Confirmado</span>
+      <!-- View: SEMANA -->
+      <div id="ag-view-semana" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <button class="btn" style="padding:5px 10px" onclick="navSemana(-1)"><i class="ti ti-chevron-left"></i></button>
+          <div id="ag-semana-titulo" style="font-size:13px;font-weight:600;flex:1;text-align:center"></div>
+          <button class="btn" style="padding:5px 10px" onclick="navSemana(1)"><i class="ti ti-chevron-right"></i></button>
+        </div>
+        <div id="ag-semana-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px"></div>
+      </div>
+      <!-- View: MÊS -->
+      <div id="ag-view-mes" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <button class="btn" style="padding:5px 10px" onclick="navMes(-1)"><i class="ti ti-chevron-left"></i></button>
+          <div id="ag-mes-titulo" style="font-size:13px;font-weight:600;flex:1;text-align:center"></div>
+          <button class="btn" style="padding:5px 10px" onclick="navMes(1)"><i class="ti ti-chevron-right"></i></button>
+        </div>
+        <div id="ag-mes-grid"></div>
       </div>
     </div>
 
     <div class="pane" id="pane-p-clientes">
-      <div class="search-bar"><i class="ti ti-search"></i><input placeholder="Buscar cliente, procedimento..."></div>
-      <!-- legenda top 10 -->
+      <!-- Busca + Nova -->
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div class="search-bar" style="flex:1;margin-bottom:0"><i class="ti ti-search"></i><input id="cli-search" placeholder="Buscar cliente..." oninput="filtrarClientes(this.value)"></div>
+        <button class="btn pk" style="padding:8px 12px;font-size:12px" onclick="abrirModalCliente()"><i class="ti ti-plus"></i> Nova</button>
+      </div>
+      <!-- Top 10 legenda -->
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:6px 10px;background:linear-gradient(90deg,#fffbea,#fef9e0);border-radius:var(--r);border:1px solid #f5d84a">
         <i class="ti ti-crown" style="font-size:14px;color:#c49b00"></i>
-        <span style="font-size:11px;color:#7a5f00;font-weight:600">Top 10 do mês anterior — clientes destaque</span>
+        <span style="font-size:11px;color:#7a5f00;font-weight:600">Top 10 — score = visitas (60%) + valor gasto (40%)</span>
       </div>
-      <!-- cliente 1 — TOP (score alto) -->
-      <div class="cli-row" style="border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent)">
-        <div style="position:relative">
-          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaRosa&backgroundColor=e1f5ee" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Mariana Costa">
-          <div style="position:absolute;top:-4px;right:-4px;background:#f5d84a;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="font-size:9px;color:#7a5f00"></i></div>
+      <!-- Lista -->
+      <div id="clientes-lista">
+        <div class="cli-row" style="border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent);cursor:pointer" onclick="abrirPerfilCliente('mariana')">
+          <div style="position:relative;flex-shrink:0">
+            <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaRosa&backgroundColor=e1f5ee" style="width:40px;height:40px;border-radius:50%">
+            <div style="position:absolute;top:-4px;right:-4px;background:#f5d84a;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="font-size:9px;color:#7a5f00"></i></div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="row-name">Mariana Costa <span style="font-size:10px;color:var(--tx3);font-weight:400">· F</span></div>
+            <div class="row-sub"><i class="ti ti-sparkles" style="font-size:11px"></i> Botox · Fernanda R.</div>
+            <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 91234-5678</div>
+          </div>
+          <div class="row-right">
+            <div style="font-size:10px;color:var(--tx3)">15/05/2026</div>
+            <div style="font-size:11px;font-weight:600;color:#c49b00">5 visitas</div>
+            <div style="font-size:10px;color:#c49b00;font-weight:700">score 4.8</div>
+          </div>
         </div>
-        <div style="flex:1;min-width:0"><div class="row-name">Mariana Costa</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Botox · Fernanda R.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 91234-5678</div></div>
-        <div class="row-right"><div style="font-size:10px;color:var(--tx3)">15/05/2026</div><div style="font-size:11px;font-weight:600;color:#c49b00">5 visitas</div><div style="font-size:10px;color:#c49b00;font-weight:700">score 4.8</div></div>
-      </div>
-      <!-- cliente 2 — TOP -->
-      <div class="cli-row" style="border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent)">
-        <div style="position:relative">
-          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaFlor&backgroundColor=fbeaf0" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Ana Paula">
-          <div style="position:absolute;top:-4px;right:-4px;background:#f5d84a;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="font-size:9px;color:#7a5f00"></i></div>
+        <div class="cli-row" style="border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent);cursor:pointer" onclick="abrirPerfilCliente('anapaula')">
+          <div style="position:relative;flex-shrink:0">
+            <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaFlor&backgroundColor=fbeaf0" style="width:40px;height:40px;border-radius:50%">
+            <div style="position:absolute;top:-4px;right:-4px;background:#f5d84a;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="font-size:9px;color:#7a5f00"></i></div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="row-name">Ana Paula Ferreira <span style="font-size:10px;color:var(--tx3);font-weight:400">· F</span></div>
+            <div class="row-sub"><i class="ti ti-sparkles" style="font-size:11px"></i> Limpeza de pele · Carla M.</div>
+            <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 98765-4321</div>
+          </div>
+          <div class="row-right">
+            <div style="font-size:10px;color:var(--tx3)">28/05/2026</div>
+            <div style="font-size:11px;font-weight:600;color:#c49b00">3 visitas</div>
+            <div style="font-size:10px;color:#c49b00;font-weight:700">score 3.2</div>
+          </div>
         </div>
-        <div style="flex:1;min-width:0"><div class="row-name">Ana Paula Ferreira</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Limpeza de pele · Carla M.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 98765-4321</div></div>
-        <div class="row-right"><div style="font-size:10px;color:var(--tx3)">28/05/2026</div><div style="font-size:11px;font-weight:600;color:#c49b00">3 visitas</div><div style="font-size:10px;color:#c49b00;font-weight:700">score 3.2</div></div>
+        <div class="cli-row" style="cursor:pointer" onclick="abrirPerfilCliente('leticia')">
+          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe" style="width:40px;height:40px;border-radius:50%;flex-shrink:0">
+          <div style="flex:1;min-width:0">
+            <div class="row-name">Leticia Barros <span style="font-size:10px;color:var(--tx3);font-weight:400">· F</span></div>
+            <div class="row-sub"><i class="ti ti-sparkles" style="font-size:11px"></i> Design sobrancelha · Juliana S.</div>
+            <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 97890-1234</div>
+          </div>
+          <div class="row-right">
+            <div style="font-size:10px;color:var(--tx3)">02/05/2026</div>
+            <div style="font-size:11px;font-weight:600;color:var(--pk600)">2 visitas</div>
+          </div>
+        </div>
       </div>
-      <!-- cliente 3 — normal -->
-      <div class="cli-row">
-        <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Leticia Barros">
-        <div style="flex:1;min-width:0"><div class="row-name">Leticia Barros</div><div class="row-sub" style="display:flex;align-items:center;gap:3px"><i class="ti ti-sparkles" style="font-size:11px"></i>Design sobrancelha · Juliana S.</div><div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 97890-1234</div></div>
-        <div class="row-right"><div style="font-size:10px;color:var(--tx3)">02/05/2026</div><div style="font-size:11px;font-weight:600;color:var(--pk600)">2 visitas</div></div>
+      <!-- Drawer perfil cliente -->
+      <div id="cli-perfil" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.4)" onclick="fecharPerfilCliente()">
+        <div style="position:absolute;right:0;top:0;bottom:0;width:min(420px,100%);background:var(--bg);overflow-y:auto;padding:20px" onclick="event.stopPropagation()">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div style="font-size:15px;font-weight:700;color:var(--tx)" id="perfil-titulo">Perfil</div>
+            <button onclick="fecharPerfilCliente()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">✕</button>
+          </div>
+          <div id="perfil-conteudo"></div>
+        </div>
       </div>
-      <button class="add-btn"><i class="ti ti-plus"></i> Cadastrar nova cliente</button>
     </div>
 
     <div class="pane" id="pane-p-equipe">
-      <div class="search-bar"><i class="ti ti-search"></i><input placeholder="Buscar profissional..."></div>
-      <div class="pro-card"><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaLuna&backgroundColor=fbeaf0" style="width:42px;height:42px;border-radius:50%;object-fit:cover;background:var(--pk50);flex-shrink:0" alt="Carla Mendes"><div class="pro-info"><div class="row-name">Carla Mendes</div><div class="row-sub">Estética facial · Dermato</div><div class="pro-stats-row"><div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>18/mês</div><div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>4.9</div><div class="dot dot-ok"></div></div></div><div class="pro-right"><div class="pro-ticket">R$ 340</div><div style="font-size:10px;color:var(--tx3)">ticket médio</div><div class="pro-actions"><button class="btn-sm2">Agenda</button><button class="btn-sm2">Editar</button></div></div></div>
-      <div class="pro-card"><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=FernandaR&backgroundColor=e1f5ee" style="width:42px;height:42px;border-radius:50%;object-fit:cover;background:var(--tl50);flex-shrink:0" alt="Fernanda Rocha"><div class="pro-info"><div class="row-name">Fernanda Rocha</div><div class="row-sub">Dermato estética · Botox</div><div class="pro-stats-row"><div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>15/mês</div><div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>4.8</div><div class="dot dot-ok"></div></div></div><div class="pro-right"><div class="pro-ticket">R$ 410</div><div style="font-size:10px;color:var(--tx3)">ticket médio</div><div class="pro-actions"><button class="btn-sm2">Agenda</button><button class="btn-sm2">Editar</button></div></div></div>
-      <div class="pro-card"><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=JulianaS&backgroundColor=eeedfe" style="width:42px;height:42px;border-radius:50%;object-fit:cover;background:var(--pu50);flex-shrink:0" alt="Juliana Santos"><div class="pro-info"><div class="row-name">Juliana Santos</div><div class="row-sub">Design · Micropigmentação</div><div class="pro-stats-row"><div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>9/mês</div><div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>5.0</div><div class="dot dot-off"></div></div></div><div class="pro-right"><div class="pro-ticket">R$ 280</div><div style="font-size:10px;color:var(--tx3)">ticket médio</div><div class="pro-actions"><button class="btn-sm2">Agenda</button><button class="btn-sm2">Editar</button></div></div></div>
-      <button class="add-btn"><i class="ti ti-plus"></i> Adicionar profissional</button>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <div class="search-bar" style="flex:1;margin-bottom:0"><i class="ti ti-search"></i><input id="equipe-search" placeholder="Buscar profissional..." oninput="filtrarEquipe(this.value)"></div>
+        <button class="btn pk" style="padding:8px 12px;font-size:12px" onclick="abrirModalProfissional()"><i class="ti ti-plus"></i> Nova</button>
+      </div>
+      <div id="equipe-lista"></div>
     </div>
 
     <!-- CAMPANHAS -->
@@ -1376,6 +1437,7 @@ function renderAgendaConfirmados(){
 }
 function goTo(id,el){
   if(id==='p-dash') setTimeout(initDashboard, 50);
+  if(id==='p-agenda') setTimeout(()=>{ if(agView==='hoje') renderAgHoje(); else if(agView==='semana') renderAgSemana(); else renderAgMes(); }, 50);
   if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(el){const n=el.closest('.sb-nav');n.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
   showPane(id);closeSB();
@@ -1536,12 +1598,19 @@ function salvarNovoAg(){
   setTimeout(() => fecharModalAg(), 2000);
 }
 
-const slots=['08h00','09h00','10h00','11h00','14h00','15h00','16h00','17h00'];
-const busy=[2,4];let selSlot=-1;
+const slots=['08:00','09:00','09:30','10:00','10:30','11:00','14:00','14:30','15:00','15:30','16:00','17:00'];
+const busy=[2,5,7];let selSlot=-1;
 function renderSlots(){
   ['avail-grid','cli-avail-grid'].forEach(gid=>{
     const g=document.getElementById(gid);if(!g)return;
-    g.innerHTML=slots.map((s,i)=>`<div class="slot ${busy.includes(i)?'busy':selSlot===i?'sel':''}" onclick="${busy.includes(i)?'':`selS(${i})`}">${s}</div>`).join('');
+    g.innerHTML=slots.map((s,i)=>{
+      const isBusy=busy.includes(i);
+      const isSel=selSlot===i;
+      let cls='slot';
+      if(isBusy) cls+=' busy';
+      else if(isSel) cls+=' sel';
+      return `<div class="${cls}"${isBusy?'':` onclick="selS(${i})"`}>${s}</div>`;
+    }).join('');
   });
 }
 window.selS=function(i){selSlot=i;renderSlots();};
@@ -1552,6 +1621,7 @@ const maxA=Math.max(...atend),maxR=Math.max(...rec);
 window.addEventListener('load',()=>{
   initDashboard();
   renderSlots();
+  renderAgHoje();
   const c=document.getElementById('dash-bars');if(!c)return;
   months.forEach((m,i)=>{const hA=Math.round((atend[i]/maxA)*78);const hR=Math.round((rec[i]/maxR)*78);c.innerHTML+=`<div class="bar-g"><div class="bar-pair"><div class="b b-pk" style="height:${hA}px"></div><div class="b b-tl" style="height:${hR}px"></div></div><div class="bar-lbl">${m}</div></div>`;});
 });
@@ -1882,8 +1952,531 @@ function abrirAgendaPromo(nome){
 // Inicializa calendário quando aba agenda é aberta
 const _origGoTo = window.goTo;
 
+// ── Dados de clientes em memória ──────────────────────────────────────────
+const clientesDB = [
+  {id:'mariana', nome:'Mariana Costa', sexo:'F', wpp:'(11) 91234-5678', email:'mariana@email.com',
+   nasc:'1990-03-15', origem:'Instagram', interesse:'Botox, Preenchimento', alergias:'',
+   obs:'Prefere horários da manhã', visitas:5, valor:820, ultimaVisita:'15/05/2026',
+   ultimoSvc:'Botox', prof:'Fernanda R.', top:true, score:4.8,
+   avatar:'https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaRosa&backgroundColor=e1f5ee'},
+  {id:'anapaula', nome:'Ana Paula Ferreira', sexo:'F', wpp:'(11) 98765-4321', email:'anapaula@email.com',
+   nasc:'1985-07-22', origem:'Indicação de amiga', interesse:'Limpeza de pele', alergias:'látex',
+   obs:'', visitas:3, valor:540, ultimaVisita:'28/05/2026',
+   ultimoSvc:'Limpeza de pele', prof:'Carla M.', top:true, score:3.2,
+   avatar:'https://api.dicebear.com/9.x/lorelei/svg?seed=AnaFlor&backgroundColor=fbeaf0'},
+  {id:'leticia', nome:'Leticia Barros', sexo:'F', wpp:'(11) 97890-1234', email:'leticia@email.com',
+   nasc:'1995-11-08', origem:'Google', interesse:'Design de sobrancelha', alergias:'',
+   obs:'', visitas:2, valor:280, ultimaVisita:'02/05/2026',
+   ultimoSvc:'Design sobrancelha', prof:'Juliana S.', top:false, score:1.9,
+   avatar:'https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe'},
+];
+
+function filtrarClientes(q){
+  const lista = document.getElementById('clientes-lista');
+  if(!lista) return;
+  const term = (q||'').toLowerCase().trim();
+  const rows = lista.querySelectorAll('.cli-row');
+  rows.forEach(row => {
+    // Busca em texto visível + data-nome se existir
+    const txt = (row.textContent + ' ' + (row.dataset.busca||'')).toLowerCase();
+    row.style.display = (!term || txt.includes(term)) ? '' : 'none';
+  });
+}
+
+function abrirPerfilCliente(id){
+  const c = clientesDB.find(x => x.id === id);
+  if(!c) return;
+  const titulo = document.getElementById('perfil-titulo');
+  const conteudo = document.getElementById('perfil-conteudo');
+  const drawer = document.getElementById('cli-perfil');
+  if(!titulo || !conteudo || !drawer) return;
+  titulo.textContent = c.nome;
+  const idade = c.nasc ? Math.floor((new Date() - new Date(c.nasc)) / (365.25*24*3600*1000)) : '—';
+  const avatarMasc = 'https://api.dicebear.com/9.x/notionists/svg?seed=' + c.id + '&backgroundColor=e8f4ff';
+  const avatarSrc = c.sexo === 'M' ? avatarMasc : c.avatar;
+  conteudo.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <img src="${avatarSrc}" style="width:56px;height:56px;border-radius:50%">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--tx)">${c.nome}</div>
+        <div style="font-size:12px;color:var(--tx2)">${c.sexo} · ${idade} anos</div>
+        <div style="font-size:12px;color:var(--tx2)">${c.email}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div class="stat-card" style="padding:10px"><div class="stat-lbl">Visitas</div><div style="font-size:22px;font-weight:700;color:var(--pk600)">${c.visitas}</div></div>
+      <div class="stat-card" style="padding:10px"><div class="stat-lbl">Total gasto</div><div style="font-size:18px;font-weight:700;color:var(--tl400)">R$ ${c.valor}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:10px;padding:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Dados</div>
+      <div style="font-size:12px;color:var(--tx);display:flex;flex-direction:column;gap:5px">
+        <div><i class="ti ti-brand-whatsapp" style="color:var(--tl400)"></i> ${c.wpp}</div>
+        <div><i class="ti ti-calendar" style="color:var(--pk400)"></i> Última visita: ${c.ultimaVisita} · ${c.ultimoSvc} · ${c.prof}</div>
+        <div><i class="ti ti-heart" style="color:var(--pk400)"></i> Interesse: ${c.interesse || '—'}</div>
+        ${c.alergias ? `<div style="color:var(--am800);font-weight:600"><i class="ti ti-alert-triangle"></i> Alergia: ${c.alergias}</div>` : ''}
+        <div><i class="ti ti-info-circle" style="color:var(--tx3)"></i> Como conheceu: ${c.origem || '—'}</div>
+        ${c.obs ? `<div style="background:var(--am50);border-radius:var(--r);padding:6px 8px;font-size:11px;color:var(--am800)"><i class="ti ti-note"></i> ${c.obs}</div>` : ''}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn tl" style="flex:1" onclick="window.open('https://wa.me/55${c.wpp.replace(/\D/g,'')}','_blank')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+      <button class="btn pk" style="flex:1" onclick="fecharPerfilCliente();abrirModalAg()"><i class="ti ti-calendar-plus"></i> Agendar</button>
+    </div>`;
+  drawer.style.display = 'flex';
+}
+
+function fecharPerfilCliente(){
+  const d = document.getElementById('cli-perfil');
+  if(d) d.style.display = 'none';
+}
+
+function abrirModalCliente(){
+  document.getElementById('modal-cli').style.display = 'flex';
+}
+function fecharModalCliente(){
+  document.getElementById('modal-cli').style.display = 'none';
+  document.getElementById('nc-toast').style.display = 'none';
+  document.getElementById('nc-error').textContent = '';
+}
+function salvarCliente(){
+  const nome = document.getElementById('nc-nome').value.trim();
+  const wpp = document.getElementById('nc-wpp').value.trim();
+  if(!nome || !wpp){ document.getElementById('nc-error').textContent = 'Nome e WhatsApp são obrigatórios.'; return; }
+  const sexo = document.querySelector('input[name="nc-sexo"]:checked')?.value || 'F';
+  const id = 'cli-' + Date.now();
+  const seed = nome.replace(/\s/g,'') + id.slice(-4);
+  const avatar = sexo === 'F'
+    ? `https://api.dicebear.com/9.x/lorelei/svg?seed=${seed}&backgroundColor=fbeaf0`
+    : `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&backgroundColor=e8f4ff`;
+  const novo = {
+    id, nome, sexo, wpp,
+    email: document.getElementById('nc-email').value,
+    nasc: document.getElementById('nc-nasc').value,
+    origem: document.getElementById('nc-origem').value,
+    interesse: document.getElementById('nc-interesse').value,
+    alergias: document.getElementById('nc-alergias').value,
+    obs: document.getElementById('nc-obs').value,
+    visitas:0, valor:0, ultimaVisita:'—', ultimoSvc:'—', prof:'—',
+    top:false, score:0, avatar
+  };
+  clientesDB.push(novo);
+  // Adiciona na lista
+  const lista = document.getElementById('clientes-lista');
+  if(lista){
+    const row = document.createElement('div');
+    row.className = 'cli-row';
+    row.style.cursor = 'pointer';
+    row.dataset.busca = nome + ' ' + wpp; // suporte à busca dinâmica
+    row.onclick = () => abrirPerfilCliente(id);
+    row.innerHTML = `
+      <img src="${avatar}" style="width:40px;height:40px;border-radius:50%;flex-shrink:0">
+      <div style="flex:1;min-width:0">
+        <div class="row-name">${nome} <span style="font-size:10px;color:var(--tx3);font-weight:400">· ${sexo}</span></div>
+        <div class="row-sub">Nova cliente</div>
+        <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>${wpp}</div>
+      </div>
+      <div class="row-right"><div style="font-size:10px;color:var(--tx3)">Hoje</div><div style="font-size:11px;color:var(--pk600)">0 visitas</div></div>`;
+    lista.appendChild(row);
+  }
+  // Adiciona no select do modal de agendamento
+  const selCli = document.getElementById('ag-cliente');
+  if(selCli){
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = nome;
+    selCli.appendChild(opt);
+  }
+  document.getElementById('nc-toast').style.display = 'flex';
+  setTimeout(() => fecharModalCliente(), 2000);
+}
+
+
+
+// ── Módulo Agenda — views Hoje / Semana / Mês ────────────────────────────
+let agView = 'hoje';
+let semanaOffset = 0;   // semanas relativas à atual
+let mesOffset = 0;      // meses relativos ao atual
+
+const CORES_BAR = ['var(--pk400)','var(--pu400)','var(--tl400)','var(--am400)'];
+const NOMES_MES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                   'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function setAgView(view, el){
+  agView = view;
+  document.querySelectorAll('.ag-view-btn').forEach(b => b.classList.remove('pk','active'));
+  el.classList.add('pk');
+  document.getElementById('ag-view-hoje').style.display   = view==='hoje'   ? 'block' : 'none';
+  document.getElementById('ag-view-semana').style.display = view==='semana' ? 'block' : 'none';
+  document.getElementById('ag-view-mes').style.display    = view==='mes'    ? 'block' : 'none';
+  if(view==='hoje')   renderAgHoje();
+  if(view==='semana') renderAgSemana();
+  if(view==='mes')    renderAgMes();
+}
+
+// ── HOJE ──────────────────────────────────────────────────────────────────
+function renderAgHoje(){
+  const hoje = new Date();
+  const dd = String(hoje.getDate()).padStart(2,'0');
+  const mm = String(hoje.getMonth()+1).padStart(2,'0');
+  const hojeStr = dd+'/'+mm;
+  const lbl = document.getElementById('ag-hoje-lbl');
+  if(lbl) lbl.textContent = 'Confirmados — ' + DIAS_SEMANA[hoje.getDay()] + ' ' + dd+'/'+mm;
+  const lista = document.getElementById('ag-hoje-lista');
+  if(!lista) return;
+  const conf = agendamentos.filter(a => a.status==='confirmado' && a.data===hojeStr);
+  if(conf.length === 0){
+    lista.innerHTML = '<div style="color:var(--tx3);font-size:13px;padding:10px 0">Sem agendamentos confirmados hoje.</div>';
+  } else {
+    lista.innerHTML = conf.map((ag,i) => `
+      <div class="ag-card">
+        <div class="ag-time">${ag.hora}</div>
+        <div class="ag-bar" style="background:${CORES_BAR[i%CORES_BAR.length]}"></div>
+        <div class="ag-info">
+          <div class="ag-svc">${ag.servico}</div>
+          <div class="ag-meta"><i class="ti ti-user" style="font-size:11px"></i>${ag.cliente} · ${ag.prof}</div>
+        </div>
+        <span class="badge badge-ok">✓</span>
+      </div>`).join('');
+  }
+  renderSlots();
+}
+
+// ── SEMANA ────────────────────────────────────────────────────────────────
+function navSemana(delta){ semanaOffset += delta; renderAgSemana(); }
+
+function renderAgSemana(){
+  const hoje = new Date();
+  // Segunda da semana atual + offset
+  const diaSemana = hoje.getDay() === 0 ? 6 : hoje.getDay() - 1;
+  const segunda = new Date(hoje);
+  segunda.setDate(hoje.getDate() - diaSemana + (semanaOffset * 7));
+
+  const dias = [];
+  for(let i=0; i<6; i++){  // Seg a Sáb
+    const d = new Date(segunda);
+    d.setDate(segunda.getDate() + i);
+    dias.push(d);
+  }
+
+  const titulo = document.getElementById('ag-semana-titulo');
+  const s = dias[0], e = dias[5];
+  titulo.textContent = String(s.getDate()).padStart(2,'0')+'/'+String(s.getMonth()+1).padStart(2,'0')
+    + ' – ' + String(e.getDate()).padStart(2,'0')+'/'+String(e.getMonth()+1).padStart(2,'0');
+
+  const grid = document.getElementById('ag-semana-grid');
+  const isHoje = (d) => {
+    const h = new Date();
+    return d.getDate()===h.getDate() && d.getMonth()===h.getMonth() && d.getFullYear()===h.getFullYear();
+  };
+  const nomeDia = ['Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  grid.innerHTML = dias.map((d,i) => {
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const key = dd+'/'+mm;
+    const ags = agendamentos.filter(a => a.status==='confirmado' && a.data===key);
+    const hoje = isHoje(d);
+    return `
+      <div style="background:var(--bg);border:1px solid ${hoje?'var(--pk400)':'var(--br)'};border-radius:var(--rl);padding:8px;min-height:90px">
+        <div style="font-size:10px;font-weight:700;color:${hoje?'var(--pk600)':'var(--tx3)'};text-transform:uppercase;margin-bottom:4px">${nomeDia[i]}</div>
+        <div style="font-size:15px;font-weight:700;color:${hoje?'var(--pk600)':'var(--tx)'};margin-bottom:6px">${dd}</div>
+        ${ags.length===0
+          ? '<div style="font-size:10px;color:var(--tx3)">Livre</div>'
+          : ags.map(a=>`<div style="font-size:10px;background:var(--pk50);border-radius:4px;padding:2px 5px;margin-bottom:3px;color:var(--pk800);line-height:1.3"><b>${a.hora}</b> ${a.servico.split(' ')[0]}</div>`).join('')
+        }
+        ${ags.length>0?`<div style="font-size:10px;color:var(--tx3);margin-top:3px">${ags.length} ag.</div>`:''}
+      </div>`;
+  }).join('');
+}
+
+// ── MÊS ──────────────────────────────────────────────────────────────────
+function navMes(delta){ mesOffset += delta; renderAgMes(); }
+
+function renderAgMes(){
+  const hoje = new Date();
+  const ref = new Date(hoje.getFullYear(), hoje.getMonth() + mesOffset, 1);
+  const ano = ref.getFullYear();
+  const mes = ref.getMonth();
+
+  document.getElementById('ag-mes-titulo').textContent = NOMES_MES[mes] + ' ' + ano;
+
+  const primeiroDia = new Date(ano, mes, 1).getDay();  // 0=Dom
+  const totalDias   = new Date(ano, mes+1, 0).getDate();
+
+  let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px">';
+  ['D','S','T','Q','Q','S','S'].forEach(d => {
+    html += `<div style="text-align:center;font-size:10px;font-weight:600;color:var(--tx3);padding:2px 0">${d}</div>`;
+  });
+  html += '</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
+
+  // células vazias antes do primeiro dia
+  for(let i=0; i<primeiroDia; i++) html += '<div></div>';
+
+  for(let dia=1; dia<=totalDias; dia++){
+    const dd = String(dia).padStart(2,'0');
+    const mm = String(mes+1).padStart(2,'0');
+    const key = dd+'/'+mm;
+    const ags = agendamentos.filter(a => a.status==='confirmado' && a.data===key);
+    const ehHoje = (dia===hoje.getDate() && mes===hoje.getMonth() && ano===hoje.getFullYear());
+    const temAg  = ags.length > 0;
+    html += `
+      <div style="
+        min-height:36px;border-radius:6px;padding:3px 4px;
+        background:${ehHoje?'var(--pk600)':temAg?'var(--pk50)':'var(--bg)'};
+        border:1px solid ${ehHoje?'var(--pk600)':temAg?'var(--pk100)':'var(--br)'};
+        cursor:${temAg?'pointer':'default'};
+        transition:all .1s;
+      " ${temAg?`onclick="detalhesDia('${key}')" title="${ags.length} agendamento(s)"`:''}
+        onmouseover="${temAg?"this.style.borderColor='var(--pk400)'":''}"
+        onmouseout="${temAg?`this.style.borderColor='${ehHoje?"var(--pk600)":"var(--pk100)"}'`:''}">
+        <div style="font-size:11px;font-weight:${ehHoje?700:400};color:${ehHoje?'#fff':temAg?'var(--pk800)':'var(--tx2)'}">${dia}</div>
+        ${temAg?`<div style="width:${Math.min(ags.length,3)*5}px;height:4px;border-radius:2px;background:${ehHoje?'rgba(255,255,255,.6)':'var(--pk400)'};margin-top:2px"></div>`:''}
+      </div>`;
+  }
+  html += '</div>';
+
+  // Legenda de agendamentos do mês
+  const todosDoMes = agendamentos.filter(a => {
+    if(a.status !== 'confirmado') return false;
+    const parts = a.data.split('/');
+    return parseInt(parts[1]) === mes+1;
+  });
+
+  if(todosDoMes.length > 0){
+    html += `<div class="sec-lbl" style="margin-top:16px">Agendamentos — ${NOMES_MES[mes]}</div>`;
+    html += todosDoMes.map((ag,i) => `
+      <div class="ag-card">
+        <div class="ag-time">${ag.data}</div>
+        <div class="ag-bar" style="background:${CORES_BAR[i%CORES_BAR.length]}"></div>
+        <div class="ag-info">
+          <div class="ag-svc">${ag.servico}</div>
+          <div class="ag-meta"><i class="ti ti-user" style="font-size:11px"></i>${ag.cliente} · ${ag.prof} · <span style="color:var(--tx3);font-size:10px">${ag.hora}</span></div>
+        </div>
+        <span class="badge badge-ok">✓</span>
+      </div>`).join('');
+  } else {
+    html += '<div style="color:var(--tx3);font-size:13px;padding:12px 0;text-align:center">Sem agendamentos este mês.</div>';
+  }
+
+  document.getElementById('ag-mes-grid').innerHTML = html;
+}
+
+function detalhesDia(key){
+  const ags = agendamentos.filter(a => a.status==='confirmado' && a.data===key);
+  if(!ags.length) return;
+  alert(key + ':\n' + ags.map(a => a.hora + ' — ' + a.servico + ' · ' + a.cliente).join('\n'));
+}
+
+window.setAgView   = setAgView;
+window.navSemana   = navSemana;
+window.navMes      = navMes;
+window.renderAgHoje= renderAgHoje;
+window.detalhesDia = detalhesDia;
+
+// ── Módulo Equipe ─────────────────────────────────────────────────────────
+const BG_CORES = ['fbeaf0','e1f5ee','eeedfe','faece7','faeeda','e8f4ff'];
+let equipeDB = [
+  {id:'carla', nome:'Carla Mendes', wpp:'(11) 91111-1111', sexo:'F',
+   espec:'Estética facial · Dermato', disp:['Seg','Ter','Qua','Qui','Sex'],
+   ticket:340, avaliacao:4.9, domicilio:false, obs:'', ativa:true, agMes:18,
+   seed:'CarlaLuna', bgColor:'fbeaf0'},
+  {id:'fernanda', nome:'Fernanda Rocha', wpp:'(11) 92222-2222', sexo:'F',
+   espec:'Dermato estética · Botox', disp:['Seg','Qua','Qui','Sex'],
+   ticket:410, avaliacao:4.8, domicilio:true, obs:'', ativa:true, agMes:15,
+   seed:'FernandaR', bgColor:'e1f5ee'},
+  {id:'juliana', nome:'Juliana Santos', wpp:'(11) 93333-3333', sexo:'F',
+   espec:'Design · Micropigmentação', disp:['Ter','Qui','Sex','Sab'],
+   ticket:280, avaliacao:5.0, domicilio:false, obs:'Folga às segundas', ativa:false, agMes:9,
+   seed:'JulianaS', bgColor:'eeedfe'},
+  {id:'beatriz', nome:'Beatriz Lima', wpp:'(11) 94444-4444', sexo:'F',
+   espec:'Massoterapia · Relaxamento', disp:['Seg','Ter','Qua','Qui','Sex','Sab'],
+   ticket:180, avaliacao:4.7, domicilio:true, obs:'', ativa:true, agMes:12,
+   seed:'BeatrizL', bgColor:'faece7'},
+];
+
+function renderEquipe(lista){
+  const el = document.getElementById('equipe-lista');
+  if(!el) return;
+  if(!lista || lista.length === 0){
+    el.innerHTML = '<div style="text-align:center;color:var(--tx3);padding:32px;font-size:13px">Nenhuma profissional encontrada.</div>';
+    return;
+  }
+  el.innerHTML = lista.map(p => {
+    const dispTxt = p.disp && p.disp.length ? p.disp.join(' · ') : 'Não definida';
+    const avatarUrl = p.sexo === 'M'
+      ? `https://api.dicebear.com/9.x/notionists/svg?seed=${p.seed}&backgroundColor=${p.bgColor}`
+      : `https://api.dicebear.com/9.x/lorelei/svg?seed=${p.seed}&backgroundColor=${p.bgColor}`;
+    return `
+    <div class="pro-card" data-busca="${p.nome.toLowerCase()} ${p.espec.toLowerCase()}">
+      <img src="${avatarUrl}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="${p.nome}">
+      <div class="pro-info">
+        <div class="row-name">${p.nome}${p.domicilio ? ' <span style="font-size:10px;background:var(--pk50);color:var(--pk800);border-radius:20px;padding:1px 7px;font-weight:500"><i class="ti ti-home" style="font-size:9px"></i> Domicílio</span>' : ''}</div>
+        <div class="row-sub">${p.espec}</div>
+        <div class="pro-stats-row">
+          <div class="pro-stat"><i class="ti ti-calendar" style="font-size:11px"></i>${p.agMes}/mês</div>
+          <div class="pro-stat"><i class="ti ti-star" style="font-size:11px"></i>${p.avaliacao}</div>
+          <div class="pro-stat" style="font-size:10px;color:var(--tx3)"><i class="ti ti-clock" style="font-size:11px"></i>${dispTxt}</div>
+          <div class="dot ${p.ativa ? 'dot-ok' : 'dot-off'}" title="${p.ativa ? 'Ativa' : 'Folga/Inativa'}"></div>
+        </div>
+      </div>
+      <div class="pro-right">
+        <div class="pro-ticket">R$ ${p.ticket}</div>
+        <div style="font-size:10px;color:var(--tx3)">ticket médio</div>
+        <div class="pro-actions">
+          <button class="btn-sm2" onclick="verAgendaProfissional('${p.id}','${p.nome}')"><i class="ti ti-calendar" style="font-size:11px"></i> Agenda</button>
+          <button class="btn-sm2" onclick="editarProfissional('${p.id}')"><i class="ti ti-pencil" style="font-size:11px"></i> Editar</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filtrarEquipe(q){
+  const term = (q||'').toLowerCase().trim();
+  if(!term){ renderEquipe(equipeDB); return; }
+  renderEquipe(equipeDB.filter(p =>
+    (p.nome + ' ' + p.espec).toLowerCase().includes(term)
+  ));
+}
+
+function abrirModalProfissional(id){
+  const modal = document.getElementById('modal-prof');
+  const titulo = document.getElementById('prof-modal-titulo');
+  const btnTxt = document.getElementById('prof-btn-txt');
+  const editId = document.getElementById('prof-edit-id');
+  // Limpa campos
+  ['prof-nome','prof-wpp','prof-espec','prof-ticket','prof-avaliacao','prof-obs'].forEach(f => {
+    const el = document.getElementById(f); if(el) el.value = '';
+  });
+  document.querySelectorAll('input[name="prof-sexo"]').forEach(r => r.checked = r.value === 'F');
+  document.querySelectorAll('input[name="prof-disp"]').forEach(c => c.checked = false);
+  document.getElementById('prof-domicilio').checked = false;
+  document.getElementById('prof-error').textContent = '';
+  document.getElementById('prof-toast').style.display = 'none';
+
+  if(id){
+    const p = equipeDB.find(x => x.id === id);
+    if(!p) return;
+    editId.value = id;
+    titulo.textContent = 'Editar Profissional';
+    btnTxt.textContent = 'Salvar';
+    document.getElementById('prof-nome').value = p.nome;
+    document.getElementById('prof-wpp').value = p.wpp;
+    document.getElementById('prof-espec').value = p.espec;
+    document.getElementById('prof-ticket').value = p.ticket;
+    document.getElementById('prof-avaliacao').value = p.avaliacao;
+    document.getElementById('prof-obs').value = p.obs || '';
+    document.getElementById('prof-domicilio').checked = !!p.domicilio;
+    document.querySelectorAll('input[name="prof-sexo"]').forEach(r => r.checked = r.value === p.sexo);
+    document.querySelectorAll('input[name="prof-disp"]').forEach(c => {
+      c.checked = (p.disp||[]).includes(c.value);
+    });
+  } else {
+    editId.value = '';
+    titulo.textContent = 'Nova Profissional';
+    btnTxt.textContent = 'Cadastrar';
+  }
+  modal.style.display = 'flex';
+}
+
+function fecharModalProfissional(){
+  document.getElementById('modal-prof').style.display = 'none';
+}
+
+function salvarProfissional(){
+  const nome = document.getElementById('prof-nome').value.trim();
+  const wpp  = document.getElementById('prof-wpp').value.trim();
+  const espec= document.getElementById('prof-espec').value.trim();
+  const errEl= document.getElementById('prof-error');
+  if(!nome || !wpp || !espec){
+    errEl.textContent = 'Nome, WhatsApp e Especialidades são obrigatórios.'; return;
+  }
+  errEl.textContent = '';
+  const sexo = document.querySelector('input[name="prof-sexo"]:checked')?.value || 'F';
+  const disp = [...document.querySelectorAll('input[name="prof-disp"]:checked')].map(c => c.value);
+  const ticket= parseFloat(document.getElementById('prof-ticket').value) || 0;
+  const aval  = parseFloat(document.getElementById('prof-avaliacao').value) || 0;
+  const dom   = document.getElementById('prof-domicilio').checked;
+  const obs   = document.getElementById('prof-obs').value;
+  const editId= document.getElementById('prof-edit-id').value;
+
+  const idx = editId ? equipeDB.findIndex(x => x.id === editId) : -1;
+
+  if(idx >= 0){
+    // Edição
+    equipeDB[idx] = { ...equipeDB[idx], nome, wpp, sexo, espec, disp, ticket, avaliacao:aval, domicilio:dom, obs };
+    // Atualiza select de profissional no modal de agendamento
+    atualizarSelectProfissional();
+    mostrarToastProf('Profissional atualizada!');
+  } else {
+    // Novo
+    const id = 'prof-' + Date.now();
+    const seed = nome.replace(/\s/g,'') + id.slice(-4);
+    const bgColor = BG_CORES[equipeDB.length % BG_CORES.length];
+    equipeDB.push({id, nome, wpp, sexo, espec, disp, ticket, avaliacao:aval,
+      domicilio:dom, obs, ativa:true, agMes:0, seed, bgColor});
+    // Adiciona no select de agendamento
+    atualizarSelectProfissional();
+    mostrarToastProf('Profissional cadastrada!');
+  }
+  renderEquipe(equipeDB);
+  setTimeout(fecharModalProfissional, 1600);
+}
+
+function mostrarToastProf(msg){
+  const t = document.getElementById('prof-toast');
+  const m = document.getElementById('prof-toast-msg');
+  if(t && m){ m.textContent = msg; t.style.display = 'flex'; }
+}
+
+function editarProfissional(id){
+  abrirModalProfissional(id);
+}
+
+function verAgendaProfissional(id, nome){
+  // Vai para aba Agenda e filtra pelo nome abreviado
+  goTo('p-agenda', document.querySelector('button[onclick*="p-agenda"]'));
+  setTimeout(() => {
+    // Destaca nome no topbar
+    const tb = document.querySelector('.tb-title');
+    if(tb) { tb.textContent = 'Agenda — ' + nome.split(' ')[0]; }
+    // Resetar em 4s
+    setTimeout(() => { if(tb) tb.textContent = 'Agenda'; }, 4000);
+  }, 100);
+}
+
+function atualizarSelectProfissional(){
+  const sel = document.getElementById('ag-prof');
+  if(!sel) return;
+  sel.innerHTML = equipeDB.map(p =>
+    `<option value="${p.id}">${p.nome}</option>`
+  ).join('');
+}
+
+// Expõe funções globais
+window.filtrarEquipe          = filtrarEquipe;
+window.abrirModalProfissional = abrirModalProfissional;
+window.fecharModalProfissional= fecharModalProfissional;
+window.salvarProfissional     = salvarProfissional;
+window.editarProfissional     = editarProfissional;
+window.verAgendaProfissional  = verAgendaProfissional;
+window.atualizarSelectProfissional = atualizarSelectProfissional;
+
+// Inicializa lista ao carregar
+document.addEventListener('DOMContentLoaded', () => {
+  renderEquipe(equipeDB);
+  atualizarSelectProfissional();
+});
+
 // ── Expor funções globalmente (necessário com type="module") ──────────────
-window.initDashboard = initDashboard;
+window.initDashboard        = initDashboard;
+window.filtrarClientes      = filtrarClientes;
+window.abrirPerfilCliente   = abrirPerfilCliente;
+window.fecharPerfilCliente  = fecharPerfilCliente;
+window.abrirModalCliente    = abrirModalCliente;
+window.fecharModalCliente   = fecharModalCliente;
+window.salvarCliente        = salvarCliente;
 window.toggleFaq = toggleFaq;
 window.filterCat = filterCat;
 window.filterFaq = filterFaq;
@@ -1939,9 +2532,25 @@ function enviarSolicitacao(){ if(window.enviarSolicitacao) window.enviarSolicita
 function abrirAgendaPromo(n){ if(window.abrirAgendaPromo) window.abrirAgendaPromo(n); }
 function selecionarServico(c,n,p){ if(window.selecionarServico) window.selecionarServico(c,n,p); }
 function abrirAgendaServico(){ if(window.abrirAgendaServico) window.abrirAgendaServico(); }
+function abrirModalCliente(){ try{ window.abrirModalCliente && window.abrirModalCliente(); }catch(e){} }
+function fecharModalCliente(){ try{ window.fecharModalCliente && window.fecharModalCliente(); }catch(e){} }
+function salvarCliente(){ try{ window.salvarCliente && window.salvarCliente(); }catch(e){} }
+function abrirPerfilCliente(id){ try{ window.abrirPerfilCliente && window.abrirPerfilCliente(id); }catch(e){} }
+function fecharPerfilCliente(){ try{ window.fecharPerfilCliente && window.fecharPerfilCliente(); }catch(e){} }
+function filtrarClientes(q){ try{ window.filtrarClientes && window.filtrarClientes(q); }catch(e){} }
 function abrirModalAg(){ try{ window._abrirModalAg && window._abrirModalAg(); }catch(e){console.error('abrirModalAg:',e);} }
 function fecharModalAg(){ try{ window._fecharModalAg && window._fecharModalAg(); }catch(e){} }
 function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }catch(e){console.error('salvarNovoAg:',e);} }
+function abrirModalProfissional(id){ try{ window.abrirModalProfissional && window.abrirModalProfissional(id); }catch(e){} }
+function fecharModalProfissional(){ try{ window.fecharModalProfissional && window.fecharModalProfissional(); }catch(e){} }
+function salvarProfissional(){ try{ window.salvarProfissional && window.salvarProfissional(); }catch(e){} }
+function editarProfissional(id){ try{ window.editarProfissional && window.editarProfissional(id); }catch(e){} }
+function verAgendaProfissional(id,nome){ try{ window.verAgendaProfissional && window.verAgendaProfissional(id,nome); }catch(e){} }
+function filtrarEquipe(q){ try{ window.filtrarEquipe && window.filtrarEquipe(q); }catch(e){} }
+function setAgView(v,el){ try{ window.setAgView && window.setAgView(v,el); }catch(e){} }
+function navSemana(d){ try{ window.navSemana && window.navSemana(d); }catch(e){} }
+function navMes(d){ try{ window.navMes && window.navMes(d); }catch(e){} }
+function detalhesDia(k){ try{ window.detalhesDia && window.detalhesDia(k); }catch(e){} }
 </script>
 
 <!-- LOGIN CLIENTE -->
@@ -2010,7 +2619,7 @@ function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }c
         white-space:nowrap;
         background:transparent;
         padding:0;
-        top:27%;
+        top:24%;
         left:50%;
         transform:translateX(-50%);
         font-size:clamp(9px,3.2vw,13px);
@@ -2181,6 +2790,150 @@ function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }c
     </div>
   </div>
 </div>
+
+<!-- MODAL PROFISSIONAL (cadastro / edição) -->
+<div id="modal-prof" style="display:none;position:fixed;inset:0;z-index:8200;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+  <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div id="prof-modal-titulo" style="font-size:15px;font-weight:700;color:var(--tx)">Nova Profissional</div>
+      <button onclick="fecharModalProfissional()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">&#x2715;</button>
+    </div>
+    <input type="hidden" id="prof-edit-id" value="">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Nome completo *</label>
+        <input id="prof-nome" type="text" placeholder="Ex: Carla Mendes" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">WhatsApp *</label>
+        <input id="prof-wpp" type="tel" placeholder="(11) 99999-9999" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Sexo</label>
+        <div style="display:flex;gap:8px;padding-top:4px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--tx)"><input type="radio" name="prof-sexo" value="F" checked> F</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--tx)"><input type="radio" name="prof-sexo" value="M"> M</label>
+        </div>
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Especialidades *</label>
+        <input id="prof-espec" type="text" placeholder="Ex: Estética facial, Botox" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Disponibilidade</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="prof-disp-wrap">
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:var(--bg2);border:1px solid var(--br);border-radius:20px;padding:4px 10px"><input type="checkbox" name="prof-disp" value="Seg"> Seg</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:var(--bg2);border:1px solid var(--br);border-radius:20px;padding:4px 10px"><input type="checkbox" name="prof-disp" value="Ter"> Ter</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:var(--bg2);border:1px solid var(--br);border-radius:20px;padding:4px 10px"><input type="checkbox" name="prof-disp" value="Qua"> Qua</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:var(--bg2);border:1px solid var(--br);border-radius:20px;padding:4px 10px"><input type="checkbox" name="prof-disp" value="Qui"> Qui</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:var(--bg2);border:1px solid var(--br);border-radius:20px;padding:4px 10px"><input type="checkbox" name="prof-disp" value="Sex"> Sex</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:var(--bg2);border:1px solid var(--br);border-radius:20px;padding:4px 10px"><input type="checkbox" name="prof-disp" value="Sab"> Sáb</label>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Ticket médio (R$)</label>
+        <input id="prof-ticket" type="text" placeholder="Ex: 340" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Avaliação (0–5)</label>
+        <input id="prof-avaliacao" type="number" min="0" max="5" step="0.1" placeholder="Ex: 4.9" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;background:var(--bg2);border:1px solid var(--br);border-radius:var(--r)">
+          <input type="checkbox" id="prof-domicilio" style="width:16px;height:16px;accent-color:var(--pk600)">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--tx)"><i class="ti ti-home" style="color:var(--pk400)"></i> Faz Domicílio</div>
+            <div style="font-size:11px;color:var(--tx2)">Profissional realiza atendimentos no endereço da cliente</div>
+          </div>
+        </label>
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Observações internas</label>
+        <textarea id="prof-obs" rows="2" placeholder="Notas sobre a profissional..." style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);resize:none;font-family:inherit;box-sizing:border-box"></textarea>
+      </div>
+    </div>
+    <div id="prof-error" style="color:var(--pk600);font-size:12px;margin-bottom:8px;min-height:16px"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="fecharModalProfissional()" class="btn" style="flex:1">Cancelar</button>
+      <button onclick="salvarProfissional()" class="btn pk" style="flex:1"><i class="ti ti-device-floppy"></i> <span id="prof-btn-txt">Cadastrar</span></button>
+    </div>
+    <div id="prof-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
+      <i class="ti ti-circle-check" style="font-size:18px"></i> <span id="prof-toast-msg">Profissional cadastrada!</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CADASTRO CLIENTE -->
+<div id="modal-cli" style="display:none;position:fixed;inset:0;z-index:8100;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+  <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700;color:var(--tx)">Cadastrar Cliente</div>
+      <button onclick="fecharModalCliente()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Nome completo *</label>
+        <input id="nc-nome" type="text" placeholder="Ex: Ana Paula Ferreira" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">WhatsApp *</label>
+        <input id="nc-wpp" type="tel" placeholder="(11) 99999-9999" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Sexo</label>
+        <div style="display:flex;gap:8px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--tx)"><input type="radio" name="nc-sexo" value="F" checked> F</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--tx)"><input type="radio" name="nc-sexo" value="M"> M</label>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">E-mail (login app)</label>
+        <input id="nc-email" type="email" placeholder="cliente@email.com" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Data de nascimento</label>
+        <input id="nc-nasc" type="date" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Senha provisória</label>
+        <input id="nc-senha" type="text" placeholder="Ex: luna@2026" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Como conheceu a clínica</label>
+        <select id="nc-origem" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+          <option value="">Selecione...</option>
+          <option>Instagram</option>
+          <option>Indicação de amiga</option>
+          <option>Google</option>
+          <option>WhatsApp</option>
+          <option>Passou na frente</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Procedimentos de interesse</label>
+        <input id="nc-interesse" type="text" placeholder="Ex: Botox, Limpeza de pele" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Alergias / restrições</label>
+        <input id="nc-alergias" type="text" placeholder="Ex: látex, anestésico" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Observações internas <span style="font-weight:400;color:var(--tx3)">(cliente não vê)</span></label>
+        <textarea id="nc-obs" rows="2" placeholder="Notas internas da profissional..." style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);resize:none;font-family:inherit;box-sizing:border-box"></textarea>
+      </div>
+    </div>
+    <div id="nc-error" style="color:var(--pk600);font-size:12px;margin-bottom:8px;min-height:16px"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="fecharModalCliente()" class="btn" style="flex:1">Cancelar</button>
+      <button onclick="salvarCliente()" class="btn pk" style="flex:1"><i class="ti ti-user-plus"></i> Cadastrar</button>
+    </div>
+    <div id="nc-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
+      <i class="ti ti-circle-check" style="font-size:18px"></i> Cliente cadastrada com sucesso!
+    </div>
+  </div>
+</div>
+
 <!-- MODAL NOVO AGENDAMENTO -->
 <div id="modal-novo-ag" style="display:none;position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
   <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto">
