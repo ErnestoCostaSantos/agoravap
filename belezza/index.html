@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.5.5</title>
+<title>Belezza — Studio Luna v2.5.7</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -2610,7 +2610,10 @@ function abrirReagendamento(agId, servico, profAnterior) {
     d.setDate(d.getDate() + 1);
   }
 
-  document.getElementById('modal-reag').style.display = 'flex';
+  const mreag = document.getElementById('modal-reag');
+  // Move para body se não estiver lá (evita problema de stacking context)
+  if(mreag.parentElement !== document.body) document.body.appendChild(mreag);
+  mreag.style.display = 'flex';
 }
 
 function fecharReagendamento(){
@@ -2634,7 +2637,7 @@ function reagSelecionarDia(btn, label, semana) {
 
   // Busca profissionais que fazem o serviço (por palavra-chave)
   const keyword = reagServico.split(/[\s·–-]/)[0].toLowerCase(); // primeira palavra do serviço
-  const profsFiltradas = (typeof equipeDB !== 'undefined' ? equipeDB : [])
+  const profsFiltradas = (window.equipeDB || [])
     .filter(p => p.ativa && p.espec.toLowerCase().includes(keyword));
 
   const wrap = document.getElementById('reag-profs-wrap');
@@ -2893,6 +2896,7 @@ function salvarProfissional(){
     atualizarSelectProfissional();
     mostrarToastProf('Profissional cadastrada!');
   }
+  window.equipeDB = equipeDB;
   renderEquipe(equipeDB);
   setTimeout(fecharModalProfissional, 1600);
 }
@@ -2928,6 +2932,7 @@ function atualizarSelectProfissional(){
 }
 
 // Expõe funções globais
+window.equipeDB               = equipeDB;
 window.filtrarEquipe          = filtrarEquipe;
 window.abrirModalProfissional = abrirModalProfissional;
 window.fecharModalProfissional= fecharModalProfissional;
@@ -3356,8 +3361,9 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
     </div>
   </div>
 
-  <!-- MODAL REAGENDAMENTO -->
-<div id="modal-reag" style="display:none;position:absolute;inset:0;z-index:9200;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+
+<!-- MODAL REAGENDAMENTO -->
+<div id="modal-reag" style="display:none;position:fixed;inset:0;z-index:9200;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
   <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
       <div style="font-size:15px;font-weight:700;color:var(--tx)">Reagendar</div>
