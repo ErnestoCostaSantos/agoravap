@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.5.7</title>
+<title>Belezza — Studio Luna v2.5.8</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -2611,9 +2611,17 @@ function abrirReagendamento(agId, servico, profAnterior) {
   }
 
   const mreag = document.getElementById('modal-reag');
-  // Move para body se não estiver lá (evita problema de stacking context)
   if(mreag.parentElement !== document.body) document.body.appendChild(mreag);
-  mreag.style.display = 'flex';
+  // Força estilos explícitos para garantir cobertura total da tela
+  mreag.style.cssText = [
+    'display:flex',
+    'position:fixed',
+    'top:0','left:0','right:0','bottom:0',
+    'z-index:99999',
+    'background:rgba(0,0,0,.5)',
+    'align-items:flex-end',
+    'justify-content:center',
+  ].join(';');
 }
 
 function fecharReagendamento(){
