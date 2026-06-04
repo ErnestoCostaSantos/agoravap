@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.5.0</title>
+<title>Belezza — Studio Luna v1.5.1</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -422,7 +422,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
   </div>
 
-  <div class="content" id="content">
+  <script>
+// Stubs síncronos — garantem que onclick inline funcione antes do módulo carregar
+function confirmar(id){ setTimeout(()=>{ if(window._confirmar) window._confirmar(id); else console.warn('_confirmar não pronto'); },0); }
+function recusar(id){ setTimeout(()=>{ if(window._recusar) window._recusar(id); else console.warn('_recusar não pronto'); },0); }
+function abrirModalAg(){ setTimeout(()=>{ if(window._abrirModalAg) window._abrirModalAg(); else console.warn('_abrirModalAg não pronto'); },0); }
+function fecharModalAg(){ if(window._fecharModalAg) window._fecharModalAg(); }
+function salvarNovoAg(){ if(window._salvarNovoAg) window._salvarNovoAg(); }
+function goTo(id,el){ if(window.goTo) window.goTo(id,el); }
+function goToMob(id,el){ if(window.goToMob) window.goToMob(id,el); }
+function setRole(r,el){ if(window.setRole) window.setRole(r,el); }
+function toggleSB(){ if(window.toggleSB) window.toggleSB(); }
+function openHelp(){ if(window.openHelp) window.openHelp(); }
+</script>
+<div class="content" id="content">
 
     <!-- ── PROFISSIONAL ── -->
     <div class="pane active" id="pane-p-dash">
@@ -2142,5 +2155,87 @@ function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }c
     </div>
   </div>
 </div>
+<!-- MODAL NOVO AGENDAMENTO -->
+<div id="modal-novo-ag" style="display:none;position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+  <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700;color:var(--tx)">Novo Agendamento</div>
+      <button onclick="fecharModalAg()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:20px;line-height:1">✕</button>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Cliente</label>
+      <select id="ag-cliente" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+        <option value="">Selecione...</option>
+        <option>Ana Paula Ferreira</option>
+        <option>Mariana Costa</option>
+        <option>Leticia Barros</option>
+        <option>Sofia Alves</option>
+        <option>Camila Duarte</option>
+        <option>Renata Silva</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Serviço</label>
+      <select id="ag-servico" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+        <option value="">Selecione...</option>
+        <option>Limpeza de pele</option>
+        <option>Botox</option>
+        <option>Design de sobrancelha</option>
+        <option>Preenchimento labial</option>
+        <option>Microblading</option>
+        <option>Peeling químico</option>
+        <option>Massagem relaxante</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Origem</label>
+      <select id="ag-origem" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+        <option>Agendamento direto (admin)</option>
+        <option>Módulo Serviços (app cliente)</option>
+        <option>Módulo Promoções (app cliente)</option>
+        <option>WhatsApp</option>
+        <option>Telefone</option>
+        <option>Presencial</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Profissional</label>
+      <select id="ag-prof" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+        <option>Carla Mendes</option>
+        <option>Fernanda Rocha</option>
+        <option>Juliana Santos</option>
+        <option>Beatriz Lima</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Data</label>
+        <input type="date" id="ag-data" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Horário</label>
+        <select id="ag-hora" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+          <option>09:00</option><option>09:30</option><option>10:00</option>
+          <option>10:30</option><option>11:00</option><option>11:30</option>
+          <option>14:00</option><option>14:30</option><option>15:00</option>
+          <option>15:30</option><option>16:00</option><option>16:30</option>
+          <option>17:00</option><option>17:30</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Observação (opcional)</label>
+      <textarea id="ag-obs" rows="2" placeholder="Ex: cliente tem alergia a látex..." style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);resize:none;font-family:inherit;box-sizing:border-box"></textarea>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="fecharModalAg()" class="btn" style="flex:1">Cancelar</button>
+      <button onclick="salvarNovoAg()" class="btn pk" style="flex:1"><i class="ti ti-check"></i> Confirmar</button>
+    </div>
+    <div id="ag-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
+      <i class="ti ti-circle-check" style="font-size:18px"></i> Agendamento confirmado!
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
