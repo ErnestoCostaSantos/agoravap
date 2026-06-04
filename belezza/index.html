@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.6.2-debug</title>
+<title>Belezza — Studio Luna v2.6.2</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -2563,22 +2563,21 @@ window.detalhesDia = detalhesDia;
 
 // ── Reagendamento: redireciona para fluxo normal de agendamento ─────────────
 function abrirReagendamento(agId, servico, profAnterior) {
-  // Pré-seleciona o serviço e navega para a aba de agendamentos
-  goToCliSection('c-agenda');
+  // Usa bridge para chamar goToCliSection do módulo
+  const navFn = window._goToCliSection || window.goToCliSection;
+  if(navFn) navFn('c-agenda');
   setTimeout(() => {
-    // Preenche o badge do serviço
     const svcInfo = document.getElementById('agenda-svc-info');
     const svcNome = document.getElementById('agenda-svc-nome');
     if(svcInfo && svcNome){
       svcNome.textContent = servico;
       svcInfo.style.display = 'flex';
     }
-    // Guarda serviço selecionado para o envio
-    if(typeof selServico !== 'undefined') window.servicoSelecionado = { nome: servico };
-    // Scroll para o topo
+    window.servicoSelecionado = { nome: servico };
     const pane = document.getElementById('pane-c-agenda');
     if(pane) pane.scrollTop = 0;
-  }, 100);
+    console.log('[Reag] navegou para c-agenda com serviço:', servico);
+  }, 150);
 }
 window.abrirReagendamento  = abrirReagendamento;
 window.fecharReagendamento = function(){};
@@ -2964,14 +2963,11 @@ function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.ab
 
 // Delegação para botões Reagendar gerados dinamicamente
 document.addEventListener('click', function(e){
-  console.log('[Reag] click em:', e.target.tagName, e.target.className);
   const btn = e.target.closest('.btn-reag-cli');
-  console.log('[Reag] btn encontrado:', btn);
   if(!btn) return;
   const id   = btn.getAttribute('data-id')  || '';
   const svc  = btn.getAttribute('data-svc') || '';
   const prof = btn.getAttribute('data-prof')|| '';
-  console.log('[Reag] abrindo reagendamento:', id, svc, prof);
   abrirReagendamento(id, svc, prof);
 });
 function salvarProfissional(){ try{ window.salvarProfissional && window.salvarProfissional(); }catch(e){} }
