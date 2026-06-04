@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.6.2</title>
+<title>Belezza — Studio Luna v2.7.1</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -969,15 +969,45 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
     </div>
 
     <div class="pane" id="pane-c-chat">
-      <div class="sec-lbl">Fale com o Studio Luna</div>
-      <div class="chat-wrap">
-        <div class="chat-hd"><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaLuna&backgroundColor=fbeaf0" style="width:32px;height:32px;border-radius:50%"><div style="flex:1"><div class="row-name" style="font-size:13px">Carla Lima · Líder</div><div class="chat-online">Studio Luna</div></div><i class="ti ti-phone" style="font-size:18px;color:var(--tx2)" onclick="abrirWpp('Ola! Vim pelo app Studio Luna.')"></i></div>
-        <div class="msgs" id="chat-msgs">
-          <div class="msg r"><div class="bbl">Olá! Bem-vinda ao Studio Luna 💕 Como posso te ajudar?</div><div class="mtime">09:41</div></div>
-          <div class="msg s"><div class="bbl">Quanto tempo dura o botox?</div><div class="mtime">09:43</div></div>
-          <div class="msg r"><div class="bbl">O botox dura em média 4 a 6 meses, dependendo da região e do metabolismo. Quer agendar uma avaliação gratuita? 😊</div><div class="mtime">09:44</div></div>
+      <!-- Visão Cliente: envia dúvidas -->
+      <div id="cli-chat-view">
+        <div class="sec-lbl">Fale com o Studio Luna</div>
+        <div class="chat-wrap">
+          <div class="chat-hd">
+            <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaLuna&backgroundColor=fbeaf0" style="width:32px;height:32px;border-radius:50%">
+            <div style="flex:1"><div class="row-name" style="font-size:13px">Studio Luna · Líder</div><div class="chat-online">Online</div></div>
+            <i class="ti ti-phone" style="font-size:18px;color:var(--tx2);cursor:pointer" onclick="abrirWpp('Olá! Vim pelo app Studio Luna.')"></i>
+          </div>
+          <div class="msgs" id="chat-msgs">
+            <div style="text-align:center;color:rgba(255,255,255,.4);font-size:13px;padding:20px 0">Carregando mensagens...</div>
+          </div>
+          <div style="padding:0 12px 2px;text-align:right">
+            <span id="chat-counter" style="font-size:10px;color:rgba(255,255,255,.35)">0/100</span>
+          </div>
+          <div class="chat-inp">
+            <input class="chat-input" id="chat-in" placeholder="Escreva sua dúvida..." maxlength="100" onkeydown="if(event.key==='Enter')sendMsg()" oninput="document.getElementById('chat-counter').textContent=this.value.length+'/100'">
+            <button class="chat-send" onclick="sendMsg()"><i class="ti ti-send"></i></button>
+          </div>
         </div>
-        <div class="chat-inp"><input class="chat-input" id="chat-in" placeholder="Escreva sua dúvida..." onkeydown="if(event.key==='Enter')sendMsg()"><button class="chat-send" onclick="sendMsg()"><i class="ti ti-send"></i></button></div>
+      </div>
+
+      <!-- Visão Líder: lista de threads + conversa -->
+      <div id="lider-chat-view" style="display:none">
+        <div class="sec-lbl">Dúvidas das clientes</div>
+        <!-- Lista de threads -->
+        <div id="lider-chat-wrap"></div>
+        <!-- Conversa aberta -->
+        <div id="lider-conv-wrap" style="display:none;flex-direction:column;height:calc(100vh - 180px)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <button onclick="fecharThreadLider()" style="background:none;border:none;cursor:pointer;color:var(--pk600);font-size:13px;padding:0;display:flex;align-items:center;gap:4px"><i class="ti ti-arrow-left"></i> Voltar</button>
+            <div style="font-size:14px;font-weight:700;color:var(--tx)" id="lider-conv-nome"></div>
+          </div>
+          <div class="msgs" id="lider-conv-msgs" style="flex:1;overflow-y:auto;background:var(--bg2);border-radius:var(--r);padding:12px;margin-bottom:8px"></div>
+          <div class="chat-inp" style="border-radius:var(--r);border:1px solid var(--br)">
+            <input class="chat-input" id="lider-resp-inp" placeholder="Responder..." maxlength="100" onkeydown="if(event.key==='Enter')responderLider()">
+            <button class="chat-send" onclick="responderLider()"><i class="ti ti-send"></i></button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1101,9 +1131,9 @@ import { getAuth, signInWithEmailAndPassword,
          updatePassword, EmailAuthProvider,
          reauthenticateWithCredential,
          createUserWithEmailAndPassword }        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc,
+import { getFirestore, doc, getDoc, getDocs, setDoc,
          collection, query, where, orderBy,
-         onSnapshot, addDoc, updateDoc,
+         onSnapshot, addDoc, updateDoc, deleteDoc,
          serverTimestamp }                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 // ── Configuração ──────────────────────────────────────────────────────────
@@ -1174,9 +1204,15 @@ onAuthStateChanged(auth, async user => {
         if (homeCliente) homeCliente.style.display = 'flex';
         const welcome = document.getElementById('cli-welcome');
         if (welcome) welcome.textContent = 'Olá, ' + (cp.name || user.email.split('@')[0]) + '! 💕';
-        // Inicia listener de agendamentos da cliente
+        // Inicia listeners da cliente
         setTimeout(() => {
           if(window.iniciarListenerAgCliente) window.iniciarListenerAgCliente(user.uid);
+          if(window.iniciarListenerChat) window.iniciarListenerChat(user.uid);
+          // Mostra visão cliente no chat
+          const cliView = document.getElementById('cli-chat-view');
+          const liderView = document.getElementById('lider-chat-view');
+          if(cliView) cliView.style.display = 'block';
+          if(liderView) liderView.style.display = 'none';
         }, 500);
 
       } else {
@@ -1188,9 +1224,15 @@ onAuthStateChanged(auth, async user => {
         if (uName) uName.textContent = cp.name || user.email;
         if (uRole) uRole.textContent = cp.role === 'admin' ? 'Administradora' : 'Profissional';
         if (uAv)   uAv.textContent = (cp.name || 'U').charAt(0).toUpperCase();
-        // Inicia listener de agendamentos em tempo real
+        // Inicia listeners da profissional
         setTimeout(() => {
           if(window.iniciarListenerAgendamentos) window.iniciarListenerAgendamentos();
+          if(window.iniciarListenerThreads) window.iniciarListenerThreads();
+          // Mostra visão líder no chat
+          const cliView = document.getElementById('cli-chat-view');
+          const liderView = document.getElementById('lider-chat-view');
+          if(cliView) cliView.style.display = 'none';
+          if(liderView) liderView.style.display = 'block';
         }, 500);
       }
 
@@ -1459,12 +1501,33 @@ function setRole(r,el){
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-bd').classList.toggle('open');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-bd').classList.remove('open');}
 
-function sendMsg(){
-  const i=document.getElementById('chat-in');const t=i.value.trim();if(!t)return;
-  const m=document.getElementById('chat-msgs');const now=new Date();const ts=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
-  m.innerHTML+=`<div class="msg s"><div class="bbl">${t}</div><div class="mtime">${ts}</div></div>`;
-  i.value='';m.scrollTop=m.scrollHeight;
-  setTimeout(()=>{m.innerHTML+=`<div class="msg r"><div class="bbl">Obrigada pela mensagem! Responderei em breve. 💕</div><div class="mtime">${ts}</div></div>`;m.scrollTop=m.scrollHeight;},800);
+async function sendMsg(){
+  const i = document.getElementById('chat-in');
+  const t = (i.value || '').trim().slice(0, 100);
+  if(!t) return;
+  if(!cu){ alert('Sessão expirada. Faça login novamente.'); return; }
+  i.value = '';
+  try {
+    await addDoc(collection(db, 'mensagens', CLINICA_ID, 'threads', cu.uid, 'msgs'), {
+      texto:     t,
+      remetente: 'cliente',
+      nome:      cp?.name || cu.email.split('@')[0],
+      uid:       cu.uid,
+      criadoEm:  new Date().toISOString(),
+    });
+    // Atualiza thread principal para a líder ver
+    await setDoc(doc(db, 'mensagens', CLINICA_ID, 'threads', cu.uid), {
+      clienteNome:  cp?.name || cu.email.split('@')[0],
+      clienteEmail: cu.email,
+      ultimaMsg:    t,
+      ultimaAt:     new Date().toISOString(),
+      lida:         false,
+      clinicaId:    CLINICA_ID,
+    }, { merge: true });
+  } catch(e) {
+    console.error('[Belezza] sendMsg:', e);
+    i.value = t; // restaura se falhar
+  }
 }
 
 let part=28,ag=7;
@@ -2561,6 +2624,156 @@ window.renderAgHoje= renderAgHoje;
 window.detalhesDia = detalhesDia;
 
 
+
+// ── Módulo Chat / Dúvidas ────────────────────────────────────────────────
+let unsubChat = null;
+
+function iniciarListenerChat(uid) {
+  if(unsubChat) unsubChat();
+  const msgs = document.getElementById('chat-msgs');
+  if(msgs) msgs.innerHTML = '';
+  const q = collection(db, 'mensagens', CLINICA_ID, 'threads', uid, 'msgs');
+  unsubChat = onSnapshot(q, snap => {
+    const msgs = document.getElementById('chat-msgs');
+    if(!msgs) return;
+    const docs = snap.docs.map(d => ({id:d.id,...d.data()}))
+      .sort((a,b) => a.criadoEm > b.criadoEm ? 1 : -1);
+    msgs.innerHTML = docs.length === 0
+      ? '<div style="text-align:center;color:rgba(255,255,255,.4);font-size:13px;padding:20px 0">Nenhuma mensagem ainda.<br>Envie sua dúvida abaixo!</div>'
+      : docs.map(m => {
+          const hora = new Date(m.criadoEm).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+          return `<div class="msg ${m.remetente==='cliente'?'s':'r'}"><div class="bbl">${m.texto}</div><div class="mtime">${hora}</div></div>`;
+        }).join('');
+    msgs.scrollTop = msgs.scrollHeight;
+  }, err => { console.warn('[Belezza] chat:', err); });
+}
+
+let unsubThreads = null;
+function limparMensagensAntigas() {
+  // Remove mensagens com mais de 10 dias de todas as threads
+  const limite = new Date();
+  limite.setDate(limite.getDate() - 10);
+  const limiteISO = limite.toISOString();
+  // Lista threads e limpa msgs antigas
+  getDocs(collection(db, 'mensagens', CLINICA_ID, 'threads')).then(snap => {
+    snap.docs.forEach(async threadDoc => {
+      const msgs = await getDocs(collection(db, 'mensagens', CLINICA_ID, 'threads', threadDoc.id, 'msgs'));
+      msgs.docs.forEach(async msgDoc => {
+        if(msgDoc.data().criadoEm < limiteISO){
+          await deleteDoc(doc(db, 'mensagens', CLINICA_ID, 'threads', threadDoc.id, 'msgs', msgDoc.id));
+        }
+      });
+    });
+  }).catch(e => console.warn('[Belezza] limpar msgs:', e));
+}
+
+function iniciarListenerThreads() {
+  if(unsubThreads) unsubThreads();
+  // Limpa mensagens antigas ao iniciar (só a líder faz isso)
+  limparMensagensAntigas();
+  const q = collection(db, 'mensagens', CLINICA_ID, 'threads');
+  unsubThreads = onSnapshot(q, snap => {
+    const threads = snap.docs.map(d => ({id:d.id,...d.data()}))
+      .sort((a,b) => a.ultimaAt > b.ultimaAt ? -1 : 1);
+    renderThreadsLider(threads);
+    const naoLidas = threads.filter(t => !t.lida).length;
+    atualizarBadgeChat(naoLidas);
+  }, err => { console.warn('[Belezza] threads:', err); });
+}
+
+function renderThreadsLider(threads) {
+  const wrap = document.getElementById('lider-chat-wrap');
+  if(!wrap) return;
+  if(threads.length === 0){
+    wrap.innerHTML = '<div style="color:var(--tx3);font-size:13px;padding:16px 0;text-align:center">Nenhuma dúvida recebida ainda.</div>';
+    return;
+  }
+  wrap.innerHTML = threads.map(t => {
+    const hora = t.ultimaAt ? new Date(t.ultimaAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
+    const nova = !t.lida ? '<span style="font-size:10px;background:var(--pk600);color:#fff;border-radius:10px;padding:1px 6px;margin-left:4px">Nova</span>' : '';
+    return `<div class="row-item" style="cursor:pointer;${!t.lida?'background:var(--pk50);border-left:3px solid var(--pk400);padding-left:11px;':''}" onclick="abrirThreadLider('${t.id}','${(t.clienteNome||'').replace(/'/g,"\'")}')">
+      <div class="av" style="background:var(--pk50);color:var(--pk800);font-size:13px;flex-shrink:0">${(t.clienteNome||'C').charAt(0).toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="row-name" style="font-size:13px">${t.clienteNome||'Cliente'}${nova}</div>
+          <div style="font-size:10px;color:var(--tx3)">${hora}</div>
+        </div>
+        <div class="row-sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.ultimaMsg||''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function atualizarBadgeChat(n) {
+  const nav = document.querySelector('.nav-item[onclick*="c-chat"]');
+  if(!nav) return;
+  let badge = nav.querySelector('.chat-badge');
+  if(n > 0){
+    if(!badge){ badge = document.createElement('span'); badge.className='chat-badge'; badge.style.cssText='background:var(--pk600);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:auto'; nav.appendChild(badge); }
+    badge.textContent = n;
+  } else { if(badge) badge.remove(); }
+}
+
+let threadAberta = null;
+let unsubThreadMsgs = null;
+
+function abrirThreadLider(uid, nome) {
+  threadAberta = uid;
+  setDoc(doc(db, 'mensagens', CLINICA_ID, 'threads', uid), { lida: true }, { merge: true });
+  const wrap = document.getElementById('lider-chat-wrap');
+  if(wrap) wrap.style.display = 'none';
+  const conv = document.getElementById('lider-conv-wrap');
+  if(conv) conv.style.display = 'flex';
+  const nomeEl = document.getElementById('lider-conv-nome');
+  if(nomeEl) nomeEl.textContent = nome;
+  if(unsubThreadMsgs) unsubThreadMsgs();
+  const q = collection(db, 'mensagens', CLINICA_ID, 'threads', uid, 'msgs');
+  unsubThreadMsgs = onSnapshot(q, snap => {
+    const msgs = document.getElementById('lider-conv-msgs');
+    if(!msgs) return;
+    const docs = snap.docs.map(d => ({id:d.id,...d.data()}))
+      .sort((a,b) => a.criadoEm > b.criadoEm ? 1 : -1);
+    msgs.innerHTML = docs.map(m => {
+      const hora = new Date(m.criadoEm).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="msg ${m.remetente==='cliente'?'r':'s'}"><div class="bbl">${m.texto}</div><div class="mtime">${hora}</div></div>`;
+    }).join('');
+    msgs.scrollTop = msgs.scrollHeight;
+  });
+}
+
+function fecharThreadLider() {
+  if(unsubThreadMsgs){ unsubThreadMsgs(); unsubThreadMsgs=null; }
+  threadAberta = null;
+  const wrap = document.getElementById('lider-chat-wrap');
+  if(wrap) wrap.style.display = 'block';
+  const conv = document.getElementById('lider-conv-wrap');
+  if(conv) conv.style.display = 'none';
+}
+
+async function responderLider() {
+  if(!threadAberta) return;
+  const inp = document.getElementById('lider-resp-inp');
+  const t = (inp?.value||'').trim();
+  if(!t) return;
+  inp.value = '';
+  try {
+    await addDoc(collection(db, 'mensagens', CLINICA_ID, 'threads', threadAberta, 'msgs'), {
+      texto: t, remetente: 'lider',
+      nome: cp?.name || 'Studio Luna',
+      uid: cu?.uid || 'admin',
+      criadoEm: new Date().toISOString(),
+    });
+    await setDoc(doc(db, 'mensagens', CLINICA_ID, 'threads', threadAberta),
+      { ultimaMsg: t, ultimaAt: new Date().toISOString(), lida: true }, { merge: true });
+  } catch(e) { console.error('[Belezza] responderLider:', e); }
+}
+
+window.iniciarListenerChat    = iniciarListenerChat;
+window.iniciarListenerThreads = iniciarListenerThreads;
+window.abrirThreadLider       = abrirThreadLider;
+window.fecharThreadLider      = fecharThreadLider;
+window.responderLider         = responderLider;
+
 // ── Reagendamento: redireciona para fluxo normal de agendamento ─────────────
 function abrirReagendamento(agId, servico, profAnterior) {
   // Usa bridge para chamar goToCliSection do módulo
@@ -2960,6 +3173,9 @@ function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }c
 function abrirModalProfissional(id){ try{ window.abrirModalProfissional && window.abrirModalProfissional(id); }catch(e){} }
 function fecharModalProfissional(){ try{ window.fecharModalProfissional && window.fecharModalProfissional(); }catch(e){} }
 function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.abrirReagendamento(id,s,p); }catch(e){} }
+function abrirThreadLider(uid,n){ try{ window.abrirThreadLider && window.abrirThreadLider(uid,n); }catch(e){} }
+function fecharThreadLider(){ try{ window.fecharThreadLider && window.fecharThreadLider(); }catch(e){} }
+function responderLider(){ try{ window.responderLider && window.responderLider(); }catch(e){} }
 
 // Delegação para botões Reagendar gerados dinamicamente
 document.addEventListener('click', function(e){
