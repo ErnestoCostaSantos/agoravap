@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.2.1</title>
+<title>Belezza — Studio Luna v2.3.0</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -30,7 +30,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sb-av{width:36px;height:36px;border-radius:10px;background:var(--pk50);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--pk600);flex-shrink:0}
 .sb-name{font-size:14px;font-weight:600}
 .sb-plan{font-size:10px;color:var(--tl400);background:var(--tl50);padding:1px 7px;border-radius:20px;display:inline-block;margin-top:2px}
-.sb-nav{padding:10px 8px;flex:1;overflow-y:auto}
+.sb-nav{padding:10px 8px;flex:1;overflow-y:auto;padding-bottom:16px}
 .sb-sec{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);padding:10px 8px 4px}
 .nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;color:var(--tx2);transition:all .15s;margin-bottom:2px;border:none;background:transparent;width:100%;text-align:left}
 .nav-item:hover{background:var(--bg3);color:var(--tx)}
@@ -262,7 +262,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #login-screen > div:first-child { min-height: 60vh; }
 }
 @media(max-width:700px){
-  .sidebar{position:fixed;top:0;left:0;height:100vh;z-index:500;transform:translateX(-100%)}
+  .sidebar{position:fixed;top:0;left:0;height:100dvh;height:100vh;z-index:500;transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
   .tb-menu{display:block}
   .mob-nav{display:block}
@@ -387,7 +387,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="nav-item" onclick="goTo('c-chat',this)"><i class="ti ti-message-circle"></i>Dúvidas</button>
     <button class="nav-item" onclick="goTo('c-agenda',this)"><i class="ti ti-calendar-check"></i>Agendamentos</button>
   </div>
-  <div class="sb-footer" style="padding-bottom:max(12px,env(safe-area-inset-bottom))">
+  <div class="sb-footer" style="padding-bottom:max(22px,env(safe-area-inset-bottom,22px));padding-top:8px">
     <div class="sb-user">
       <div class="sb-uav" id="u-av">CL</div>
       <div style="flex:1;min-width:0;overflow:hidden">
@@ -1058,10 +1058,11 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
         <i class="ti ti-circle-check" style="font-size:20px"></i>
         <div><strong>Solicitação enviada!</strong><br>A líder do Studio Luna confirmará em breve.</div>
       </div>
-      <!-- Agendamentos existentes -->
+      <!-- Agendamentos existentes — populado pelo Firestore -->
       <div class="sec-lbl" style="margin-top:16px">Seus agendamentos</div>
-      <div class="sched-card"><div class="scd-left"><div class="scd-dt"><div class="scd-day">07</div><div class="scd-mo">Jun</div></div><div><div class="scd-svc">Limpeza de pele profunda</div><div class="scd-sub"><i class="ti ti-clock" style="font-size:11px"></i>14h30 · 60 min</div></div></div><span class="badge badge-pend">Aguardando</span></div>
-      <div class="sched-card"><div class="scd-left"><div class="scd-dt"><div class="scd-day">15</div><div class="scd-mo">Jun</div></div><div><div class="scd-svc">Design de sobrancelha</div><div class="scd-sub"><i class="ti ti-clock" style="font-size:11px"></i>11h00 · 45 min</div></div></div><span class="badge badge-ok">Confirmado</span></div>
+      <div id="cli-meus-ags">
+        <div style="color:rgba(255,255,255,.4);font-size:13px;text-align:center;padding:12px 0">Carregando...</div>
+      </div>
     </div>
 
   </div>
@@ -1200,6 +1201,10 @@ onAuthStateChanged(auth, async user => {
         if (homeCliente) homeCliente.style.display = 'flex';
         const welcome = document.getElementById('cli-welcome');
         if (welcome) welcome.textContent = 'Olá, ' + (cp.name || user.email.split('@')[0]) + '! 💕';
+        // Inicia listener de agendamentos da cliente
+        setTimeout(() => {
+          if(window.iniciarListenerAgCliente) window.iniciarListenerAgCliente(user.uid);
+        }, 500);
 
       } else {
         // ── Rota Profissional/Admin → app principal ──
@@ -1210,6 +1215,10 @@ onAuthStateChanged(auth, async user => {
         if (uName) uName.textContent = cp.name || user.email;
         if (uRole) uRole.textContent = cp.role === 'admin' ? 'Administradora' : 'Profissional';
         if (uAv)   uAv.textContent = (cp.name || 'U').charAt(0).toUpperCase();
+        // Inicia listener de agendamentos em tempo real
+        setTimeout(() => {
+          if(window.iniciarListenerAgendamentos) window.iniciarListenerAgendamentos();
+        }, 500);
       }
 
       resetInactivityTimer();
@@ -1939,20 +1948,22 @@ function selecionarHorario(btn, horario){
 }
 
 function enviarSolicitacao(){
-  if(!selDia || !selHorario) return;
-  document.getElementById('cli-enviar-wrap').style.display = 'none';
-  const toast = document.getElementById('cli-agenda-toast');
-  toast.style.display = 'flex';
-  // Reset após 5s
-  setTimeout(() => {
-    toast.style.display = 'none';
-    document.getElementById('cli-horarios-card').style.display = 'none';
-    document.getElementById('agenda-promo-badge').style.display = 'none';
-    document.querySelectorAll('.dia-btn').forEach(b => {
-      b.style.background = 'var(--bg2)'; b.style.borderColor = 'var(--br)'; b.style.color = 'var(--tx)';
-    });
-    selDia = null; selHorario = null; promoSelecionada = null;
-  }, 5000);
+  // Usa Firestore se logado, senão comportamento de demo
+  if(cu && window.enviarSolicitacaoFS) {
+    window.enviarSolicitacaoFS();
+  } else {
+    // Demo sem login
+    if(!selDia || !selHorario) return;
+    document.getElementById('cli-enviar-wrap').style.display = 'none';
+    const toast = document.getElementById('cli-agenda-toast');
+    if(toast) toast.style.display = 'flex';
+    setTimeout(() => {
+      if(toast) toast.style.display = 'none';
+      const hc = document.getElementById('cli-horarios-card');
+      if(hc) hc.style.display = 'none';
+      selDia = null; selHorario = null; promoSelecionada = null;
+    }, 5000);
+  }
 }
 
 function abrirAgendaPromo(nome){
@@ -2111,6 +2122,228 @@ function salvarCliente(){
 }
 
 
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MÓDULO FIRESTORE — Integração completa agendamentos
+// ══════════════════════════════════════════════════════════════════════════════
+
+const CLINICA_ID = 'belezza-50e76'; // clinicaId padrão
+
+// ── Listener de agendamentos (profissional) ───────────────────────────────────
+let unsubAgendamentos = null;
+
+function iniciarListenerAgendamentos() {
+  if (unsubAgendamentos) unsubAgendamentos(); // cancela listener anterior
+  const q = query(
+    collection(db, 'agendamentos'),
+    where('clinicaId', '==', CLINICA_ID)
+    // orderBy('criadoEm','desc') — requer índice composto no Firestore
+    // Crie em: https://console.firebase.google.com → Firestore → Indexes
+  );
+  unsubAgendamentos = onSnapshot(q, snap => {
+    agendamentos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Atualiza UI da profissional em tempo real
+    renderPendentesFirestore();
+    if (typeof agView !== 'undefined') {
+      if (agView === 'hoje')   renderAgHoje();
+      else if (agView === 'semana') renderAgSemana();
+      else renderAgMes();
+    }
+    atualizarPendentes();
+    initDashboard();
+  }, err => {
+    console.warn('[Belezza] onSnapshot agendamentos:', err);
+  });
+}
+
+// ── Listener de agendamentos (cliente) ───────────────────────────────────────
+let unsubAgCli = null;
+
+function iniciarListenerAgCliente(uid) {
+  if (unsubAgCli) unsubAgCli();
+  const q = query(
+    collection(db, 'agendamentos'),
+    where('clienteId', '==', uid)
+    // orderBy requer índice — adicionado automaticamente ao primeiro erro
+  );
+  unsubAgCli = onSnapshot(q, snap => {
+    const lista = document.getElementById('cli-meus-ags');
+    if (!lista) return;
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (docs.length === 0) {
+      lista.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:13px;text-align:center;padding:12px 0">Nenhum agendamento ainda.</div>';
+      return;
+    }
+    lista.innerHTML = docs.map(ag => {
+      const statusMap = {
+        pendente:    { label: 'Aguardando', bg: '#fff3cd', color: '#856404', border: '#ffc107' },
+        confirmado:  { label: 'Confirmado ✓', bg: 'var(--tl50)', color: 'var(--tl800)', border: 'var(--tl200)' },
+        recusado:    { label: 'Não disponível', bg: '#fde8e8', color: '#c0392b', border: '#f5c6cb' },
+      };
+      const s = statusMap[ag.status] || statusMap.pendente;
+      const [dd, mm] = (ag.data || '').split('/');
+      const meses = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      return `
+        <div class="sched-card" style="margin-bottom:8px">
+          <div class="scd-left">
+            <div class="scd-dt">
+              <div class="scd-day">${dd || '—'}</div>
+              <div class="scd-mo">${meses[parseInt(mm)] || ''}</div>
+            </div>
+            <div>
+              <div class="scd-svc">${ag.servico || '—'}</div>
+              <div class="scd-sub"><i class="ti ti-clock" style="font-size:11px"></i>${ag.hora || ''} · ${ag.prof || ''}</div>
+            </div>
+          </div>
+          <span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;border:1px solid ${s.border};background:${s.bg};color:${s.color};white-space:nowrap">${s.label}</span>
+        </div>`;
+    }).join('');
+  }, err => {
+    console.warn('[Belezza] onSnapshot agCli:', err);
+  });
+}
+
+// ── Renderiza pendentes vindos do Firestore ───────────────────────────────────
+function renderPendentesFirestore() {
+  const pendentes = agendamentos.filter(a => a.status === 'pendente');
+  // Atualiza nas duas abas (Dashboard e Agenda)
+  ['ag-pendentes-wrap', 'dash-pendentes-list'].forEach(containerId => {
+    const wrap = document.getElementById(containerId);
+    if (!wrap) return;
+    // Remove cards antigos dinâmicos (mantém os estáticos de demo)
+    wrap.querySelectorAll('.req-card[data-fs]').forEach(el => el.remove());
+    if (pendentes.length === 0) return;
+    pendentes.forEach(ag => {
+      // Não duplica
+      if (wrap.querySelector(`[data-fs="${ag.id}"]`)) return;
+      const initials = (ag.cliente || 'C').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+      const card = document.createElement('div');
+      card.className = 'req-card';
+      card.setAttribute('data-fs', ag.id);
+      card.id = ag.id;
+      card.innerHTML = `
+        <div class="av" style="background:var(--pk50);color:var(--pk800)">${initials}</div>
+        <div class="req-info">
+          <div class="req-name">${ag.cliente || 'Cliente'}</div>
+          <div class="req-detail"><i class="ti ti-sparkles" style="font-size:11px"></i> ${ag.servico} · ${ag.data} às ${ag.hora} · ${ag.prof || ''}</div>
+        </div>
+        <div style="display:flex;gap:5px">
+          <button class="btn tl sm" onclick="confirmarFS('${ag.id}')"><i class="ti ti-check"></i> Confirmar</button>
+          <button class="btn sm" onclick="recusarFS('${ag.id}')"><i class="ti ti-x"></i></button>
+        </div>`;
+      wrap.appendChild(card);
+    });
+  });
+}
+
+// ── Confirmar agendamento no Firestore ────────────────────────────────────────
+async function confirmarFS(id) {
+  try {
+    await updateDoc(doc(db, 'agendamentos', id), {
+      status: 'confirmado',
+      confirmadoEm: new Date().toISOString(),
+      confirmadoPor: cu?.uid || 'admin'
+    });
+    // UI feedback imediato
+    const el = document.getElementById(id);
+    if (el) {
+      el.style.background = 'var(--tl50)';
+      const btns = el.querySelector('div:last-child');
+      if (btns) btns.innerHTML = '<span class="badge badge-ok">Confirmado ✓</span>';
+      setTimeout(() => el.remove(), 1000);
+    }
+  } catch(e) {
+    console.error('[Belezza] confirmarFS:', e);
+    alert('Erro ao confirmar. Tente novamente.');
+  }
+}
+
+// ── Recusar agendamento no Firestore ─────────────────────────────────────────
+async function recusarFS(id) {
+  try {
+    await updateDoc(doc(db, 'agendamentos', id), {
+      status: 'recusado',
+      recusadoEm: new Date().toISOString(),
+      recusadoPor: cu?.uid || 'admin'
+    });
+    const el = document.getElementById(id);
+    if (!el) return;
+    const ag = agendamentos.find(a => a.id === id);
+    const aviso = document.createElement('div');
+    aviso.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;border-radius:var(--r);padding:10px 14px;margin:4px 0;font-size:12px;color:#856404;display:flex;align-items:center;gap:8px';
+    aviso.innerHTML = '<i class="ti ti-phone" style="font-size:16px;flex-shrink:0"></i><span>Solicitação recusada. <strong>Entre em contato com ' + (ag?.cliente || 'a cliente') + '</strong> para oferecer uma nova data.</span>';
+    el.insertAdjacentElement('afterend', aviso);
+    el.style.opacity = '.3';
+    setTimeout(() => { el.remove(); }, 400);
+    setTimeout(() => { aviso.style.opacity = '0'; setTimeout(() => aviso.remove(), 400); }, 4000);
+  } catch(e) {
+    console.error('[Belezza] recusarFS:', e);
+  }
+}
+
+// ── Enviar solicitação de agendamento (cliente) ───────────────────────────────
+async function enviarSolicitacaoFS() {
+  if (!selDia || !selHorario) return;
+  if (!cu) { alert('Sessão expirada. Faça login novamente.'); return; }
+
+  const btn = document.querySelector('#cli-enviar-wrap .btn.pk');
+  if (btn) { btn.textContent = 'Enviando...'; btn.disabled = true; }
+
+  try {
+    const nomeCliente = cp?.name || cu.email.split('@')[0];
+    // Formata data
+    const [dd, mm] = selDia.split('/');
+    const dataFmt = dd + '/' + mm;
+
+    await addDoc(collection(db, 'agendamentos'), {
+      clinicaId:  CLINICA_ID,
+      clienteId:  cu.uid,
+      cliente:    nomeCliente,
+      clienteEmail: cu.email,
+      servico:    selServico || promoSelecionada || 'Serviço não especificado',
+      data:       dataFmt,
+      hora:       selHorario,
+      prof:       '',   // profissional será definida pela líder
+      origem:     promoSelecionada ? 'Módulo Promoções' : 'Módulo Serviços',
+      status:     'pendente',
+      criadoEm:   new Date().toISOString(),
+    });
+
+    // UI feedback
+    document.getElementById('cli-enviar-wrap').style.display = 'none';
+    const toast = document.getElementById('cli-agenda-toast');
+    if (toast) toast.style.display = 'flex';
+
+    // Reset após 5s
+    setTimeout(() => {
+      if (toast) toast.style.display = 'none';
+      const horariosCard = document.getElementById('cli-horarios-card');
+      if (horariosCard) horariosCard.style.display = 'none';
+      const promoBadge = document.getElementById('agenda-promo-badge');
+      if (promoBadge) promoBadge.style.display = 'none';
+      document.querySelectorAll('.dia-btn').forEach(b => {
+        b.style.background = 'var(--bg2)';
+        b.style.borderColor = 'var(--br)';
+        b.style.color = 'var(--tx)';
+      });
+      selDia = null; selHorario = null; promoSelecionada = null;
+    }, 5000);
+
+  } catch(e) {
+    console.error('[Belezza] enviarSolicitacaoFS:', e);
+    alert('Erro ao enviar solicitação. Verifique sua conexão.');
+  } finally {
+    if (btn) { btn.textContent = 'Enviar solicitação'; btn.disabled = false; }
+  }
+}
+
+// Expõe funções
+window.confirmarFS   = confirmarFS;
+window.recusarFS     = recusarFS;
+window.enviarSolicitacaoFS = enviarSolicitacaoFS;
+window.iniciarListenerAgendamentos = iniciarListenerAgendamentos;
+window.iniciarListenerAgCliente    = iniciarListenerAgCliente;
 
 // ── Módulo Agenda — views Hoje / Semana / Mês ────────────────────────────
 let agView = 'hoje';
@@ -2678,6 +2911,8 @@ function setAgView(v,el){ try{ window.setAgView && window.setAgView(v,el); }catc
 function navSemana(d){ try{ window.navSemana && window.navSemana(d); }catch(e){} }
 function navMes(d){ try{ window.navMes && window.navMes(d); }catch(e){} }
 function detalhesDia(k){ try{ window.detalhesDia && window.detalhesDia(k); }catch(e){} }
+function confirmarFS(id){ try{ window.confirmarFS && window.confirmarFS(id); }catch(e){} }
+function recusarFS(id){ try{ window.recusarFS && window.recusarFS(id); }catch(e){} }
 function previewDataAg(){ try{ window.previewDataAg && window.previewDataAg(); }catch(e){} }
 function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ window.location.reload(); } }
 </script>
