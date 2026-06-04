@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.3.8</title>
+<title>Belezza — Studio Luna v2.3.9</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -2268,7 +2268,9 @@ function mostrarAvisoRecusa(nomeCliente) {
   aviso.style.boxShadow = '0 6px 24px rgba(0,0,0,.2)';
   aviso.style.fontFamily = 'inherit';
   aviso.style.fontWeight = '500';
+  aviso.style.opacity = '1';
   aviso.innerHTML = '<i class="ti ti-phone" style="font-size:20px;flex-shrink:0"></i><span>Solicitação recusada. <strong>Entre em contato com ' + nomeCliente + '</strong> para informar e oferecer uma nova data.</span>';
+  aviso.style.opacity = '1'; // garante visível antes de qualquer transição
   document.body.appendChild(aviso);
   console.log('[Belezza] aviso inserido no body:', aviso);
   setTimeout(() => {
