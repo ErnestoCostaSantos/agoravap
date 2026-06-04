@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.0.3</title>
+<title>Belezza — Studio Luna v2.1.0</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1230,9 +1230,12 @@ setPersistence(auth, browserSessionPersistence).then(() => {
       if (appDiv) appDiv.style.display = 'none';
       const homeCliente = document.getElementById('home-cli-screen');
       if (homeCliente) homeCliente.style.display = 'none';
-      // Mostra tela de entrada (cliente)
+      // Tela única de login — sempre o MeCuidar
       const cliLogin = document.getElementById('login-cli-screen');
       if (cliLogin) cliLogin.style.display = 'flex';
+      // Garante que tela profissional antiga nunca apareça
+      const loginOld = document.getElementById('login-screen');
+      if (loginOld) loginOld.style.display = 'none';
     }
   });
 
@@ -1242,36 +1245,9 @@ setPersistence(auth, browserSessionPersistence).then(() => {
 
 // ── Auth: login ───────────────────────────────────────────────────────────
 async function doLogin() {
-  const emailEl = document.querySelector('#login-screen input[type="email"]');
-  const passEl  = document.querySelector('#login-screen input[type="password"]');
-  const btn     = document.querySelector('#login-screen button[onclick="doLogin()"]');
-
-  const email = (emailEl?.value || '').trim();
-  const pass  = passEl?.value || '';
-
-  if (!email || !pass) {
-    showLoginError('Preencha o e-mail e a senha.');
-    return;
-  }
-
-  // Loading state
-  if (btn) { btn.textContent = 'Entrando...'; btn.disabled = true; }
-
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-    // onAuthStateChanged cuida do resto
-  } catch (e) {
-    const msgs = {
-      'auth/user-not-found':   'E-mail não cadastrado.',
-      'auth/wrong-password':   'Senha incorreta.',
-      'auth/invalid-email':    'E-mail inválido.',
-      'auth/too-many-requests':'Muitas tentativas. Tente mais tarde.',
-      'auth/invalid-credential': 'E-mail ou senha incorretos.'
-    };
-    showLoginError(msgs[e.code] || 'Erro ao entrar. Tente novamente.');
-  } finally {
-    if (btn) { btn.textContent = 'Entrar'; btn.disabled = false; }
-  }
+  // Login unificado — usa sempre os campos do MeCuidar (login-cli-screen)
+  // O onAuthStateChanged roteia para profissional ou cliente pelo role
+  await doLoginCli();
 }
 
 function showLoginError(msg) {
@@ -1299,18 +1275,8 @@ async function doLogout() {
 
 // ── Auth: recuperar senha ─────────────────────────────────────────────────
 async function recuperarSenha() {
-  const emailEl = document.querySelector('#login-screen input[type="email"]');
-  const email   = (emailEl?.value || '').trim();
-  if (!email) {
-    showLoginError('Digite seu e-mail acima para recuperar a senha.');
-    return;
-  }
-  try {
-    await sendPasswordResetEmail(auth, email);
-    showLoginError('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
-  } catch(e) {
-    showLoginError('E-mail não encontrado.');
-  }
+  // Redireciona para o campo do login unificado
+  await recuperarSenhaCli();
 }
 
 // Expõe funções globalmente (necessário com type="module")
@@ -2757,7 +2723,6 @@ function previewDataAg(){ try{ window.previewDataAg && window.previewDataAg(); }
       <button onclick="doLoginCli()" style="width:100%;padding:12px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:15px;font-weight:700;letter-spacing:.06em;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(153,53,86,.4)">Entrar</button>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
         <span onclick="recuperarSenhaCli()" style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;text-decoration:underline">Esqueci minha senha</span>
-        <span onclick="voltarLoginPro()" style="font-size:11px;color:rgba(255,255,255,.4);cursor:pointer">Profissional →</span>
       </div>
     </div>
   </div>
