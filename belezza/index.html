@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.7.1</title>
+<title>Belezza — Studio Luna v2.7.3</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -386,6 +386,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="sb-sec">Marketing</div>
     <button class="nav-item" onclick="goTo('p-camp',this)"><i class="ti ti-brand-whatsapp"></i>Campanhas</button>
     <button class="nav-item" onclick="goTo('p-promos',this)"><i class="ti ti-tag"></i>Promoções</button>
+    <div class="sb-sec">Atendimento</div>
+    <button class="nav-item" onclick="goTo('c-chat',this)"><i class="ti ti-message-circle"></i>Dúvidas</button>
   </div>
   <div class="sb-nav" id="sb-cli" style="display:none">
     <div class="sb-sec">Navegação</div>
@@ -411,6 +413,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="main">
   <!-- Botão voltar para home cliente — aparece só quando cliente está navegando -->
+  <!-- Botão voltar para profissional (toggle) -->
+  <div id="btn-voltar-pro" style="display:none;align-items:center;justify-content:flex-end;padding:8px 12px;background:rgba(90,31,110,.95);flex-shrink:0">
+    <button onclick="voltarParaProfissional()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;border-radius:20px;padding:5px 14px;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px"><i class="ti ti-arrow-left" style="font-size:13px"></i> Voltar ao Profissional</button>
+  </div>
   <div id="cli-back-bar" style="display:none;background:linear-gradient(90deg,#9B3D8B,#5a1f6e);padding:10px 16px;align-items:center;gap:10px">
     <button onclick="voltarHomeCliente()" style="background:rgba(255,255,255,.2);border:none;border-radius:20px;padding:6px 14px;color:white;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px">
       ← Voltar
@@ -1485,6 +1491,9 @@ function setRole(r,el){
     const welcome = document.getElementById('cli-welcome');
     if(welcome && cp) welcome.textContent = 'Olá, ' + (cp.name || 'Cliente') + '! 💕';
     else if(welcome) welcome.textContent = 'Olá! 💕';
+    // Mostra botão voltar para profissional
+    const btnVoltarPro = document.getElementById('btn-voltar-pro');
+    if(btnVoltarPro) btnVoltarPro.style.display = 'flex';
   } else {
     // Volta para app profissional
     const homeCliente = document.getElementById('home-cli-screen');
@@ -1829,6 +1838,20 @@ function goToCliSection(id){
       if(oc.includes(id)) b.classList.add('active');
     });
   }, 50);
+}
+function voltarParaProfissional(){
+  // Esconde tela cliente e botão voltar
+  const homeCliente = document.getElementById('home-cli-screen');
+  if(homeCliente) homeCliente.style.display = 'none';
+  const btnVoltarPro = document.getElementById('btn-voltar-pro');
+  if(btnVoltarPro) btnVoltarPro.style.display = 'none';
+  // Volta para o app profissional
+  const app = document.querySelector('.app');
+  if(app) app.style.display = 'flex';
+  // Restaura toggle para Profissional
+  document.querySelectorAll('.rbtn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === 'Profissional');
+  });
 }
 function voltarHomeCliente(){
   const appDiv = document.querySelector('.app');
@@ -3175,6 +3198,7 @@ function fecharModalProfissional(){ try{ window.fecharModalProfissional && windo
 function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.abrirReagendamento(id,s,p); }catch(e){} }
 function abrirThreadLider(uid,n){ try{ window.abrirThreadLider && window.abrirThreadLider(uid,n); }catch(e){} }
 function fecharThreadLider(){ try{ window.fecharThreadLider && window.fecharThreadLider(); }catch(e){} }
+function voltarParaProfissional(){ try{ window.voltarParaProfissional ? window.voltarParaProfissional() : voltarParaProfissional(); }catch(e){} }
 function responderLider(){ try{ window.responderLider && window.responderLider(); }catch(e){} }
 
 // Delegação para botões Reagendar gerados dinamicamente
@@ -3380,7 +3404,7 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
             <circle cx="0" cy="0" r="20" fill="white" stroke="#e090b8" stroke-width="1"/>
             <path d="M-9,-9 Q-9,-13 -5,-13 L5,-13 Q9,-13 9,-9 L9,-2 Q9,2 5,2 L-2,2 L-5,7 L-4,2 Q-9,2 -9,-2 Z" fill="none" stroke="#993556" stroke-width="1.3"/>
           </svg>
-          <span>Ajuda</span>
+          <span>Dúvidas</span>
         </button>
         <button class="rosa-btn" onclick="window.open('https://wa.me/5511997261900?text=Ol%C3%A1%20Studio%20Luna%2C%20vim%20pelo%20app!','_blank')">
           <svg class="rosa-svg" viewBox="-40 -40 80 80">
