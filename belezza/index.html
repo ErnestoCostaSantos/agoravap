@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.2.0</title>
+<title>Belezza — Studio Luna v2.2.1</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1734,7 +1734,11 @@ function recuperarSenhaCli(){
     .catch(() => { if(errEl) errEl.textContent='E-mail não encontrado.'; });
 }
 function goToCliSection(id){
-  document.getElementById('home-cli-screen').style.display = 'none';
+  // Esconde tela das flores
+  const homeCliente = document.getElementById('home-cli-screen');
+  if(homeCliente) homeCliente.style.display = 'none';
+
+  // Mostra app
   const appDiv = document.querySelector('.app');
   if(appDiv) appDiv.style.display = 'flex';
 
@@ -1754,16 +1758,16 @@ function goToCliSection(id){
   if(backBar) backBar.style.display = 'flex';
   if(mobCli)  mobCli.style.display  = 'block';
 
-  // Ativa visão cliente
-  const allBtns = document.querySelectorAll('.rbtn');
-  allBtns.forEach(b => { if(b.textContent.trim()==='Cliente') setRole('c', b); });
+  // Navega direto para a aba — sem passar por setRole
+  showPane(id);
+  if(id==='c-agenda') setTimeout(initCalendario, 50);
 
-  // Vai para a aba correta
+  // Marca tab ativa no nav mobile
   setTimeout(() => {
-    const navBtns = document.querySelectorAll('.nav-item, .mob-tab');
-    navBtns.forEach(b => {
+    document.querySelectorAll('#mob-cli .mob-tab').forEach(b => {
+      b.classList.remove('active');
       const oc = b.getAttribute('onclick') || '';
-      if(oc.includes(id)) { b.click(); }
+      if(oc.includes(id)) b.classList.add('active');
     });
   }, 50);
 }
@@ -2675,6 +2679,7 @@ function navSemana(d){ try{ window.navSemana && window.navSemana(d); }catch(e){}
 function navMes(d){ try{ window.navMes && window.navMes(d); }catch(e){} }
 function detalhesDia(k){ try{ window.detalhesDia && window.detalhesDia(k); }catch(e){} }
 function previewDataAg(){ try{ window.previewDataAg && window.previewDataAg(); }catch(e){} }
+function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ window.location.reload(); } }
 </script>
 
 <!-- LOGIN CLIENTE -->
