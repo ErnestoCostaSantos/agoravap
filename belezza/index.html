@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.4.2</title>
+<title>Belezza — Studio Luna v2.4.4</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -270,6 +270,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .two-col{grid-template-columns:1fr}
   .content{padding:14px}
 }
+/* Olho da senha: só no mobile */
+@media(min-width:700px){ .cli-eye-btn{ display:none !important; } }
 </style>
 </head>
 <body>
@@ -2963,7 +2965,7 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
       #cli-foto img.mob{ display:none; }
       #cli-form{
         position:absolute;
-        top:50%; right:6%;
+        top:62%; right:6%;
         transform:translateY(-50%);
         width:320px;
         background:rgba(90,31,110,.88);
@@ -3001,7 +3003,7 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
       <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:10px 16px;margin-bottom:6px;border:1px solid rgba(255,255,255,.25)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 Q8 3 12 3 Q16 3 16 7 V11"/></svg>
         <input id="cli-pass" type="password" placeholder="Senha" autocomplete="current-password" style="background:none;border:none;outline:none;color:white;font-size:16px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
-        <span id="cli-eye" onclick="toggleCliPass()" style="cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;user-select:none;padding:2px;line-height:1;flex-shrink:0">👁</span>
+        <span id="cli-eye" onclick="toggleCliPass()" style="cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;user-select:none;padding:2px;line-height:1;flex-shrink:0" class="cli-eye-btn">👁</span>
       </div>
       <div id="cli-error" style="color:#ffb3c6;font-size:11px;text-align:center;margin-bottom:5px;min-height:14px;font-weight:600"></div>
       <button id="cli-entrar-btn" onclick="doLoginCli()" style="width:100%;padding:12px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:15px;font-weight:700;letter-spacing:.06em;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(153,53,86,.4)">Entrar</button>
