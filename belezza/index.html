@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v1.5.6</title>
+<title>Belezza — Studio Luna v1.5.7</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1997,12 +1997,34 @@ function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }c
       <img class="mob" src="hero-cliente.jpg" alt="MeCuidar">
       <!-- Desktop/Tablet: imagem landscape 16:9 -->
       <img class="dsk" src="hero-cliente-desktop.jpg" alt="MeCuidar">
-      <!-- Studio Luna overlay — posição por media query -->
-      <div id="sln-overlay" style="position:absolute;pointer-events:none;z-index:2;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#6B2D8B;font-family:Georgia,serif;white-space:nowrap;background:rgba(252,235,248,0.95);border-radius:4px;padding:2px 12px;
-        top:calc(100% * 0.27);left:50%;transform:translateX(-50%);font-size:clamp(10px,3.5vw,14px)">Studio Luna</div>
+      <!-- Studio Luna overlay — entre MeCuidar e o traço/ponto -->
+      <div id="sln-overlay" style="
+        position:absolute;
+        pointer-events:none;
+        z-index:2;
+        font-weight:700;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color:#6B2D8B;
+        font-family:Georgia,serif;
+        white-space:nowrap;
+        background:transparent;
+        padding:0;
+        top:27%;
+        left:50%;
+        transform:translateX(-50%);
+        font-size:clamp(9px,3.2vw,13px);
+        text-shadow:none;
+      ">Studio Luna</div>
       <style>
         @media(min-width:700px){
-          #sln-overlay{ top:50% !important; left:22.7% !important; transform:translateY(-50%) !important; font-size:14px !important; }
+          #sln-overlay{
+            top:45% !important;
+            left:20% !important;
+            transform:none !important;
+            font-size:15px !important;
+            letter-spacing:.22em !important;
+          }
         }
       </style>
       <div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(to bottom,transparent,#9B3D8B)"></div>
