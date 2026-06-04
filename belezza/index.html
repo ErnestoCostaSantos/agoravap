@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.1.0</title>
+<title>Belezza — Studio Luna v2.1.2</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1251,16 +1251,13 @@ async function doLogin() {
 }
 
 function showLoginError(msg) {
-  let el = document.getElementById('login-error');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'login-error';
-    el.style.cssText = 'color:#c0392b;font-size:12px;text-align:center;margin-top:-10px;margin-bottom:8px;font-weight:600';
-    const btn = document.querySelector('#login-screen button[onclick="doLogin()"]');
-    if (btn) btn.parentNode.insertBefore(el, btn);
+  // Mostra erro na tela ativa (cli-error do MeCuidar é o único login agora)
+  const cliErr = document.getElementById('cli-error');
+  if (cliErr) {
+    cliErr.textContent = msg;
+    cliErr.style.color = '#ffb3cc';
+    setTimeout(() => { cliErr.textContent = ''; }, 5000);
   }
-  el.textContent = msg;
-  setTimeout(() => { el.textContent = ''; }, 4000);
 }
 
 // ── Auth: logout ──────────────────────────────────────────────────────────
@@ -1269,8 +1266,11 @@ async function doLogout() {
   const p = document.getElementById('cli-pass');
   if(e) e.value = '';
   if(p) p.value = '';
-  await signOut(auth);
-  window.location.reload();
+  try { await signOut(auth); } catch(err) { console.warn('signOut:', err); }
+  // Limpa cache de sessão e recarrega — garante saída no mobile
+  sessionStorage.clear();
+  localStorage.removeItem('firebase:authUser:' + firebaseConfig.apiKey + ':[DEFAULT]');
+  window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now();
 }
 
 // ── Auth: recuperar senha ─────────────────────────────────────────────────
@@ -1282,6 +1282,7 @@ async function recuperarSenha() {
 // Expõe funções globalmente (necessário com type="module")
 window.doLogin        = doLogin;
 window.doLogout       = doLogout;
+window.doLogin        = doLogin;
 window.recuperarSenha = recuperarSenha;
 
 // ── Enter no campo de senha faz login ─────────────────────────────────────
@@ -1698,7 +1699,7 @@ async function doLoginCli(){
   const email = (document.getElementById('cli-email')?.value || '').trim();
   const pass  = document.getElementById('cli-pass')?.value || '';
   const errEl = document.getElementById('cli-error');
-  const btn   = document.querySelector('#login-cli-screen button[onclick="doLoginCli()"]');
+  const btn   = document.getElementById('cli-entrar-btn');
   if (!email || !pass) { if(errEl) errEl.textContent='Preencha e-mail e senha.'; return; }
   if (btn) { btn.textContent = 'Entrando...'; btn.disabled = true; }
   try {
@@ -1779,12 +1780,13 @@ function voltarHomeCliente(){
   document.getElementById('home-cli-screen').style.display = 'flex';
 }
 function sairCli(){
-  // Limpa campos de login
-  const e = document.getElementById('cli-email');
-  const p = document.getElementById('cli-pass');
-  if(e) e.value = '';
-  if(p) p.value = '';
-  signOut(auth);
+  if(window.doLogout) window.doLogout();
+  else {
+    const e = document.getElementById('cli-email');
+    const p = document.getElementById('cli-pass');
+    if(e) e.value = ''; if(p) p.value = '';
+    signOut(auth).finally(()=>{ sessionStorage.clear(); window.location.reload(); });
+  }
 }
 function handleCliKey(e){ if(e.key==='Enter') doLoginCli(); }
 
@@ -1804,6 +1806,9 @@ document.addEventListener('DOMContentLoaded', setupCliKeyboard);
 window._handleCliKey      = handleCliKey;
 window._toggleCliPass     = toggleCliPass;
 window._doLoginCli        = doLoginCli;
+// Sinaliza que Firebase está pronto
+const fbStatus = document.getElementById('cli-firebase-status');
+if(fbStatus) fbStatus.textContent = '';
 window._recuperarSenhaCli = recuperarSenhaCli;
 window._goToCliSection    = goToCliSection;
 window._sairCli           = sairCli;
@@ -2608,7 +2613,25 @@ window.enviarSolicitacao  = enviarSolicitacao;
 <script>
 // Bridge — garante que funções do module estejam disponíveis para onclick inline
 function handleCliKey(e){ if(window._handleCliKey) window._handleCliKey(e); }
-function doLoginCli(){ if(window._doLoginCli) window._doLoginCli(); }
+function doLoginCli(){
+  if(window._doLoginCli){ window._doLoginCli(); return; }
+  // Módulo ainda carregando — aguarda até 3s
+  const btn = document.getElementById('cli-entrar-btn');
+  if(btn){ btn.textContent='Aguarde...'; btn.disabled=true; }
+  let tries=0;
+  const wait = setInterval(()=>{
+    tries++;
+    if(window._doLoginCli){
+      clearInterval(wait);
+      window._doLoginCli();
+    } else if(tries > 30){
+      clearInterval(wait);
+      const err = document.getElementById('cli-error');
+      if(err) err.textContent = 'Erro de conexão. Recarregue a página.';
+      if(btn){ btn.textContent='Entrar'; btn.disabled=false; }
+    }
+  }, 100);
+}
 function toggleCliPass(){ if(window._toggleCliPass) window._toggleCliPass(); }
 function recuperarSenhaCli(){ if(window._recuperarSenhaCli) window._recuperarSenhaCli(); }
 function voltarLoginPro(){ if(window._voltarLoginPro) window._voltarLoginPro(); }
@@ -2647,46 +2670,59 @@ function previewDataAg(){ try{ window.previewDataAg && window.previewDataAg(); }
 </script>
 
 <!-- LOGIN CLIENTE -->
-<div id="login-cli-screen" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9100;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#f0d0e8;overscroll-behavior:none">
+<div id="login-cli-screen" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9100;background:#6B2D8B;overscroll-behavior:none;display:none">
 
   <style>
-    /* ── MOBILE (portrait) ── */
-    @media(max-width:699px){
-      /* Imagem ocupa tela toda, form flutua em baixo */
-      #cli-layout{ position:relative; width:100%; height:100vh; }
-      #cli-foto{ position:absolute; inset:0; }
-      #cli-foto img.mob{
-        display:block; width:100%; height:100%;
-        object-fit:cover; object-position:center top;
-      }
-      #cli-foto img.dsk{ display:none; }
-      /* Card de login flutua na parte inferior */
-      #cli-form{
-        position:absolute;
-        bottom:0; left:0; right:0;
-        background:linear-gradient(180deg,rgba(107,45,139,.92),rgba(90,31,110,.98));
-        backdrop-filter:blur(8px);
-        -webkit-backdrop-filter:blur(8px);
-        padding:20px 20px env(safe-area-inset-bottom,20px);
-        border-radius:24px 24px 0 0;
-      }
+    /* ── BASE ── */
+    #cli-layout{
+      display:flex;
+      flex-direction:column;
+      min-height:100dvh;
+      min-height:100vh; /* fallback */
     }
+    #cli-foto{
+      flex:1;
+      min-height:0;
+      position:relative;
+      overflow:hidden;
+    }
+    #cli-foto img.mob{
+      width:100%; height:100%;
+      object-fit:cover; object-position:center top;
+      display:block;
+    }
+    #cli-foto img.dsk{ display:none; }
+
+    /* Card de login — sempre visível, nunca absolute */
+    #cli-form{
+      flex-shrink:0;
+      background:linear-gradient(180deg,rgba(107,45,139,.95),rgba(90,31,110,.99));
+      padding:20px 20px max(20px,env(safe-area-inset-bottom));
+      border-radius:24px 24px 0 0;
+      width:100%;
+    }
+
     /* ── TABLET + DESKTOP ── */
     @media(min-width:700px){
-      #cli-layout{ position:relative; width:100%; height:100dvh; }
-      #cli-foto{ position:absolute; inset:0; }
-      #cli-foto img.dsk{ display:block; width:100%; height:100%; object-fit:cover; object-position:center center; }
+      #cli-layout{
+        position:relative;
+        min-height:100dvh;
+      }
+      #cli-foto img.dsk{
+        display:block; width:100%; height:100%;
+        object-fit:cover; object-position:center center;
+      }
       #cli-foto img.mob{ display:none; }
-      /* Card de login — 20% abaixo do topo */
       #cli-form{
         position:absolute;
-        top:60%; right:6%;
+        top:50%; right:6%;
         transform:translateY(-50%);
         width:320px;
         background:rgba(90,31,110,.88);
         backdrop-filter:blur(12px);
+        -webkit-backdrop-filter:blur(12px);
         border-radius:20px;
-        padding:28px 24px 24px;
+        padding:28px 24px 28px;
         border:1px solid rgba(255,255,255,.2);
         box-shadow:0 8px 40px rgba(0,0,0,.25);
       }
@@ -2720,7 +2756,8 @@ function previewDataAg(){ try{ window.previewDataAg && window.previewDataAg(); }
         <span id="cli-eye" onclick="toggleCliPass()" style="cursor:pointer;color:rgba(255,255,255,.6);font-size:18px;user-select:none;padding:4px">👁</span>
       </div>
       <div id="cli-error" style="color:#ffb3c6;font-size:11px;text-align:center;margin-bottom:5px;min-height:14px;font-weight:600"></div>
-      <button onclick="doLoginCli()" style="width:100%;padding:12px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:15px;font-weight:700;letter-spacing:.06em;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(153,53,86,.4)">Entrar</button>
+      <button id="cli-entrar-btn" onclick="doLoginCli()" style="width:100%;padding:12px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:15px;font-weight:700;letter-spacing:.06em;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(153,53,86,.4)">Entrar</button>
+      <div id="cli-firebase-status" style="text-align:center;font-size:10px;color:rgba(255,255,255,.4);margin-top:6px">Conectando...</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
         <span onclick="recuperarSenhaCli()" style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;text-decoration:underline">Esqueci minha senha</span>
       </div>
