@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.7.6</title>
+<title>Belezza — Studio Luna v2.7.7</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -2835,7 +2835,8 @@ function abrirReagendamento(agId, servico, profAnterior) {
     console.log('[Reag] navegou para c-agenda com serviço:', servico);
   }, 150);
 }
-window.abrirReagendamento  = abrirReagendamento;
+window.abrirReagendamento       = abrirReagendamento;
+window.voltarParaProfissional   = voltarParaProfissional;
 window.fecharReagendamento = function(){};
 
 // ── Módulo Equipe ─────────────────────────────────────────────────────────
@@ -3218,7 +3219,7 @@ function fecharModalProfissional(){ try{ window.fecharModalProfissional && windo
 function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.abrirReagendamento(id,s,p); }catch(e){} }
 function abrirThreadLider(uid,n){ try{ window.abrirThreadLider && window.abrirThreadLider(uid,n); }catch(e){} }
 function fecharThreadLider(){ try{ window.fecharThreadLider && window.fecharThreadLider(); }catch(e){} }
-function voltarParaProfissional(){ try{ window.voltarParaProfissional ? window.voltarParaProfissional() : voltarParaProfissional(); }catch(e){} }
+function voltarParaProfissional(){ try{ window.voltarParaProfissional && window.voltarParaProfissional(); }catch(e){ console.error('voltarParaProfissional:',e); } }
 function responderLider(){ try{ window.responderLider && window.responderLider(); }catch(e){} }
 
 // Delegação para botões Reagendar gerados dinamicamente
