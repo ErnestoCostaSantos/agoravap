@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.9.9</title>
+<title>Belezza — Studio Luna v3.1.0</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -720,15 +720,46 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
       <button class="add-btn" onclick="toggleNovaCamp()"><i class="ti ti-plus"></i> Criar nova campanha</button>
       <div id="nova-camp" style="display:none;border:1px solid var(--br);border-radius:var(--rl);padding:14px 16px;margin-top:10px">
         <div class="sec-lbl" style="margin-bottom:14px">Nova campanha</div>
-        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Nome</label><input type="text" placeholder="Ex: Dia das Mães 2026" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)"></div>
-        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Tipo</label><select style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)"><option>Campanha simples — 3 etapas (padrão)</option><option>Campanha VIP — 3 etapas com oferta exclusiva</option><option>Flash — 1 dia, 2 etapas</option></select></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div><label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Início</label><input type="date" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)"></div>
-          <div><label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Encerramento</label><input type="date" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)"></div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Nome *</label>
+          <input id="camp-nome" type="text" placeholder="Ex: Dia das Mães 2026" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
         </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Tipo</label>
+          <select id="camp-tipo" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+            <option value="simples">Campanha simples — 3 etapas (padrão)</option>
+            <option value="vip">Campanha VIP — 3 etapas com oferta exclusiva</option>
+            <option value="flash">Flash — 1 dia, 2 etapas</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div>
+            <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Início</label>
+            <div style="display:flex;gap:4px">
+              <select id="camp-ini-dia" style="flex:1;padding:6px 4px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)"></select>
+              <select id="camp-ini-mes" style="flex:1.4;padding:6px 4px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)"></select>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Encerramento</label>
+            <div style="display:flex;gap:4px">
+              <select id="camp-fim-dia" style="flex:1;padding:6px 4px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)"></select>
+              <select id="camp-fim-mes" style="flex:1.4;padding:6px 4px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)"></select>
+            </div>
+          </div>
+        </div>
+        <div id="camp-erro" style="color:var(--pk600);font-size:12px;margin-bottom:8px;min-height:14px"></div>
         <div class="info-box"><i class="ti ti-info-circle" style="font-size:16px;flex-shrink:0"></i>O app calcula automaticamente as datas de cada etapa.</div>
-        <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="toggleNovaCamp()">Cancelar</button><button class="btn pk"><i class="ti ti-check"></i> Criar campanha</button></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+          <button class="btn" onclick="toggleNovaCamp()">Cancelar</button>
+          <button class="btn pk" onclick="criarCampanha()"><i class="ti ti-check"></i> Criar campanha</button>
+        </div>
+        <div id="camp-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
+          <i class="ti ti-circle-check" style="font-size:18px"></i> Campanha criada!
+        </div>
       </div>
+      <!-- Lista dinâmica de campanhas -->
+      <div id="camp-lista-dinamica" style="margin-top:12px"></div>
 
       <!-- ══ FIDELIDADE ══ -->
       <div style="margin-top:24px;padding-top:18px;border-top:2px dashed #f5d84a">
@@ -1252,6 +1283,7 @@ onAuthStateChanged(auth, async user => {
           if(window.iniciarListenerAgCliente) window.iniciarListenerAgCliente(user.uid);
           if(window.iniciarListenerChat) window.iniciarListenerChat(user.uid);
           if(window.iniciarListenerPromos) window.iniciarListenerPromos();
+          if(window.iniciarListenerCampanhas) window.iniciarListenerCampanhas();
           // Mostra visão cliente no chat
           const cliView = document.getElementById('cli-chat-view');
           const liderView = document.getElementById('lider-chat-view');
@@ -1510,6 +1542,7 @@ function goTo(id,el){
   if(id==='p-dash') setTimeout(initDashboard, 50);
   if(id==='p-agenda') setTimeout(()=>{ if(agView==='hoje') renderAgHoje(); else if(agView==='semana') renderAgSemana(); else renderAgMes(); }, 50);
   if(id==='p-promos') setTimeout(()=>{ if(window.initPromoForm) window.initPromoForm(); }, 50);
+  if(id==='p-camp') setTimeout(()=>{ if(window.initCampForm) window.initCampForm(); }, 50);
   if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(el){const n=el.closest('.sb-nav');n.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
   showPane(id);closeSB();
@@ -1542,9 +1575,9 @@ function setRole(r,el){
     const welcome = document.getElementById('cli-welcome');
     if(welcome && cp) welcome.textContent = 'Olá, ' + (cp.name || 'Cliente') + '! 💕';
     else if(welcome) welcome.textContent = 'Olá! 💕';
-    // Mostra botão voltar para profissional
+    // Mostra botão voltar apenas se for profissional/admin usando o toggle
     const btnVoltarPro = document.getElementById('btn-voltar-pro');
-    if(btnVoltarPro) btnVoltarPro.style.display = 'flex';
+    if(btnVoltarPro && cp && cp.role !== 'cliente') btnVoltarPro.style.display = 'flex';
   } else {
     // Volta para app profissional
     const homeCliente = document.getElementById('home-cli-screen');
@@ -1885,9 +1918,9 @@ function goToCliSection(id){
   // Navega direto para a aba — sem passar por setRole
   showPane(id);
   if(id==='c-agenda') setTimeout(initCalendario, 50);
-  // Mostra botão voltar ao profissional
+  // Mostra botão voltar apenas se for profissional/admin
   const btnVPro = document.getElementById('btn-voltar-pro');
-  if(btnVPro) btnVPro.style.display = 'flex';
+  if(btnVPro && cp && cp.role !== 'cliente') btnVPro.style.display = 'flex';
 
   // Marca tab ativa no nav mobile
   setTimeout(() => {
@@ -2923,6 +2956,273 @@ window.fecharThreadLider      = fecharThreadLider;
 window.responderLider         = responderLider;
 
 
+
+// ══════════════════════════════════════════════════════════════════════════
+// MÓDULO CAMPANHAS — reutilizável (configurar apenas CLINICA_ID e cores)
+// ══════════════════════════════════════════════════════════════════════════
+const MESES_CAMP = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+let unsubCampanhas = null;
+let campanhasDB = []; // cache local das campanhas
+
+// ── Configuração de etapas por tipo ──────────────────────────────────────
+const CAMP_TIPOS = {
+  simples: {
+    label: 'Campanha simples',
+    etapas: ['Lançamento', 'Aquecimento', 'Finalização'],
+    msgs: [
+      'Oi! Temos uma novidade incrível pra vocês! Confira nossa promoção especial e garante a sua vaga. 💕 - Studio Luna',
+      'Oi meninas! Nossa campanha está chegando ao fim. Já agendaram? Qualquer dúvida é só chamar! - Studio Luna',
+      'Último dia da nossa campanha especial! Não perca essa oportunidade. Qualquer dúvida é só chamar! 💕 - Studio Luna',
+    ]
+  },
+  vip: {
+    label: 'Campanha VIP',
+    etapas: ['Lançamento VIP', 'Oferta Exclusiva', 'Encerramento VIP'],
+    msgs: [
+      'Você foi selecionada para uma oferta exclusiva VIP! Confira o que preparamos especialmente para você. 👑 - Studio Luna',
+      'Sua oferta VIP exclusiva está esperando por você! Aproveite antes que encerre. 💎 - Studio Luna',
+      'Último dia da sua oferta VIP! Não perca. 👑 - Studio Luna',
+    ]
+  },
+  flash: {
+    label: 'Flash',
+    etapas: ['Lançamento Flash', 'Encerramento Flash'],
+    msgs: [
+      '⚡ FLASH! Promoção especial por tempo limitado. Corra! - Studio Luna',
+      '⚡ Últimas horas da nossa Flash! Aproveite agora. - Studio Luna',
+    ]
+  }
+};
+
+// ── Formata data DD/MM ────────────────────────────────────────────────────
+function fmtData(d, m) {
+  return String(d).padStart(2,'0') + '/' + String(m).padStart(2,'0');
+}
+
+// ── Calcula datas das etapas ──────────────────────────────────────────────
+function calcEtapas(iniDia, iniMes, fimDia, fimMes, nEtapas) {
+  const ano = new Date().getFullYear();
+  const inicio = new Date(ano, iniMes - 1, iniDia);
+  const fim    = new Date(ano, fimMes - 1, fimDia);
+  if(fim <= inicio) return [];
+  const diff = (fim - inicio) / (1000 * 60 * 60 * 24);
+  const datas = [];
+  for(let i = 0; i < nEtapas; i++) {
+    const d = new Date(inicio.getTime() + (diff / (nEtapas - 1)) * i * 1000 * 60 * 60 * 24);
+    datas.push(fmtData(d.getDate(), d.getMonth() + 1));
+  }
+  return datas;
+}
+
+// ── Init formulário de campanha ───────────────────────────────────────────
+function initCampForm() {
+  const hoje = new Date();
+  ['camp-ini', 'camp-fim'].forEach((pref, idx) => {
+    const dEl = document.getElementById(pref + '-dia');
+    const mEl = document.getElementById(pref + '-mes');
+    if(!dEl) return;
+    dEl.innerHTML = Array.from({length:31},(_,i) => `<option value="${i+1}">${String(i+1).padStart(2,'0')}</option>`).join('');
+    mEl.innerHTML = MESES_CAMP.slice(1).map((m,i) => `<option value="${i+1}">${m}</option>`).join('');
+    if(idx === 0) {
+      dEl.value = hoje.getDate();
+      mEl.value = hoje.getMonth() + 1;
+    } else {
+      const fim = new Date(hoje); fim.setDate(fim.getDate() + 30);
+      dEl.value = fim.getDate();
+      mEl.value = fim.getMonth() + 1;
+    }
+  });
+  document.getElementById('camp-erro').textContent = '';
+  document.getElementById('camp-toast').style.display = 'none';
+}
+
+// ── Criar campanha no Firestore ───────────────────────────────────────────
+async function criarCampanha() {
+  const nome   = document.getElementById('camp-nome')?.value.trim();
+  const tipo   = document.getElementById('camp-tipo')?.value || 'simples';
+  const iniDia = parseInt(document.getElementById('camp-ini-dia')?.value);
+  const iniMes = parseInt(document.getElementById('camp-ini-mes')?.value);
+  const fimDia = parseInt(document.getElementById('camp-fim-dia')?.value);
+  const fimMes = parseInt(document.getElementById('camp-fim-mes')?.value);
+  const errEl  = document.getElementById('camp-erro');
+
+  if(!nome) { if(errEl) errEl.textContent = 'Informe o nome da campanha.'; return; }
+  if(errEl) errEl.textContent = '';
+
+  const tipoConfig = CAMP_TIPOS[tipo] || CAMP_TIPOS.simples;
+  const nEtapas = tipoConfig.etapas.length;
+  const datasEtapas = calcEtapas(iniDia, iniMes, fimDia, fimMes, nEtapas);
+
+  const etapas = tipoConfig.etapas.map((label, i) => ({
+    numero:    i + 1,
+    label,
+    data:      datasEtapas[i] || '',
+    msg:       tipoConfig.msgs[i] || '',
+    enviado:   false,
+    enviadoEm: null,
+  }));
+
+  try {
+    await addDoc(collection(db, 'campanhas'), {
+      clinicaId:  CLINICA_ID,
+      nome,
+      tipo,
+      tipoLabel:  tipoConfig.label,
+      inicio:     fmtData(iniDia, iniMes),
+      fim:        fmtData(fimDia, fimMes),
+      etapas,
+      participantes: 0,
+      agendamentos:  0,
+      status:     'ativa',
+      criadoEm:   new Date().toISOString(),
+      criadoPor:  cu?.uid || 'admin',
+    });
+
+    // Limpa formulário
+    document.getElementById('camp-nome').value = '';
+    document.getElementById('camp-toast').style.display = 'flex';
+    setTimeout(() => {
+      document.getElementById('camp-toast').style.display = 'none';
+      toggleNovaCamp();
+    }, 2000);
+
+  } catch(e) {
+    console.error('[Belezza] criarCampanha:', e);
+    if(errEl) errEl.textContent = 'Erro ao criar. Tente novamente.';
+  }
+}
+
+// ── Listener de campanhas ─────────────────────────────────────────────────
+function iniciarListenerCampanhas() {
+  if(unsubCampanhas) unsubCampanhas();
+  const q = collection(db, 'campanhas');
+  unsubCampanhas = onSnapshot(q, snap => {
+    campanhasDB = snap.docs
+      .map(d => ({id:d.id,...d.data()}))
+      .filter(c => c.clinicaId === CLINICA_ID)
+      .sort((a,b) => a.criadoEm > b.criadoEm ? -1 : 1);
+    renderCampanhas(campanhasDB);
+    atualizarSelectCampanhas(campanhasDB);
+  }, err => { console.warn('[Belezza] campanhas:', err); });
+}
+
+// ── Renderiza lista de campanhas ──────────────────────────────────────────
+function renderCampanhas(camps) {
+  const lista = document.getElementById('camp-lista-dinamica');
+  if(!lista) return;
+  if(camps.length === 0) {
+    lista.innerHTML = '';
+    return;
+  }
+  const hoje = new Date();
+  lista.innerHTML = camps.map(c => {
+    const [fd, fm] = c.fim.split('/').map(Number);
+    const fimDate = new Date(hoje.getFullYear(), fm - 1, fd);
+    const ativa = fimDate >= hoje && c.status !== 'encerrada';
+    const statusBadge = ativa
+      ? '<span class="badge badge-ok">Em andamento</span>'
+      : '<span class="badge badge-done">Encerrada</span>';
+    const etapasHtml = (c.etapas||[]).map((et, i) => {
+      const enviado = et.enviado;
+      const hoje2 = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}).replace(/\//g,'/');
+      const isHoje = et.data && et.data.startsWith(hoje2.substring(0,5));
+      return `
+        <div class="step">
+          <div class="step-circle ${enviado ? 'done' : isHoje ? 'active' : ''}">${enviado ? '<i class="ti ti-check"></i>' : et.numero}</div>
+          <div class="step-body">
+            <div class="step-title">${et.numero}. ${et.label}
+              ${enviado ? '<span class="badge badge-done" style="margin-left:4px">Concluído</span>' : isHoje ? '<span class="badge badge-pend" style="margin-left:4px">Hoje</span>' : `<span style="font-size:10px;color:var(--tx3);margin-left:4px">${et.data||''}</span>`}
+            </div>
+            <div class="step-sub">${et.msg}</div>
+            ${!enviado && ativa ? `
+            <div class="step-actions">
+              <button class="btn tl sm" onclick="abrirWpp('${et.msg.replace(/'/g,"\\'")}')"><i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp</button>
+              <button class="btn sm" onclick="marcarEtapaEnviada('${c.id}',${i})"><i class="ti ti-check"></i> Marcar enviado</button>
+            </div>` : enviado ? `<div style="font-size:11px;color:var(--tx3)">Enviado${et.enviadoEm ? ' em ' + new Date(et.enviadoEm).toLocaleDateString('pt-BR') : ''}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="card" style="margin-bottom:10px${!ativa?';opacity:.7':''}">
+        <div class="camp-hd">
+          <div class="camp-name">${c.nome}</div>
+          ${statusBadge}
+        </div>
+        <div class="camp-meta">
+          <span><i class="ti ti-calendar" style="font-size:13px"></i>${c.inicio} → ${c.fim}</span>
+          <span><i class="ti ti-tag" style="font-size:13px"></i>${c.tipoLabel||c.tipo}</span>
+        </div>
+        ${ativa ? `
+        <div class="counter-row">
+          <span class="counter-lbl"><i class="ti ti-users" style="font-size:13px"></i>Participantes</span>
+          <div class="cnt-btns">
+            <button class="cnt-b" onclick="adjCamp('${c.id}','participantes',-1)">−</button>
+            <div class="cnt-v">${c.participantes||0}</div>
+            <button class="cnt-b" onclick="adjCamp('${c.id}','participantes',1)">+</button>
+          </div>
+        </div>
+        <div class="counter-row" style="margin-bottom:14px">
+          <span class="counter-lbl"><i class="ti ti-calendar-check" style="font-size:13px"></i>Agendamentos</span>
+          <div class="cnt-btns">
+            <button class="cnt-b" onclick="adjCamp('${c.id}','agendamentos',-1)">−</button>
+            <div class="cnt-v">${c.agendamentos||0}</div>
+            <button class="cnt-b" onclick="adjCamp('${c.id}','agendamentos',1)">+</button>
+          </div>
+        </div>` : ''}
+        <div style="font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Etapas</div>
+        <div class="steps">${etapasHtml}</div>
+        ${ativa ? `<button onclick="encerrarCampanha('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:11px;margin-top:8px;text-decoration:underline">Encerrar campanha</button>` : ''}
+      </div>`;
+  }).join('');
+}
+
+// ── Atualiza select de campanhas no módulo Promoções ─────────────────────
+function atualizarSelectCampanhas(camps) {
+  const sel = document.getElementById('promo-campanha');
+  if(!sel) return;
+  const ativas = camps.filter(c => c.status === 'ativa');
+  sel.innerHTML = '<option value="">Sem campanha</option>' +
+    ativas.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+}
+
+// ── Marcar etapa como enviada ─────────────────────────────────────────────
+async function marcarEtapaEnviada(campId, etapaIdx) {
+  const camp = campanhasDB.find(c => c.id === campId);
+  if(!camp) return;
+  const etapas = [...(camp.etapas||[])];
+  etapas[etapaIdx] = { ...etapas[etapaIdx], enviado: true, enviadoEm: new Date().toISOString() };
+  try {
+    await updateDoc(doc(db, 'campanhas', campId), { etapas });
+  } catch(e) { console.error('[Belezza] marcarEtapa:', e); }
+}
+
+// ── Ajusta contadores ─────────────────────────────────────────────────────
+async function adjCamp(campId, campo, delta) {
+  const camp = campanhasDB.find(c => c.id === campId);
+  if(!camp) return;
+  const novoVal = Math.max(0, (camp[campo]||0) + delta);
+  try {
+    await updateDoc(doc(db, 'campanhas', campId), { [campo]: novoVal });
+  } catch(e) { console.error('[Belezza] adjCamp:', e); }
+}
+
+// ── Encerrar campanha ─────────────────────────────────────────────────────
+async function encerrarCampanha(campId) {
+  if(!confirm('Encerrar esta campanha?')) return;
+  try {
+    await updateDoc(doc(db, 'campanhas', campId), { status: 'encerrada' });
+  } catch(e) { console.error('[Belezza] encerrarCampanha:', e); }
+}
+
+// ── Expõe funções (padrão reutilizável) ───────────────────────────────────
+window.criarCampanha          = criarCampanha;
+window.iniciarListenerCampanhas = iniciarListenerCampanhas;
+window.marcarEtapaEnviada     = marcarEtapaEnviada;
+window.adjCamp                = adjCamp;
+window.encerrarCampanha       = encerrarCampanha;
+window.initCampForm           = initCampForm;
+
 // ── Módulo Promoções ─────────────────────────────────────────────────────
 const MESES_PROMO = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 let unsubPromos = null;
@@ -3557,6 +3857,11 @@ function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.ab
 function apagarPromo(id){ try{ window.apagarPromo && window.apagarPromo(id); }catch(e){} }
 function initPromoForm(){ try{ window.initPromoForm && window.initPromoForm(); }catch(e){} }
 function togglePromoDetalhe(id){ try{ window.togglePromoDetalhe && window.togglePromoDetalhe(id); }catch(e){} }
+function criarCampanha(){ try{ window.criarCampanha && window.criarCampanha(); }catch(e){} }
+function marcarEtapaEnviada(id,i){ try{ window.marcarEtapaEnviada && window.marcarEtapaEnviada(id,i); }catch(e){} }
+function adjCamp(id,c,d){ try{ window.adjCamp && window.adjCamp(id,c,d); }catch(e){} }
+function encerrarCampanha(id){ try{ window.encerrarCampanha && window.encerrarCampanha(id); }catch(e){} }
+function initCampForm(){ try{ window.initCampForm && window.initCampForm(); }catch(e){} }
 function abrirThreadLider(uid,n){ try{ window.abrirThreadLider && window.abrirThreadLider(uid,n); }catch(e){} }
 function fecharThreadLider(){ try{ window.fecharThreadLider && window.fecharThreadLider(); }catch(e){} }
 function voltarParaProfissional(){ try{ window.voltarParaProfissional && window.voltarParaProfissional(); }catch(e){ console.error('voltarParaProfissional:',e); } }
