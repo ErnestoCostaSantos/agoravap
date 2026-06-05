@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.9.7</title>
+<title>Belezza — Studio Luna v2.9.8</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -2333,10 +2333,6 @@ function iniciarListenerAgCliente(uid) {
     const lista = document.getElementById('cli-meus-ags');
     if (!lista) return;
     const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-    // Mantém cópia global para uso no badge de promoções
-    agendamentosCliente = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    // Re-renderiza promoções para atualizar badges
-    if(typeof renderPromosClienteAtual === 'function') renderPromosClienteAtual();
       .sort((a, b) => {
         // Ordena por data DD/MM — mais recente primeiro
         const [da, ma] = (a.data||'01/01').split('/').map(Number);
