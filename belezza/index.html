@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.8.2</title>
+<title>Belezza — Studio Luna v2.9.0</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1601,6 +1601,15 @@ function recusar(id){
 
 function atualizarPendentes(){
   const pendentes = agendamentos.filter(a => a.status === 'pendente');
+  // Remove cards de agendamentos que não são mais pendentes
+  ['ag-pendentes-wrap', 'dash-pendentes-list'].forEach(containerId => {
+    const wrap = document.getElementById(containerId);
+    if(!wrap) return;
+    wrap.querySelectorAll('.req-card[data-fs]').forEach(el => {
+      const id = el.getAttribute('data-fs');
+      if(!pendentes.find(a => a.id === id)) el.remove();
+    });
+  });
   const badge = document.getElementById('dash-pendentes-badge');
   if(badge){
     if(pendentes.length === 0){
@@ -1943,6 +1952,8 @@ let selDia = null;
 let selHorario = null;
 let promoSelecionada = null;
 let servicoSelecionado = null;
+let reagendandoAgId = null;   // preenchido quando é reagendamento
+let reagendandoServico = null; // serviço do reagendamento
 
 function selecionarServico(card, nome, preco){
   // Highlight card selecionado
@@ -2073,6 +2084,7 @@ function enviarSolicitacao(){
       const hc = document.getElementById('cli-horarios-card');
       if(hc) hc.style.display = 'none';
       selDia = null; selHorario = null; promoSelecionada = null;
+      reagendandoAgId = null; reagendandoServico = null;
     }, 5000);
   }
 }
@@ -2281,7 +2293,16 @@ function iniciarListenerAgCliente(uid) {
   unsubAgCli = onSnapshot(q, snap => {
     const lista = document.getElementById('cli-meus-ags');
     if (!lista) return;
-    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => {
+        // Ordena por data DD/MM — mais recente primeiro
+        const [da, ma] = (a.data||'01/01').split('/').map(Number);
+        const [db, mb] = (b.data||'01/01').split('/').map(Number);
+        const dateA = ma * 100 + da;
+        const dateB = mb * 100 + db;
+        if(dateA !== dateB) return dateB - dateA;
+        return (b.hora||'') > (a.hora||'') ? 1 : -1;
+      });
     if (docs.length === 0) {
       lista.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:13px;text-align:center;padding:12px 0">Nenhum agendamento ainda.</div>';
       return;
@@ -2296,7 +2317,10 @@ function iniciarListenerAgCliente(uid) {
       const [dd, mm] = (ag.data || '').split('/');
       const meses = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
       const btnReagendar = ag.status === 'recusado'
-        ? `<button class="btn-reag-cli" data-id="${ag.id}" data-svc="${(ag.servico||'').replace(/"/g,'&quot;')}" data-prof="${(ag.prof||'').replace(/"/g,'&quot;')}" style="margin-top:6px;width:100%;padding:7px;border:none;border-radius:var(--r);background:var(--pk600);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit"><i class="ti ti-calendar-plus" style="font-size:12px"></i> Reagendar</button>`
+        ? `<button class="btn-reag-cli" data-id="${ag.id}" data-svc="${(ag.servico||'').replace(/"/g,'&quot;')}" data-prof="${(ag.prof||'').replace(/"/g,'&quot;')}" style="margin-top:6px;width:60%;padding:7px;border:none;border-radius:var(--r);background:var(--pk600);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit"><i class="ti ti-calendar-plus" style="font-size:12px"></i> Reagendar</button>`
+        : '';
+      const btnApagar = (ag.status === 'recusado' || ag.status === 'confirmado')
+        ? `<button class="btn-del-cli" data-id="${ag.id}" style="margin-top:6px;${ag.status==='recusado'?'width:38%;margin-left:2%;':'width:100%;'}padding:7px;border:none;border-radius:var(--r);background:var(--bg2);color:var(--tx3);font-size:11px;cursor:pointer;font-family:inherit;border:1px solid var(--br)"><i class="ti ti-trash" style="font-size:12px"></i> Apagar</button>`
         : '';
       return `
         <div class="sched-card" style="margin-bottom:8px;flex-direction:column;align-items:stretch">
@@ -2313,7 +2337,9 @@ function iniciarListenerAgCliente(uid) {
             </div>
             <span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;border:1px solid ${s.border};background:${s.bg};color:${s.color};white-space:nowrap">${s.label}</span>
           </div>
-          ${btnReagendar}
+          <div style="display:flex;flex-wrap:wrap;gap:0">
+            ${btnReagendar}${btnApagar}
+          </div>
         </div>`;
     }).join('');
   }, err => {
@@ -2467,7 +2493,9 @@ async function enviarSolicitacaoFS() {
         const p = (window.equipeDB||[]).find(x=>x.id===sel.value);
         return p ? p.nome : '';
       })(),
-      origem:     (typeof promoSelecionada !== 'undefined' && promoSelecionada) ? 'Módulo Promoções' : 'Módulo Serviços',
+      origem:     reagendandoAgId ? 'Reagendamento'
+                  : ((typeof promoSelecionada !== 'undefined' && promoSelecionada) ? 'Módulo Promoções' : 'Módulo Serviços'),
+      reagendadoDe: reagendandoAgId || null,
       status:     'pendente',
       criadoEm:   new Date().toISOString(),
     });
@@ -2505,6 +2533,16 @@ window.confirmarFS   = confirmarFS;
 window.recusarFS     = recusarFS;
 window.enviarSolicitacaoFS = enviarSolicitacaoFS;
 window.iniciarListenerAgendamentos = iniciarListenerAgendamentos;
+async function apagarAgendamentoCli(id) {
+  if(!confirm('Apagar este agendamento do histórico?')) return;
+  try {
+    await deleteDoc(doc(db, 'agendamentos', id));
+  } catch(e) {
+    console.error('[Belezza] apagarAgendamentoCli:', e);
+    alert('Erro ao apagar. Tente novamente.');
+  }
+}
+window.apagarAgendamentoCli    = apagarAgendamentoCli;
 window.iniciarListenerAgCliente    = iniciarListenerAgCliente;
 
 // ── Módulo Agenda — views Hoje / Semana / Mês ────────────────────────────
@@ -2843,20 +2881,31 @@ window.responderLider         = responderLider;
 
 // ── Reagendamento: redireciona para fluxo normal de agendamento ─────────────
 function abrirReagendamento(agId, servico, profAnterior) {
-  // Usa bridge para chamar goToCliSection do módulo
+  // Guarda estado de reagendamento ANTES de navegar
+  reagendandoAgId   = agId;
+  reagendandoServico = servico;
+  servicoSelecionado = { nome: servico };
+  window.servicoSelecionado = { nome: servico };
+  promoSelecionada  = null;
+
+  // Navega para a aba de agendamentos
   const navFn = window._goToCliSection || window.goToCliSection;
   if(navFn) navFn('c-agenda');
+
   setTimeout(() => {
+    // Mostra badge do serviço
     const svcInfo = document.getElementById('agenda-svc-info');
     const svcNome = document.getElementById('agenda-svc-nome');
     if(svcInfo && svcNome){
-      svcNome.textContent = servico;
+      svcNome.textContent = '🔄 Reagendamento: ' + servico;
       svcInfo.style.display = 'flex';
     }
-    window.servicoSelecionado = { nome: servico };
+    // Scroll para o topo
     const pane = document.getElementById('pane-c-agenda');
     if(pane) pane.scrollTop = 0;
-    console.log('[Reag] navegou para c-agenda com serviço:', servico);
+    // Scroll do container pai também
+    const content = document.querySelector('.content');
+    if(content) content.scrollTop = 0;
   }, 150);
 }
 window.abrirReagendamento       = abrirReagendamento;
@@ -3252,14 +3301,21 @@ function fecharThreadLider(){ try{ window.fecharThreadLider && window.fecharThre
 function voltarParaProfissional(){ try{ window.voltarParaProfissional && window.voltarParaProfissional(); }catch(e){ console.error('voltarParaProfissional:',e); } }
 function responderLider(){ try{ window.responderLider && window.responderLider(); }catch(e){} }
 
-// Delegação para botões Reagendar gerados dinamicamente
+// Delegação para botões Reagendar e Apagar gerados dinamicamente
 document.addEventListener('click', function(e){
-  const btn = e.target.closest('.btn-reag-cli');
-  if(!btn) return;
-  const id   = btn.getAttribute('data-id')  || '';
-  const svc  = btn.getAttribute('data-svc') || '';
-  const prof = btn.getAttribute('data-prof')|| '';
-  abrirReagendamento(id, svc, prof);
+  const btnReag = e.target.closest('.btn-reag-cli');
+  if(btnReag){
+    const id   = btnReag.getAttribute('data-id')  || '';
+    const svc  = btnReag.getAttribute('data-svc') || '';
+    const prof = btnReag.getAttribute('data-prof')|| '';
+    abrirReagendamento(id, svc, prof);
+    return;
+  }
+  const btnDel = e.target.closest('.btn-del-cli');
+  if(btnDel){
+    const id = btnDel.getAttribute('data-id') || '';
+    if(window.apagarAgendamentoCli) window.apagarAgendamentoCli(id);
+  }
 });
 function salvarProfissional(){ try{ window.salvarProfissional && window.salvarProfissional(); }catch(e){} }
 function editarProfissional(id){ try{ window.editarProfissional && window.editarProfissional(id); }catch(e){} }
