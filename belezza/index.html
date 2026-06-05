@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.9.4</title>
+<title>Belezza — Studio Luna v2.9.6</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1982,6 +1982,7 @@ let selHorario = null;
 let promoSelecionada = null;
 let servicoSelecionado = null;
 let reagendandoAgId = null;   // preenchido quando é reagendamento
+let agendamentosCliente = []; // agendamentos da cliente logada
 let reagendandoServico = null; // serviço do reagendamento
 
 function selecionarServico(card, nome, preco){
@@ -2323,6 +2324,10 @@ function iniciarListenerAgCliente(uid) {
     const lista = document.getElementById('cli-meus-ags');
     if (!lista) return;
     const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    // Mantém cópia global para uso no badge de promoções
+    agendamentosCliente = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Re-renderiza promoções para atualizar badges
+    if(typeof renderPromosClienteAtual === 'function') renderPromosClienteAtual();
       .sort((a, b) => {
         // Ordena por data DD/MM — mais recente primeiro
         const [da, ma] = (a.data||'01/01').split('/').map(Number);
@@ -2962,6 +2967,8 @@ function iniciarListenerPromos() {
       .sort((a,b) => a.criadoEm > b.criadoEm ? -1 : 1);
     renderPromosCliente(promos);
     renderPromosPro(promos);
+    // Guarda função para re-render quando agendamentos atualizam
+    renderPromosClienteAtual = () => renderPromosCliente(promos);
   }, err => { console.warn('[Belezza] promos:', err); });
 }
 
@@ -2984,21 +2991,28 @@ function renderPromosCliente(promos) {
       ? `<span class="p-old">R$ ${p.precoDe}</span><span class="p-new">R$ ${p.precoPor||'—'}</span>`
       : `<span class="p-new">R$ ${p.precoPor||'—'}</span>`;
     const nomeEsc = p.nome.replace(/'/g,"\\'");
-    // Conta agendamentos confirmados vinculados a esta promoção
-    const confirmados = agendamentos.filter(a =>
-      a.status === 'confirmado' &&
-      (a.servico === p.nome || a.origem === 'Módulo Promoções')
-    ).length;
+    // Badge de campanha
     const badgeCamp = p.campanha
       ? `<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`
       : '';
-    const badgeConf = confirmados > 0
-      ? `<span style="font-size:10px;background:var(--tl50);color:var(--tl800);border-radius:10px;padding:2px 8px;font-weight:600;border:1px solid var(--tl200)"><i class="ti ti-calendar-check" style="font-size:10px"></i> ${confirmados} confirmado${confirmados>1?'s':''}</span>`
-      : '';
+    // Badge de status do agendamento desta cliente para esta promoção
+    const agPromo = agendamentosCliente.find(a =>
+      a.servico === p.nome || (a.origem === 'Módulo Promoções' && a.servico === p.nome)
+    );
+    let badgeStatus = '';
+    if(agPromo) {
+      const statusMap = {
+        pendente:   { label: 'Aguardando', bg: '#fff3cd', color: '#856404', border: '#ffc107' },
+        confirmado: { label: 'Confirmado ✓', bg: 'var(--tl50)', color: 'var(--tl800)', border: 'var(--tl200)' },
+        recusado:   { label: 'Não disponível', bg: '#fde8e8', color: '#c0392b', border: '#f5c6cb' },
+      };
+      const s = statusMap[agPromo.status] || statusMap.pendente;
+      badgeStatus = `<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;border:1px solid ${s.border};background:${s.bg};color:${s.color}">${s.label}</span>`;
+    }
     return `<div class="promo-card">
       <div class="promo-top">
         <span class="promo-badge"><i class="ti ti-tag"></i> ${p.canal||'App'}</span>
-        <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${badgeCamp}${badgeConf}</div>
+        <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${badgeCamp}${badgeStatus}</div>
       </div>
       <div class="promo-body">
         <div class="promo-title">${p.nome}</div>
@@ -3025,18 +3039,31 @@ function renderPromosPro(promos) {
     const confirmados = agendamentos.filter(a =>
       a.status === 'confirmado' && a.servico === p.nome
     ).length;
-    return `<div class="row-item" style="margin-bottom:6px">
-      <div style="flex:1;min-width:0">
-        <div class="row-name" style="font-size:13px">${p.nome}${p.campanha ? ` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>` : ''}</div>
-        <div class="row-sub">
-          ${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}
-          ${p.profissional ? ' · ' + p.profissional : ''}
-          ${confirmados > 0 ? ` · <span style="color:var(--tl700);font-weight:600">${confirmados} confirmado${confirmados>1?'s':''}</span>` : ''}
+    const detalhes = [
+      p.campanha ? `Campanha: ${p.campanha}` : '',
+      p.profissional ? `Profissional: ${p.profissional}` : '',
+      p.canal ? `Canal: ${p.canal}` : '',
+      p.servicos ? `Serviços: ${p.servicos.replace(/\n/g,', ')}` : '',
+      (p.validadeIni||p.validadeFim) ? `Validade: ${p.validadeIni||''} → ${p.validadeFim||'—'}` : '',
+      p.precoDe ? `De R$ ${p.precoDe} por R$ ${p.precoPor}` : (p.precoPor ? `R$ ${p.precoPor}` : ''),
+    ].filter(Boolean).join(' · ');
+    return `<div class="row-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch;cursor:pointer" onclick="togglePromoDetalhe('${p.id}')">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div class="row-name" style="font-size:13px">${p.nome}${p.campanha ? ` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>` : ''}</div>
+          <div class="row-sub">
+            ${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}
+            ${p.profissional ? ' · ' + p.profissional : ''}
+            ${confirmados > 0 ? ` · <span style="color:var(--tl700);font-weight:600">${confirmados} ✓</span>` : ''}
+          </div>
         </div>
+        <button onclick="event.stopPropagation();apagarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--tx3);padding:4px" title="Apagar">
+          <i class="ti ti-trash" style="font-size:16px"></i>
+        </button>
       </div>
-      <button onclick="apagarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--tx3);padding:4px" title="Apagar">
-        <i class="ti ti-trash" style="font-size:16px"></i>
-      </button>
+      <div id="promo-det-${p.id}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:var(--r);border:1px solid var(--br);font-size:12px;color:var(--tx2);line-height:1.7">
+        ${detalhes}
+      </div>
     </div>`;
   }).join('');
 }
@@ -3089,6 +3116,13 @@ async function apagarPromo(id) {
   catch(e) { console.error('[Belezza] apagarPromo:', e); alert('Erro ao apagar.'); }
 }
 
+function togglePromoDetalhe(id) {
+  const el = document.getElementById('promo-det-' + id);
+  if(el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+window.togglePromoDetalhe    = togglePromoDetalhe;
+// Referência para re-renderizar promoções quando agendamentos da cliente atualizam
+let renderPromosClienteAtual = null;
 window.iniciarListenerPromos = iniciarListenerPromos;
 window.publicarPromo         = publicarPromo;
 window.apagarPromo           = apagarPromo;
@@ -3513,6 +3547,7 @@ function fecharModalProfissional(){ try{ window.fecharModalProfissional && windo
 function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.abrirReagendamento(id,s,p); }catch(e){} }
 function apagarPromo(id){ try{ window.apagarPromo && window.apagarPromo(id); }catch(e){} }
 function initPromoForm(){ try{ window.initPromoForm && window.initPromoForm(); }catch(e){} }
+function togglePromoDetalhe(id){ try{ window.togglePromoDetalhe && window.togglePromoDetalhe(id); }catch(e){} }
 function abrirThreadLider(uid,n){ try{ window.abrirThreadLider && window.abrirThreadLider(uid,n); }catch(e){} }
 function fecharThreadLider(){ try{ window.fecharThreadLider && window.fecharThreadLider(); }catch(e){} }
 function voltarParaProfissional(){ try{ window.voltarParaProfissional && window.voltarParaProfissional(); }catch(e){ console.error('voltarParaProfissional:',e); } }
