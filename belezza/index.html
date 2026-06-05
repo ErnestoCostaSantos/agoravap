@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.9.8</title>
+<title>Belezza — Studio Luna v2.9.9</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -2342,6 +2342,10 @@ function iniciarListenerAgCliente(uid) {
         if(dateA !== dateB) return dateB - dateA;
         return (b.hora||'') > (a.hora||'') ? 1 : -1;
       });
+    // Atualiza cópia global para badge de promoções
+    agendamentosCliente = docs;
+    // Re-renderiza promoções para atualizar badges em tempo real
+    if(typeof renderPromosClienteAtual === 'function') renderPromosClienteAtual();
     if (docs.length === 0) {
       lista.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:13px;text-align:center;padding:12px 0">Nenhum agendamento ainda.</div>';
       return;
