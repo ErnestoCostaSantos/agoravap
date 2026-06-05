@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.7.5</title>
+<title>Belezza — Studio Luna v2.7.6</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -413,6 +413,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="main">
   <!-- Botão voltar para home cliente — aparece só quando cliente está navegando -->
+  <div id="btn-voltar-pro" style="display:none;align-items:center;justify-content:flex-end;padding:8px 12px;background:rgba(90,31,110,.95);flex-shrink:0">
+    <button onclick="voltarParaProfissional()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;border-radius:20px;padding:5px 14px;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px"><i class="ti ti-arrow-left" style="font-size:13px"></i> Voltar ao Profissional</button>
+  </div>
   <div id="cli-back-bar" style="display:none;background:linear-gradient(90deg,#9B3D8B,#5a1f6e);padding:10px 16px;align-items:center;gap:10px">
     <button onclick="voltarHomeCliente()" style="background:rgba(255,255,255,.2);border:none;border-radius:20px;padding:6px 14px;color:white;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px">
       ← Voltar
