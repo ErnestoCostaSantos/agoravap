@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.9.0</title>
+<title>Belezza — Studio Luna v2.9.3</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -834,13 +834,13 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
             <!-- Nome -->
             <div>
               <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Nome</label>
-              <input type="text" placeholder="Ex: Ritual Duo — Dia dos Namorados" style="width:100%;padding:6px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+              <input id="promo-nome" type="text" placeholder="Ex: Ritual Duo — Dia dos Namorados" style="width:100%;padding:6px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
             </div>
 
             <!-- Canal -->
             <div>
               <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Canal</label>
-              <select style="width:100%;padding:6px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
+              <select id="promo-canal" style="width:100%;padding:6px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
                 <option>WhatsApp</option>
                 <option>Instagram</option>
                 <option>TikTok</option>
@@ -849,23 +849,43 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
               </select>
             </div>
 
+            <!-- Profissional responsável -->
+            <div>
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Profissional</label>
+              <select id="promo-prof" style="width:100%;padding:6px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
+                <option value="">Equipe (qualquer uma)</option>
+              </select>
+            </div>
+
+            <!-- Vincular a campanha -->
+            <div>
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Campanha (opcional)</label>
+              <select id="promo-campanha" style="width:100%;padding:6px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
+                <option value="">Sem campanha</option>
+              </select>
+            </div>
+
             <!-- Serviços incluídos — 2 linhas com scroll -->
             <div style="flex:1">
               <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Serviços incluídos</label>
-              <textarea placeholder="Ex: Limpeza de pele&#10;Design de sobrancelha" rows="2" style="width:100%;padding:6px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);resize:none;overflow-y:auto;line-height:1.5;box-sizing:border-box;font-family:inherit"></textarea>
+              <textarea id="promo-servicos" placeholder="Ex: Limpeza de pele&#10;Design de sobrancelha" rows="2" style="width:100%;padding:6px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);resize:none;overflow-y:auto;line-height:1.5;box-sizing:border-box;font-family:inherit"></textarea>
             </div>
 
             <!-- Período de validade -->
             <div>
               <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Validade</label>
               <div style="display:flex;flex-direction:column;gap:4px">
-                <div style="display:flex;align-items:center;gap:6px">
+                <div style="display:flex;align-items:center;gap:4px">
                   <span style="font-size:10px;color:var(--tx3);width:28px;flex-shrink:0">Início</span>
-                  <input type="date" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)">
+                  <select id="promo-ini-dia" style="flex:1;padding:4px 5px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)"></select>
+                  <select id="promo-ini-mes" style="flex:1.4;padding:4px 5px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)"></select>
+                  <select id="promo-ini-ano" style="flex:1.1;padding:4px 5px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)"></select>
                 </div>
-                <div style="display:flex;align-items:center;gap:6px">
+                <div style="display:flex;align-items:center;gap:4px">
                   <span style="font-size:10px;color:var(--tx3);width:28px;flex-shrink:0">Fim</span>
-                  <input type="date" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)">
+                  <select id="promo-fim-dia" style="flex:1;padding:4px 5px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)"></select>
+                  <select id="promo-fim-mes" style="flex:1.4;padding:4px 5px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)"></select>
+                  <select id="promo-fim-ano" style="flex:1.1;padding:4px 5px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx)"></select>
                 </div>
               </div>
             </div>
@@ -876,11 +896,11 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
               <div style="display:flex;flex-direction:column;gap:4px">
                 <div style="display:flex;align-items:center;gap:6px">
                   <span style="font-size:10px;color:var(--tx3);width:28px;flex-shrink:0;text-decoration:line-through">De</span>
-                  <input type="text" placeholder="280,00" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx3);text-decoration:line-through">
+                  <input id="promo-preco-de" type="text" placeholder="280,00" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx3);text-decoration:line-through">
                 </div>
                 <div style="display:flex;align-items:center;gap:6px">
                   <span style="font-size:10px;color:var(--pk700);font-weight:700;width:28px;flex-shrink:0">Por</span>
-                  <input type="text" placeholder="189,00" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--pk200);font-size:13px;background:var(--pk50);color:var(--pk700);font-weight:700">
+                  <input id="promo-preco-por" type="text" placeholder="189,00" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--pk200);font-size:13px;background:var(--pk50);color:var(--pk700);font-weight:700">
                 </div>
               </div>
             </div>
@@ -898,10 +918,14 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
               transition:background .15s;
             " onmouseover="this.style.background='var(--pk50)'" onmouseout="this.style.background='transparent'">
               <i class="ti ti-photo-plus" style="font-size:36px;color:var(--pk400)"></i>
-              <div style="text-align:center;padding:0 12px">
+              <div style="text-align:center;padding:0 8px">
                 <div style="font-size:12px;font-weight:600;color:var(--tx2)">Adicionar imagem</div>
-                <div style="font-size:10px;color:var(--tx3);margin-top:2px">Post, Reels ou TikTok</div>
-                <div style="font-size:10px;color:var(--tx3)">JPG, PNG ou MP4</div>
+                <div style="font-size:10px;color:var(--tx3);margin-top:4px;line-height:1.6">
+                  <b>Post:</b> 1080×1080px<br>
+                  <b>Reels/TikTok:</b> 1080×1920px<br>
+                  <b>Stories:</b> 1080×1920px<br>
+                  JPG ou PNG · máx. 500KB
+                </div>
               </div>
               <input type="file" accept="image/*,video/*" style="display:none" onchange="previewPromoImg(this)">
             </label>
@@ -937,11 +961,16 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
 
       </div><!-- /card -->
 
+      <!-- erro -->
+      <div id="promo-erro" style="color:var(--pk600);font-size:12px;margin-top:8px;min-height:16px"></div>
       <!-- toast sucesso -->
       <div id="promo-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
         <i class="ti ti-circle-check" style="font-size:18px"></i>
         Promoção publicada! Ela já aparece na visão Cliente.
       </div>
+      <!-- Lista de promoções publicadas -->
+      <div class="sec-lbl" style="margin-top:16px">Promoções publicadas</div>
+      <div id="promo-lista-pro"></div>
     </div>
 
     <!-- ── CLIENTE ── -->
@@ -968,9 +997,10 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
     </div>
 
     <div class="pane" id="pane-c-promos">
-      <div class="sec-lbl">Promoções especiais</div>
-      <div class="promo-card"><div class="promo-top"><span class="promo-badge"><i class="ti ti-sun"></i> Dia da Beleza</span><span style="font-size:12px;font-weight:600;color:var(--tx2)">Studio Luna</span></div><div class="promo-body"><div class="promo-title">Pacote Noiva Radiante</div><div style="font-size:11px;color:var(--tx2);margin-bottom:6px">Válido até 30/06/2026</div><div class="pills"><span class="pill">Limpeza de pele</span><span class="pill">Design de sobrancelha</span><span class="pill">Hidratação facial</span></div><div class="promo-ft"><div><span class="p-old">R$ 280</span><span class="p-new">R$ 189</span></div><button class="btn pk" onclick="abrirAgendaPromo('Pacote Noiva Radiante')"><i class="ti ti-calendar"></i> Agendar</button></div></div></div>
-      <div class="promo-card"><div class="promo-top"><span class="promo-badge"><i class="ti ti-heart"></i> Dia dos Namorados</span><span style="font-size:12px;font-weight:600;color:var(--tx2)">Studio Luna</span></div><div class="promo-body"><div class="promo-title">Ritual Duo — casal</div><div style="font-size:11px;color:var(--tx2);margin-bottom:6px">Válido até 12/06/2026</div><div class="pills"><span class="pill">Massagem relaxante</span><span class="pill">Peeling</span><span class="pill">Vinho de boas-vindas</span></div><div class="promo-ft"><div><span class="p-old">R$ 520</span><span class="p-new">R$ 360</span></div><button class="btn pk" onclick="abrirAgendaPromo('Ritual Duo')"><i class="ti ti-calendar"></i> Agendar</button></div></div></div>
+      <div class="sec-lbl">Promoções</div>
+      <div id="cli-promos-lista">
+        <div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0">Carregando promoções...</div>
+      </div>
     </div>
 
     <div class="pane" id="pane-c-chat">
@@ -1221,6 +1251,7 @@ onAuthStateChanged(auth, async user => {
         setTimeout(() => {
           if(window.iniciarListenerAgCliente) window.iniciarListenerAgCliente(user.uid);
           if(window.iniciarListenerChat) window.iniciarListenerChat(user.uid);
+          if(window.iniciarListenerPromos) window.iniciarListenerPromos();
           // Mostra visão cliente no chat
           const cliView = document.getElementById('cli-chat-view');
           const liderView = document.getElementById('lider-chat-view');
@@ -1241,6 +1272,7 @@ onAuthStateChanged(auth, async user => {
         setTimeout(() => {
           if(window.iniciarListenerAgendamentos) window.iniciarListenerAgendamentos();
           if(window.iniciarListenerThreads) window.iniciarListenerThreads();
+          if(window.iniciarListenerPromos) window.iniciarListenerPromos();
           // Mostra visão líder no chat
           const cliView = document.getElementById('cli-chat-view');
           const liderView = document.getElementById('lider-chat-view');
@@ -1468,6 +1500,7 @@ function renderAgendaConfirmados(){
 function goTo(id,el){
   if(id==='p-dash') setTimeout(initDashboard, 50);
   if(id==='p-agenda') setTimeout(()=>{ if(agView==='hoje') renderAgHoje(); else if(agView==='semana') renderAgSemana(); else renderAgMes(); }, 50);
+  if(id==='p-promos') setTimeout(()=>{ if(window.initPromoForm) window.initPromoForm(); }, 50);
   if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(el){const n=el.closest('.sb-nav');n.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
   showPane(id);closeSB();
@@ -2879,6 +2912,192 @@ window.abrirThreadLider       = abrirThreadLider;
 window.fecharThreadLider      = fecharThreadLider;
 window.responderLider         = responderLider;
 
+
+// ── Módulo Promoções ─────────────────────────────────────────────────────
+const MESES_PROMO = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+let unsubPromos = null;
+
+function initPromoForm() {
+  const hoje = new Date();
+  // Popula select de profissional
+  const profSel = document.getElementById('promo-prof');
+  if(profSel){
+    profSel.innerHTML = '<option value="">Equipe (qualquer uma)</option>' +
+      (window.equipeDB||[]).filter(p=>p.ativa).map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
+  }
+  // Popula select de campanhas (estáticas por ora — futuramente do Firestore)
+  const campSel = document.getElementById('promo-campanha');
+  if(campSel){
+    const campanhasAtivas = ['Dia dos Namorados 2026', 'Dia da Beleza — Maio'];
+    // Tenta pegar do DOM as campanhas cadastradas
+    const campNomes = Array.from(document.querySelectorAll('.camp-name')).map(el => el.textContent.trim());
+    const lista = campNomes.length > 0 ? campNomes : campanhasAtivas;
+    campSel.innerHTML = '<option value="">Sem campanha</option>' +
+      lista.map(c=>`<option value="${c}">${c}</option>`).join('');
+  }
+  ['promo-ini', 'promo-fim'].forEach(pref => {
+    const diaEl = document.getElementById(pref + '-dia');
+    const mesEl = document.getElementById(pref + '-mes');
+    const anoEl = document.getElementById(pref + '-ano');
+    if(!diaEl) return;
+    diaEl.innerHTML = Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('');
+    mesEl.innerHTML = MESES_PROMO.slice(1).map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('');
+    const ano = hoje.getFullYear();
+    anoEl.innerHTML = [ano, ano+1].map(a=>`<option value="${a}">${a}</option>`).join('');
+    const fim = new Date(hoje); fim.setDate(fim.getDate() + 30);
+    if(pref === 'promo-ini'){
+      diaEl.value = String(hoje.getDate()).padStart(2,'0');
+      mesEl.value = String(hoje.getMonth()+1).padStart(2,'0');
+      anoEl.value = String(hoje.getFullYear());
+    } else {
+      diaEl.value = String(fim.getDate()).padStart(2,'0');
+      mesEl.value = String(fim.getMonth()+1).padStart(2,'0');
+      anoEl.value = String(fim.getFullYear());
+    }
+  });
+}
+
+function iniciarListenerPromos() {
+  if(unsubPromos) unsubPromos();
+  const q = collection(db, 'promocoes');
+  unsubPromos = onSnapshot(q, snap => {
+    const promos = snap.docs.map(d => ({id:d.id,...d.data()}))
+      .filter(p => p.clinicaId === CLINICA_ID)
+      .sort((a,b) => a.criadoEm > b.criadoEm ? -1 : 1);
+    renderPromosCliente(promos);
+    renderPromosPro(promos);
+  }, err => { console.warn('[Belezza] promos:', err); });
+}
+
+function renderPromosCliente(promos) {
+  const lista = document.getElementById('cli-promos-lista');
+  if(!lista) return;
+  const hoje = new Date();
+  const ativas = promos.filter(p => {
+    if(!p.validadeFim) return true;
+    const [dd,mm,aa] = p.validadeFim.split('/');
+    return new Date(parseInt(aa), parseInt(mm)-1, parseInt(dd)) >= hoje;
+  });
+  if(ativas.length === 0){
+    lista.innerHTML = '<div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0">Nenhuma promoção ativa no momento.</div>';
+    return;
+  }
+  lista.innerHTML = ativas.map(p => {
+    const pills = (p.servicos||'').split('\n').filter(s=>s.trim()).map(s=>`<span class="pill">${s.trim()}</span>`).join('');
+    const precoHtml = p.precoDe
+      ? `<span class="p-old">R$ ${p.precoDe}</span><span class="p-new">R$ ${p.precoPor||'—'}</span>`
+      : `<span class="p-new">R$ ${p.precoPor||'—'}</span>`;
+    const nomeEsc = p.nome.replace(/'/g,"\\'");
+    // Conta agendamentos confirmados vinculados a esta promoção
+    const confirmados = agendamentos.filter(a =>
+      a.status === 'confirmado' &&
+      (a.servico === p.nome || a.origem === 'Módulo Promoções')
+    ).length;
+    const badgeCamp = p.campanha
+      ? `<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`
+      : '';
+    const badgeConf = confirmados > 0
+      ? `<span style="font-size:10px;background:var(--tl50);color:var(--tl800);border-radius:10px;padding:2px 8px;font-weight:600;border:1px solid var(--tl200)"><i class="ti ti-calendar-check" style="font-size:10px"></i> ${confirmados} confirmado${confirmados>1?'s':''}</span>`
+      : '';
+    return `<div class="promo-card">
+      <div class="promo-top">
+        <span class="promo-badge"><i class="ti ti-tag"></i> ${p.canal||'App'}</span>
+        <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${badgeCamp}${badgeConf}</div>
+      </div>
+      <div class="promo-body">
+        <div class="promo-title">${p.nome}</div>
+        ${p.profissional ? `<div style="font-size:11px;color:var(--tx2);margin-bottom:4px"><i class="ti ti-user" style="font-size:10px"></i> ${p.profissional}</div>` : ''}
+        ${p.validadeFim ? `<div style="font-size:11px;color:var(--tx2);margin-bottom:6px">Válido até ${p.validadeFim}</div>` : ''}
+        <div class="pills">${pills}</div>
+        <div class="promo-ft">
+          <div>${precoHtml}</div>
+          <button class="btn pk" onclick="abrirAgendaPromo('${nomeEsc}')"><i class="ti ti-calendar"></i> Agendar</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPromosPro(promos) {
+  const lista = document.getElementById('promo-lista-pro');
+  if(!lista) return;
+  if(promos.length === 0){
+    lista.innerHTML = '<div style="color:var(--tx3);font-size:13px;padding:10px 0">Nenhuma promoção publicada ainda.</div>';
+    return;
+  }
+  lista.innerHTML = promos.map(p => {
+    const confirmados = agendamentos.filter(a =>
+      a.status === 'confirmado' && a.servico === p.nome
+    ).length;
+    return `<div class="row-item" style="margin-bottom:6px">
+      <div style="flex:1;min-width:0">
+        <div class="row-name" style="font-size:13px">${p.nome}${p.campanha ? ` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>` : ''}</div>
+        <div class="row-sub">
+          ${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}
+          ${p.profissional ? ' · ' + p.profissional : ''}
+          ${confirmados > 0 ? ` · <span style="color:var(--tl700);font-weight:600">${confirmados} confirmado${confirmados>1?'s':''}</span>` : ''}
+        </div>
+      </div>
+      <button onclick="apagarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--tx3);padding:4px" title="Apagar">
+        <i class="ti ti-trash" style="font-size:16px"></i>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+async function publicarPromo() {
+  const nome = document.getElementById('promo-nome')?.value.trim();
+  const errEl = document.getElementById('promo-erro');
+  if(!nome){ if(errEl) errEl.textContent = 'Informe o nome da promoção.'; return; }
+  if(errEl) errEl.textContent = '';
+  const getDt = (pref) => {
+    const d = document.getElementById(pref+'-dia')?.value;
+    const m = document.getElementById(pref+'-mes')?.value;
+    const a = document.getElementById(pref+'-ano')?.value;
+    return d && m && a ? `${d}/${m}/${a}` : '';
+  };
+  try {
+    await addDoc(collection(db, 'promocoes'), {
+      clinicaId:   CLINICA_ID, nome,
+      canal:       document.getElementById('promo-canal')?.value || '',
+      profissional: document.getElementById('promo-prof')?.value || '',
+      campanha:    document.getElementById('promo-campanha')?.value || '',
+      servicos:    document.getElementById('promo-servicos')?.value || '',
+      validadeIni: getDt('promo-ini'),
+      validadeFim: getDt('promo-fim'),
+      precoDe:     document.getElementById('promo-preco-de')?.value || '',
+      precoPor:    document.getElementById('promo-preco-por')?.value || '',
+      criadoEm:    new Date().toISOString(),
+      criadoPor:   cu?.uid || 'admin',
+    });
+    ['promo-nome','promo-servicos','promo-preco-de','promo-preco-por'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value = '';
+    });
+    const preview = document.getElementById('promo-img-preview');
+    const label   = document.getElementById('img-label');
+    const badge   = document.getElementById('promo-img-badge');
+    if(preview){ preview.style.display='none'; preview.src=''; }
+    if(label)   label.style.display='flex';
+    if(badge)   badge.style.display='none';
+    const toast = document.getElementById('promo-toast');
+    if(toast){ toast.style.display='flex'; setTimeout(()=>toast.style.display='none', 3500); }
+  } catch(e) {
+    console.error('[Belezza] publicarPromo:', e);
+    if(errEl) errEl.textContent = 'Erro ao publicar. Tente novamente.';
+  }
+}
+
+async function apagarPromo(id) {
+  if(!confirm('Apagar esta promoção? Ela deixará de aparecer para as clientes.')) return;
+  try { await deleteDoc(doc(db, 'promocoes', id)); }
+  catch(e) { console.error('[Belezza] apagarPromo:', e); alert('Erro ao apagar.'); }
+}
+
+window.iniciarListenerPromos = iniciarListenerPromos;
+window.publicarPromo         = publicarPromo;
+window.apagarPromo           = apagarPromo;
+window.initPromoForm         = initPromoForm;
+
 // ── Reagendamento: redireciona para fluxo normal de agendamento ─────────────
 function abrirReagendamento(agId, servico, profAnterior) {
   // Guarda estado de reagendamento ANTES de navegar
@@ -3296,6 +3515,8 @@ function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }c
 function abrirModalProfissional(id){ try{ window.abrirModalProfissional && window.abrirModalProfissional(id); }catch(e){} }
 function fecharModalProfissional(){ try{ window.fecharModalProfissional && window.fecharModalProfissional(); }catch(e){} }
 function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.abrirReagendamento(id,s,p); }catch(e){} }
+function apagarPromo(id){ try{ window.apagarPromo && window.apagarPromo(id); }catch(e){} }
+function initPromoForm(){ try{ window.initPromoForm && window.initPromoForm(); }catch(e){} }
 function abrirThreadLider(uid,n){ try{ window.abrirThreadLider && window.abrirThreadLider(uid,n); }catch(e){} }
 function fecharThreadLider(){ try{ window.fecharThreadLider && window.fecharThreadLider(); }catch(e){} }
 function voltarParaProfissional(){ try{ window.voltarParaProfissional && window.voltarParaProfissional(); }catch(e){ console.error('voltarParaProfissional:',e); } }
