@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.7.7</title>
+<title>Belezza — Studio Luna v2.8.0</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1023,14 +1023,21 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
       <div id="agenda-promo-badge" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:7px 12px;margin-bottom:10px;font-size:12px;color:var(--pk700);font-weight:600;align-items:center;gap:6px">
         <i class="ti ti-tag"></i> <span id="agenda-promo-nome"></span>
       </div>
+      <!-- Passo 0: Profissional de preferência -->
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">1. Profissional de preferência</div>
+        <select id="cli-prof-sel" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);font-family:inherit">
+          <option value="">Sem preferência (qualquer disponível)</option>
+        </select>
+      </div>
       <!-- Passo 1: Escolha o dia -->
       <div class="card" style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">1. Escolha o dia</div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">2. Escolha o dia</div>
         <div id="cli-cal" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px"></div>
       </div>
       <!-- Passo 2: Escolha o horário -->
       <div class="card" id="cli-horarios-card" style="display:none;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px" id="cli-horarios-label">2. Escolha o horário</div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px" id="cli-horarios-label">3. Escolha o horário</div>
         <div class="avail-grid" id="cli-avail-grid"></div>
         <div style="display:flex;gap:10px;margin-top:10px;font-size:11px;color:var(--tx3);align-items:center">
           <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:var(--bg3);border:1px solid var(--br);display:inline-block"></span>Disponível</span>
@@ -1047,6 +1054,7 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
             <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Serviço</span><span style="font-weight:600;color:var(--pk700)" id="resumo-svc">—</span></div>
             <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Data</span><span style="font-weight:600" id="resumo-dia">—</span></div>
             <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Horário</span><span style="font-weight:600" id="resumo-hora">—</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Profissional</span><span style="font-weight:600" id="resumo-prof">Sem preferência</span></div>
           </div>
           <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--br);display:flex;align-items:center;gap:6px">
             <span style="background:#fff3cd;color:#856404;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;border:1px solid #ffc107">Aguardando confirmação</span>
@@ -2037,6 +2045,13 @@ function selecionarHorario(btn, horario){
   if(resumoSvc)  resumoSvc.textContent  = svcNome;
   if(resumoDia)  resumoDia.textContent  = selDia || '—';
   if(resumoHora) resumoHora.textContent = horario;
+  // Profissional preferida
+  const profSelEl2 = document.getElementById('cli-prof-sel');
+  const profNome2 = profSelEl2 && profSelEl2.value
+    ? (profSelEl2.options[profSelEl2.selectedIndex]?.text || 'Sem preferência')
+    : 'Sem preferência';
+  const resumoProf = document.getElementById('resumo-prof');
+  if(resumoProf) resumoProf.textContent = profNome2;
   document.getElementById('cli-enviar-wrap').style.display = 'block';
 }
 
@@ -2442,7 +2457,12 @@ async function enviarSolicitacaoFS() {
       servico:    (servicoSelecionado?.nome) || promoSelecionada || 'Serviço não especificado',
       data:       dataFmt,
       hora:       selHorario,
-      prof:       '',   // profissional será definida pela líder
+      prof: (()=>{
+        const sel = document.getElementById('cli-prof-sel');
+        if(!sel || !sel.value) return '';
+        const p = (window.equipeDB||[]).find(x=>x.id===sel.value);
+        return p ? p.nome : '';
+      })(),
       origem:     (typeof promoSelecionada !== 'undefined' && promoSelecionada) ? 'Módulo Promoções' : 'Módulo Serviços',
       status:     'pendente',
       criadoEm:   new Date().toISOString(),
@@ -3048,6 +3068,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if(slotsSel){
     slotsSel.innerHTML = '<option value="geral">Todas as profissionais</option>' +
       equipeDB.map(p => `<option value="${p.id}">${p.nome.split(' ')[0]} ${p.nome.split(' ')[1]?.[0]||''}.</option>`).join('');
+  }
+  // Popula select de preferência de profissional no agendamento da cliente
+  const cliProfSel = document.getElementById('cli-prof-sel');
+  if(cliProfSel){
+    cliProfSel.innerHTML = '<option value="">Sem preferência (qualquer disponível)</option>' +
+      equipeDB.filter(p => p.ativa).map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
   }
 });
 
