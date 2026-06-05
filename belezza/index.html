@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.8.0</title>
+<title>Belezza — Studio Luna v2.8.2</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1399,6 +1399,8 @@ const faqs=[
   {cat:'acesso',q:'Como sair da conta na versão profissional?',a:'No menu lateral esquerdo, role até o final. Clique no botão "Sair da conta" que aparece abaixo do seu nome e perfil. Você será desconectada e redirecionada para o login.'},
   {cat:'agenda',q:'Quais as três visões da Agenda?',a:'Hoje: lista os agendamentos confirmados do dia atual com grade de horários disponíveis. Semana: grid de segunda a sábado com navegação por semana. Mês: calendário completo com dias destacados quando há agendamentos — clique no dia para ver os detalhes.'},
   {cat:'agenda',q:'Como filtrar os slots de horários por profissional?',a:'Na aba Agenda, visão Hoje, use o select "Todas as profissionais" acima da grade de horários para filtrar os slots de uma profissional específica.'},
+  {cat:'versaocliente',q:'Como a cliente deve solicitar um agendamento?',a:'A cliente deve sempre iniciar pelo botão Serviços ou Promoções na tela inicial. Após escolher o serviço ou promoção desejada, ela será direcionada para a aba de Agendamentos onde poderá escolher a profissional de preferência, o dia e o horário. Entrar diretamente pela aba Agendamentos sem escolher um serviço resultará em uma solicitação sem serviço especificado.'},
+  {cat:'versaocliente',q:'Como escolher a profissional de preferência no agendamento?',a:'Após escolher o serviço e acessar a aba de Agendamentos, o primeiro campo é a seleção de profissional. A cliente pode escolher uma profissional específica ou deixar em "Sem preferência" — neste caso a líder atribuirá a profissional mais adequada ao confirmar.'},
 ];
 let curCat='todos',curSearch='';
 function renderFaq(){
@@ -1951,6 +1953,7 @@ function selecionarServico(card, nome, preco){
   card.style.borderColor = 'var(--pk600)';
   card.style.background = 'var(--pk50)';
   servicoSelecionado = { nome, preco };
+  window.servicoSelecionado = servicoSelecionado;
   // Mostra badge de selecionado
   const wrap = document.getElementById('svc-selecionado');
   const nomeEl = document.getElementById('svc-nome-sel');
@@ -2340,7 +2343,8 @@ function renderPendentesFirestore() {
         <div class="av" style="background:var(--pk50);color:var(--pk800)">${initials}</div>
         <div class="req-info">
           <div class="req-name">${ag.cliente || 'Cliente'}</div>
-          <div class="req-detail"><i class="ti ti-sparkles" style="font-size:11px"></i> ${ag.servico} · ${ag.data} às ${ag.hora} · ${ag.prof || ''}</div>
+          <div class="req-detail"><i class="ti ti-sparkles" style="font-size:11px"></i> ${ag.servico} · ${ag.data} às ${ag.hora}${ag.prof ? ' · Pref: ' + ag.prof : ''}</div>
+          ${ag.origem ? `<div style="font-size:10px;color:var(--tx3);margin-top:2px"><i class="ti ti-info-circle" style="font-size:10px"></i> ${ag.origem}</div>` : ''}
         </div>
         <div style="display:flex;gap:5px">
           <button class="btn tl sm" onclick="confirmarFS('${ag.id}')"><i class="ti ti-check"></i> Confirmar</button>
@@ -2454,7 +2458,7 @@ async function enviarSolicitacaoFS() {
       clienteId:  cu.uid,
       cliente:    nomeCliente,
       clienteEmail: cu.email,
-      servico:    (servicoSelecionado?.nome) || promoSelecionada || 'Serviço não especificado',
+      servico:    (servicoSelecionado?.nome) || (window.servicoSelecionado?.nome) || promoSelecionada || 'Serviço não especificado',
       data:       dataFmt,
       hora:       selHorario,
       prof: (()=>{
