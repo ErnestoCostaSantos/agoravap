@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v2.7.3</title>
+<title>Belezza — Studio Luna v2.7.5</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -413,10 +413,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="main">
   <!-- Botão voltar para home cliente — aparece só quando cliente está navegando -->
-  <!-- Botão voltar para profissional (toggle) -->
-  <div id="btn-voltar-pro" style="display:none;align-items:center;justify-content:flex-end;padding:8px 12px;background:rgba(90,31,110,.95);flex-shrink:0">
-    <button onclick="voltarParaProfissional()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;border-radius:20px;padding:5px 14px;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px"><i class="ti ti-arrow-left" style="font-size:13px"></i> Voltar ao Profissional</button>
-  </div>
   <div id="cli-back-bar" style="display:none;background:linear-gradient(90deg,#9B3D8B,#5a1f6e);padding:10px 16px;align-items:center;gap:10px">
     <button onclick="voltarHomeCliente()" style="background:rgba(255,255,255,.2);border:none;border-radius:20px;padding:6px 14px;color:white;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px">
       ← Voltar
@@ -1829,6 +1825,9 @@ function goToCliSection(id){
   // Navega direto para a aba — sem passar por setRole
   showPane(id);
   if(id==='c-agenda') setTimeout(initCalendario, 50);
+  // Mostra botão voltar ao profissional
+  const btnVPro = document.getElementById('btn-voltar-pro');
+  if(btnVPro) btnVPro.style.display = 'flex';
 
   // Marca tab ativa no nav mobile
   setTimeout(() => {
@@ -1840,18 +1839,36 @@ function goToCliSection(id){
   }, 50);
 }
 function voltarParaProfissional(){
-  // Esconde tela cliente e botão voltar
-  const homeCliente = document.getElementById('home-cli-screen');
-  if(homeCliente) homeCliente.style.display = 'none';
+  // Esconde botão voltar
   const btnVoltarPro = document.getElementById('btn-voltar-pro');
   if(btnVoltarPro) btnVoltarPro.style.display = 'none';
-  // Volta para o app profissional
+  // Esconde cli-back-bar
+  const backBar = document.getElementById('cli-back-bar');
+  if(backBar) backBar.style.display = 'none';
+  // Esconde tela das flores (caso esteja visível)
+  const homeCliente = document.getElementById('home-cli-screen');
+  if(homeCliente) homeCliente.style.display = 'none';
+  // Garante que .app está visível
   const app = document.querySelector('.app');
   if(app) app.style.display = 'flex';
+  // Restaura sidebar, topbar, role-bar e mob-pro
+  const sidebar = document.querySelector('.sidebar');
+  const topbar  = document.querySelector('.topbar');
+  const roleBar = document.querySelector('.role-bar');
+  const mobPro  = document.getElementById('mob-pro');
+  const mobCli  = document.getElementById('mob-cli');
+  if(sidebar) sidebar.style.display = '';
+  if(topbar)  topbar.style.display  = '';
+  if(roleBar) roleBar.style.display = '';
+  if(mobPro)  mobPro.style.display  = '';
+  if(mobCli)  mobCli.style.display  = 'none';
   // Restaura toggle para Profissional
   document.querySelectorAll('.rbtn').forEach(b => {
     b.classList.toggle('active', b.textContent.trim() === 'Profissional');
   });
+  // Vai para o Dashboard
+  showPane('p-dash');
+  setTimeout(initDashboard, 50);
 }
 function voltarHomeCliente(){
   const appDiv = document.querySelector('.app');
