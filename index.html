@@ -234,11 +234,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   .help-table td{padding:5px 10px;border-bottom:1px solid #f1f5f9;color:var(--dark)}
   .help-table tr:nth-child(even) td{background:#FFF5F5}
 
-  /* ══════════════════════════════════════════════════════
-     MÓDULOS CAMPANHAS + PROMOÇÕES — AgoraVAP! v1.0.0
-     ══════════════════════════════════════════════════════ */
-
-  /* Paleta de apoio (mapeada para o tema VAP vermelho) */
+  /* ══ MÓDULOS CAMPANHAS + PROMOÇÕES — AgoraVAP! v1.0.0 ══ */
   :root{
     --pk50:#FFF5F5;--pk100:#FED7D7;--pk200:#FEB2B2;
     --pk400:#FC8181;--pk600:#C53030;--pk700:#9B2C2C;--pk800:#742A2A;
@@ -247,28 +243,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     --pu50:#FAF5FF;--pu400:#9F7AEA;--pu600:#6B46C1;--pu700:#553C9A;--pu800:#44337A;
     --am50:#FFFBEB;--am400:#D97706;--am800:#78350F;
   }
-
-  /* Badges */
-  .badge-ok   {background:var(--tl50);color:var(--tl800)}
-  .badge-pend {background:var(--pk50);color:var(--pk800)}
-  .badge-done {background:#F3F4F6;color:#566573}
-  .badge-new  {background:var(--pu50);color:var(--pu800)}
-  .badge-warn {background:var(--am50);color:var(--am800)}
-
-  /* Card VAP (complementa o .fcard existente) */
+  .badge-ok{background:var(--tl50);color:var(--tl800)}
+  .badge-pend{background:var(--pk50);color:var(--pk800)}
+  .badge-done{background:#F3F4F6;color:#566573}
+  .badge-new{background:var(--pu50);color:var(--pu800)}
+  .badge-warn{background:var(--am50);color:var(--am800)}
   .vap-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
-
-  /* Botão adicionar tracejado */
   .add-btn{width:100%;padding:10px;border:1px dashed rgba(0,0,0,.16);border-radius:var(--radius);background:transparent;cursor:pointer;font-size:12px;color:#566573;display:flex;align-items:center;justify-content:center;gap:5px;margin-top:4px}
   .add-btn:hover{background:#F9FAFB}
-
-  /* Campanha */
   .camp-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
   .camp-name{font-size:14px;font-weight:600}
   .camp-meta{font-size:11px;color:#566573;display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap}
   .camp-meta span{display:flex;align-items:center;gap:4px}
-
-  /* Contadores */
   .counter-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .counter-lbl{font-size:12px;color:#566573;flex:1;display:flex;align-items:center;gap:5px}
   .cnt-btns{display:flex;align-items:center;gap:0}
@@ -276,8 +262,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   .cnt-b:first-child{border-radius:8px 0 0 8px}
   .cnt-b:last-child{border-radius:0 8px 8px 0}
   .cnt-v{width:36px;text-align:center;font-size:13px;font-weight:600;border-top:1px solid rgba(0,0,0,.09);border-bottom:1px solid rgba(0,0,0,.09);padding:4px 0;background:var(--card)}
-
-  /* Etapas */
   .steps{display:flex;flex-direction:column}
   .step{display:flex;gap:12px;padding:10px 0;position:relative}
   .step:not(:last-child)::after{content:'';position:absolute;left:15px;top:36px;width:2px;height:calc(100% - 16px);background:rgba(0,0,0,.09)}
@@ -288,12 +272,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   .step-title{font-size:13px;font-weight:600;margin-bottom:2px}
   .step-sub{font-size:11px;color:#566573;margin-bottom:8px;line-height:1.4}
   .step-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-
-  /* Botões de período */
   .btn-periodo{padding:5px 12px;border-radius:20px;border:1px solid rgba(0,0,0,.09);background:#F9FAFB;color:#566573;font-size:12px;cursor:pointer;font-family:var(--font);transition:all .15s}
   .btn-periodo.active{background:#fffbea;border-color:#f5d84a;color:#7a5f00;font-weight:600}
-
-  /* Fidelidade */
   .fidel-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--rsm);border:1px solid rgba(0,0,0,.09)}
   .fidel-pos{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
   .fidel-av{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0}
@@ -301,11 +281,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   .fidel-name{font-size:12px;font-weight:600;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .fidel-sub{font-size:10px;color:#95A5A6}
   .fidel-score{font-size:13px;font-weight:700;color:#c49b00;min-width:28px;text-align:right}
-
-  /* Info box */
   .info-box{background:var(--am50);border-radius:var(--rsm);padding:10px 12px;font-size:12px;color:var(--am800);margin-bottom:12px;display:flex;gap:8px}
-
-  /* Promoções */
   .promo-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px}
   .promo-top{background:var(--pk50);padding:12px 15px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--pk100)}
   .promo-badge{font-size:11px;font-weight:600;color:#9B2C2C;background:var(--pk100);border-radius:20px;padding:3px 10px}
@@ -316,13 +292,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   .pill{font-size:11px;padding:3px 9px;border-radius:20px;background:#F9FAFB;color:#566573;border:1px solid rgba(0,0,0,.09)}
   .p-old{font-size:12px;color:#95A5A6;text-decoration:line-through;margin-right:6px}
   .p-new{font-size:15px;font-weight:700;color:#C53030}
-
-  /* Botões dos módulos (usam o padrão VAP) */
   .btn-vap-tl{padding:7px 13px;font-size:12px;border-radius:var(--rsm);border:none;cursor:pointer;background:var(--tl400);color:#fff;display:inline-flex;align-items:center;gap:5px;transition:all .15s;font-weight:600}
   .btn-vap-tl:hover{background:var(--tl800)}
   .btn-vap-sm{padding:5px 10px!important;font-size:11px!important}
-
-  /* Label de seção */
   .vap-sec-lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#95A5A6;margin-bottom:12px}
 
 </style>
@@ -878,32 +850,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
     </div>
 
-    <!-- ════ CAMPANHAS (Líder) ════════════════════════════════════════════ -->
+    <!-- ════ CAMPANHAS (Líder) ═══════════════════════════════════════════ -->
     <div class="panel" id="panel-campanhas">
       <div class="sec-header" style="margin-bottom:1rem">
-        <div>
-          <div class="sec-title">Campanhas</div>
-          <div class="sec-sub">Crie e acompanhe campanhas de relacionamento com clientes</div>
-        </div>
+        <div><div class="sec-title">Campanhas</div><div class="sec-sub">Crie e acompanhe campanhas de relacionamento com clientes</div></div>
       </div>
-
-      <div id="vap-camp-static-wrap">
-        <div class="vap-sec-lbl">Nenhuma campanha criada ainda</div>
-      </div>
-
-      <button class="add-btn" onclick="vapToggleNovaCamp()">
-        <i class="ti ti-plus"></i> Criar nova campanha
-      </button>
-
+      <div id="vap-camp-static-wrap"><div class="vap-sec-lbl">Nenhuma campanha criada ainda</div></div>
+      <button class="add-btn" onclick="vapToggleNovaCamp()"><i class="ti ti-plus"></i> Criar nova campanha</button>
       <div id="vap-nova-camp" style="display:none;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:10px">
         <div class="vap-sec-lbl" style="margin-bottom:14px">Nova campanha</div>
-
         <div style="margin-bottom:12px">
           <label style="font-size:11px;font-weight:600;color:#566573;display:block;margin-bottom:4px">Nome *</label>
-          <input id="vap-camp-nome" type="text" placeholder="Ex: Lançamento Produto X — Julho 2026"
-            style="width:100%;padding:8px 12px;border-radius:var(--rsm);border:1px solid var(--border);font-size:13px;background:var(--bg);color:var(--dark);box-sizing:border-box">
+          <input id="vap-camp-nome" type="text" placeholder="Ex: Lançamento Produto X — Julho 2026" style="width:100%;padding:8px 12px;border-radius:var(--rsm);border:1px solid var(--border);font-size:13px;background:var(--bg);color:var(--dark);box-sizing:border-box">
         </div>
-
         <div style="margin-bottom:12px">
           <label style="font-size:11px;font-weight:600;color:#566573;display:block;margin-bottom:4px">Tipo</label>
           <select id="vap-camp-tipo" style="width:100%;padding:8px 12px;border-radius:var(--rsm);border:1px solid var(--border);font-size:13px;background:var(--bg);color:var(--dark)">
@@ -912,7 +871,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <option value="flash">Flash — 2 etapas, duração curta</option>
           </select>
         </div>
-
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
           <div>
             <label style="font-size:11px;font-weight:600;color:#566573;display:block;margin-bottom:4px">Início</label>
@@ -929,10 +887,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             </div>
           </div>
         </div>
-
         <div id="vap-camp-erro" style="color:#C53030;font-size:12px;margin-bottom:8px;min-height:14px"></div>
         <div class="info-box"><i class="ti ti-info-circle" style="font-size:16px;flex-shrink:0"></i>O app calcula automaticamente as datas de cada etapa com base no período informado.</div>
-
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
           <button class="btn-sec btn" onclick="vapToggleNovaCamp()">Cancelar</button>
           <button class="btn-save btn" onclick="vapCriarCampanha()"><i class="ti ti-check"></i> Criar campanha</button>
@@ -941,10 +897,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <i class="ti ti-circle-check" style="font-size:18px"></i> Campanha criada com sucesso!
         </div>
       </div>
-
       <div id="vap-camp-lista" style="margin-top:12px"></div>
 
-      <!-- ══ FIDELIDADE ══ -->
+      <!-- FIDELIDADE -->
       <div style="margin-top:24px;padding-top:18px;border-top:2px dashed #f5d84a">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <i class="ti ti-crown" style="font-size:18px;color:#c49b00"></i>
@@ -952,12 +907,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <span class="badge badge-warn" style="font-size:10px">Disparo único</span>
         </div>
         <div style="font-size:11px;color:#95A5A6;margin-bottom:14px">Recompense seus melhores clientes do período. O ranking é calculado automaticamente.</div>
-
         <div class="vap-card" style="margin-bottom:12px;padding:12px 14px">
           <div style="font-size:11px;font-weight:700;color:#566573;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Periodicidade</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn-periodo active" id="vap-per-men" onclick="vapSetPeriodo('mensal',this)">Mensal</button>
-            <button class="btn-periodo" id="vap-per-bi"  onclick="vapSetPeriodo('bimestral',this)">Bimestral</button>
+            <button class="btn-periodo" id="vap-per-bi" onclick="vapSetPeriodo('bimestral',this)">Bimestral</button>
             <button class="btn-periodo" id="vap-per-liv" onclick="vapSetPeriodo('livre',this)">Livre</button>
           </div>
           <div id="vap-per-livre-wrap" style="display:none;margin-top:10px">
@@ -966,78 +920,56 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           </div>
           <div style="font-size:11px;color:#95A5A6;margin-top:8px" id="vap-per-hint">Próximo disparo sugerido: <strong>01/07/2026</strong></div>
         </div>
-
         <div class="vap-card" style="padding:12px 14px;margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;color:#566573;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">
-            Top 10 — período anterior
-            <span style="font-size:10px;font-weight:400;color:#95A5A6;text-transform:none;margin-left:6px">score = visitas (60%) + valor gerado (40%)</span>
-          </div>
+          <div style="font-size:11px;font-weight:700;color:#566573;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Top 10 — período anterior <span style="font-size:10px;font-weight:400;color:#95A5A6;text-transform:none;margin-left:6px">score = visitas (60%) + valor gerado (40%)</span></div>
           <div style="display:flex;flex-direction:column;gap:6px" id="vap-fidelidade-lista">
             <div style="font-size:12px;color:#95A5A6;text-align:center;padding:12px 0">Nenhum dado de ranking ainda.</div>
           </div>
         </div>
-
         <div class="vap-card" style="padding:12px 14px;margin-bottom:12px">
           <div style="font-size:11px;font-weight:700;color:#566573;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Mensagem para o Top 10</div>
-          <textarea id="vap-fidel-msg" rows="3"
-            style="width:100%;padding:7px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark);resize:none;font-family:var(--font);box-sizing:border-box"
-            >Olá! Você está entre nossos clientes destaque do período. Como agradecimento, preparamos uma surpresa especial para você! Entre em contato para saber mais. — AgoraVAP!</textarea>
+          <textarea id="vap-fidel-msg" rows="3" style="width:100%;padding:7px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark);resize:none;font-family:var(--font);box-sizing:border-box">Olá! Você está entre nossos clientes destaque do período. Como agradecimento, preparamos uma surpresa especial para você! Entre em contato para saber mais. — AgoraVAP!</textarea>
         </div>
-
         <button class="btn-save btn" style="width:100%;justify-content:center;padding:11px;font-size:13px" onclick="vapEnviarFidelidade()">
           <i class="ti ti-crown"></i> Enviar para o Top 10
         </button>
         <div id="vap-fidel-toast" style="display:none;background:linear-gradient(90deg,#fffbea,#fef9e0);border:1px solid #f5d84a;border-radius:var(--rsm);padding:10px 14px;margin-top:10px;font-size:13px;color:#7a5f00;align-items:center;gap:8px">
-          <i class="ti ti-crown" style="font-size:18px;color:#c49b00"></i>
-          Mensagem preparada! Abra o WhatsApp de cada cliente para enviar.
+          <i class="ti ti-crown" style="font-size:18px;color:#c49b00"></i> Mensagem preparada! Abra o WhatsApp de cada cliente para enviar.
         </div>
       </div>
     </div>
     <!-- /panel-campanhas -->
 
-    <!-- ════ PROMOÇÕES (Líder) ══════════════════════════════════════════════ -->
+    <!-- ════ PROMOÇÕES (Líder) ════════════════════════════════════════════ -->
     <div class="panel" id="panel-promocoes">
       <div class="sec-header" style="margin-bottom:1rem">
-        <div>
-          <div class="sec-title">Promoções</div>
-          <div class="sec-sub">Publique promoções vinculadas a campanhas. Vendedores visualizam em leitura.</div>
-        </div>
+        <div><div class="sec-title">Promoções</div><div class="sec-sub">Publique promoções vinculadas a campanhas. Vendedores visualizam em leitura.</div></div>
       </div>
-
       <div class="vap-sec-lbl">Nova promoção</div>
       <div class="vap-card" style="padding:0;overflow:hidden">
         <div style="display:grid;grid-template-columns:1fr 1fr;min-height:260px">
-
-          <!-- Coluna esquerda: campos -->
           <div style="padding:14px;display:flex;flex-direction:column;gap:10px">
             <div>
               <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Nome</label>
-              <input id="vap-promo-nome" type="text" placeholder="Ex: Oferta Especial — Julho 2026"
-                style="width:100%;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark);box-sizing:border-box">
+              <input id="vap-promo-nome" type="text" placeholder="Ex: Oferta Especial — Julho 2026" style="width:100%;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark);box-sizing:border-box">
             </div>
             <div>
               <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Canal</label>
               <select id="vap-promo-canal" style="width:100%;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)">
-                <option>WhatsApp</option><option>Instagram</option><option>LinkedIn</option>
-                <option>E-mail</option><option>Visita presencial</option><option>Todos</option>
+                <option>WhatsApp</option><option>Instagram</option><option>LinkedIn</option><option>E-mail</option><option>Visita presencial</option><option>Todos</option>
               </select>
             </div>
             <div>
               <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Responsável</label>
-              <select id="vap-promo-resp" style="width:100%;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)">
-                <option value="">Equipe (todos)</option>
-              </select>
+              <select id="vap-promo-resp" style="width:100%;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)"><option value="">Equipe (todos)</option></select>
             </div>
             <div>
               <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Campanha (opcional)</label>
-              <select id="vap-promo-campanha" style="width:100%;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)">
-                <option value="">Sem campanha</option>
-              </select>
+              <select id="vap-promo-campanha" style="width:100%;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)"><option value="">Sem campanha</option></select>
             </div>
             <div style="flex:1">
               <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Produtos / Serviços incluídos</label>
-              <textarea id="vap-promo-items" placeholder="Ex: Produto A&#10;Produto B&#10;Combo XYZ" rows="2"
-                style="width:100%;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark);resize:none;overflow-y:auto;line-height:1.5;box-sizing:border-box;font-family:var(--font)"></textarea>
+              <textarea id="vap-promo-items" placeholder="Ex: Produto A&#10;Produto B&#10;Combo XYZ" rows="2" style="width:100%;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark);resize:none;overflow-y:auto;line-height:1.5;box-sizing:border-box;font-family:var(--font)"></textarea>
             </div>
             <div>
               <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Validade</label>
@@ -1061,23 +993,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
               <div style="display:flex;flex-direction:column;gap:4px">
                 <div style="display:flex;align-items:center;gap:6px">
                   <span style="font-size:10px;color:#95A5A6;width:28px;flex-shrink:0;text-decoration:line-through">De</span>
-                  <input id="vap-promo-preco-de" type="text" placeholder="500,00"
-                    style="flex:1;padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--border);font-size:11px;background:var(--bg);color:#95A5A6;text-decoration:line-through">
+                  <input id="vap-promo-preco-de" type="text" placeholder="500,00" style="flex:1;padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--border);font-size:11px;background:var(--bg);color:#95A5A6;text-decoration:line-through">
                 </div>
                 <div style="display:flex;align-items:center;gap:6px">
                   <span style="font-size:10px;color:#C53030;font-weight:700;width:28px;flex-shrink:0">Por</span>
-                  <input id="vap-promo-preco-por" type="text" placeholder="399,00"
-                    style="flex:1;padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--pk200);font-size:13px;background:var(--pk50);color:#C53030;font-weight:700">
+                  <input id="vap-promo-preco-por" type="text" placeholder="399,00" style="flex:1;padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--pk200);font-size:13px;background:var(--pk50);color:#C53030;font-weight:700">
                 </div>
               </div>
             </div>
-          </div><!-- /col esquerda -->
-
-          <!-- Coluna direita: imagem -->
+          </div>
           <div style="position:relative;background:#F9FAFB;border-left:1px solid var(--border)">
-            <label id="vap-img-label"
-              style="display:flex;flex-direction:column;align-items:center;justify-content:center;position:absolute;inset:0;cursor:pointer;color:#95A5A6;gap:8px;transition:background .15s"
-              onmouseover="this.style.background='var(--pk50)'" onmouseout="this.style.background='transparent'">
+            <label id="vap-img-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;position:absolute;inset:0;cursor:pointer;color:#95A5A6;gap:8px;transition:background .15s" onmouseover="this.style.background='var(--pk50)'" onmouseout="this.style.background='transparent'">
               <i class="ti ti-photo-plus" style="font-size:36px;color:#FC8181"></i>
               <div style="text-align:center;padding:0 8px">
                 <div style="font-size:12px;font-weight:600;color:#566573">Adicionar imagem</div>
@@ -1085,19 +1011,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
               </div>
               <input type="file" accept="image/*" style="display:none" onchange="vapPreviewPromoImg(this)">
             </label>
-            <img id="vap-promo-img-preview"
-              style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:pointer"
-              onclick="document.querySelector('#vap-img-label input').click()" title="Clique para trocar">
+            <img id="vap-promo-img-preview" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="document.querySelector('#vap-img-label input').click()" title="Clique para trocar">
           </div>
-        </div><!-- /grid -->
-
-        <div style="padding:12px 14px;border-top:1px solid var(--border)">
-          <button class="btn-save btn" style="width:100%;justify-content:center;padding:10px" onclick="vapPublicarPromo()">
-            <i class="ti ti-megaphone"></i> Publicar promoção
-          </button>
         </div>
-      </div><!-- /card -->
-
+        <div style="padding:12px 14px;border-top:1px solid var(--border)">
+          <button class="btn-save btn" style="width:100%;justify-content:center;padding:10px" onclick="vapPublicarPromo()"><i class="ti ti-megaphone"></i> Publicar promoção</button>
+        </div>
+      </div>
       <div id="vap-promo-erro" style="color:#C53030;font-size:12px;margin-top:8px;min-height:16px"></div>
       <div id="vap-promo-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--rsm);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
         <i class="ti ti-circle-check" style="font-size:18px"></i> Promoção publicada! Já aparece para os vendedores.
@@ -1107,13 +1027,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     </div>
     <!-- /panel-promocoes -->
 
-    <!-- ════ PROMOÇÕES VENDEDOR (somente leitura) ═══════════════════════════ -->
+    <!-- ════ PROMOÇÕES VENDEDOR (leitura) ════════════════════════════════ -->
     <div class="panel" id="panel-promocoes-vendedor">
       <div class="sec-header" style="margin-bottom:1rem">
-        <div>
-          <div class="sec-title">Promoções ativas</div>
-          <div class="sec-sub">Referência para seus lançamentos</div>
-        </div>
+        <div><div class="sec-title">Promoções ativas</div><div class="sec-sub">Referência para seus lançamentos</div></div>
       </div>
       <div id="vap-promo-lista-vendedor">
         <div style="color:#95A5A6;font-size:13px;text-align:center;padding:20px 0">Carregando promoções...</div>
@@ -2040,11 +1957,9 @@ onAuthStateChanged(auth, async user => {
     // ── Módulos Campanhas + Promoções ──────────────────
     window._vapCompanyId = cp.companyId || _companyId || null;
     if (typeof vapIniciarModulos === 'function') vapIniciarModulos();
-
-    // Abas visíveis conforme perfil
-    const tabCamp    = $('tab-campanhas');
-    const tabPromos  = $('tab-promocoes');
-    const tabPromoV  = $('tab-promocoes-vendedor');
+    const tabCamp   = document.getElementById('tab-campanhas');
+    const tabPromos = document.getElementById('tab-promocoes');
+    const tabPromoV = document.getElementById('tab-promocoes-vendedor');
     if (tabCamp)   tabCamp.style.display   = (isLider || isSuperAdm) ? '' : 'none';
     if (tabPromos) tabPromos.style.display  = (isLider || isSuperAdm) ? '' : 'none';
     if (tabPromoV) tabPromoV.style.display  = (!isLider && !isSuperAdm) ? '' : 'none';
@@ -3647,497 +3562,173 @@ window.switchTab_orig = window.switchTab;
 
 // ══════════════════════════════════════════════════════════════════════════
 // MÓDULOS CAMPANHAS + PROMOÇÕES — AgoraVAP! v1.0.0
-// Independente do Belezza/MeCuidar. Mantido separadamente neste arquivo.
-// Configuração: window._vapCompanyId (definido no login, usa companyId da empresa ativa)
 // ══════════════════════════════════════════════════════════════════════════
-
-function _vapGetCompanyId() {
-  const id = window._vapCompanyId;
-  if (!id) console.warn('[VAP-Camp] _vapCompanyId não definido.');
-  return id || '';
-}
-
-const VAP_MESES = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-let _vapUnsubCamp  = null;
-let _vapUnsubPromo = null;
-let _vapCampanhasDB = [];
-
-const VAP_CAMP_TIPOS = {
-  simples: {
-    label: 'Campanha simples',
-    etapas: ['Lançamento', 'Aquecimento', 'Finalização'],
-    msgs: [
-      'Olá! Temos uma novidade para você. Confira nossa oferta especial e garanta o seu. — AgoraVAP!',
-      'Olá! Nossa campanha está chegando ao fim. Aproveite enquanto há tempo. — AgoraVAP!',
-      'Último dia! Não perca esta oportunidade. — AgoraVAP!',
-    ]
-  },
-  vip: {
-    label: 'Campanha VIP',
-    etapas: ['Lançamento VIP', 'Oferta Exclusiva', 'Encerramento VIP'],
-    msgs: [
-      'Você foi selecionado(a) para uma oferta exclusiva VIP. Confira o que preparamos para você. 👑 — AgoraVAP!',
-      'Sua oferta VIP exclusiva está esperando por você. Aproveite antes que encerre. 💎 — AgoraVAP!',
-      'Último dia da sua oferta VIP! — AgoraVAP!',
-    ]
-  },
-  flash: {
-    label: 'Flash',
-    etapas: ['Lançamento Flash', 'Encerramento Flash'],
-    msgs: [
-      '⚡ FLASH! Oferta especial por tempo limitado. Corra! — AgoraVAP!',
-      '⚡ Últimas horas da nossa Flash! — AgoraVAP!',
-    ]
-  }
+function _vapGetCompanyId(){const id=window._vapCompanyId;if(!id)console.warn('[VAP] _vapCompanyId não definido.');return id||'';}
+const VAP_MESES=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+let _vapUnsubCamp=null,_vapUnsubPromo=null,_vapCampanhasDB=[];
+const VAP_CAMP_TIPOS={
+  simples:{label:'Campanha simples',etapas:['Lançamento','Aquecimento','Finalização'],msgs:['Olá! Temos uma novidade para você. Confira nossa oferta especial e garanta o seu. — AgoraVAP!','Olá! Nossa campanha está chegando ao fim. Aproveite enquanto há tempo. — AgoraVAP!','Último dia! Não perca esta oportunidade. — AgoraVAP!']},
+  vip:{label:'Campanha VIP',etapas:['Lançamento VIP','Oferta Exclusiva','Encerramento VIP'],msgs:['Você foi selecionado(a) para uma oferta exclusiva VIP. Confira o que preparamos para você. 👑 — AgoraVAP!','Sua oferta VIP exclusiva está esperando por você. Aproveite antes que encerre. 💎 — AgoraVAP!','Último dia da sua oferta VIP! — AgoraVAP!']},
+  flash:{label:'Flash',etapas:['Lançamento Flash','Encerramento Flash'],msgs:['⚡ FLASH! Oferta especial por tempo limitado. Corra! — AgoraVAP!','⚡ Últimas horas da nossa Flash! — AgoraVAP!']}
 };
-
-function _vapFmtData(d, m) {
-  return String(d).padStart(2,'0') + '/' + String(m).padStart(2,'0');
-}
-
-function _vapCalcEtapas(iniDia, iniMes, fimDia, fimMes, nEtapas) {
-  const ano = new Date().getFullYear();
-  const ini = new Date(ano, iniMes - 1, iniDia);
-  const fim = new Date(ano, fimMes - 1, fimDia);
-  if (fim <= ini || nEtapas < 2) return [];
-  const diff = (fim - ini) / (1000 * 60 * 60 * 24);
-  const datas = [];
-  for (let i = 0; i < nEtapas; i++) {
-    const d = new Date(ini.getTime() + (diff / (nEtapas - 1)) * i * 86400000);
-    datas.push(_vapFmtData(d.getDate(), d.getMonth() + 1));
-  }
+function _vapFmtData(d,m){return String(d).padStart(2,'0')+'/'+String(m).padStart(2,'0');}
+function _vapCalcEtapas(iniDia,iniMes,fimDia,fimMes,nEtapas){
+  const ano=new Date().getFullYear();
+  const ini=new Date(ano,iniMes-1,iniDia),fim=new Date(ano,fimMes-1,fimDia);
+  if(fim<=ini||nEtapas<2)return[];
+  const diff=(fim-ini)/86400000,datas=[];
+  for(let i=0;i<nEtapas;i++){const d=new Date(ini.getTime()+(diff/(nEtapas-1))*i*86400000);datas.push(_vapFmtData(d.getDate(),d.getMonth()+1));}
   return datas;
 }
-
-function vapInitCampForm() {
-  const hoje = new Date();
-  ['vap-camp-ini', 'vap-camp-fim'].forEach((pref, idx) => {
-    const dEl = document.getElementById(pref + '-dia');
-    const mEl = document.getElementById(pref + '-mes');
-    if (!dEl) return;
-    dEl.innerHTML = Array.from({length:31},(_,i) =>
-      `<option value="${i+1}">${String(i+1).padStart(2,'0')}</option>`).join('');
-    mEl.innerHTML = VAP_MESES.slice(1).map((m,i) =>
-      `<option value="${i+1}">${m}</option>`).join('');
-    if (idx === 0) {
-      dEl.value = hoje.getDate(); mEl.value = hoje.getMonth() + 1;
-    } else {
-      const fim = new Date(hoje); fim.setDate(fim.getDate() + 30);
-      dEl.value = fim.getDate(); mEl.value = fim.getMonth() + 1;
-    }
+function vapInitCampForm(){
+  const hoje=new Date();
+  ['vap-camp-ini','vap-camp-fim'].forEach((pref,idx)=>{
+    const dEl=document.getElementById(pref+'-dia'),mEl=document.getElementById(pref+'-mes');
+    if(!dEl)return;
+    dEl.innerHTML=Array.from({length:31},(_,i)=>`<option value="${i+1}">${String(i+1).padStart(2,'0')}</option>`).join('');
+    mEl.innerHTML=VAP_MESES.slice(1).map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+    if(idx===0){dEl.value=hoje.getDate();mEl.value=hoje.getMonth()+1;}
+    else{const f=new Date(hoje);f.setDate(f.getDate()+30);dEl.value=f.getDate();mEl.value=f.getMonth()+1;}
   });
-  const errEl = document.getElementById('vap-camp-erro');
-  if (errEl) errEl.textContent = '';
+  const e=document.getElementById('vap-camp-erro');if(e)e.textContent='';
 }
-
-function vapInitPromoForm() {
-  const hoje = new Date();
-  const fim30 = new Date(hoje); fim30.setDate(fim30.getDate() + 30);
-  ['vap-promo-ini', 'vap-promo-fim'].forEach((pref, idx) => {
-    const dEl = document.getElementById(pref + '-dia');
-    const mEl = document.getElementById(pref + '-mes');
-    const aEl = document.getElementById(pref + '-ano');
-    if (!dEl) return;
-    dEl.innerHTML = Array.from({length:31},(_,i) =>
-      `<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('');
-    mEl.innerHTML = VAP_MESES.slice(1).map((m,i) =>
-      `<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('');
-    const ano = hoje.getFullYear();
-    aEl.innerHTML = [ano, ano+1].map(a => `<option value="${a}">${a}</option>`).join('');
-    const ref = idx === 0 ? hoje : fim30;
-    dEl.value = String(ref.getDate()).padStart(2,'0');
-    mEl.value = String(ref.getMonth()+1).padStart(2,'0');
-    aEl.value = String(ref.getFullYear());
+function vapInitPromoForm(){
+  const hoje=new Date(),fim30=new Date(hoje);fim30.setDate(fim30.getDate()+30);
+  ['vap-promo-ini','vap-promo-fim'].forEach((pref,idx)=>{
+    const dEl=document.getElementById(pref+'-dia'),mEl=document.getElementById(pref+'-mes'),aEl=document.getElementById(pref+'-ano');
+    if(!dEl)return;
+    dEl.innerHTML=Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('');
+    mEl.innerHTML=VAP_MESES.slice(1).map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('');
+    const ano=hoje.getFullYear();aEl.innerHTML=[ano,ano+1].map(a=>`<option value="${a}">${a}</option>`).join('');
+    const ref=idx===0?hoje:fim30;
+    dEl.value=String(ref.getDate()).padStart(2,'0');mEl.value=String(ref.getMonth()+1).padStart(2,'0');aEl.value=String(ref.getFullYear());
   });
-  // Popula select de responsável com vendedores da empresa
-  const sel = document.getElementById('vap-promo-resp');
-  if (sel && window._vapVendedores && window._vapVendedores.length) {
-    sel.innerHTML = '<option value="">Equipe (todos)</option>' +
-      window._vapVendedores.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+  const sel=document.getElementById('vap-promo-resp');
+  if(sel&&window._vapVendedores&&window._vapVendedores.length){
+    sel.innerHTML='<option value="">Equipe (todos)</option>'+window._vapVendedores.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
   }
   vapAtualizarSelectCampanhas(_vapCampanhasDB);
 }
-
-function vapToggleNovaCamp() {
-  const f = document.getElementById('vap-nova-camp');
-  if (!f) return;
-  const abrindo = f.style.display === 'none';
-  f.style.display = abrindo ? 'block' : 'none';
-  if (abrindo) vapInitCampForm();
+function vapToggleNovaCamp(){const f=document.getElementById('vap-nova-camp');if(!f)return;const a=f.style.display==='none';f.style.display=a?'block':'none';if(a)vapInitCampForm();}
+window.vapToggleNovaCamp=vapToggleNovaCamp;
+async function vapCriarCampanha(){
+  const CID=_vapGetCompanyId();if(!CID)return;
+  const nome=document.getElementById('vap-camp-nome')?.value.trim();
+  const tipo=document.getElementById('vap-camp-tipo')?.value||'simples';
+  const iniDia=parseInt(document.getElementById('vap-camp-ini-dia')?.value);
+  const iniMes=parseInt(document.getElementById('vap-camp-ini-mes')?.value);
+  const fimDia=parseInt(document.getElementById('vap-camp-fim-dia')?.value);
+  const fimMes=parseInt(document.getElementById('vap-camp-fim-mes')?.value);
+  const errEl=document.getElementById('vap-camp-erro');
+  if(!nome){if(errEl)errEl.textContent='Informe o nome da campanha.';return;}
+  if(errEl)errEl.textContent='';
+  const cfg=VAP_CAMP_TIPOS[tipo]||VAP_CAMP_TIPOS.simples;
+  const etapas=cfg.etapas.map((label,i)=>({numero:i+1,label,data:(_vapCalcEtapas(iniDia,iniMes,fimDia,fimMes,cfg.etapas.length))[i]||'',msg:cfg.msgs[i]||'',enviado:false,enviadoEm:null}));
+  try{
+    await addDoc(collection(db,'campanhas'),{companyId:CID,nome,tipo,tipoLabel:cfg.label,inicio:_vapFmtData(iniDia,iniMes),fim:_vapFmtData(fimDia,fimMes),etapas,participantes:0,agendamentos:0,status:'ativa',criadoEm:new Date().toISOString(),criadoPor:cu?.uid||'lider'});
+    document.getElementById('vap-camp-nome').value='';
+    const t=document.getElementById('vap-camp-toast');if(t){t.style.display='flex';setTimeout(()=>{t.style.display='none';vapToggleNovaCamp();},2000);}
+  }catch(e){console.error('[VAP] criarCampanha:',e);if(errEl)errEl.textContent='Erro: '+(e.message||'Tente novamente.');}
 }
-window.vapToggleNovaCamp = vapToggleNovaCamp;
-
-async function vapCriarCampanha() {
-  const COMPANY_ID = _vapGetCompanyId();
-  if (!COMPANY_ID) return;
-  const nome   = document.getElementById('vap-camp-nome')?.value.trim();
-  const tipo   = document.getElementById('vap-camp-tipo')?.value || 'simples';
-  const iniDia = parseInt(document.getElementById('vap-camp-ini-dia')?.value);
-  const iniMes = parseInt(document.getElementById('vap-camp-ini-mes')?.value);
-  const fimDia = parseInt(document.getElementById('vap-camp-fim-dia')?.value);
-  const fimMes = parseInt(document.getElementById('vap-camp-fim-mes')?.value);
-  const errEl  = document.getElementById('vap-camp-erro');
-  if (!nome) { if (errEl) errEl.textContent = 'Informe o nome da campanha.'; return; }
-  if (errEl) errEl.textContent = '';
-  const cfg = VAP_CAMP_TIPOS[tipo] || VAP_CAMP_TIPOS.simples;
-  const datasEtapas = _vapCalcEtapas(iniDia, iniMes, fimDia, fimMes, cfg.etapas.length);
-  const etapas = cfg.etapas.map((label, i) => ({
-    numero: i + 1, label,
-    data: datasEtapas[i] || '',
-    msg: cfg.msgs[i] || '',
-    enviado: false, enviadoEm: null,
-  }));
-  try {
-    await addDoc(collection(db, 'campanhas'), {
-      companyId: COMPANY_ID, nome, tipo,
-      tipoLabel: cfg.label,
-      inicio: _vapFmtData(iniDia, iniMes),
-      fim: _vapFmtData(fimDia, fimMes),
-      etapas, participantes: 0, agendamentos: 0,
-      status: 'ativa',
-      criadoEm: new Date().toISOString(),
-      criadoPor: cu?.uid || 'lider',
-    });
-    document.getElementById('vap-camp-nome').value = '';
-    const toast = document.getElementById('vap-camp-toast');
-    if (toast) { toast.style.display = 'flex'; setTimeout(() => { toast.style.display = 'none'; vapToggleNovaCamp(); }, 2000); }
-  } catch(e) {
-    console.error('[VAP-Camp] criarCampanha:', e);
-    if (errEl) errEl.textContent = 'Erro ao criar: ' + (e.message || 'Tente novamente.');
-  }
-}
-window.vapCriarCampanha = vapCriarCampanha;
-
-function vapIniciarListenerCampanhas() {
-  const COMPANY_ID = _vapGetCompanyId();
-  if (!COMPANY_ID) return;
-  if (_vapUnsubCamp) _vapUnsubCamp();
-  _vapUnsubCamp = onSnapshot(collection(db, 'campanhas'), snap => {
-    _vapCampanhasDB = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(c => c.companyId === COMPANY_ID)
-      .sort((a,b) => a.criadoEm > b.criadoEm ? -1 : 1);
-    window._vapCampanhasDB = _vapCampanhasDB;
+window.vapCriarCampanha=vapCriarCampanha;
+function vapIniciarListenerCampanhas(){
+  const CID=_vapGetCompanyId();if(!CID)return;
+  if(_vapUnsubCamp)_vapUnsubCamp();
+  _vapUnsubCamp=onSnapshot(collection(db,'campanhas'),snap=>{
+    _vapCampanhasDB=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>c.companyId===CID).sort((a,b)=>a.criadoEm>b.criadoEm?-1:1);
+    window._vapCampanhasDB=_vapCampanhasDB;
     _vapRenderCampanhas(_vapCampanhasDB);
     vapAtualizarSelectCampanhas(_vapCampanhasDB);
-  }, err => console.warn('[VAP-Camp] listener camp:', err));
+  },err=>console.warn('[VAP] listener camp:',err));
 }
-window.vapIniciarListenerCampanhas = vapIniciarListenerCampanhas;
-
-function _vapRenderCampanhas(camps) {
-  const lista = document.getElementById('vap-camp-lista');
-  const staticWrap = document.getElementById('vap-camp-static-wrap');
-  if (!lista) return;
-  if (staticWrap) staticWrap.style.display = camps.length > 0 ? 'none' : 'block';
-  if (camps.length === 0) { lista.innerHTML = ''; return; }
-  const hoje = new Date();
-  lista.innerHTML = camps.map(c => {
-    const [fd, fm] = c.fim.split('/').map(Number);
-    const fimDate = new Date(hoje.getFullYear(), fm - 1, fd);
-    const ativa = fimDate >= hoje && c.status !== 'encerrada';
-    const statusBadge = ativa
-      ? '<span class="badge badge-ok">Em andamento</span>'
-      : '<span class="badge badge-done">Encerrada</span>';
-    const etapasHtml = (c.etapas||[]).map((et, i) => {
-      const hojeDDMM = hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-      const isHoje = et.data && et.data === hojeDDMM;
-      return `
-        <div class="step">
-          <div class="step-circle ${et.enviado ? 'done' : isHoje ? 'active' : ''}">
-            ${et.enviado ? '<i class="ti ti-check"></i>' : et.numero}
-          </div>
-          <div class="step-body">
-            <div class="step-title">${et.numero}. ${et.label}
-              ${et.enviado
-                ? '<span class="badge badge-done" style="margin-left:4px">Concluído</span>'
-                : isHoje
-                  ? '<span class="badge badge-pend" style="margin-left:4px">Hoje</span>'
-                  : `<span style="font-size:10px;color:#95A5A6;margin-left:4px">${et.data||''}</span>`}
-            </div>
-            <div class="step-sub">${et.msg}</div>
-            ${!et.enviado && ativa ? `
-              <div class="step-actions">
-                <button class="btn-vap-tl btn-vap-sm" onclick="vapAbrirWpp('${et.msg.replace(/'/g,"\\'")}')">
-                  <i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp
-                </button>
-                <button class="btn btn-save btn-vap-sm" onclick="vapMarcarEtapaEnviada('${c.id}',${i})">
-                  <i class="ti ti-check"></i> Marcar enviado
-                </button>
-              </div>`
-              : et.enviado
-                ? `<div style="font-size:11px;color:#95A5A6">Enviado${et.enviadoEm ? ' em ' + new Date(et.enviadoEm).toLocaleDateString('pt-BR') : ''}</div>`
-                : ''}
-          </div>
-        </div>`;
+window.vapIniciarListenerCampanhas=vapIniciarListenerCampanhas;
+function _vapRenderCampanhas(camps){
+  const lista=document.getElementById('vap-camp-lista'),sw=document.getElementById('vap-camp-static-wrap');
+  if(!lista)return;
+  if(sw)sw.style.display=camps.length>0?'none':'block';
+  if(camps.length===0){lista.innerHTML='';return;}
+  const hoje=new Date();
+  lista.innerHTML=camps.map(c=>{
+    const[fd,fm]=c.fim.split('/').map(Number);
+    const ativa=new Date(hoje.getFullYear(),fm-1,fd)>=hoje&&c.status!=='encerrada';
+    const sb=ativa?'<span class="badge badge-ok">Em andamento</span>':'<span class="badge badge-done">Encerrada</span>';
+    const eh=camps.map&&(()=>{const hj=hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});return hj;})();
+    const etHtml=(c.etapas||[]).map((et,i)=>{
+      const hj=hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+      const isH=et.data&&et.data===hj;
+      return `<div class="step"><div class="step-circle ${et.enviado?'done':isH?'active':''}">${et.enviado?'<i class="ti ti-check"></i>':et.numero}</div><div class="step-body"><div class="step-title">${et.numero}. ${et.label} ${et.enviado?'<span class="badge badge-done" style="margin-left:4px">Concluído</span>':isH?'<span class="badge badge-pend" style="margin-left:4px">Hoje</span>':`<span style="font-size:10px;color:#95A5A6;margin-left:4px">${et.data||''}</span>`}</div><div class="step-sub">${et.msg}</div>${!et.enviado&&ativa?`<div class="step-actions"><button class="btn-vap-tl btn-vap-sm" onclick="vapAbrirWpp('${et.msg.replace(/'/g,"\\'")}')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button><button class="btn btn-save btn-vap-sm" onclick="vapMarcarEtapaEnviada('${c.id}',${i})"><i class="ti ti-check"></i> Marcar enviado</button></div>`:et.enviado?`<div style="font-size:11px;color:#95A5A6">Enviado${et.enviadoEm?' em '+new Date(et.enviadoEm).toLocaleDateString('pt-BR'):''}</div>`:''}</div></div>`;
     }).join('');
-    return `
-      <div class="vap-card" style="margin-bottom:10px${!ativa?';opacity:.7':''}">
-        <div class="camp-hd"><div class="camp-name">${c.nome}</div>${statusBadge}</div>
-        <div class="camp-meta">
-          <span><i class="ti ti-calendar" style="font-size:13px"></i>${c.inicio} → ${c.fim}</span>
-          <span><i class="ti ti-tag" style="font-size:13px"></i>${c.tipoLabel||c.tipo}</span>
-        </div>
-        ${ativa ? `
-        <div class="counter-row">
-          <span class="counter-lbl"><i class="ti ti-users" style="font-size:13px"></i>Participantes</span>
-          <div class="cnt-btns">
-            <button class="cnt-b" onclick="vapAdjCamp('${c.id}','participantes',-1)">−</button>
-            <div class="cnt-v">${c.participantes||0}</div>
-            <button class="cnt-b" onclick="vapAdjCamp('${c.id}','participantes',1)">+</button>
-          </div>
-        </div>
-        <div class="counter-row" style="margin-bottom:14px">
-          <span class="counter-lbl"><i class="ti ti-calendar-check" style="font-size:13px"></i>Negócios gerados</span>
-          <div class="cnt-btns">
-            <button class="cnt-b" onclick="vapAdjCamp('${c.id}','agendamentos',-1)">−</button>
-            <div class="cnt-v">${c.agendamentos||0}</div>
-            <button class="cnt-b" onclick="vapAdjCamp('${c.id}','agendamentos',1)">+</button>
-          </div>
-        </div>` : ''}
-        <div style="font-size:11px;font-weight:600;color:#95A5A6;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Etapas</div>
-        <div class="steps">${etapasHtml}</div>
-        ${ativa ? `<button onclick="vapEncerrarCampanha('${c.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;font-size:11px;margin-top:8px;text-decoration:underline">Encerrar campanha</button>` : ''}
-      </div>`;
+    return `<div class="vap-card" style="margin-bottom:10px${!ativa?';opacity:.7':''}"><div class="camp-hd"><div class="camp-name">${c.nome}</div>${sb}</div><div class="camp-meta"><span><i class="ti ti-calendar" style="font-size:13px"></i>${c.inicio} → ${c.fim}</span><span><i class="ti ti-tag" style="font-size:13px"></i>${c.tipoLabel||c.tipo}</span></div>${ativa?`<div class="counter-row"><span class="counter-lbl"><i class="ti ti-users" style="font-size:13px"></i>Participantes</span><div class="cnt-btns"><button class="cnt-b" onclick="vapAdjCamp('${c.id}','participantes',-1)">−</button><div class="cnt-v">${c.participantes||0}</div><button class="cnt-b" onclick="vapAdjCamp('${c.id}','participantes',1)">+</button></div></div><div class="counter-row" style="margin-bottom:14px"><span class="counter-lbl"><i class="ti ti-calendar-check" style="font-size:13px"></i>Negócios gerados</span><div class="cnt-btns"><button class="cnt-b" onclick="vapAdjCamp('${c.id}','agendamentos',-1)">−</button><div class="cnt-v">${c.agendamentos||0}</div><button class="cnt-b" onclick="vapAdjCamp('${c.id}','agendamentos',1)">+</button></div></div>`:''}<div style="font-size:11px;font-weight:600;color:#95A5A6;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Etapas</div><div class="steps">${etHtml}</div>${ativa?`<button onclick="vapEncerrarCampanha('${c.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;font-size:11px;margin-top:8px;text-decoration:underline">Encerrar campanha</button>`:''}</div>`;
   }).join('');
 }
-
-function vapAtualizarSelectCampanhas(camps) {
-  const sel = document.getElementById('vap-promo-campanha');
-  if (!sel) return;
-  const ativas = camps.filter(c => c.status === 'ativa');
-  sel.innerHTML = '<option value="">Sem campanha</option>' +
-    ativas.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+function vapAtualizarSelectCampanhas(camps){const sel=document.getElementById('vap-promo-campanha');if(!sel)return;const at=camps.filter(c=>c.status==='ativa');sel.innerHTML='<option value="">Sem campanha</option>'+at.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');}
+window.vapAtualizarSelectCampanhas=vapAtualizarSelectCampanhas;
+async function vapMarcarEtapaEnviada(campId,idx){const c=_vapCampanhasDB.find(x=>x.id===campId);if(!c)return;const et=[...(c.etapas||[])];et[idx]={...et[idx],enviado:true,enviadoEm:new Date().toISOString()};try{await updateDoc(doc(db,'campanhas',campId),{etapas:et});}catch(e){console.error('[VAP] marcarEtapa:',e);}}
+window.vapMarcarEtapaEnviada=vapMarcarEtapaEnviada;
+async function vapAdjCamp(campId,campo,delta){const c=_vapCampanhasDB.find(x=>x.id===campId);if(!c)return;const v=Math.max(0,(c[campo]||0)+delta);try{await updateDoc(doc(db,'campanhas',campId),{[campo]:v});}catch(e){console.error('[VAP] adjCamp:',e);}}
+window.vapAdjCamp=vapAdjCamp;
+async function vapEncerrarCampanha(campId){if(!confirm('Encerrar esta campanha?'))return;try{await updateDoc(doc(db,'campanhas',campId),{status:'encerrada'});}catch(e){console.error('[VAP] encerrar:',e);}}
+window.vapEncerrarCampanha=vapEncerrarCampanha;
+function vapAbrirWpp(msg){window.open('https://wa.me/?text='+encodeURIComponent(msg).replace(/%20/g,'+'),'_blank');}
+window.vapAbrirWpp=vapAbrirWpp;
+function vapSetPeriodo(p,el){document.querySelectorAll('.btn-periodo').forEach(b=>b.classList.remove('active'));el.classList.add('active');const hints={mensal:'Próximo disparo sugerido: <strong>01/07/2026</strong>',bimestral:'Próximo disparo sugerido: <strong>01/08/2026</strong> — acumula dois meses',livre:'Escolha a data abaixo'};const h=document.getElementById('vap-per-hint'),l=document.getElementById('vap-per-livre-wrap');if(h)h.innerHTML=hints[p]||'';if(l)l.style.display=p==='livre'?'block':'none';}
+window.vapSetPeriodo=vapSetPeriodo;
+function vapEnviarFidelidade(){const t=document.getElementById('vap-fidel-toast');if(t){t.style.display='flex';setTimeout(()=>t.style.display='none',4000);}}
+window.vapEnviarFidelidade=vapEnviarFidelidade;
+function vapPreviewPromoImg(input){if(!input.files||!input.files[0])return;const url=URL.createObjectURL(input.files[0]);const p=document.getElementById('vap-promo-img-preview'),l=document.getElementById('vap-img-label');if(p){p.src=url;p.style.display='block';}if(l)l.style.display='none';}
+window.vapPreviewPromoImg=vapPreviewPromoImg;
+function vapIniciarListenerPromos(){
+  const CID=_vapGetCompanyId();if(!CID)return;
+  if(_vapUnsubPromo)_vapUnsubPromo();
+  _vapUnsubPromo=onSnapshot(collection(db,'promocoes'),snap=>{
+    const promos=snap.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.companyId===CID).sort((a,b)=>a.criadoEm>b.criadoEm?-1:1);
+    _vapRenderPromosPro(promos);_vapRenderPromosVendedor(promos);
+  },err=>console.warn('[VAP] listener promos:',err));
 }
-window.vapAtualizarSelectCampanhas = vapAtualizarSelectCampanhas;
-
-async function vapMarcarEtapaEnviada(campId, idx) {
-  const camp = _vapCampanhasDB.find(c => c.id === campId);
-  if (!camp) return;
-  const etapas = [...(camp.etapas||[])];
-  etapas[idx] = { ...etapas[idx], enviado: true, enviadoEm: new Date().toISOString() };
-  try { await updateDoc(doc(db, 'campanhas', campId), { etapas }); }
-  catch(e) { console.error('[VAP-Camp] marcarEtapa:', e); }
-}
-window.vapMarcarEtapaEnviada = vapMarcarEtapaEnviada;
-
-async function vapAdjCamp(campId, campo, delta) {
-  const camp = _vapCampanhasDB.find(c => c.id === campId);
-  if (!camp) return;
-  const novoVal = Math.max(0, (camp[campo]||0) + delta);
-  try { await updateDoc(doc(db, 'campanhas', campId), { [campo]: novoVal }); }
-  catch(e) { console.error('[VAP-Camp] adjCamp:', e); }
-}
-window.vapAdjCamp = vapAdjCamp;
-
-async function vapEncerrarCampanha(campId) {
-  if (!confirm('Encerrar esta campanha?')) return;
-  try { await updateDoc(doc(db, 'campanhas', campId), { status: 'encerrada' }); }
-  catch(e) { console.error('[VAP-Camp] encerrar:', e); }
-}
-window.vapEncerrarCampanha = vapEncerrarCampanha;
-
-function vapAbrirWpp(msg) {
-  window.open('https://wa.me/?text=' + encodeURIComponent(msg).replace(/%20/g,'+'), '_blank');
-}
-window.vapAbrirWpp = vapAbrirWpp;
-
-function vapSetPeriodo(p, el) {
-  document.querySelectorAll('.btn-periodo').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  const hints = {
-    mensal:    'Próximo disparo sugerido: <strong>01/07/2026</strong>',
-    bimestral: 'Próximo disparo sugerido: <strong>01/08/2026</strong> — acumula dois meses de score',
-    livre:     'Escolha a data abaixo'
-  };
-  const hintEl  = document.getElementById('vap-per-hint');
-  const livreEl = document.getElementById('vap-per-livre-wrap');
-  if (hintEl)  hintEl.innerHTML = hints[p] || '';
-  if (livreEl) livreEl.style.display = p === 'livre' ? 'block' : 'none';
-}
-window.vapSetPeriodo = vapSetPeriodo;
-
-function vapEnviarFidelidade() {
-  const toast = document.getElementById('vap-fidel-toast');
-  if (toast) { toast.style.display = 'flex'; setTimeout(() => toast.style.display = 'none', 4000); }
-}
-window.vapEnviarFidelidade = vapEnviarFidelidade;
-
-function vapPreviewPromoImg(input) {
-  if (!input.files || !input.files[0]) return;
-  const url = URL.createObjectURL(input.files[0]);
-  const preview = document.getElementById('vap-promo-img-preview');
-  const label   = document.getElementById('vap-img-label');
-  if (preview) { preview.src = url; preview.style.display = 'block'; }
-  if (label)   label.style.display = 'none';
-}
-window.vapPreviewPromoImg = vapPreviewPromoImg;
-
-function vapIniciarListenerPromos() {
-  const COMPANY_ID = _vapGetCompanyId();
-  if (!COMPANY_ID) return;
-  if (_vapUnsubPromo) _vapUnsubPromo();
-  _vapUnsubPromo = onSnapshot(collection(db, 'promocoes'), snap => {
-    const promos = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(p => p.companyId === COMPANY_ID)
-      .sort((a,b) => a.criadoEm > b.criadoEm ? -1 : 1);
-    _vapRenderPromosPro(promos);
-    _vapRenderPromosVendedor(promos);
-  }, err => console.warn('[VAP-Camp] listener promos:', err));
-}
-window.vapIniciarListenerPromos = vapIniciarListenerPromos;
-
-function _vapRenderPromosPro(promos) {
-  const lista = document.getElementById('vap-promo-lista-pro');
-  if (!lista) return;
-  if (promos.length === 0) {
-    lista.innerHTML = '<div style="color:#95A5A6;font-size:13px;padding:10px 0">Nenhuma promoção publicada ainda.</div>';
-    return;
-  }
-  lista.innerHTML = promos.map(p => {
-    const detalhes = [
-      p.campanha    ? `Campanha: ${p.campanha}` : '',
-      p.responsavel ? `Responsável: ${p.responsavel}` : '',
-      p.canal       ? `Canal: ${p.canal}` : '',
-      p.servicos    ? `Itens: ${p.servicos.replace(/\n/g,', ')}` : '',
-      (p.validadeIni||p.validadeFim) ? `Validade: ${p.validadeIni||''} → ${p.validadeFim||'—'}` : '',
-      p.precoDe     ? `De R$ ${p.precoDe} por R$ ${p.precoPor}` : (p.precoPor ? `R$ ${p.precoPor}` : ''),
-    ].filter(Boolean).join(' · ');
-    return `
-      <div class="rec-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch;cursor:pointer" onclick="vapTogglePromoDetalhe('${p.id}')">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="flex:1;min-width:0">
-            <div class="rec-title">${p.nome}${p.campanha ? ` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>` : ''}</div>
-            <div class="rec-meta">${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}${p.responsavel ? ' · ' + p.responsavel : ''}</div>
-          </div>
-          <button onclick="event.stopPropagation();vapApagarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;padding:4px">
-            <i class="ti ti-trash" style="font-size:16px"></i>
-          </button>
-        </div>
-        <div id="vap-promo-det-${p.id}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;color:#566573;line-height:1.7">
-          ${detalhes}
-        </div>
-      </div>`;
+window.vapIniciarListenerPromos=vapIniciarListenerPromos;
+function _vapRenderPromosPro(promos){
+  const lista=document.getElementById('vap-promo-lista-pro');if(!lista)return;
+  if(promos.length===0){lista.innerHTML='<div style="color:#95A5A6;font-size:13px;padding:10px 0">Nenhuma promoção publicada ainda.</div>';return;}
+  lista.innerHTML=promos.map(p=>{
+    const det=[p.campanha?`Campanha: ${p.campanha}`:'',p.responsavel?`Responsável: ${p.responsavel}`:'',p.canal?`Canal: ${p.canal}`:'',p.servicos?`Itens: ${p.servicos.replace(/\n/g,', ')}`:'',((p.validadeIni||p.validadeFim)?`Validade: ${p.validadeIni||''} → ${p.validadeFim||'—'}`:''),p.precoDe?`De R$ ${p.precoDe} por R$ ${p.precoPor}`:(p.precoPor?`R$ ${p.precoPor}`:'')].filter(Boolean).join(' · ');
+    return `<div class="rec-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch;cursor:pointer" onclick="vapTogglePromoDetalhe('${p.id}')"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;min-width:0"><div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}</div><div class="rec-meta">${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}${p.responsavel?' · '+p.responsavel:''}</div></div><button onclick="event.stopPropagation();vapApagarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;padding:4px"><i class="ti ti-trash" style="font-size:16px"></i></button></div><div id="vap-promo-det-${p.id}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;color:#566573;line-height:1.7">${det}</div></div>`;
   }).join('');
 }
-
-function _vapRenderPromosVendedor(promos) {
-  const lista = document.getElementById('vap-promo-lista-vendedor');
-  if (!lista) return;
-  const hoje = new Date();
-  const ativas = promos.filter(p => {
-    if (!p.validadeFim) return true;
-    const [dd,mm,aa] = p.validadeFim.split('/');
-    return new Date(parseInt(aa), parseInt(mm)-1, parseInt(dd)) >= hoje;
-  });
-  if (ativas.length === 0) {
-    lista.innerHTML = '<div style="color:#95A5A6;font-size:13px;text-align:center;padding:20px 0">Nenhuma promoção ativa no momento.</div>';
-    return;
-  }
-  lista.innerHTML = ativas.map(p => {
-    const pills = (p.servicos||'').split('\n').filter(s=>s.trim())
-      .map(s => `<span class="pill">${s.trim()}</span>`).join('');
-    const precoHtml = p.precoDe
-      ? `<span class="p-old">R$ ${p.precoDe}</span><span class="p-new">R$ ${p.precoPor||'—'}</span>`
-      : `<span class="p-new">R$ ${p.precoPor||'—'}</span>`;
-    const badgeCamp = p.campanha
-      ? `<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`
-      : '';
-    const imgHtml = p.imagemUrl
-      ? `<img src="${p.imagemUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px">`
-      : '';
-    return `
-      <div class="promo-card">
-        <div class="promo-top">
-          <span class="promo-badge"><i class="ti ti-tag"></i> ${p.canal||'Interno'}</span>
-          <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${badgeCamp}</div>
-        </div>
-        <div class="promo-body">
-          ${imgHtml}
-          <div class="promo-title">${p.nome}</div>
-          ${p.responsavel ? `<div style="font-size:11px;color:#566573;margin-bottom:4px"><i class="ti ti-user" style="font-size:10px"></i> ${p.responsavel}</div>` : ''}
-          ${p.validadeFim ? `<div style="font-size:11px;color:#566573;margin-bottom:6px">Válido até ${p.validadeFim}</div>` : ''}
-          <div class="pills">${pills}</div>
-          <div class="promo-ft">
-            <div>${precoHtml}</div>
-            <span style="font-size:11px;color:#95A5A6">Referência para lançamentos</span>
-          </div>
-        </div>
-      </div>`;
+function _vapRenderPromosVendedor(promos){
+  const lista=document.getElementById('vap-promo-lista-vendedor');if(!lista)return;
+  const hoje=new Date();
+  const ativas=promos.filter(p=>{if(!p.validadeFim)return true;const[dd,mm,aa]=p.validadeFim.split('/');return new Date(parseInt(aa),parseInt(mm)-1,parseInt(dd))>=hoje;});
+  if(ativas.length===0){lista.innerHTML='<div style="color:#95A5A6;font-size:13px;text-align:center;padding:20px 0">Nenhuma promoção ativa no momento.</div>';return;}
+  lista.innerHTML=ativas.map(p=>{
+    const pills=(p.servicos||'').split('\n').filter(s=>s.trim()).map(s=>`<span class="pill">${s.trim()}</span>`).join('');
+    const preco=p.precoDe?`<span class="p-old">R$ ${p.precoDe}</span><span class="p-new">R$ ${p.precoPor||'—'}</span>`:`<span class="p-new">R$ ${p.precoPor||'—'}</span>`;
+    const bc=p.campanha?`<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`:'';
+    const img=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px">`:'';
+    return `<div class="promo-card"><div class="promo-top"><span class="promo-badge"><i class="ti ti-tag"></i> ${p.canal||'Interno'}</span><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${bc}</div></div><div class="promo-body">${img}<div class="promo-title">${p.nome}</div>${p.responsavel?`<div style="font-size:11px;color:#566573;margin-bottom:4px"><i class="ti ti-user" style="font-size:10px"></i> ${p.responsavel}</div>`:''} ${p.validadeFim?`<div style="font-size:11px;color:#566573;margin-bottom:6px">Válido até ${p.validadeFim}</div>`:''}<div class="pills">${pills}</div><div class="promo-ft"><div>${preco}</div><span style="font-size:11px;color:#95A5A6">Referência para lançamentos</span></div></div></div>`;
   }).join('');
 }
-
-async function vapPublicarPromo() {
-  const COMPANY_ID = _vapGetCompanyId();
-  if (!COMPANY_ID) return;
-  const nome  = document.getElementById('vap-promo-nome')?.value.trim();
-  const errEl = document.getElementById('vap-promo-erro');
-  if (!nome) { if (errEl) errEl.textContent = 'Informe o nome da promoção.'; return; }
-  if (errEl) errEl.textContent = '';
-  const getDt = pref => {
-    const d = document.getElementById(pref+'-dia')?.value;
-    const m = document.getElementById(pref+'-mes')?.value;
-    const a = document.getElementById(pref+'-ano')?.value;
-    return d && m && a ? `${d}/${m}/${a}` : '';
-  };
-  try {
-    await addDoc(collection(db, 'promocoes'), {
-      companyId:   COMPANY_ID, nome,
-      canal:       document.getElementById('vap-promo-canal')?.value || '',
-      responsavel: document.getElementById('vap-promo-resp')?.value || '',
-      campanha:    document.getElementById('vap-promo-campanha')?.value || '',
-      servicos:    document.getElementById('vap-promo-items')?.value || '',
-      validadeIni: getDt('vap-promo-ini'),
-      validadeFim: getDt('vap-promo-fim'),
-      precoDe:     document.getElementById('vap-promo-preco-de')?.value || '',
-      precoPor:    document.getElementById('vap-promo-preco-por')?.value || '',
-      criadoEm:    new Date().toISOString(),
-      criadoPor:   cu?.uid || 'lider',
-    });
-    ['vap-promo-nome','vap-promo-items','vap-promo-preco-de','vap-promo-preco-por']
-      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-    const preview = document.getElementById('vap-promo-img-preview');
-    const label   = document.getElementById('vap-img-label');
-    if (preview) { preview.style.display = 'none'; preview.src = ''; }
-    if (label)   label.style.display = 'flex';
-    const toast = document.getElementById('vap-promo-toast');
-    if (toast) { toast.style.display = 'flex'; setTimeout(() => toast.style.display = 'none', 3500); }
-  } catch(e) {
-    console.error('[VAP-Camp] publicarPromo:', e);
-    if (errEl) errEl.textContent = 'Erro ao publicar. Tente novamente.';
-  }
+async function vapPublicarPromo(){
+  const CID=_vapGetCompanyId();if(!CID)return;
+  const nome=document.getElementById('vap-promo-nome')?.value.trim();
+  const errEl=document.getElementById('vap-promo-erro');
+  if(!nome){if(errEl)errEl.textContent='Informe o nome da promoção.';return;}
+  if(errEl)errEl.textContent='';
+  const getDt=pref=>{const d=document.getElementById(pref+'-dia')?.value,m=document.getElementById(pref+'-mes')?.value,a=document.getElementById(pref+'-ano')?.value;return d&&m&&a?`${d}/${m}/${a}`:'';}
+  try{
+    await addDoc(collection(db,'promocoes'),{companyId:CID,nome,canal:document.getElementById('vap-promo-canal')?.value||'',responsavel:document.getElementById('vap-promo-resp')?.value||'',campanha:document.getElementById('vap-promo-campanha')?.value||'',servicos:document.getElementById('vap-promo-items')?.value||'',validadeIni:getDt('vap-promo-ini'),validadeFim:getDt('vap-promo-fim'),precoDe:document.getElementById('vap-promo-preco-de')?.value||'',precoPor:document.getElementById('vap-promo-preco-por')?.value||'',criadoEm:new Date().toISOString(),criadoPor:cu?.uid||'lider'});
+    ['vap-promo-nome','vap-promo-items','vap-promo-preco-de','vap-promo-preco-por'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    const pv=document.getElementById('vap-promo-img-preview'),lb=document.getElementById('vap-img-label');
+    if(pv){pv.style.display='none';pv.src='';}if(lb)lb.style.display='flex';
+    const t=document.getElementById('vap-promo-toast');if(t){t.style.display='flex';setTimeout(()=>t.style.display='none',3500);}
+  }catch(e){console.error('[VAP] publicarPromo:',e);if(errEl)errEl.textContent='Erro ao publicar. Tente novamente.';}
 }
-window.vapPublicarPromo = vapPublicarPromo;
-
-async function vapApagarPromo(id) {
-  if (!confirm('Apagar esta promoção? Ela deixará de aparecer para os vendedores.')) return;
-  try { await deleteDoc(doc(db, 'promocoes', id)); }
-  catch(e) { console.error('[VAP-Camp] apagarPromo:', e); alert('Erro ao apagar.'); }
-}
-window.vapApagarPromo = vapApagarPromo;
-
-function vapTogglePromoDetalhe(id) {
-  const el = document.getElementById('vap-promo-det-' + id);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-window.vapTogglePromoDetalhe = vapTogglePromoDetalhe;
-
-function vapIniciarModulos() {
-  vapInitPromoForm();
-  vapIniciarListenerCampanhas();
-  vapIniciarListenerPromos();
-  console.log('[VAP-Camp] Módulos iniciados — empresa:', _vapGetCompanyId());
-}
-window.vapIniciarModulos = vapIniciarModulos;
-
-// ══ Nota futura — Integração com Módulo Lançar ══════════════════════════
-// Quando implementada, o Vendedor poderá indicar "origem: Promoção X" ao
-// registrar uma cotação/pedido. Exigirá:
-//   1. Select "Promoção origem" no formulário de Lançar
-//   2. Popular com _vapCampanhasDB / listener de promos ativas
-//   3. Gravar origemPromoId + origemPromoNome no documento Firestore
-//   4. Breakdown "Negócios por Promoção" no Dashboard
-// ════════════════════════════════════════════════════════════════════════</script>
+window.vapPublicarPromo=vapPublicarPromo;
+async function vapApagarPromo(id){if(!confirm('Apagar esta promoção?'))return;try{await deleteDoc(doc(db,'promocoes',id));}catch(e){console.error('[VAP] apagarPromo:',e);alert('Erro ao apagar.');}}
+window.vapApagarPromo=vapApagarPromo;
+function vapTogglePromoDetalhe(id){const el=document.getElementById('vap-promo-det-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+window.vapTogglePromoDetalhe=vapTogglePromoDetalhe;
+function vapIniciarModulos(){vapInitPromoForm();vapIniciarListenerCampanhas();vapIniciarListenerPromos();console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
+window.vapIniciarModulos=vapIniciarModulos;</script>
 
 <script>/* Chart.js 4.4.1 inline */
 /*!
