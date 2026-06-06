@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v3.1.1</title>
+<title>Belezza — Studio Luna v3.1.3-debug</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -449,6 +449,15 @@ function recusar(id){ setTimeout(()=>{ if(window._recusar) window._recusar(id); 
 function abrirModalAg(){ setTimeout(()=>{ if(window._abrirModalAg) window._abrirModalAg(); else console.warn('_abrirModalAg não pronto'); },0); }
 function fecharModalAg(){ if(window._fecharModalAg) window._fecharModalAg(); }
 function salvarNovoAg(){ if(window._salvarNovoAg) window._salvarNovoAg(); }
+function acaoTopbar(){
+  const pane = document.querySelector('.pane.active');
+  const pid = pane ? pane.id : '';
+  if(pid==='pane-p-camp'){ toggleNovaCamp(); return; }
+  if(pid==='pane-p-promos'){ return; }
+  if(pid==='pane-p-equipe'){ if(window.abrirModalProfissional) window.abrirModalProfissional(); return; }
+  if(pid==='pane-p-clientes'){ if(window.abrirModalCliente) window.abrirModalCliente(); return; }
+  abrirModalAg();
+}
 function goTo(id,el){ if(window.goTo) window.goTo(id,el); }
 function goToMob(id,el){ if(window.goToMob) window.goToMob(id,el); }
 function setRole(r,el){ if(window.setRole) window.setRole(r,el); }
@@ -1544,7 +1553,10 @@ function goTo(id,el){
   if(id==='p-dash') setTimeout(initDashboard, 50);
   if(id==='p-agenda') setTimeout(()=>{ if(agView==='hoje') renderAgHoje(); else if(agView==='semana') renderAgSemana(); else renderAgMes(); }, 50);
   if(id==='p-promos') setTimeout(()=>{ if(window.initPromoForm) window.initPromoForm(); }, 50);
-  if(id==='p-camp') setTimeout(()=>{ if(window.initCampForm) window.initCampForm(); }, 50);
+  if(id==='p-camp'){
+    setTimeout(()=>{ if(window.initCampForm) window.initCampForm(); }, 50);
+    document.getElementById('tb-act').style.display = 'none';
+  }
   if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(el){const n=el.closest('.sb-nav');n.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
   showPane(id);closeSB();
@@ -1641,14 +1653,7 @@ function feito2(){
 }
 function encerrarCamp(){document.getElementById('c3').className='step-circle done';document.getElementById('c3').innerHTML='<i class="ti ti-check"></i>';document.getElementById('a3').innerHTML='<span style="font-size:11px;color:var(--tx3)">Campanha encerrada</span>';}
 function toggleNovaCamp(){const f=document.getElementById('nova-camp');f.style.display=f.style.display==='none'?'block':'none';if(f.style.display!=='none' && window.initCampForm) window.initCampForm();}
-function acaoTopbar(){
-  const pane = document.querySelector('.pane.active')?.id || '';
-  if(pane==='pane-p-camp') { toggleNovaCamp(); return; }
-  if(pane==='pane-p-promos') { document.getElementById('pane-p-promos').scrollTop=0; return; }
-  if(pane==='pane-p-equipe') { if(window.abrirModalProfissional) window.abrirModalProfissional(); return; }
-  if(pane==='pane-p-clientes') { if(window.abrirModalCliente) window.abrirModalCliente(); return; }
-  abrirModalAg();
-}
+// acaoTopbar movida para script síncrono
 
 // Dados de agendamentos em memória
 // Agendamentos carregados do Firestore via onSnapshot
@@ -3048,6 +3053,7 @@ function initCampForm() {
 
 // ── Criar campanha no Firestore ───────────────────────────────────────────
 async function criarCampanha() {
+  console.log('[Camp] criarCampanha chamada');
   const nome   = document.getElementById('camp-nome')?.value.trim();
   const tipo   = document.getElementById('camp-tipo')?.value || 'simples';
   const iniDia = parseInt(document.getElementById('camp-ini-dia')?.value);
@@ -3055,6 +3061,7 @@ async function criarCampanha() {
   const fimDia = parseInt(document.getElementById('camp-fim-dia')?.value);
   const fimMes = parseInt(document.getElementById('camp-fim-mes')?.value);
   const errEl  = document.getElementById('camp-erro');
+  console.log('[Camp] dados:', {nome, tipo, iniDia, iniMes, fimDia, fimMes});
 
   if(!nome) { if(errEl) errEl.textContent = 'Informe o nome da campanha.'; return; }
   if(errEl) errEl.textContent = '';
@@ -3073,6 +3080,7 @@ async function criarCampanha() {
   }));
 
   try {
+    console.log('[Camp] gravando no Firestore...');
     await addDoc(collection(db, 'campanhas'), {
       clinicaId:  CLINICA_ID,
       nome,
@@ -3088,6 +3096,7 @@ async function criarCampanha() {
       criadoPor:  cu?.uid || 'admin',
     });
 
+    console.log('[Camp] ✓ campanha criada no Firestore!');
     // Limpa formulário
     document.getElementById('camp-nome').value = '';
     document.getElementById('camp-toast').style.display = 'flex';
@@ -3097,16 +3106,18 @@ async function criarCampanha() {
     }, 2000);
 
   } catch(e) {
-    console.error('[Belezza] criarCampanha:', e);
-    if(errEl) errEl.textContent = 'Erro ao criar. Tente novamente.';
+    console.error('[Camp] ERRO criarCampanha:', e.code, e.message);
+    if(errEl) errEl.textContent = 'Erro: ' + (e.message || 'Tente novamente.');
   }
 }
 
 // ── Listener de campanhas ─────────────────────────────────────────────────
 function iniciarListenerCampanhas() {
+  console.log('[Camp] iniciando listener campanhas...');
   if(unsubCampanhas) unsubCampanhas();
   const q = collection(db, 'campanhas');
   unsubCampanhas = onSnapshot(q, snap => {
+    console.log('[Camp] onSnapshot:', snap.docs.length, 'docs');
     campanhasDB = snap.docs
       .map(d => ({id:d.id,...d.data()}))
       .filter(c => c.clinicaId === CLINICA_ID)
@@ -3118,8 +3129,9 @@ function iniciarListenerCampanhas() {
 
 // ── Renderiza lista de campanhas ──────────────────────────────────────────
 function renderCampanhas(camps) {
+  console.log('[Camp] renderCampanhas:', camps.length, 'campanhas');
   const lista = document.getElementById('camp-lista-dinamica');
-  if(!lista) return;
+  if(!lista){ console.warn('[Camp] camp-lista-dinamica não encontrado!'); return; }
   // Esconde/mostra cards estáticos conforme Firestore
   const staticWrap = document.getElementById('camp-static-wrap');
   if(staticWrap) staticWrap.style.display = camps.length > 0 ? 'none' : 'block';
@@ -3192,8 +3204,9 @@ function renderCampanhas(camps) {
 
 // ── Atualiza select de campanhas no módulo Promoções ─────────────────────
 function atualizarSelectCampanhas(camps) {
+  console.log('[Camp] atualizarSelectCampanhas:', camps.length, 'campanhas');
   const sel = document.getElementById('promo-campanha');
-  if(!sel) return;
+  if(!sel){ console.warn('[Camp] promo-campanha select não encontrado'); return; }
   const ativas = camps.filter(c => c.status === 'ativa');
   sel.innerHTML = '<option value="">Sem campanha</option>' +
     ativas.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
