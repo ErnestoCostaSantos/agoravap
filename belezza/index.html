@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v3.1.5</title>
+<title>Belezza — Studio Luna v3.1.6</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -3054,7 +3054,6 @@ function initCampForm() {
 
 // ── Criar campanha no Firestore ───────────────────────────────────────────
 async function criarCampanha() {
-  console.log('[Camp] criarCampanha chamada');
   const nome   = document.getElementById('camp-nome')?.value.trim();
   const tipo   = document.getElementById('camp-tipo')?.value || 'simples';
   const iniDia = parseInt(document.getElementById('camp-ini-dia')?.value);
@@ -3062,7 +3061,6 @@ async function criarCampanha() {
   const fimDia = parseInt(document.getElementById('camp-fim-dia')?.value);
   const fimMes = parseInt(document.getElementById('camp-fim-mes')?.value);
   const errEl  = document.getElementById('camp-erro');
-  console.log('[Camp] dados:', {nome, tipo, iniDia, iniMes, fimDia, fimMes});
 
   if(!nome) { if(errEl) errEl.textContent = 'Informe o nome da campanha.'; return; }
   if(errEl) errEl.textContent = '';
@@ -3081,7 +3079,6 @@ async function criarCampanha() {
   }));
 
   try {
-    console.log('[Camp] gravando no Firestore...');
     await addDoc(collection(db, 'campanhas'), {
       clinicaId:  CLINICA_ID,
       nome,
@@ -3097,7 +3094,6 @@ async function criarCampanha() {
       criadoPor:  cu?.uid || 'admin',
     });
 
-    console.log('[Camp] ✓ campanha criada no Firestore!');
     // Limpa formulário
     document.getElementById('camp-nome').value = '';
     document.getElementById('camp-toast').style.display = 'flex';
@@ -3114,15 +3110,14 @@ async function criarCampanha() {
 
 // ── Listener de campanhas ─────────────────────────────────────────────────
 function iniciarListenerCampanhas() {
-  console.log('[Camp] iniciando listener campanhas...');
   if(unsubCampanhas) unsubCampanhas();
   const q = collection(db, 'campanhas');
   unsubCampanhas = onSnapshot(q, snap => {
-    console.log('[Camp] onSnapshot:', snap.docs.length, 'docs');
     campanhasDB = snap.docs
       .map(d => ({id:d.id,...d.data()}))
       .filter(c => c.clinicaId === CLINICA_ID)
       .sort((a,b) => a.criadoEm > b.criadoEm ? -1 : 1);
+    window.campanhasDB = campanhasDB; // mantém referência global atualizada
     renderCampanhas(campanhasDB);
     atualizarSelectCampanhas(campanhasDB);
   }, err => { console.warn('[Belezza] campanhas:', err); });
@@ -3130,9 +3125,8 @@ function iniciarListenerCampanhas() {
 
 // ── Renderiza lista de campanhas ──────────────────────────────────────────
 function renderCampanhas(camps) {
-  console.log('[Camp] renderCampanhas:', camps.length, 'campanhas');
   const lista = document.getElementById('camp-lista-dinamica');
-  if(!lista){ console.warn('[Camp] camp-lista-dinamica não encontrado!'); return; }
+  if(!lista) return;
   // Esconde/mostra cards estáticos conforme Firestore
   const staticWrap = document.getElementById('camp-static-wrap');
   if(staticWrap) staticWrap.style.display = camps.length > 0 ? 'none' : 'block';
@@ -3205,9 +3199,8 @@ function renderCampanhas(camps) {
 
 // ── Atualiza select de campanhas no módulo Promoções ─────────────────────
 function atualizarSelectCampanhas(camps) {
-  console.log('[Camp] atualizarSelectCampanhas:', camps.length, 'campanhas');
   const sel = document.getElementById('promo-campanha');
-  if(!sel){ console.warn('[Camp] promo-campanha select não encontrado'); return; }
+  if(!sel) return;
   const ativas = camps.filter(c => c.status === 'ativa');
   sel.innerHTML = '<option value="">Sem campanha</option>' +
     ativas.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
@@ -3244,6 +3237,7 @@ async function encerrarCampanha(campId) {
 
 // ── Expõe funções (padrão reutilizável) ───────────────────────────────────
 window.criarCampanha          = criarCampanha;
+window.campanhasDB            = campanhasDB; // referência atualizada pelo listener
 window.iniciarListenerCampanhas = iniciarListenerCampanhas;
 window.marcarEtapaEnviada     = marcarEtapaEnviada;
 window.adjCamp                = adjCamp;
@@ -3262,15 +3256,16 @@ function initPromoForm() {
     profSel.innerHTML = '<option value="">Equipe (qualquer uma)</option>' +
       (window.equipeDB||[]).filter(p=>p.ativa).map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
   }
-  // Popula select de campanhas (estáticas por ora — futuramente do Firestore)
-  const campSel = document.getElementById('promo-campanha');
-  if(campSel){
-    const campanhasAtivas = ['Dia dos Namorados 2026', 'Dia da Beleza — Maio'];
-    // Tenta pegar do DOM as campanhas cadastradas
-    const campNomes = Array.from(document.querySelectorAll('.camp-name')).map(el => el.textContent.trim());
-    const lista = campNomes.length > 0 ? campNomes : campanhasAtivas;
-    campSel.innerHTML = '<option value="">Sem campanha</option>' +
-      lista.map(c=>`<option value="${c}">${c}</option>`).join('');
+  // Popula select de campanhas do Firestore (campanhasDB já carregado)
+  if(typeof atualizarSelectCampanhas === 'function') {
+    atualizarSelectCampanhas(campanhasDB);
+  } else if(window.campanhasDB) {
+    const sel = document.getElementById('promo-campanha');
+    if(sel){
+      const ativas = window.campanhasDB.filter(c => c.status === 'ativa');
+      sel.innerHTML = '<option value="">Sem campanha</option>' +
+        ativas.map(c=>`<option value="${c.nome}">${c.nome}</option>`).join('');
+    }
   }
   ['promo-ini', 'promo-fim'].forEach(pref => {
     const diaEl = document.getElementById(pref + '-dia');
