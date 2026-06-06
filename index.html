@@ -1081,17 +1081,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="help-section">
           <h2>1. Apresentação do AgoraVAP!</h2>
           <p>O AgoraVAP! é um sistema, versão web e app, de gestão comercial desenvolvido para equipes de vendas B2B. Ele não é um sistema transacional como ERP ou CRM.</p>
-          <p>A plataforma permite centralizar diariamente os registros feitos pelos agentes de vendas definidos pela empresa cliente, de seus contatos realizados, cotações, pedidos fechados e perdas. Assim, oferece visibilidade em tempo real da performance aos próprios profissionais e ao líder da equipe, para fins de tomada de decisão gerencial.</p>
-          <p>Com uma interface simples e intuitiva — dividida em 7 grandes módulos (Lançar, Histórico, Dashboard, Administrativo, Acesso, Configuração e Ajuda) — o AgoraVAP! minimiza o uso de planilhas e registros dispersos que não trafegam entre todos os envolvidos na área comercial.</p>
-          <p>A partir da <b>versão 3.0</b>, o AgoraVAP! suporta <b>múltiplas empresas</b> em uma única plataforma — cada empresa com seus próprios usuários, dados, personalização visual e isolamento total de informações.</p>
+          <p>A plataforma permite centralizar diariamente os registros feitos pelos agentes de vendas, de seus contatos realizados, cotações, pedidos fechados e perdas. Assim, oferece visibilidade em tempo real da performance aos próprios profissionais e ao líder da equipe.</p>
+          <p>A <b>versão 4.0</b> adiciona os módulos de <b>Campanhas</b>, <b>Promoções</b> e <b>Ranking de Clientes</b>, permitindo ao Líder criar ações de relacionamento e ao Vendedor registrar resultados vinculados a cada promoção.</p>
           <div class="help-tip">O sistema é indicado para equipes com ciclo de vendas consultivo, onde o acompanhamento de funil, taxas de conversão e ticket médio são indicadores críticos de performance.</div>
         </div>
         <div class="divider"></div>
 
-        <!-- 2. MÓDULOS E FUNCIONALIDADES -->
+        <!-- 2. MÓDULOS -->
         <div class="help-section">
           <h2>2. Módulos e Funcionalidades</h2>
-          <p>O AgoraVAP! é organizado em 7 módulos principais, cada um com função específica no ciclo de gestão comercial.</p>
 
           <h3>2.1 Módulo Lançar</h3>
           <p>Ponto de entrada diário do profissional. Permite registrar contatos, cotações, pedidos e perdas por data selecionável. Datas futuras não são permitidas.</p>
@@ -1110,7 +1108,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Período</b> — campos "De" e "Até" para filtrar um intervalo de datas</li>
             <li><b>Mês</b> — seleciona um mês inteiro de uma vez</li>
           </ul>
-          <p>Combinado com filtros de Tipo e Profissional (Líder). Uma linha de resumo exibe totais do período. Registros ordenados do mais recente para o mais antigo.</p>
+          <p>Combinado com filtros de Tipo e Profissional (Líder). Registros ordenados do mais recente para o mais antigo.</p>
           <div class="help-tip">O botão <b>⚠ Apagar Registros</b> fica à direita da barra para evitar cliques acidentais. Apenas Líderes.</div>
 
           <h3>2.3 Módulo Dashboard</h3>
@@ -1120,14 +1118,45 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Pedidos/Cotações</b> — Pedidos ÷ Cotações (R$) × 100</li>
             <li><b>Ticket Médio</b> — Receita total ÷ número de pedidos</li>
             <li><b>Total Perdido</b> — Soma de todas as perdas do mês</li>
+            <li><b>Filtro por Vendedor</b> — Select dropdown (Líder/SuperAdmin) — filtra os 3 gráficos e 4 cards para um vendedor individual</li>
             <li><b>Vendas vs. Cotações</b> — Gráfico de linhas com 31 dias e linha de meta tracejada</li>
             <li><b>Motivos de Perda</b> — Rosca: Preço, Estoque, Outras</li>
             <li><b>Contatos por Origem</b> — Barras horizontais com 7 origens</li>
           </ul>
+
+          <h3>2.4 Módulo Campanhas <span style="font-size:.75rem;background:#FED7D7;color:#9B2C2C;padding:2px 8px;border-radius:10px;margin-left:6px">Líder</span></h3>
+          <p>Permite criar e acompanhar campanhas de relacionamento com clientes, com etapas automáticas e integração com WhatsApp.</p>
+          <ul>
+            <li><b>Tipos</b> — Simples (3 etapas), VIP (3 etapas com oferta exclusiva), Flash (2 etapas)</li>
+            <li><b>Etapas automáticas</b> — Datas calculadas proporcionalmente entre início e fim da campanha</li>
+            <li><b>WhatsApp</b> — Botão abre o app com mensagem pré-preenchida da etapa</li>
+            <li><b>Marcar enviado</b> — Registra a etapa como concluída com data e hora</li>
+            <li><b>Contadores</b> — Participantes e negócios gerados ajustados com + e −</li>
+          </ul>
+
+          <h3>2.5 Módulo Promoções</h3>
+          <p>O Líder publica promoções vinculadas a campanhas. O Vendedor visualiza em leitura e registra diariamente o valor vendido por promoção.</p>
+          <ul>
+            <li><b>Líder</b> — Cria promoção com nome, canal, responsável, campanha, produtos, validade, valor e imagem (qualquer formato)</li>
+            <li><b>Líder</b> — Vê total vendido por promoção e breakdown por vendedor ao expandir o card</li>
+            <li><b>Vendedor</b> — Campo "Hoje (DD/MM/AAAA)" editável em cada card de promoção ativa</li>
+            <li><b>Vendedor</b> — Acumulado do período: soma de todos os seus dias desde o início da promoção</li>
+            <li><b>Edição</b> — O vendedor pode corrigir o valor do dia quantas vezes quiser — não duplica</li>
+          </ul>
+          <div class="help-tip">A imagem da promoção é automaticamente redimensionada e salva. Qualquer formato é aceito: post, reels, banner.</div>
+
+          <h3>2.6 Ranking de Clientes</h3>
+          <p>O Vendedor registra manualmente seus clientes com o valor de pedidos do período. O Líder vê o consolidado da equipe com medalhas.</p>
+          <ul>
+            <li><b>Vendedor</b> (aba Promoções, seção inferior) — Informa: nome do cliente, valor R$, mês e ano</li>
+            <li><b>Vendedor</b> — Vê seus próprios lançamentos e o ranking geral do período</li>
+            <li><b>Líder</b> (aba Campanhas, seção inferior) — Ranking consolidado com 🥇🥈🥉 e seletor de período</li>
+            <li><b>Tempo real</b> — Ao Vendedor lançar, o Líder vê imediatamente</li>
+          </ul>
         </div>
         <div class="divider"></div>
 
-        <!-- 3. MÓDULO ACESSO -->
+        <!-- 3. ACESSO -->
         <div class="help-section">
           <h2>3. Módulo Acesso</h2>
 
@@ -1139,10 +1168,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <div class="help-tip">⚠️ A senha provisória é sensível a maiúsculas/minúsculas. Copie e repasse exatamente como aparece.</div>
 
           <h3>Restaurar usuário removido</h3>
-          <p>Se um profissional foi removido e precisa ser recadastrado, basta informar o mesmo e-mail no formulário de cadastro. O sistema detecta automaticamente e restaura o acesso, enviando um e-mail de redefinição de senha para o profissional.</p>
+          <p>Se um profissional foi removido e precisa ser recadastrado, basta informar o mesmo e-mail no formulário de cadastro. O sistema detecta automaticamente e restaura o acesso.</p>
 
           <h3>Primeiro acesso</h3>
-          <p>No primeiro login — seja com usuário novo ou restaurado — o profissional é direcionado para uma tela onde define seu <b>nome completo</b> e cria sua <b>senha definitiva</b>. A senha provisória não é mais necessária após esse passo.</p>
+          <p>No primeiro login, o profissional é direcionado para uma tela onde define seu <b>nome completo</b> e cria sua <b>senha definitiva</b>.</p>
 
           <h3>Critérios da senha</h3>
           <ul>
@@ -1160,7 +1189,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         </div>
         <div class="divider"></div>
 
-        <!-- 4. MÓDULO ADMINISTRATIVO -->
+        <!-- 4. ADMINISTRATIVO -->
         <div class="help-section">
           <h2>4. Módulo Administrativo</h2>
 
@@ -1188,12 +1217,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         </div>
         <div class="divider"></div>
 
-        <!-- 5. PERFIS DE ACESSO -->
+        <!-- 5. PERFIS -->
         <div class="help-section">
           <h2>5. Perfis de Acesso</h2>
           <ul>
-            <li><b>Vendedor / Profissional</b> — Lança e consulta apenas seus próprios dados.</li>
-            <li><b>Líder</b> — Visualiza dados de toda a equipe da sua empresa, gerencia profissionais, metas e exportações.</li>
+            <li><b>Vendedor / Profissional</b> — Lança e consulta apenas seus próprios dados. Registra vendas por promoção e clientes no ranking. Abas: Lançar, Histórico, Dashboard, Promoções, Ajuda.</li>
+            <li><b>Líder</b> — Visualiza dados de toda a equipe, gerencia profissionais, metas e exportações. Cria e gerencia Campanhas e Promoções. Acessa todas as abas (exceto Super Admin).</li>
             <li><b>Super Admin</b> — Perfil exclusivo ECS. Gerencia todas as empresas da plataforma e visualiza dados de qualquer empresa.</li>
           </ul>
           <div class="help-tip">Cada empresa tem seus dados completamente isolados — um Líder nunca vê dados de outra empresa.</div>
@@ -1219,7 +1248,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         </div>
         <div class="divider"></div>
 
-        <!-- 6. SIMULAÇÃO DE VENDAS B2B -->
+        <!-- 6. SIMULAÇÃO -->
         <div class="help-section">
           <h2>6. Simulação de Vendas B2B</h2>
           <p>Simulação completa de três meses de operação para uma equipe de três vendedores B2B. Ciclo dividido em: Descoberta, Ativação, Negociação e Fechamento.</p>
@@ -1294,7 +1323,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         </div>
         <div class="divider"></div>
 
-        <!-- 7. OBSERVAÇÃO LEGAL -->
+        <!-- 7. LEGAL -->
         <div class="help-section">
           <h2>7. Observação Legal</h2>
           <p>Demais condições de uso, Termos de Uso e Garantias devem ser acessadas, lidas e ter o <b>"De Acordo"</b> do cliente responsável no site:</p>
@@ -1306,7 +1335,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <p style="margin-top:1rem">Para suporte técnico ou dúvidas, entre em contato:</p>
           <p><b>E-mail:</b> contato@ernestocostasantos.com.br</p>
           <p><b>Site:</b> <a href="https://ernestocostasantos.com.br/agoravap" target="_blank" style="color:#C53030">https://ernestocostasantos.com.br/agoravap</a></p>
-          <p style="margin-top:.8rem;color:var(--gray);font-size:.85rem">AgoraVAP! — Versão 3.0 · 2026</p>
+          <p style="margin-top:.8rem;color:var(--gray);font-size:.85rem">AgoraVAP! — Versão 4.0 · 2026</p>
         </div>
 
       </div>
