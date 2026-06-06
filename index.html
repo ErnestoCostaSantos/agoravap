@@ -3918,23 +3918,109 @@ function _vapRenderPromosPro(promos){
   if(promos.length===0){lista.innerHTML='<div style="color:#95A5A6;font-size:13px;padding:10px 0">Nenhuma promoção publicada ainda.</div>';return;}
   lista.innerHTML=promos.map(p=>{
     const det=[p.campanha?`Campanha: ${p.campanha}`:'',p.responsavel?`Responsável: ${p.responsavel}`:'',p.canal?`Canal: ${p.canal}`:'',p.servicos?`Itens: ${p.servicos.replace(/\n/g,', ')}`:'',((p.validadeIni||p.validadeFim)?`Validade: ${p.validadeIni||''} → ${p.validadeFim||'—'}`:''),p.precoDe?`De R$ ${p.precoDe} por R$ ${p.precoPor}`:(p.precoPor?`R$ ${p.precoPor}`:'')].filter(Boolean).join(' · ');
-    const imgDetalhe = p.imagemUrl
-      ? `<img src="${p.imagemUrl}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px">`
-      : '';
-    return `<div class="rec-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch;cursor:pointer" onclick="vapTogglePromoDetalhe('${p.id}')"><div style="display:flex;align-items:center;gap:8px">${p.imagemUrl?`<img src="${p.imagemUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0">`:''}<div style="flex:1;min-width:0"><div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}</div><div class="rec-meta">${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}${p.responsavel?' · '+p.responsavel:''}</div></div><button onclick="event.stopPropagation();vapApagarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;padding:4px"><i class="ti ti-trash" style="font-size:16px"></i></button></div><div id="vap-promo-det-${p.id}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;color:#566573;line-height:1.7">${imgDetalhe}${det}</div></div>`;
+    const imgDetalhe=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px">`:'';
+    return `
+      <div class="rec-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch">
+        <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="vapTogglePromoDetalhe('${p.id}')">
+          ${p.imagemUrl?`<img src="${p.imagemUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0">`:''}
+          <div style="flex:1;min-width:0">
+            <div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}</div>
+            <div class="rec-meta">${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}${p.responsavel?' · '+p.responsavel:''}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:10px;color:#95A5A6">Total vendido</div>
+            <div style="font-size:13px;font-weight:700;color:#C53030" id="vap-lider-acum-${p.id}">R$ —</div>
+          </div>
+          <button onclick="event.stopPropagation();vapApagarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;padding:4px"><i class="ti ti-trash" style="font-size:16px"></i></button>
+        </div>
+        <div id="vap-promo-det-${p.id}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;color:#566573;line-height:1.7">
+          ${imgDetalhe}${det}
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+            <div style="font-weight:700;margin-bottom:6px">Vendas por vendedor</div>
+            <div id="vap-lider-breakdown-${p.id}" style="font-size:11px;color:#95A5A6">Carregando...</div>
+          </div>
+        </div>
+      </div>`;
   }).join('');
+  // Carregar acumulados do Líder para cada promoção
+  vapCarregarAcumLider(promos);
 }
+// Auxiliar: formata YYYY-MM-DD para DD/MM/YYYY
+function _vapFmtBR(iso){if(!iso)return'';const[a,m,d]=iso.split('-');return`${d}/${m}/${a}`;}
+
+// Auxiliar: converte DD/MM/YYYY ou DD/MM/YY para Date (para comparação)
+function _vapParseDataBR(str){
+  if(!str)return null;
+  const p=str.split('/');
+  if(p.length!==3)return null;
+  return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+}
+
+// Estado local: vendas do dia por promoção (promoId → {docId, valor})
+let _vapVendasHoje = {};
+let _vapVendasAcum = {}; // promoId → valor acumulado do vendedor no período
+let _vapUnsubVendas = null;
+
 function _vapRenderPromosVendedor(promos){
   const lista=document.getElementById('vap-promo-lista-vendedor');if(!lista)return;
-  const hoje=new Date();
-  const ativas=promos.filter(p=>{if(!p.validadeFim)return true;const[dd,mm,aa]=p.validadeFim.split('/');return new Date(parseInt(aa),parseInt(mm)-1,parseInt(dd))>=hoje;});
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const ativas=promos.filter(p=>{
+    if(!p.validadeFim)return true;
+    const fim=_vapParseDataBR(p.validadeFim);
+    return fim && fim>=hoje;
+  });
   if(ativas.length===0){lista.innerHTML='<div style="color:#95A5A6;font-size:13px;text-align:center;padding:20px 0">Nenhuma promoção ativa no momento.</div>';return;}
   lista.innerHTML=ativas.map(p=>{
     const pills=(p.servicos||'').split('\n').filter(s=>s.trim()).map(s=>`<span class="pill">${s.trim()}</span>`).join('');
     const preco=p.precoDe?`<span class="p-old">R$ ${p.precoDe}</span><span class="p-new">R$ ${p.precoPor||'—'}</span>`:`<span class="p-new">R$ ${p.precoPor||'—'}</span>`;
     const bc=p.campanha?`<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`:'';
     const img=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px">`:'';
-    return `<div class="promo-card"><div class="promo-top"><span class="promo-badge"><i class="ti ti-tag"></i> ${p.canal||'Interno'}</span><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${bc}</div></div><div class="promo-body">${img}<div class="promo-title">${p.nome}</div>${p.responsavel?`<div style="font-size:11px;color:#566573;margin-bottom:4px"><i class="ti ti-user" style="font-size:10px"></i> ${p.responsavel}</div>`:''} ${p.validadeFim?`<div style="font-size:11px;color:#566573;margin-bottom:6px">Válido até ${p.validadeFim}</div>`:''}<div class="pills">${pills}</div><div class="promo-ft"><div>${preco}</div><span style="font-size:11px;color:#95A5A6">Referência para lançamentos</span></div></div></div>`;
+    const vendaHoje=_vapVendasHoje[p.id]||{valor:0};
+    const acum=_vapVendasAcum[p.id]||0;
+    return `
+      <div class="promo-card">
+        <div class="promo-top">
+          <span class="promo-badge"><i class="ti ti-tag"></i> ${p.canal||'Interno'}</span>
+          <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${bc}</div>
+        </div>
+        <div class="promo-body">
+          ${img}
+          <div class="promo-title">${p.nome}</div>
+          ${p.responsavel?`<div style="font-size:11px;color:#566573;margin-bottom:4px"><i class="ti ti-user" style="font-size:10px"></i> ${p.responsavel}</div>`:''}
+          ${p.validadeFim?`<div style="font-size:11px;color:#566573;margin-bottom:6px">Válido até ${p.validadeFim}</div>`:''}
+          <div class="pills">${pills}</div>
+          <div class="promo-ft"><div>${preco}</div></div>
+
+          <!-- Registro de venda do dia -->
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;color:#566573;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Minhas vendas desta promoção</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+              <div style="flex:1;min-width:120px">
+                <div style="font-size:10px;color:#95A5A6;margin-bottom:3px">Hoje (${_vapFmtBR(new Date().toISOString().slice(0,10))})</div>
+                <div style="display:flex;gap:4px;align-items:center">
+                  <span style="font-size:11px;font-weight:600;color:#566573">R$</span>
+                  <input type="text" inputmode="decimal"
+                    id="vap-vp-${p.id}"
+                    value="${vendaHoje.valor>0?vendaHoje.valor.toFixed(2).replace('.',','):''}"
+                    placeholder="0,00"
+                    style="flex:1;padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--pk200);font-size:13px;background:var(--pk50);color:#C53030;font-weight:700;max-width:120px">
+                  <button onclick="vapRegistrarVendaPromo('${p.id}','${p.nome.replace(/'/g,"\'")}')"
+                    style="padding:5px 10px;border-radius:var(--rsm);border:none;background:var(--p,#E53E3E);color:#fff;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">
+                    <i class="ti ti-check"></i> Salvar
+                  </button>
+                </div>
+              </div>
+              <div style="text-align:right;min-width:100px">
+                <div style="font-size:10px;color:#95A5A6;margin-bottom:3px">Acumulado do período</div>
+                <div style="font-size:15px;font-weight:700;color:#C53030" id="vap-vacum-${p.id}">
+                  R$ ${acum.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+                </div>
+              </div>
+            </div>
+            <div id="vap-vp-msg-${p.id}" style="font-size:11px;color:var(--tl800);min-height:14px"></div>
+          </div>
+        </div>
+      </div>`;
   }).join('');
 }
 async function vapPublicarPromo(){
@@ -3984,7 +4070,118 @@ async function vapApagarPromo(id){if(!confirm('Apagar esta promoção?'))return;
 window.vapApagarPromo=vapApagarPromo;
 function vapTogglePromoDetalhe(id){const el=document.getElementById('vap-promo-det-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 window.vapTogglePromoDetalhe=vapTogglePromoDetalhe;
-function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
+// ── Vendas por Promoção ───────────────────────────────────────────────────
+
+// Registrar venda do dia (vendedor)
+async function vapRegistrarVendaPromo(promoId, promoNome) {
+  const CID = _vapGetCompanyId(); if (!CID) return;
+  const input = document.getElementById('vap-vp-' + promoId);
+  const msgEl = document.getElementById('vap-vp-msg-' + promoId);
+  if (!input) return;
+  const raw = input.value.replace(/[^0-9.,]/g,'').replace(',','.');
+  const valor = parseFloat(raw) || 0;
+  if (valor <= 0) { if(msgEl) msgEl.textContent='Informe um valor válido.'; return; }
+  const hoje = new Date().toISOString().slice(0,10); // YYYY-MM-DD (interno)
+  const meuUid = cu?.uid || '';
+  const meuNome = cp?.name || '';
+  try {
+    // Verificar se já existe registro hoje para esta promoção deste vendedor
+    const snap = await getDocs(collection(db,'vendas_promo'));
+    const existente = snap.docs.find(d => {
+      const r = d.data();
+      return r.companyId===CID && r.promoId===promoId && r.vendedorUid===meuUid && r.data===hoje;
+    });
+    if (existente) {
+      await updateDoc(doc(db,'vendas_promo',existente.id), { valor, atualizadoEm: new Date().toISOString() });
+    } else {
+      await addDoc(collection(db,'vendas_promo'), {
+        companyId: CID, promoId, promoNome,
+        vendedorUid: meuUid, vendedor: meuNome,
+        data: hoje, valor,
+        criadoEm: new Date().toISOString(),
+        atualizadoEm: new Date().toISOString(),
+      });
+    }
+    _vapVendasHoje[promoId] = { valor };
+    if (msgEl) { msgEl.textContent = 'Salvo!'; setTimeout(()=>msgEl.textContent='', 2000); }
+    // Atualiza acumulado na tela sem re-render
+    const acumEl = document.getElementById('vap-vacum-' + promoId);
+    if (acumEl) {
+      _vapVendasAcum[promoId] = (_vapVendasAcum[promoId] || 0);
+      // Re-calcula do snapshot atual
+    }
+  } catch(e) {
+    console.error('[VAP] registrarVendaPromo:', e);
+    if (msgEl) msgEl.textContent = 'Erro ao salvar. Tente novamente.';
+  }
+}
+window.vapRegistrarVendaPromo = vapRegistrarVendaPromo;
+
+// Listener de vendas_promo — atualiza vendaHoje e acumulados do vendedor em tempo real
+let _vapUnsubVendasPromo = null;
+function vapIniciarListenerVendasPromo() {
+  const CID = _vapGetCompanyId(); if (!CID) return;
+  if (_vapUnsubVendasPromo) _vapUnsubVendasPromo();
+  const hoje = new Date().toISOString().slice(0,10);
+  const meuUid = cu?.uid || '';
+  _vapUnsubVendasPromo = onSnapshot(collection(db,'vendas_promo'), snap => {
+    const docs = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(r => r.companyId === CID);
+    // Vendas de hoje do vendedor logado
+    _vapVendasHoje = {};
+    docs.filter(r => r.vendedorUid===meuUid && r.data===hoje)
+      .forEach(r => { _vapVendasHoje[r.promoId] = { id: r.id, valor: r.valor }; });
+    // Acumulado do período por promoção (só do vendedor logado)
+    _vapVendasAcum = {};
+    docs.filter(r => r.vendedorUid === meuUid)
+      .forEach(r => { _vapVendasAcum[r.promoId] = (_vapVendasAcum[r.promoId]||0) + r.valor; });
+    // Atualizar campos na tela sem re-render completo
+    Object.entries(_vapVendasHoje).forEach(([pid, v]) => {
+      const inp = document.getElementById('vap-vp-' + pid);
+      if (inp && document.activeElement !== inp) inp.value = v.valor > 0 ? v.valor.toFixed(2).replace('.',',') : '';
+    });
+    Object.entries(_vapVendasAcum).forEach(([pid, total]) => {
+      const el = document.getElementById('vap-vacum-' + pid);
+      if (el) el.textContent = 'R$ ' + total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    });
+    // Zerrar acumulados de promoções sem registro
+    document.querySelectorAll('[id^="vap-vacum-"]').forEach(el => {
+      const pid = el.id.replace('vap-vacum-','');
+      if (!_vapVendasAcum[pid]) el.textContent = 'R$ 0,00';
+    });
+  }, err => console.warn('[VAP] listener vendasPromo:', err));
+}
+window.vapIniciarListenerVendasPromo = vapIniciarListenerVendasPromo;
+
+// Carregar acumulados para o Líder (total de todos os vendedores por promoção)
+async function vapCarregarAcumLider(promos) {
+  const CID = _vapGetCompanyId(); if (!CID || !promos || !promos.length) return;
+  try {
+    const snap = await getDocs(collection(db,'vendas_promo'));
+    const docs = snap.docs.map(d=>({id:d.id,...d.data()})).filter(r => r.companyId===CID);
+    promos.forEach(p => {
+      const vendas = docs.filter(r => r.promoId === p.id);
+      const total = vendas.reduce((s,r) => s + (r.valor||0), 0);
+      // Total geral
+      const acumEl = document.getElementById('vap-lider-acum-' + p.id);
+      if (acumEl) acumEl.textContent = 'R$ ' + total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+      // Breakdown por vendedor
+      const bdEl = document.getElementById('vap-lider-breakdown-' + p.id);
+      if (bdEl) {
+        if (vendas.length === 0) { bdEl.textContent = 'Nenhuma venda registrada ainda.'; return; }
+        const porVend = {};
+        vendas.forEach(r => { porVend[r.vendedor] = (porVend[r.vendedor]||0) + r.valor; });
+        bdEl.innerHTML = Object.entries(porVend)
+          .sort((a,b) => b[1]-a[1])
+          .map(([nome,val]) => `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)"><span>${nome}</span><span style="font-weight:600;color:#C53030">R$ ${val.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>`)
+          .join('');
+      }
+    });
+  } catch(e) { console.error('[VAP] acumLider:', e); }
+}
+window.vapCarregarAcumLider = vapCarregarAcumLider;
+
+function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
 window.vapIniciarModulos=vapIniciarModulos;</script>
 
 <script>/* Chart.js 4.4.1 inline */
