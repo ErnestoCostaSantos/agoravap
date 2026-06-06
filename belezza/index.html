@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v3.1.6</title>
+<title>Belezza — Studio Luna v3.2.0</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1191,6 +1191,7 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
         <button class="help-cat" onclick="filterCat('fidelidade',this)">Fidelidade</button>
         <button class="help-cat" onclick="filterCat('agendamentos',this)">Agendamentos</button>
         <button class="help-cat" onclick="filterCat('agenda',this)">Agenda</button>
+        <button class="help-cat" onclick="filterCat('campanhas',this)">Campanhas</button>
         <button class="help-cat" onclick="filterCat('versaocliente',this)">Versão Cliente</button>
         <button class="help-cat" onclick="filterCat('imagens',this)">Imagens</button>
         <button class="help-cat" onclick="filterCat('equipe',this)">Equipe</button>
@@ -1485,6 +1486,16 @@ const faqs=[
   {cat:'promos',q:'Como ver os detalhes de uma promoção publicada?',a:'Na lista de promoções publicadas, clique em qualquer item para expandir os detalhes: campanha vinculada, profissional, canal, serviços, validade e preço. Clique novamente para recolher.'},
   {cat:'versaocliente',q:'Como a cliente vê o status do agendamento de uma promoção?',a:'No card da promoção aparece um badge com o status pessoal da cliente: "Aguardando" (amarelo) quando aguarda confirmação, "Confirmado ✓" (verde) quando confirmado, ou "Não disponível" (vermelho) quando recusado. O badge atualiza em tempo real.'},
   {cat:'agendamentos',q:'Como apagar um agendamento do histórico?',a:'Na aba Agendamentos (versão cliente), agendamentos com status "Confirmado" ou "Não disponível" têm um botão "Apagar" cinza abaixo do card. Ao clicar, o app pede confirmação e remove do histórico permanentemente.'},
+
+  // ── Campanhas (v3.1) ─────────────────────────────────────────────────────
+  {cat:'campanhas',q:'Como criar uma campanha?',a:'Na aba Campanhas, clique em "+ Criar nova campanha". Preencha o nome, tipo (Simples, VIP ou Flash), data de início e encerramento. O app calcula automaticamente as datas de cada etapa. Clique em "Criar campanha".'},
+  {cat:'campanhas',q:'Quais são os tipos de campanha disponíveis?',a:'Simples: 3 etapas padrão (Lançamento, Aquecimento, Finalização). VIP: 3 etapas com oferta exclusiva para clientes selecionadas. Flash: 2 etapas para campanhas de curtíssimo prazo (1 dia).'},
+  {cat:'campanhas',q:'Como executar uma etapa da campanha?',a:'Em cada etapa, clique em "Abrir WhatsApp" para enviar a mensagem sugerida ao grupo. Após enviar, volte ao app e clique em "Marcar enviado" — a etapa fica marcada como Concluída e a próxima é liberada.'},
+  {cat:'campanhas',q:'Posso editar a mensagem sugerida de uma etapa?',a:'A mensagem abre pré-preenchida no WhatsApp onde pode ser editada antes de enviar. No app a mensagem é fixa por tipo de campanha.'},
+  {cat:'campanhas',q:'Como atualizar os contadores de participantes e agendamentos?',a:'Use os botões + e − ao lado de cada contador diretamente no card da campanha. Os valores são salvos no Firestore em tempo real.'},
+  {cat:'campanhas',q:'Como encerrar uma campanha?',a:'No card da campanha, clique em "Encerrar campanha" no final. A campanha fica com badge "Encerrada" e não aparece mais no select de campanhas do módulo Promoções.'},
+  {cat:'campanhas',q:'O que acontece com uma campanha encerrada?',a:'Ela fica visível na lista com opacidade reduzida e badge "Encerrada" para consulta histórica, mas não pode mais receber novas etapas ou ser vinculada a promoções.'},
+  {cat:'campanhas',q:'Como vincular uma campanha a uma promoção?',a:'Ao criar uma promoção, use o campo "Campanha (opcional)" — ele lista automaticamente todas as campanhas ativas. A mesma promoção pode ser usada em campanhas diferentes criando novas promoções vinculadas.'},
 ];
 let curCat='todos',curSearch='';
 function renderFaq(){
