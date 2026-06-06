@@ -2049,7 +2049,7 @@ function startListeners(){
     renderMetricsDia();
     const ap = document.querySelector('.panel.active')?.id;
     if(ap==='panel-historico') renderHistorico();
-    if(ap==='panel-dashboard') renderDashboard();
+    if(ap==='panel-dashboard'){ window._dashFiltroUid=''; renderDashboard(); }
   });
 
   // Users — SuperAdmin com empresa selecionada filtra por ela
@@ -2537,7 +2537,7 @@ function renderHistorico(){
 }
 
 // ── Dashboard ─────────────────────────────────────────────
-function renderDashboard(){
+function renderDashboard(filtroUid){
   const isLider=cp?.role==='lider';
   const isSuperAdm=cp?.role==='superadmin';
   const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
@@ -2547,13 +2547,18 @@ function renderDashboard(){
   if(isSuperAdm && _companyId){
     recs = _recs.filter(r => r.companyId === _companyId);
   } else if(isSuperAdm){
-    recs = [..._recs]; // SuperAdmin sem empresa selecionada vê tudo
+    recs = [..._recs];
   } else if(isLider && cid){
     recs = _recs.filter(r => r.companyId === cid);
   } else if(!isLider && cid){
     recs = _recs.filter(r => r.uid === cu.uid && r.companyId === cid);
   } else {
     recs = [..._recs];
+  }
+  // Filtro por vendedor (Líder/SuperAdmin)
+  const uid_filtro = filtroUid || window._dashFiltroUid || '';
+  if((isLider||isSuperAdm) && uid_filtro){
+    recs = recs.filter(r => r.uid === uid_filtro);
   }
   const mr=recs.filter(r=>r.date?.startsWith(mes));
   const cots=mr.filter(r=>r.tipo==='cotacoes');
@@ -2665,8 +2670,23 @@ function renderDashboard(){
 
     ${rankHtml}
 
+    ${(isLider||isSuperAdm)?`
+    <div class="fcard" style="padding:.6rem 1rem;margin-bottom:.75rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:12px;font-weight:600;color:#566573;white-space:nowrap">Filtrar por vendedor:</span>
+      <select id="dash-filtro-vendedor"
+        style="flex:1;min-width:160px;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)"
+        onchange="window._dashFiltroUid=this.value;renderDashboard(this.value)">
+        <option value="">Todos</option>
+        ${_users.filter(u=>u.companyId===(cp?.companyId||_companyId)&&u.role!=='superadmin').map(u=>`<option value="${u.id}" ${window._dashFiltroUid===u.id?'selected':''}>${u.name}</option>`).join('')}
+      </select>
+      ${window._dashFiltroUid?`<button onclick="window._dashFiltroUid='';renderDashboard('')"
+        style="padding:5px 10px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:#566573;white-space:nowrap">
+        <i class="ti ti-x"></i> Limpar
+      </button>`:''}
+    </div>`:''}
+
     <div class="chart-card">
-      <div class="chart-title">Vendas vs. Cotacoes${metaVendedor>0?' vs. Meta':''} — ${mes} (por dia)</div>
+      <div class="chart-title">Vendas vs. Cotacoes${metaVendedor>0?' vs. Meta':''} — ${mes} (por dia)${(isLider||isSuperAdm)&&window._dashFiltroUid?' · '+(_users.find(u=>u.id===window._dashFiltroUid)?.name||''):''}${(isLider||isSuperAdm)&&!window._dashFiltroUid?' · Todos':''}</div>
       <div class="chart-wrap" style="height:220px"><canvas id="ch-ped"></canvas></div>
     </div>
 
