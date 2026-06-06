@@ -899,42 +899,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
       <div id="vap-camp-lista" style="margin-top:12px"></div>
 
-      <!-- FIDELIDADE -->
+      <!-- RANKING DE CLIENTES (visão Líder) -->
       <div style="margin-top:24px;padding-top:18px;border-top:2px dashed #f5d84a">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <i class="ti ti-crown" style="font-size:18px;color:#c49b00"></i>
-          <span style="font-size:13px;font-weight:700;color:#7a5f00;letter-spacing:.02em">Campanha Fidelidade</span>
-          <span class="badge badge-warn" style="font-size:10px">Disparo único</span>
-        </div>
-        <div style="font-size:11px;color:#95A5A6;margin-bottom:14px">Recompense seus melhores clientes do período. O ranking é calculado automaticamente.</div>
-        <div class="vap-card" style="margin-bottom:12px;padding:12px 14px">
-          <div style="font-size:11px;font-weight:700;color:#566573;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Periodicidade</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn-periodo active" id="vap-per-men" onclick="vapSetPeriodo('mensal',this)">Mensal</button>
-            <button class="btn-periodo" id="vap-per-bi" onclick="vapSetPeriodo('bimestral',this)">Bimestral</button>
-            <button class="btn-periodo" id="vap-per-liv" onclick="vapSetPeriodo('livre',this)">Livre</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <i class="ti ti-trophy" style="font-size:18px;color:#c49b00"></i>
+            <span style="font-size:13px;font-weight:700;color:#7a5f00;letter-spacing:.02em">Ranking de Clientes</span>
           </div>
-          <div id="vap-per-livre-wrap" style="display:none;margin-top:10px">
-            <label style="font-size:11px;font-weight:600;color:#566573;display:block;margin-bottom:4px">Próximo disparo</label>
-            <input type="date" id="vap-per-data" style="width:100%;padding:7px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)">
-          </div>
-          <div style="font-size:11px;color:#95A5A6;margin-top:8px" id="vap-per-hint">Próximo disparo sugerido: <strong>01/07/2026</strong></div>
-        </div>
-        <div class="vap-card" style="padding:12px 14px;margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;color:#566573;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Top 10 — período anterior <span style="font-size:10px;font-weight:400;color:#95A5A6;text-transform:none;margin-left:6px">score = visitas (60%) + valor gerado (40%)</span></div>
-          <div style="display:flex;flex-direction:column;gap:6px" id="vap-fidelidade-lista">
-            <div style="font-size:12px;color:#95A5A6;text-align:center;padding:12px 0">Nenhum dado de ranking ainda.</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="vap-rank-mes" style="padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--border);font-size:11px;background:var(--bg);color:var(--dark)" onchange="vapCarregarRankingLider()"></select>
+            <select id="vap-rank-ano" style="padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--border);font-size:11px;background:var(--bg);color:var(--dark)" onchange="vapCarregarRankingLider()"></select>
           </div>
         </div>
-        <div class="vap-card" style="padding:12px 14px;margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;color:#566573;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Mensagem para o Top 10</div>
-          <textarea id="vap-fidel-msg" rows="3" style="width:100%;padding:7px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark);resize:none;font-family:var(--font);box-sizing:border-box">Olá! Você está entre nossos clientes destaque do período. Como agradecimento, preparamos uma surpresa especial para você! Entre em contato para saber mais. — AgoraVAP!</textarea>
-        </div>
-        <button class="btn-save btn" style="width:100%;justify-content:center;padding:11px;font-size:13px" onclick="vapEnviarFidelidade()">
-          <i class="ti ti-crown"></i> Enviar para o Top 10
-        </button>
-        <div id="vap-fidel-toast" style="display:none;background:linear-gradient(90deg,#fffbea,#fef9e0);border:1px solid #f5d84a;border-radius:var(--rsm);padding:10px 14px;margin-top:10px;font-size:13px;color:#7a5f00;align-items:center;gap:8px">
-          <i class="ti ti-crown" style="font-size:18px;color:#c49b00"></i> Mensagem preparada! Abra o WhatsApp de cada cliente para enviar.
+        <div style="font-size:11px;color:#95A5A6;margin-bottom:14px">Consolidado de todos os vendedores, ordenado por valor R$. Lançado manualmente por cada vendedor.</div>
+        <div class="vap-card" style="padding:12px 14px">
+          <div style="display:flex;flex-direction:column;gap:6px" id="vap-rank-lista-lider">
+            <div style="font-size:12px;color:#95A5A6;text-align:center;padding:12px 0">Nenhum lançamento ainda.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1034,6 +1015,61 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
       <div id="vap-promo-lista-vendedor">
         <div style="color:#95A5A6;font-size:13px;text-align:center;padding:20px 0">Carregando promoções...</div>
+      </div>
+
+      <!-- LANÇAR CLIENTE NO RANKING -->
+      <div style="margin-top:24px;padding-top:18px;border-top:2px dashed #f5d84a">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <i class="ti ti-trophy" style="font-size:18px;color:#c49b00"></i>
+          <span style="font-size:13px;font-weight:700;color:#7a5f00;letter-spacing:.02em">Ranking de Clientes</span>
+        </div>
+        <div style="font-size:11px;color:#95A5A6;margin-bottom:14px">Registre seus clientes com pedidos fechados no período. Aparecem no ranking geral.</div>
+
+        <!-- Formulário de lançamento -->
+        <div class="vap-card" style="padding:12px 14px;margin-bottom:10px">
+          <div class="vap-sec-lbl" style="margin-bottom:10px">Novo lançamento</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Nome do cliente *</label>
+              <input id="vap-rc-cliente" type="text" placeholder="Ex: Empresa Alpha Ltda"
+                style="width:100%;padding:7px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:13px;background:var(--bg);color:var(--dark);box-sizing:border-box">
+            </div>
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Valor total de pedidos (R$) *</label>
+              <input id="vap-rc-valor" type="text" inputmode="decimal" placeholder="0,00"
+                style="width:100%;padding:7px 10px;border-radius:var(--rsm);border:1px solid var(--pk200);font-size:14px;background:var(--pk50);color:#C53030;font-weight:700;box-sizing:border-box">
+            </div>
+            <div style="display:flex;gap:6px">
+              <div style="flex:1">
+                <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Mês</label>
+                <select id="vap-rc-mes" style="width:100%;padding:6px 8px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)"></select>
+              </div>
+              <div style="flex:1">
+                <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Ano</label>
+                <select id="vap-rc-ano" style="width:100%;padding:6px 8px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)"></select>
+              </div>
+            </div>
+            <div id="vap-rc-erro" style="color:#C53030;font-size:11px;min-height:14px"></div>
+            <button class="btn-save btn" onclick="vapLancarCliente()" style="width:100%;justify-content:center;padding:9px">
+              <i class="ti ti-plus"></i> Registrar cliente
+            </button>
+            <div id="vap-rc-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--rsm);padding:9px 12px;font-size:12px;color:var(--tl800);align-items:center;gap:6px">
+              <i class="ti ti-circle-check" style="font-size:16px"></i> Cliente registrado!
+            </div>
+          </div>
+        </div>
+
+        <!-- Meus lançamentos do período -->
+        <div class="vap-sec-lbl">Meus lançamentos</div>
+        <div id="vap-rc-meus" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">
+          <div style="font-size:12px;color:#95A5A6;text-align:center;padding:8px 0">Nenhum lançamento ainda.</div>
+        </div>
+
+        <!-- Ranking geral (leitura) -->
+        <div class="vap-sec-lbl">Ranking geral do período</div>
+        <div id="vap-rank-lista-vendedor" style="display:flex;flex-direction:column;gap:6px">
+          <div style="font-size:12px;color:#95A5A6;text-align:center;padding:8px 0">Carregando...</div>
+        </div>
       </div>
     </div>
     <!-- /panel-promocoes-vendedor -->
@@ -3671,10 +3707,168 @@ async function vapEncerrarCampanha(campId){if(!confirm('Encerrar esta campanha?'
 window.vapEncerrarCampanha=vapEncerrarCampanha;
 function vapAbrirWpp(msg){window.open('https://wa.me/?text='+encodeURIComponent(msg).replace(/%20/g,'+'),'_blank');}
 window.vapAbrirWpp=vapAbrirWpp;
-function vapSetPeriodo(p,el){document.querySelectorAll('.btn-periodo').forEach(b=>b.classList.remove('active'));el.classList.add('active');const hints={mensal:'Próximo disparo sugerido: <strong>01/07/2026</strong>',bimestral:'Próximo disparo sugerido: <strong>01/08/2026</strong> — acumula dois meses',livre:'Escolha a data abaixo'};const h=document.getElementById('vap-per-hint'),l=document.getElementById('vap-per-livre-wrap');if(h)h.innerHTML=hints[p]||'';if(l)l.style.display=p==='livre'?'block':'none';}
-window.vapSetPeriodo=vapSetPeriodo;
-function vapEnviarFidelidade(){const t=document.getElementById('vap-fidel-toast');if(t){t.style.display='flex';setTimeout(()=>t.style.display='none',4000);}}
-window.vapEnviarFidelidade=vapEnviarFidelidade;
+// ── Ranking de Clientes ───────────────────────────────────────────────────
+const VAP_RC_MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+// Init seletores de período (formulário vendedor + ranking líder)
+function vapInitRankClientes() {
+  const hoje = new Date();
+  const mes = hoje.getMonth(); // 0-based
+  const ano = hoje.getFullYear();
+  ['vap-rc-mes','vap-rank-mes'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = VAP_RC_MESES.map((m,i) =>
+      `<option value="${i+1}"${i===mes?' selected':''}>${m}</option>`).join('');
+  });
+  ['vap-rc-ano','vap-rank-ano'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = [ano-1,ano].map(a =>
+      `<option value="${a}"${a===ano?' selected':''}>${a}</option>`).join('');
+  });
+}
+window.vapInitRankClientes = vapInitRankClientes;
+
+// Lançar cliente (vendedor)
+async function vapLancarCliente() {
+  const CID = _vapGetCompanyId(); if (!CID) return;
+  const cliente = document.getElementById('vap-rc-cliente')?.value.trim();
+  const valorRaw = (document.getElementById('vap-rc-valor')?.value||'0').replace(/[^0-9.,]/g,'').replace(',','.');
+  const valor = parseFloat(valorRaw) || 0;
+  const mes = parseInt(document.getElementById('vap-rc-mes')?.value);
+  const ano = parseInt(document.getElementById('vap-rc-ano')?.value);
+  const errEl = document.getElementById('vap-rc-erro');
+  if (!cliente) { if(errEl) errEl.textContent='Informe o nome do cliente.'; return; }
+  if (valor <= 0) { if(errEl) errEl.textContent='Informe um valor válido.'; return; }
+  if (errEl) errEl.textContent = '';
+  const periodo = `${ano}-${String(mes).padStart(2,'0')}`;
+  try {
+    // Verificar se já existe lançamento deste vendedor para este cliente neste período
+    const snap = await getDocs(collection(db,'ranking_clientes'));
+    const existente = snap.docs.find(d => {
+      const r = d.data();
+      return r.companyId===CID && r.vendedor===(cp?.name||cu?.uid) && r.cliente===cliente && r.periodo===periodo;
+    });
+    if (existente) {
+      await updateDoc(doc(db,'ranking_clientes',existente.id),{valor,atualizadoEm:new Date().toISOString()});
+    } else {
+      await addDoc(collection(db,'ranking_clientes'),{
+        companyId: CID,
+        cliente, valor,
+        vendedor: cp?.name || cu?.uid || 'Vendedor',
+        vendedorUid: cu?.uid || '',
+        periodo,
+        criadoEm: new Date().toISOString(),
+        atualizadoEm: new Date().toISOString(),
+      });
+    }
+    document.getElementById('vap-rc-cliente').value = '';
+    document.getElementById('vap-rc-valor').value = '';
+    const toast = document.getElementById('vap-rc-toast');
+    if (toast) { toast.style.display='flex'; setTimeout(()=>toast.style.display='none',2500); }
+    vapCarregarRankingVendedor();
+  } catch(e) {
+    console.error('[VAP] lancarCliente:',e);
+    if (errEl) errEl.textContent = 'Erro ao registrar. Tente novamente.';
+  }
+}
+window.vapLancarCliente = vapLancarCliente;
+
+// Apagar lançamento (vendedor apaga o próprio)
+async function vapApagarRC(id) {
+  if (!confirm('Remover este cliente do ranking?')) return;
+  try { await deleteDoc(doc(db,'ranking_clientes',id)); vapCarregarRankingVendedor(); }
+  catch(e) { console.error('[VAP] apagarRC:',e); alert('Erro ao remover.'); }
+}
+window.vapApagarRC = vapApagarRC;
+
+// Render linha de ranking
+function _vapRenderLinhaRanking(v, pos, mostrarVendedor, meuUid) {
+  const medalhas = ['🥇','🥈','🥉'];
+  const posStr = medalhas[pos] ? `<span style="font-size:16px">${medalhas[pos]}</span>` : `<span style="font-size:11px;font-weight:700;color:#95A5A6">${pos+1}º</span>`;
+  const bgPosMap = ['#FFF9C4','#F0F0F0','#FDEBD0'];
+  const bgPos = bgPosMap[pos] || '#F9FAFB';
+  const isEu = meuUid && v.vendedorUid === meuUid;
+  return `
+    <div class="fidel-row" style="${isEu?'background:#fffbea;border-color:#f5d84a;':''}">
+      <div class="fidel-pos" style="background:${bgPos};width:28px;height:28px">${posStr}</div>
+      <div class="fidel-info">
+        <div class="fidel-name">${v.cliente}</div>
+        <div class="fidel-sub">${mostrarVendedor ? v.vendedor : (isEu ? 'você' : v.vendedor)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="fidel-score">R$ ${v.valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        ${!mostrarVendedor && isEu ? `<button onclick="vapApagarRC('${v.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;padding:2px"><i class="ti ti-trash" style="font-size:14px"></i></button>` : ''}
+      </div>
+    </div>`;
+}
+
+// Carregar ranking — visão Líder
+async function vapCarregarRankingLider() {
+  const CID = _vapGetCompanyId(); if (!CID) return;
+  const mes = parseInt(document.getElementById('vap-rank-mes')?.value || new Date().getMonth()+1);
+  const ano = parseInt(document.getElementById('vap-rank-ano')?.value || new Date().getFullYear());
+  const lista = document.getElementById('vap-rank-lista-lider');
+  if (lista) lista.innerHTML = '<div style="font-size:12px;color:#95A5A6;text-align:center;padding:12px 0">Calculando...</div>';
+  const periodo = `${ano}-${String(mes).padStart(2,'0')}`;
+  try {
+    const snap = await getDocs(collection(db,'ranking_clientes'));
+    const docs = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(r => r.companyId===CID && r.periodo===periodo)
+      .sort((a,b) => b.valor - a.valor);
+    if (!lista) return;
+    if (docs.length === 0) {
+      lista.innerHTML = '<div style="font-size:12px;color:#95A5A6;text-align:center;padding:12px 0">Nenhum lançamento para este período.</div>';
+      return;
+    }
+    lista.innerHTML = docs.map((v,i) => _vapRenderLinhaRanking(v, i, true, null)).join('');
+  } catch(e) { console.error('[VAP] rankingLider:',e); }
+}
+window.vapCarregarRankingLider = vapCarregarRankingLider;
+
+// Carregar ranking — visão Vendedor (meus lançamentos + ranking geral)
+async function vapCarregarRankingVendedor() {
+  const CID = _vapGetCompanyId(); if (!CID) return;
+  const mes = parseInt(document.getElementById('vap-rc-mes')?.value || new Date().getMonth()+1);
+  const ano = parseInt(document.getElementById('vap-rc-ano')?.value || new Date().getFullYear());
+  const periodo = `${ano}-${String(mes).padStart(2,'0')}`;
+  const meusEl = document.getElementById('vap-rc-meus');
+  const rankEl = document.getElementById('vap-rank-lista-vendedor');
+  try {
+    const snap = await getDocs(collection(db,'ranking_clientes'));
+    const todos = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(r => r.companyId===CID && r.periodo===periodo)
+      .sort((a,b) => b.valor - a.valor);
+    const meuUid = cu?.uid || '';
+    const meuNome = cp?.name || '';
+    const meus = todos.filter(r => r.vendedorUid===meuUid || r.vendedor===meuNome);
+    // Meus lançamentos
+    if (meusEl) {
+      if (meus.length === 0) {
+        meusEl.innerHTML = '<div style="font-size:12px;color:#95A5A6;text-align:center;padding:8px 0">Nenhum lançamento ainda.</div>';
+      } else {
+        meusEl.innerHTML = meus.map(v => `
+          <div class="rec-item" style="margin-bottom:4px">
+            <div style="flex:1;min-width:0">
+              <div class="rec-title">${v.cliente}</div>
+              <div class="rec-meta">R$ ${v.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+            </div>
+            <button onclick="vapApagarRC('${v.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;padding:4px">
+              <i class="ti ti-trash" style="font-size:15px"></i>
+            </button>
+          </div>`).join('');
+      }
+    }
+    // Ranking geral
+    if (rankEl) {
+      if (todos.length === 0) {
+        rankEl.innerHTML = '<div style="font-size:12px;color:#95A5A6;text-align:center;padding:8px 0">Nenhum lançamento para este período.</div>';
+      } else {
+        rankEl.innerHTML = todos.map((v,i) => _vapRenderLinhaRanking(v, i, true, meuUid)).join('');
+      }
+    }
+  } catch(e) { console.error('[VAP] rankingVendedor:',e); }
+}
+window.vapCarregarRankingVendedor = vapCarregarRankingVendedor;
 function vapPreviewPromoImg(input){if(!input.files||!input.files[0])return;const url=URL.createObjectURL(input.files[0]);const p=document.getElementById('vap-promo-img-preview'),l=document.getElementById('vap-img-label');if(p){p.src=url;p.style.display='block';}if(l)l.style.display='none';}
 window.vapPreviewPromoImg=vapPreviewPromoImg;
 function vapIniciarListenerPromos(){
@@ -3727,7 +3921,7 @@ async function vapApagarPromo(id){if(!confirm('Apagar esta promoção?'))return;
 window.vapApagarPromo=vapApagarPromo;
 function vapTogglePromoDetalhe(id){const el=document.getElementById('vap-promo-det-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 window.vapTogglePromoDetalhe=vapTogglePromoDetalhe;
-function vapIniciarModulos(){vapInitPromoForm();vapIniciarListenerCampanhas();vapIniciarListenerPromos();console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
+function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapCarregarRankingLider();vapCarregarRankingVendedor();console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
 window.vapIniciarModulos=vapIniciarModulos;</script>
 
 <script>/* Chart.js 4.4.1 inline */
