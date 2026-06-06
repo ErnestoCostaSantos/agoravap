@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v3.2.2</title>
+<title>Belezza — Studio Luna v3.2.3</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1480,7 +1480,7 @@ function showPane(id){
   document.getElementById('pane-'+id)?.classList.add('active');
   document.getElementById('tb-t').textContent=titulos[id]||id;
   const lbl=actLbl[id];if(lbl)document.getElementById('tb-act-lbl').textContent=lbl;
-  document.getElementById('tb-act').style.display=id.startsWith('c-')?'none':'inline-flex';
+  document.getElementById('tb-act').style.display=(id.startsWith('c-')||id==='p-camp')?'none':'inline-flex';
 }
 function initDashboard(){
   // Garante que tab Dashboard está ativo
