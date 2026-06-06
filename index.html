@@ -942,7 +942,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             </div>
             <div>
               <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Responsável</label>
-              <select id="vap-promo-resp" style="width:100%;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)"><option value="">Equipe (todos)</option></select>
+              <select id="vap-promo-resp" style="width:100%;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)"><option value="Todos">Todos</option></select>
             </div>
             <div>
               <label style="font-size:10px;font-weight:700;color:#566573;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Campanha (opcional)</label>
@@ -983,12 +983,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
               </div>
             </div>
           </div>
-          <div style="position:relative;background:#F9FAFB;border-left:1px solid var(--border)">
+          <div style="position:relative;background:#F9FAFB;border-left:1px solid var(--border);aspect-ratio:1/1;min-height:200px">
             <label id="vap-img-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;position:absolute;inset:0;cursor:pointer;color:#95A5A6;gap:8px;transition:background .15s" onmouseover="this.style.background='var(--pk50)'" onmouseout="this.style.background='transparent'">
               <i class="ti ti-photo-plus" style="font-size:36px;color:#FC8181"></i>
               <div style="text-align:center;padding:0 8px">
                 <div style="font-size:12px;font-weight:600;color:#566573">Adicionar imagem</div>
-                <div style="font-size:10px;color:#95A5A6;margin-top:4px;line-height:1.6">JPG ou PNG · máx. 500KB</div>
+                <div style="font-size:10px;color:#95A5A6;margin-top:4px;line-height:1.6">JPG ou PNG · Qualquer formato</div>
               </div>
               <input type="file" accept="image/*" style="display:none" onchange="vapPreviewPromoImg(this)">
             </label>
@@ -3640,8 +3640,9 @@ function vapInitPromoForm(){
     dEl.value=String(ref.getDate()).padStart(2,'0');mEl.value=String(ref.getMonth()+1).padStart(2,'0');aEl.value=String(ref.getFullYear());
   });
   const sel=document.getElementById('vap-promo-resp');
-  if(sel&&window._vapVendedores&&window._vapVendedores.length){
-    sel.innerHTML='<option value="">Equipe (todos)</option>'+window._vapVendedores.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
+  if(sel){
+    const base='<option value="Todos">Todos</option>';
+    sel.innerHTML=base+(window._vapVendedores&&window._vapVendedores.length?window._vapVendedores.map(p=>`<option value="${p.name}">${p.name}</option>`).join(''):'');
   }
   vapAtualizarSelectCampanhas(_vapCampanhasDB);
 }
@@ -3885,7 +3886,10 @@ function _vapRenderPromosPro(promos){
   if(promos.length===0){lista.innerHTML='<div style="color:#95A5A6;font-size:13px;padding:10px 0">Nenhuma promoção publicada ainda.</div>';return;}
   lista.innerHTML=promos.map(p=>{
     const det=[p.campanha?`Campanha: ${p.campanha}`:'',p.responsavel?`Responsável: ${p.responsavel}`:'',p.canal?`Canal: ${p.canal}`:'',p.servicos?`Itens: ${p.servicos.replace(/\n/g,', ')}`:'',((p.validadeIni||p.validadeFim)?`Validade: ${p.validadeIni||''} → ${p.validadeFim||'—'}`:''),p.precoDe?`De R$ ${p.precoDe} por R$ ${p.precoPor}`:(p.precoPor?`R$ ${p.precoPor}`:'')].filter(Boolean).join(' · ');
-    return `<div class="rec-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch;cursor:pointer" onclick="vapTogglePromoDetalhe('${p.id}')"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;min-width:0"><div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}</div><div class="rec-meta">${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}${p.responsavel?' · '+p.responsavel:''}</div></div><button onclick="event.stopPropagation();vapApagarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;padding:4px"><i class="ti ti-trash" style="font-size:16px"></i></button></div><div id="vap-promo-det-${p.id}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;color:#566573;line-height:1.7">${det}</div></div>`;
+    const imgDetalhe = p.imagemUrl
+      ? `<img src="${p.imagemUrl}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px">`
+      : '';
+    return `<div class="rec-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch;cursor:pointer" onclick="vapTogglePromoDetalhe('${p.id}')"><div style="display:flex;align-items:center;gap:8px">${p.imagemUrl?`<img src="${p.imagemUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0">`:''}<div style="flex:1;min-width:0"><div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}</div><div class="rec-meta">${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}${p.responsavel?' · '+p.responsavel:''}</div></div><button onclick="event.stopPropagation();vapApagarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;padding:4px"><i class="ti ti-trash" style="font-size:16px"></i></button></div><div id="vap-promo-det-${p.id}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;color:#566573;line-height:1.7">${imgDetalhe}${det}</div></div>`;
   }).join('');
 }
 function _vapRenderPromosVendedor(promos){
@@ -3921,7 +3925,7 @@ async function vapApagarPromo(id){if(!confirm('Apagar esta promoção?'))return;
 window.vapApagarPromo=vapApagarPromo;
 function vapTogglePromoDetalhe(id){const el=document.getElementById('vap-promo-det-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 window.vapTogglePromoDetalhe=vapTogglePromoDetalhe;
-function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapCarregarRankingLider();vapCarregarRankingVendedor();console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
+function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
 window.vapIniciarModulos=vapIniciarModulos;</script>
 
 <script>/* Chart.js 4.4.1 inline */
