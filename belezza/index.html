@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>Belezza — Studio Luna v3.2.3</title>
+<title>Belezza — Studio Luna v3.2.6</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
@@ -1472,7 +1472,7 @@ function closeHelp(){document.getElementById('help-ov').classList.remove('open')
 function handleOvClick(e){if(e.target===document.getElementById('help-ov'))closeHelp();}
 
 const titulos={'p-dash':'Dashboard','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
-const actLbl={'p-dash':'Novo agendamento','p-agenda':'Novo agendamento','p-clientes':'Nova cliente','p-equipe':'Add profissional','p-camp':'Nova campanha','p-promos':'Publicar promo'};
+const actLbl={'p-dash':'Novo agendamento'};
 let role='p';
 
 function showPane(id){
@@ -1480,7 +1480,7 @@ function showPane(id){
   document.getElementById('pane-'+id)?.classList.add('active');
   document.getElementById('tb-t').textContent=titulos[id]||id;
   const lbl=actLbl[id];if(lbl)document.getElementById('tb-act-lbl').textContent=lbl;
-  document.getElementById('tb-act').style.display=(id.startsWith('c-')||id==='p-camp')?'none':'inline-flex';
+  document.getElementById('tb-act').style.display=id==='p-dash'?'inline-flex':'none';
 }
 function initDashboard(){
   // Garante que tab Dashboard está ativo
@@ -1521,10 +1521,7 @@ function goTo(id,el){
   if(id==='p-agenda') setTimeout(()=>{ if(agView==='hoje') renderAgHoje(); else if(agView==='semana') renderAgSemana(); else renderAgMes(); }, 50);
   if(id==='p-promos') setTimeout(()=>{ if(window.initPromoForm) window.initPromoForm(); }, 50);
   if(id==='c-promos') setTimeout(()=>{ if(window.iniciarListenerPromos && !unsubPromos) window.iniciarListenerPromos(); }, 50);
-  if(id==='p-camp'){
-    setTimeout(()=>{ if(window.initCampForm) window.initCampForm(); }, 50);
-    document.getElementById('tb-act').style.display = 'none';
-  }
+  if(id==='p-camp') setTimeout(()=>{ if(window.initCampForm) window.initCampForm(); }, 50);
   if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(el){const n=el.closest('.sb-nav');n.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
   showPane(id);closeSB();
