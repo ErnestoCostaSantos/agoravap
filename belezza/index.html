@@ -1995,6 +1995,7 @@ function goToCliSection(id){
   // Navega direto para a aba — sem passar por setRole
   showPane(id);
   if(id==='c-agenda') setTimeout(initCalendario, 50);
+  if(id==='c-promos')  setTimeout(() => { if(window.iniciarListenerPromos) window.iniciarListenerPromos(); }, 50);
   // Mostra botão voltar apenas se for profissional/admin
   const btnVPro = document.getElementById('btn-voltar-pro');
   if(btnVPro && cp && cp.role !== 'cliente') btnVPro.style.display = 'flex';
