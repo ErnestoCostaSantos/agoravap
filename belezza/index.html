@@ -1302,16 +1302,12 @@ onAuthStateChanged(auth, async user => {
       cu = user;
 
       if (cp.role === 'cliente') {
-        // ── Rota Cliente → splash 2s → home MeCuidar (tela das flores) ──
         const loginScreen = document.getElementById('login-cli-screen');
-        // Esconde o formulário mas mantém a imagem visível (splash)
-        if(loginScreen) loginScreen.classList.add('splash');
-
-        // Prepara tela das flores em background
         const homeCliente = document.getElementById('home-cli-screen');
         const welcome = document.getElementById('cli-welcome');
         if (welcome) welcome.textContent = 'Olá, ' + (cp.name || user.email.split('@')[0]) + '! 💕';
-        // Inicia listeners já durante o splash
+
+        // Inicia listeners
         setTimeout(() => {
           if(window.iniciarListenerAgCliente) window.iniciarListenerAgCliente(user.uid);
           if(window.iniciarListenerChat) window.iniciarListenerChat(user.uid);
@@ -1321,12 +1317,21 @@ onAuthStateChanged(auth, async user => {
           if(liderView) liderView.style.display = 'none';
         }, 300);
 
-        // Após 2s: esconde login, mostra flores, exibe popup se houver
-        setTimeout(() => {
+        const abrirFlores = () => {
           if(loginScreen) { loginScreen.classList.remove('splash'); loginScreen.style.display = 'none'; }
           if(homeCliente) homeCliente.style.display = 'flex';
           setTimeout(() => { if(window.verificarEExibirPopup) window.verificarEExibirPopup(); }, 300);
-        }, 2000);
+        };
+
+        if(_splashPendente) {
+          // Veio do clique em Entrar → splash 2s com imagem limpa
+          _splashPendente = false;
+          if(loginScreen) loginScreen.classList.add('splash');
+          setTimeout(abrirFlores, 2000);
+        } else {
+          // Veio de sessão salva (reload) → vai direto para as flores
+          abrirFlores();
+        }
 
       } else {
         // ── Rota Profissional/Admin → app principal ──
@@ -1942,7 +1947,9 @@ function toggleCliPass(){
   const el = document.getElementById('cli-pass');
   el.type = el.type === 'password' ? 'text' : 'password';
 }
+let _splashPendente = false;
 async function doLoginCli(){
+  _splashPendente = true; // sinaliza que o splash deve rodar
   const email = (document.getElementById('cli-email')?.value || '').trim();
   const pass  = document.getElementById('cli-pass')?.value || '';
   const errEl = document.getElementById('cli-error');
@@ -4087,18 +4094,14 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
       max-height:18vh;
       min-height:60px;
     }
-    /* Splash: imagem ocupa tela toda, form some */
+    /* Splash: imagem ocupa tela toda, form some instantaneamente */
     #login-cli-screen.splash #cli-foto{
       max-height:100vh;
       max-height:100dvh;
     }
     #login-cli-screen.splash #cli-form{
-      opacity:0;
-      pointer-events:none;
-      transform:translateY(100%);
-      transition:opacity .3s, transform .3s;
+      display:none;
     }
-    #cli-foto{ transition:max-height .35s ease; }
     #cli-foto img.mob{
       width:100%; height:100%;
       object-fit:cover; object-position:center top;
