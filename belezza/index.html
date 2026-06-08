@@ -1529,6 +1529,17 @@ const faqs=[
   {cat:'campanhas',q:'Como encerrar uma campanha?',a:'No card da campanha, clique em "Encerrar campanha" no final. A campanha fica com badge "Encerrada" e não aparece mais no select de campanhas do módulo Promoções.'},
   {cat:'campanhas',q:'O que acontece com uma campanha encerrada?',a:'Ela fica visível na lista com opacidade reduzida e badge "Encerrada" para consulta histórica, mas não pode mais receber novas etapas ou ser vinculada a promoções.'},
   {cat:'campanhas',q:'Como vincular uma campanha a uma promoção?',a:'Ao criar uma promoção, use o campo "Campanha (opcional)" — ele lista automaticamente todas as campanhas ativas. A mesma promoção pode ser usada em campanhas diferentes criando novas promoções vinculadas.'},
+
+  // ── Pop-up Promocional ───────────────────────────────────────────
+  {cat:'promos',q:'O que é o Pop-up de boas-vindas?',a:'É uma promoção especial que aparece automaticamente para a cliente assim que ela faz login, antes da tela principal. Exibe apenas a imagem da promoção e um botão ✕ para fechar. Após fechar, o fluxo segue normalmente para a tela de flores.'},
+  {cat:'promos',q:'Como criar uma promoção com Pop-up?',a:'No formulário "Nova promoção", ative o toggle "Pop-up de boas-vindas" (abaixo dos campos, acima do botão Publicar) antes de clicar em Publicar. A promoção será marcada como pop-up e aparecerá automaticamente no login das clientes.'},
+  {cat:'promos',q:'Qual imagem usar no Pop-up?',a:'Qualquer imagem JPG ou PNG. O app redimensiona automaticamente para no máximo 480px e comprime para JPEG 60% — otimizado para celulares com pouca memória. O tamanho final fica entre 20–40 KB.'},
+  {cat:'promos',q:'Posso ter mais de um Pop-up ativo?',a:'O app exibe sempre o pop-up mais recente que ainda esteja dentro da validade. Recomenda-se ter apenas um pop-up ativo por vez para não confundir as clientes.'},
+  {cat:'promos',q:'Onde aparece a promoção Pop-up na lista de Promoções?',a:'Ela aparece sempre em primeiro lugar na lista de promoções da versão cliente, com o badge laranja "🔔 Destaque". Na lista da versão profissional, aparece com o label "pop-up" ao lado do nome.'},
+  // ── Login Cliente ────────────────────────────────────────────────
+  {cat:'versaocliente',q:'O que acontece logo após a cliente fazer login?',a:'Após o login bem-sucedido, o formulário some e a imagem de boas-vindas aparece em tela cheia por 2 segundos. Em seguida, a tela de flores é exibida. Se houver um pop-up promocional ativo, ele aparece antes das flores.'},
+  {cat:'versaocliente',q:'Por que a imagem de login encolhe quando o teclado abre?',a:'Para garantir que o botão "Entrar" fique sempre visível mesmo com o teclado do celular aberto. A imagem reduz automaticamente para liberar espaço para o formulário completo.'},
+  {cat:'acesso',q:'Quem desenvolveu o MeCuidar?',a:'O MeCuidar Studio Luna foi elaborado pela ECS Consultoria. Mais informações em agoravap.gurudevendas.com.br'},
 ];
 let curCat='todos',curSearch='';
 function renderFaq(){
