@@ -1301,13 +1301,10 @@ onAuthStateChanged(auth, async user => {
       cp = snap.data();
       cu = user;
 
-      // Oculta tela de login
-      const cliLogin = document.getElementById('login-cli-screen');
-      if (cliLogin) cliLogin.style.display = 'none';
-
       if (cp.role === 'cliente') {
         // ── Rota Cliente → splash 2s → home MeCuidar (tela das flores) ──
         const loginScreen = document.getElementById('login-cli-screen');
+        // Esconde o formulário mas mantém a imagem visível (splash)
         if(loginScreen) loginScreen.classList.add('splash');
 
         // Prepara tela das flores em background
@@ -1333,6 +1330,8 @@ onAuthStateChanged(auth, async user => {
 
       } else {
         // ── Rota Profissional/Admin → app principal ──
+        const cliLoginPro = document.getElementById('login-cli-screen');
+        if(cliLoginPro) cliLoginPro.style.display = 'none';
         if (appDiv) appDiv.style.display = 'flex';
         const uName = document.getElementById('u-name');
         const uRole = document.getElementById('u-role');
