@@ -4061,14 +4061,26 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
     #cli-layout{
       display:flex;
       flex-direction:column;
-      min-height:100dvh;
-      min-height:100vh; /* fallback */
+      /* Ocupa tela toda mas permite scroll se teclado abrir */
+      min-height:100%;
+      height:100%;
+    }
+    #login-cli-screen{
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
     }
     #cli-foto{
       flex:1;
-      min-height:0;
+      min-height:100px;   /* imagem nunca some completamente */
+      max-height:52vh;    /* limita para form ficar visível */
       position:relative;
       overflow:hidden;
+      transition:max-height .25s ease;
+    }
+    /* Teclado aberto: encolhe imagem para o botão aparecer */
+    #login-cli-screen.teclado-aberto #cli-foto{
+      max-height:18vh;
+      min-height:60px;
     }
     #cli-foto img.mob{
       width:100%; height:100%;
@@ -4090,7 +4102,12 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
     @media(min-width:700px){
       #cli-layout{
         position:relative;
-        min-height:100dvh;
+        height:100%;
+      }
+      #cli-foto{
+        max-height:none;
+        min-height:0;
+        flex:1;
       }
       #cli-foto img.dsk{
         display:block; width:100%; height:100%;
@@ -4145,6 +4162,11 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
         <span onclick="recuperarSenhaCli()" style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;text-decoration:underline">Esqueci minha senha</span>
       </div>
+      <!-- Rodapé -->
+      <div style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12);text-align:center;line-height:1.7">
+        <div style="font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.03em">Elaborado pela ECS Consultoria</div>
+        <a href="https://agoravap.gurudevendas.com.br/" target="_blank" style="font-size:9px;color:rgba(255,255,255,.35);text-decoration:none;letter-spacing:.02em">agoravap.gurudevendas.com.br</a>
+      </div>
     </div>
   </div>
 
@@ -4153,6 +4175,33 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
     if(window.innerWidth >= 700){
       document.getElementById('cli-form-title').style.display='block';
     }
+
+    // Detecta teclado aberto (mobile) e encolhe a imagem
+    // para o botão Entrar sempre ficar visível
+    (function(){
+      const screen  = document.getElementById('login-cli-screen');
+      const inputs  = ['cli-email','cli-pass'];
+      const onFocus = () => {
+        if(window.innerWidth < 700) screen.classList.add('teclado-aberto');
+      };
+      const onBlur  = () => screen.classList.remove('teclado-aberto');
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.addEventListener('focus', onFocus);
+        el.addEventListener('blur',  onBlur);
+      });
+
+      // iOS/Android: detecta redução de viewport (teclado físico)
+      if(window.visualViewport){
+        window.visualViewport.addEventListener('resize', () => {
+          if(window.innerWidth >= 700) return;
+          const ratio = window.visualViewport.height / window.innerHeight;
+          if(ratio < 0.75) screen.classList.add('teclado-aberto');
+          else             screen.classList.remove('teclado-aberto');
+        });
+      }
+    })();
   </script>
 </div>
 <!-- HOME CLIENTE (após login) -->
