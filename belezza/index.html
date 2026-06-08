@@ -1309,9 +1309,9 @@ onAuthStateChanged(auth, async user => {
         // ── Rota Cliente → home MeCuidar (tela das flores) ──
         const homeCliente = document.getElementById('home-cli-screen');
         if (homeCliente) homeCliente.style.display = 'flex';
-        const welcome = document.getElementById('cli-welcome');
         // Pop-up promocional antes das flores
         setTimeout(() => { if(window.verificarEExibirPopup) window.verificarEExibirPopup(); }, 800);
+        const welcome = document.getElementById('cli-welcome');
         if (welcome) welcome.textContent = 'Olá, ' + (cp.name || user.email.split('@')[0]) + '! 💕';
         // Inicia listeners da cliente
         setTimeout(() => {
@@ -1880,20 +1880,41 @@ function enviarFidelidade(){
 }
 // doLogin handled by Firebase Auth above
 let _promoImgBase64 = '';
+
 function previewPromoImg(input){
   if(!input.files||!input.files[0])return;
-  const file=input.files[0];
-  const url=URL.createObjectURL(file);
-  const preview=document.getElementById('promo-img-preview');
-  const label=document.getElementById('img-label');
-  const badge=document.getElementById('promo-img-badge');
-  preview.src=url;
-  preview.style.display='block';
-  badge.style.display='block';
-  label.style.display='none';
-  // Guarda base64 para salvar no Firestore (usado pelo pop-up)
+  const file = input.files[0];
+  const preview = document.getElementById('promo-img-preview');
+  const label   = document.getElementById('img-label');
+  const badge   = document.getElementById('promo-img-badge');
+
+  const img = new Image();
   const reader = new FileReader();
-  reader.onload = e => { _promoImgBase64 = e.target.result; };
+  reader.onload = e => {
+    img.onload = () => {
+      // Redimensiona para no máximo 800px mantendo proporção
+      const MAX = 480;
+      let w = img.width, h = img.height;
+      if(w > MAX || h > MAX){
+        if(w > h){ h = Math.round(h * MAX / w); w = MAX; }
+        else      { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      // JPEG qualidade 72% — boa para tela, pequeno para Firestore
+      _promoImgBase64 = canvas.toDataURL('image/jpeg', 0.60);
+      // Mostra preview com a imagem comprimida
+      preview.src = _promoImgBase64;
+      preview.style.display = 'block';
+      badge.style.display   = 'block';
+      label.style.display   = 'none';
+      // Feedback de tamanho
+      const kb = Math.round(_promoImgBase64.length * 0.75 / 1024);
+      badge.textContent = `Trocar · ${kb} KB`;
+    };
+    img.src = e.target.result;
+  };
   reader.readAsDataURL(file);
 }
 // publicarPromo movida para módulo Promoções
@@ -3351,12 +3372,8 @@ function renderPromosCliente(promos) {
     const [dd,mm,aa] = p.validadeFim.split('/');
     return new Date(parseInt(aa), parseInt(mm)-1, parseInt(dd)) >= hoje;
   });
-  // Pop-ups primeiro na lista
-  ativas.sort((a,b) => {
-    if(a.popup && !b.popup) return -1;
-    if(!a.popup && b.popup) return 1;
-    return 0;
-  });
+  // Pop-ups sempre primeiro na lista
+  ativas.sort((a,b) => (a.popup && !b.popup) ? -1 : (!a.popup && b.popup) ? 1 : 0);
   if(ativas.length === 0){
     lista.innerHTML = '<div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0">Nenhuma promoção ativa no momento.</div>';
     return;
@@ -3372,7 +3389,7 @@ function renderPromosCliente(promos) {
       ? `<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`
       : '';
     const badgePopup = p.popup
-      ? `<span style="font-size:10px;background:#fff3e0;color:#e65100;border-radius:10px;padding:2px 8px;font-weight:700;border:1px solid #ffcc80">🔔 Destaque</span>`
+      ? `<span style="font-size:10px;background:#fff3e0;color:#e65100;border-radius:10px;padding:2px 8px;font-weight:700;border:1px solid #ffcc80">&#x1F514; Destaque</span>`
       : '';
     // Badge de status do agendamento desta cliente para esta promoção
     const agPromo = agendamentosCliente.find(a =>
@@ -3474,9 +3491,8 @@ async function publicarPromo() {
       criadoEm:    new Date().toISOString(),
       criadoPor:   cu?.uid || 'admin',
     });
-    _promoImgBase64 = '';
-    // Reset toggle popup
-    _promoPopupAtivo = false;
+    // Reset toggle e imagem
+    _promoPopupAtivo = false; _promoImgBase64 = '';
     const toggleEl = document.getElementById('promo-popup-toggle');
     const knobEl   = document.getElementById('promo-popup-knob');
     if(toggleEl) toggleEl.style.background = 'var(--br)';
@@ -3524,7 +3540,7 @@ function togglePromoPopup() {
 }
 window.togglePromoPopup = togglePromoPopup;
 
-// ── Fechar pop-up da cliente ─────────────────────────────────────
+// ── Fechar pop-up ────────────────────────────────────────────────
 function fecharPromoPopup() {
   const overlay = document.getElementById('promo-popup-overlay');
   if(overlay) overlay.style.display = 'none';
@@ -3549,22 +3565,21 @@ async function verificarEExibirPopup() {
     if(promos.length === 0) return;
     const promo = promos[0];
     const overlay = document.getElementById('promo-popup-overlay');
-    const img     = document.getElementById('promo-popup-img');
+    const imgEl   = document.getElementById('promo-popup-img');
     const noImg   = document.getElementById('promo-popup-noimg');
     const nomeEl  = document.getElementById('promo-popup-nome');
     const subEl   = document.getElementById('promo-popup-sub');
-
     if(!overlay) return;
 
-    if(promo.imagemBase64 || promo.imagem) {
-      img.src = promo.imagemBase64 || promo.imagem;
-      img.style.display = 'block';
+    if(promo.imagemBase64) {
+      imgEl.src = promo.imagemBase64;
+      imgEl.style.display  = 'block';
       if(noImg) noImg.style.display = 'none';
     } else {
-      img.style.display = 'none';
-      if(noImg) { noImg.style.display = 'block'; }
+      imgEl.style.display = 'none';
+      if(noImg) noImg.style.display = 'block';
       if(nomeEl) nomeEl.textContent = promo.nome || '';
-      if(subEl)  subEl.textContent  = promo.servicos ? promo.servicos.replace(/\n/g,', ') : '';
+      if(subEl)  subEl.textContent  = promo.servicos ? promo.servicos.replace(/\n/g, ', ') : '';
     }
     overlay.style.display = 'flex';
   } catch(e) {
@@ -4490,16 +4505,13 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
 </div>
 
 
-<!-- ══ POP-UP PROMOCIONAL ══════════════════════════════════════════════ -->
+<!-- ══ POP-UP PROMOCIONAL ═══════════════════════════════════════════════ -->
 <div id="promo-popup-overlay" style="
   display:none;position:fixed;inset:0;z-index:99999;
   background:rgba(0,0,0,.82);
   align-items:center;justify-content:center;
 ">
-  <!-- container da imagem -->
   <div style="position:relative;max-width:min(480px,92vw);max-height:92vh;display:flex;align-items:center;justify-content:center">
-
-    <!-- botão X -->
     <button onclick="fecharPromoPopup()" style="
       position:absolute;top:-14px;right:-14px;z-index:2;
       width:34px;height:34px;border-radius:50%;
@@ -4508,25 +4520,18 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
       box-shadow:0 2px 8px rgba(0,0,0,.35);
       font-size:18px;color:#333;line-height:1;
       transition:transform .15s;
-    " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-      ✕
-    </button>
-
-    <!-- imagem da promoção -->
+    " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">&#x2715;</button>
     <img id="promo-popup-img" src="" alt="Promoção" style="
-      display:block;max-width:100%;max-height:92vh;
+      display:none;max-width:100%;max-height:92vh;
       border-radius:12px;object-fit:contain;
       box-shadow:0 8px 32px rgba(0,0,0,.4);
     ">
-
-    <!-- fallback: sem imagem -->
     <div id="promo-popup-noimg" style="
-      display:none;
-      background:#fff;border-radius:12px;padding:32px 24px;
-      text-align:center;min-width:280px;
+      display:none;background:#fff;border-radius:12px;
+      padding:32px 24px;text-align:center;min-width:280px;
     ">
       <div id="promo-popup-nome" style="font-size:20px;font-weight:700;color:#993556;margin-bottom:8px"></div>
-      <div id="promo-popup-sub" style="font-size:13px;color:#666"></div>
+      <div id="promo-popup-sub"  style="font-size:13px;color:#666"></div>
     </div>
   </div>
 </div>
