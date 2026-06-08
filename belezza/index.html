@@ -994,8 +994,29 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
 
         </div><!-- /grid -->
 
+        <!-- toggle pop-up -->
+        <div style="padding:10px 14px 0;display:flex;align-items:center;gap:10px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
+            <div id="promo-popup-toggle" onclick="togglePromoPopup()" style="
+              width:36px;height:20px;border-radius:10px;background:var(--br);
+              position:relative;cursor:pointer;transition:background .2s;flex-shrink:0
+            ">
+              <div id="promo-popup-knob" style="
+                position:absolute;top:3px;left:3px;
+                width:14px;height:14px;border-radius:50%;
+                background:#fff;transition:left .2s;
+                box-shadow:0 1px 3px rgba(0,0,0,.25)
+              "></div>
+            </div>
+            <span style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">
+              Pop-up de boas-vindas
+            </span>
+          </label>
+          <span style="font-size:10px;color:var(--tx3);line-height:1.4">Exibir ao cliente ao fazer login</span>
+        </div>
+
         <!-- botão publicar -->
-        <div style="padding:12px 14px;border-top:1px solid var(--br)">
+        <div style="padding:12px 14px;border-top:1px solid var(--br);margin-top:10px">
           <button class="btn pk" style="width:100%;justify-content:center;padding:10px" onclick="publicarPromo()">
             <i class="ti ti-megaphone"></i> Publicar promoção
           </button>
@@ -1289,6 +1310,8 @@ onAuthStateChanged(auth, async user => {
         const homeCliente = document.getElementById('home-cli-screen');
         if (homeCliente) homeCliente.style.display = 'flex';
         const welcome = document.getElementById('cli-welcome');
+        // Pop-up promocional antes das flores
+        setTimeout(() => { if(window.verificarEExibirPopup) window.verificarEExibirPopup(); }, 800);
         if (welcome) welcome.textContent = 'Olá, ' + (cp.name || user.email.split('@')[0]) + '! 💕';
         // Inicia listeners da cliente
         setTimeout(() => {
@@ -1856,6 +1879,7 @@ function enviarFidelidade(){
   setTimeout(()=>{ toast.style.display='none'; }, 4000);
 }
 // doLogin handled by Firebase Auth above
+let _promoImgBase64 = '';
 function previewPromoImg(input){
   if(!input.files||!input.files[0])return;
   const file=input.files[0];
@@ -1867,6 +1891,10 @@ function previewPromoImg(input){
   preview.style.display='block';
   badge.style.display='block';
   label.style.display='none';
+  // Guarda base64 para salvar no Firestore (usado pelo pop-up)
+  const reader = new FileReader();
+  reader.onload = e => { _promoImgBase64 = e.target.result; };
+  reader.readAsDataURL(file);
 }
 // publicarPromo movida para módulo Promoções
 
@@ -3323,6 +3351,12 @@ function renderPromosCliente(promos) {
     const [dd,mm,aa] = p.validadeFim.split('/');
     return new Date(parseInt(aa), parseInt(mm)-1, parseInt(dd)) >= hoje;
   });
+  // Pop-ups primeiro na lista
+  ativas.sort((a,b) => {
+    if(a.popup && !b.popup) return -1;
+    if(!a.popup && b.popup) return 1;
+    return 0;
+  });
   if(ativas.length === 0){
     lista.innerHTML = '<div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0">Nenhuma promoção ativa no momento.</div>';
     return;
@@ -3336,6 +3370,9 @@ function renderPromosCliente(promos) {
     // Badge de campanha
     const badgeCamp = p.campanha
       ? `<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`
+      : '';
+    const badgePopup = p.popup
+      ? `<span style="font-size:10px;background:#fff3e0;color:#e65100;border-radius:10px;padding:2px 8px;font-weight:700;border:1px solid #ffcc80">🔔 Destaque</span>`
       : '';
     // Badge de status do agendamento desta cliente para esta promoção
     const agPromo = agendamentosCliente.find(a =>
@@ -3354,7 +3391,7 @@ function renderPromosCliente(promos) {
     return `<div class="promo-card">
       <div class="promo-top">
         <span class="promo-badge"><i class="ti ti-tag"></i> ${p.canal||'App'}</span>
-        <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${badgeCamp}${badgeStatus}</div>
+        <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${badgePopup}${badgeCamp}${badgeStatus}</div>
       </div>
       <div class="promo-body">
         <div class="promo-title">${p.nome}</div>
@@ -3392,7 +3429,7 @@ function renderPromosPro(promos) {
     return `<div class="row-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch;cursor:pointer" onclick="togglePromoDetalhe('${p.id}')">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="flex:1;min-width:0">
-          <div class="row-name" style="font-size:13px">${p.nome}${p.campanha ? ` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>` : ''}</div>
+          <div class="row-name" style="font-size:13px">${p.nome}${p.popup ? ' <span style="font-size:10px;background:#fff3e0;color:#e65100;border-radius:8px;padding:1px 6px;font-weight:700">pop-up</span>' : ''}${p.campanha ? ` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>` : ''}</div>
           <div class="row-sub">
             ${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}
             ${p.profissional ? ' · ' + p.profissional : ''}
@@ -3432,9 +3469,18 @@ async function publicarPromo() {
       validadeFim: getDt('promo-fim'),
       precoDe:     document.getElementById('promo-preco-de')?.value || '',
       precoPor:    document.getElementById('promo-preco-por')?.value || '',
+      popup:       _promoPopupAtivo || false,
+      imagemBase64: _promoImgBase64 || '',
       criadoEm:    new Date().toISOString(),
       criadoPor:   cu?.uid || 'admin',
     });
+    _promoImgBase64 = '';
+    // Reset toggle popup
+    _promoPopupAtivo = false;
+    const toggleEl = document.getElementById('promo-popup-toggle');
+    const knobEl   = document.getElementById('promo-popup-knob');
+    if(toggleEl) toggleEl.style.background = 'var(--br)';
+    if(knobEl)   knobEl.style.left = '3px';
     ['promo-nome','promo-servicos','promo-preco-de','promo-preco-por'].forEach(id => {
       const el = document.getElementById(id); if(el) el.value = '';
     });
@@ -3466,6 +3512,66 @@ window.togglePromoDetalhe    = togglePromoDetalhe;
 // Referência para re-renderizar promoções quando agendamentos da cliente atualizam
 let renderPromosClienteAtual = null;
 window.iniciarListenerPromos = iniciarListenerPromos;
+
+// ── Toggle pop-up no formulário ──────────────────────────────────
+let _promoPopupAtivo = false;
+function togglePromoPopup() {
+  _promoPopupAtivo = !_promoPopupAtivo;
+  const toggle = document.getElementById('promo-popup-toggle');
+  const knob   = document.getElementById('promo-popup-knob');
+  if(toggle) toggle.style.background = _promoPopupAtivo ? 'var(--pk400,#D4537E)' : 'var(--br)';
+  if(knob)   knob.style.left = _promoPopupAtivo ? '19px' : '3px';
+}
+window.togglePromoPopup = togglePromoPopup;
+
+// ── Fechar pop-up da cliente ─────────────────────────────────────
+function fecharPromoPopup() {
+  const overlay = document.getElementById('promo-popup-overlay');
+  if(overlay) overlay.style.display = 'none';
+}
+window.fecharPromoPopup = fecharPromoPopup;
+
+// ── Verificar e exibir pop-up após login cliente ─────────────────
+async function verificarEExibirPopup() {
+  try {
+    const hoje = new Date();
+    const snap = await getDocs(collection(db, 'promocoes'));
+    const promos = snap.docs.map(d => ({id:d.id,...d.data()}))
+      .filter(p => {
+        if(p.clinicaId !== CLINICA_ID) return false;
+        if(!p.popup) return false;
+        if(!p.validadeFim) return true;
+        const [dd,mm,aa] = p.validadeFim.split('/');
+        return new Date(parseInt(aa), parseInt(mm)-1, parseInt(dd)) >= hoje;
+      })
+      .sort((a,b) => a.criadoEm > b.criadoEm ? -1 : 1);
+
+    if(promos.length === 0) return;
+    const promo = promos[0];
+    const overlay = document.getElementById('promo-popup-overlay');
+    const img     = document.getElementById('promo-popup-img');
+    const noImg   = document.getElementById('promo-popup-noimg');
+    const nomeEl  = document.getElementById('promo-popup-nome');
+    const subEl   = document.getElementById('promo-popup-sub');
+
+    if(!overlay) return;
+
+    if(promo.imagemBase64 || promo.imagem) {
+      img.src = promo.imagemBase64 || promo.imagem;
+      img.style.display = 'block';
+      if(noImg) noImg.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      if(noImg) { noImg.style.display = 'block'; }
+      if(nomeEl) nomeEl.textContent = promo.nome || '';
+      if(subEl)  subEl.textContent  = promo.servicos ? promo.servicos.replace(/\n/g,', ') : '';
+    }
+    overlay.style.display = 'flex';
+  } catch(e) {
+    console.warn('[Belezza] popup:', e);
+  }
+}
+window.verificarEExibirPopup = verificarEExibirPopup;
 window.publicarPromo         = publicarPromo;
 window.apagarPromo           = apagarPromo;
 window.initPromoForm         = initPromoForm;
@@ -4382,6 +4488,49 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
     </div>
   </div>
 </div>
+
+
+<!-- ══ POP-UP PROMOCIONAL ══════════════════════════════════════════════ -->
+<div id="promo-popup-overlay" style="
+  display:none;position:fixed;inset:0;z-index:99999;
+  background:rgba(0,0,0,.82);
+  align-items:center;justify-content:center;
+">
+  <!-- container da imagem -->
+  <div style="position:relative;max-width:min(480px,92vw);max-height:92vh;display:flex;align-items:center;justify-content:center">
+
+    <!-- botão X -->
+    <button onclick="fecharPromoPopup()" style="
+      position:absolute;top:-14px;right:-14px;z-index:2;
+      width:34px;height:34px;border-radius:50%;
+      background:#fff;border:none;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 8px rgba(0,0,0,.35);
+      font-size:18px;color:#333;line-height:1;
+      transition:transform .15s;
+    " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+      ✕
+    </button>
+
+    <!-- imagem da promoção -->
+    <img id="promo-popup-img" src="" alt="Promoção" style="
+      display:block;max-width:100%;max-height:92vh;
+      border-radius:12px;object-fit:contain;
+      box-shadow:0 8px 32px rgba(0,0,0,.4);
+    ">
+
+    <!-- fallback: sem imagem -->
+    <div id="promo-popup-noimg" style="
+      display:none;
+      background:#fff;border-radius:12px;padding:32px 24px;
+      text-align:center;min-width:280px;
+    ">
+      <div id="promo-popup-nome" style="font-size:20px;font-weight:700;color:#993556;margin-bottom:8px"></div>
+      <div id="promo-popup-sub" style="font-size:13px;color:#666"></div>
+    </div>
+  </div>
+</div>
+<!-- ══ /POP-UP ══════════════════════════════════════════════════════════ -->
 
 </body>
 </html>
