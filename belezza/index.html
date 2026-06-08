@@ -1593,6 +1593,7 @@ function goTo(id,el){
     document.getElementById('tb-act').style.display = 'none';
   }
   if(id==='c-agenda') setTimeout(initCalendario, 50);
+  if(id==='c-promos')  setTimeout(() => { if(window.iniciarListenerPromos && !unsubPromos) window.iniciarListenerPromos(); }, 50);
   if(el){const n=el.closest('.sb-nav');n.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
   showPane(id);closeSB();
 }
