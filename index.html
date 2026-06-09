@@ -4218,18 +4218,16 @@ async function vapSalvarArteTop10() {
   const msg = document.getElementById('vap-top10-msg');
   if (msg) msg.textContent = 'Salvando...';
   try {
-    const { doc: fsDoc, updateDoc: fsUpdate } = { doc, updateDoc };
-    await fsUpdate(fsDoc(db, 'companies', CID), { arteTop10: _vapTop10ImgBase64 });
-    // Mostra no bloco "salvo"
+    await updateDoc(doc(db, 'companies', CID), { arteTop10: _vapTop10ImgBase64 });
+    const arteParaExibir = _vapTop10ImgBase64; // guarda antes de zerar
     const savedImg = document.getElementById('vap-top10-saved-img');
     const saved    = document.getElementById('vap-top10-saved');
     const wrap     = document.getElementById('vap-top10-wrap');
-    if (savedImg) savedImg.src = _vapTop10ImgBase64;
+    if (savedImg) savedImg.src = arteParaExibir;
     if (saved)    saved.style.display = 'block';
     if (wrap)     wrap.style.display  = 'none';
     _vapTop10ImgBase64 = '';
-    // Atualiza visão do vendedor em tempo real
-    _vapExibirArteTop10Vendedor(_vapTop10ImgBase64 || savedImg?.src || '');
+    _vapExibirArteTop10Vendedor(arteParaExibir);
     toast('Arte Top 10 publicada para toda a equipe!');
   } catch(e) {
     console.error('[VAP] salvarArteTop10:', e);
