@@ -1285,7 +1285,7 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
       <div class="help-contact">
         <div class="av" style="background:var(--tl50);color:var(--tl800);font-size:18px"><i class="ti ti-brand-whatsapp"></i></div>
         <div style="flex:1"><div style="font-size:13px;font-weight:600">Não encontrou?</div><div style="font-size:11px;color:var(--tx2)">Fale com nosso suporte via WhatsApp</div></div>
-        <button class="btn tl"><i class="ti ti-brand-whatsapp"></i> Chamar</button>
+        <button class="btn tl" onclick="window.open('https://wa.me/5511997261900?text=Ol%C3%A1%20Studio%20Luna%2C%20preciso%20de%20ajuda%20com%20o%20app!','_blank')"><i class="ti ti-brand-whatsapp"></i> Chamar</button>
       </div>
     </div>
   </div>
@@ -1619,7 +1619,19 @@ function toggleFaq(i){document.getElementById('fa-'+i)?.classList.toggle('open')
 function filterCat(c,el){curCat=c;document.querySelectorAll('.help-cat').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderFaq();}
 function filterFaq(v){curSearch=v;renderFaq();}
 function openHelp(){document.getElementById('help-ov').classList.add('open');renderFaq();}
-function closeHelp(){document.getElementById('help-ov').classList.remove('open');}
+function closeHelp(){
+  // Pausar áudio ativo ao fechar
+  if(typeof _audioAtivo !== 'undefined' && _audioAtivo){
+    const el=document.getElementById('audio-el-'+_audioAtivo);
+    const ic=document.getElementById('audio-icon-'+_audioAtivo);
+    const cd=document.getElementById('audio-card-'+_audioAtivo);
+    if(el) el.pause();
+    if(ic) ic.className='ti ti-player-play';
+    if(cd) cd.classList.remove('playing');
+    _audioAtivo=null;
+  }
+  document.getElementById('help-ov').classList.remove('open');
+}
 function handleOvClick(e){if(e.target===document.getElementById('help-ov'))closeHelp();}
 
 const titulos={'p-dash':'Dashboard','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
