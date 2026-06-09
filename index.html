@@ -935,22 +935,39 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <div style="font-size:12px;color:#95A5A6;text-align:center;padding:12px 0">Nenhum lançamento ainda.</div>
           </div>
         </div>
-        <!-- Arte Top 10 -->
-        <div style="margin-top:12px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
-          <div style="background:#7a5f00;padding:8px 14px;display:flex;align-items:center;justify-content:space-between">
-            <span style="color:#fff;font-size:12px;font-weight:700">🎨 Arte Top 10 — Compartilhar no WhatsApp</span>
-            <button onclick="vapGerarArteTop10()" style="background:#c49b00;color:#fff;border:none;border-radius:var(--rsm);padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">
-              <i class="ti ti-photo"></i> Gerar Arte
-            </button>
+
+        <!-- Arte Top 10 — upload pelo Líder -->
+        <div style="margin-top:12px;border:1px solid #f5d84a;border-radius:var(--r);overflow:hidden">
+          <div style="background:#7a5f00;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+            <span style="color:#fff;font-size:12px;font-weight:700">🎨 Arte Top 10 — para envio aos clientes destaque</span>
+            <label for="vap-top10-input" style="display:flex;align-items:center;gap:5px;background:#c49b00;color:#fff;border-radius:var(--rsm);padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">
+              <i class="ti ti-photo-plus"></i> Adicionar Imagem
+            </label>
+            <input type="file" id="vap-top10-input" accept="image/*" style="display:none" onchange="vapPreviewTop10(this)">
           </div>
           <div id="vap-top10-wrap" style="display:none;padding:12px;background:var(--bg);text-align:center">
-            <canvas id="vap-top10-canvas" style="max-width:100%;border-radius:var(--rsm);box-shadow:0 2px 8px rgba(0,0,0,.15)"></canvas>
+            <img id="vap-top10-img" src="" alt="Arte Top 10"
+              style="max-width:100%;border-radius:var(--rsm);box-shadow:0 2px 8px rgba(0,0,0,.15);display:block;margin:0 auto">
             <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-              <button onclick="vapDownloadArteTop10()" style="background:#059669;color:#fff;border:none;border-radius:var(--rsm);padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer">
-                <i class="ti ti-download"></i> Baixar imagem
+              <button onclick="vapSalvarArteTop10()" style="background:#7C3AED;color:#fff;border:none;border-radius:var(--rsm);padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer">
+                <i class="ti ti-cloud-upload"></i> Salvar arte para a equipe
               </button>
-              <button onclick="vapCompartilharArteTop10()" style="background:#25D366;color:#fff;border:none;border-radius:var(--rsm);padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer">
-                <i class="ti ti-brand-whatsapp"></i> WhatsApp
+              <button onclick="vapRemoverArteTop10()" style="background:#FEE2E2;color:#C53030;border:1px solid #FECACA;border-radius:var(--rsm);padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer">
+                <i class="ti ti-trash"></i> Remover
+              </button>
+            </div>
+            <div id="vap-top10-msg" style="font-size:11px;color:var(--tl800);min-height:14px;margin-top:6px"></div>
+          </div>
+          <div id="vap-top10-saved" style="display:none;padding:10px 14px;background:var(--bg)">
+            <div style="font-size:11px;color:#566573;margin-bottom:8px">Arte atual — visível para todos os vendedores:</div>
+            <img id="vap-top10-saved-img" src="" alt="Arte Top 10 salva"
+              style="max-width:100%;border-radius:var(--rsm);box-shadow:0 2px 8px rgba(0,0,0,.12);display:block;margin:0 auto">
+            <div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
+              <label for="vap-top10-input" style="display:flex;align-items:center;gap:5px;background:#c49b00;color:#fff;border-radius:var(--rsm);padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer">
+                <i class="ti ti-replace"></i> Trocar imagem
+              </label>
+              <button onclick="vapRemoverArteTop10Salva()" style="background:#FEE2E2;color:#C53030;border:1px solid #FECACA;border-radius:var(--rsm);padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer">
+                <i class="ti ti-trash"></i> Remover arte
               </button>
             </div>
           </div>
@@ -1107,6 +1124,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="vap-sec-lbl">Ranking geral do período</div>
         <div id="vap-rank-lista-vendedor" style="display:flex;flex-direction:column;gap:6px">
           <div style="font-size:12px;color:#95A5A6;text-align:center;padding:8px 0">Carregando...</div>
+        </div>
+
+        <!-- Arte Top 10 — exibição para o vendedor -->
+        <div id="vap-top10-vendedor-wrap" style="display:none;margin-top:18px;padding-top:16px;border-top:2px dashed #f5d84a">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <i class="ti ti-star" style="font-size:16px;color:#c49b00"></i>
+            <span style="font-size:13px;font-weight:700;color:#7a5f00">Arte Top 10 — Envie aos seus clientes destaque</span>
+          </div>
+          <div style="font-size:11px;color:#95A5A6;margin-bottom:10px">Imagem publicada pelo líder. Baixe e envie para cada cliente do ranking.</div>
+          <img id="vap-top10-vendedor-img" src="" alt="Arte Top 10"
+            style="max-width:100%;border-radius:var(--rsm);box-shadow:0 2px 8px rgba(0,0,0,.15);display:block;margin:0 auto">
+          <div style="margin-top:10px;display:flex;justify-content:center">
+            <button onclick="vapBaixarArteTop10Vendedor()" style="background:#c49b00;color:#fff;border:none;border-radius:var(--rsm);padding:8px 20px;font-size:12px;font-weight:700;cursor:pointer">
+              <i class="ti ti-download"></i> Baixar imagem
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -4156,122 +4189,122 @@ async function vapCarregarRankingLider() {
 window.vapCarregarRankingLider = vapCarregarRankingLider;
 
 // ── Arte Top 10 ───────────────────────────────────────────────────────────────
-async function vapGerarArteTop10() {
-  const CID = _vapGetCompanyId(); if (!CID) return;
-  const mes  = parseInt(document.getElementById('vap-rank-mes')?.value  || new Date().getMonth()+1);
-  const ano  = parseInt(document.getElementById('vap-rank-ano')?.value  || new Date().getFullYear());
-  const periodo = `${ano}-${String(mes).padStart(2,'0')}`;
-  const nomeMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][mes-1];
+// Chave no Firestore: companies/{cid} campo arteTop10 (base64 da imagem)
 
-  try {
-    const snap = await getDocs(collection(db,'ranking_clientes'));
-    const docs = snap.docs.map(d=>({id:d.id,...d.data()}))
-      .filter(r => r.companyId===CID && r.periodo===periodo)
-      .sort((a,b)=>b.valor-a.valor)
-      .slice(0,10);
+let _vapTop10ImgBase64 = ''; // buffer antes de salvar
 
-    if (docs.length===0) { toast('Nenhum dado para gerar arte neste período.'); return; }
-
+function vapPreviewTop10(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    _vapTop10ImgBase64 = e.target.result; // data-URI completo
+    const imgEl = document.getElementById('vap-top10-img');
     const wrap  = document.getElementById('vap-top10-wrap');
-    const canvas= document.getElementById('vap-top10-canvas');
-    const W=600, HEADER=110, ROW=46, FOOTER=54;
-    const H = HEADER + docs.length*ROW + FOOTER;
-    canvas.width=W; canvas.height=H;
-    const ctx=canvas.getContext('2d');
-
-    // Fundo degradê
-    const grd=ctx.createLinearGradient(0,0,0,H);
-    grd.addColorStop(0,'#1A0533'); grd.addColorStop(1,'#3D1066');
-    ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
-
-    // Borda sutil
-    ctx.strokeStyle='rgba(196,155,0,.45)'; ctx.lineWidth=3;
-    ctx.strokeRect(2,2,W-4,H-4);
-
-    // Título
-    ctx.fillStyle='#c49b00';
-    ctx.font='bold 26px Arial'; ctx.textAlign='center';
-    ctx.fillText('🏆 TOP 10 CLIENTES', W/2, 42);
-    ctx.fillStyle='rgba(255,255,255,.75)';
-    ctx.font='14px Arial';
-    ctx.fillText(`${nomeMes} / ${ano}`, W/2, 66);
-
-    // Linha separadora
-    ctx.strokeStyle='rgba(196,155,0,.4)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(30,80); ctx.lineTo(W-30,80); ctx.stroke();
-
-    // Linhas do ranking
-    const medals=['🥇','🥈','🥉'];
-    const bgPar ='rgba(255,255,255,.04)';
-    const bgImpar='rgba(255,255,255,.09)';
-    docs.forEach((v,i)=>{
-      const y=HEADER+i*ROW;
-      ctx.fillStyle=i%2===0?bgImpar:bgPar;
-      ctx.fillRect(10,y,W-20,ROW-2);
-
-      // Medalha / posição
-      ctx.font=i<3?'20px Arial':'bold 13px Arial';
-      ctx.textAlign='center';
-      ctx.fillStyle=i<3?'#fff':'rgba(255,255,255,.55)';
-      ctx.fillText(medals[i]||`${i+1}º`, 34, y+ROW/2+6);
-
-      // Nome do cliente
-      ctx.font='bold 13px Arial'; ctx.textAlign='left';
-      ctx.fillStyle='#FFFFFF';
-      const nome=v.cliente.length>32?v.cliente.slice(0,30)+'…':v.cliente;
-      ctx.fillText(nome, 56, y+ROW/2+1);
-
-      // Vendedor
-      ctx.font='11px Arial'; ctx.fillStyle='rgba(255,255,255,.55)';
-      ctx.fillText(v.vendedor||'', 56, y+ROW/2+15);
-
-      // Valor
-      const val=`R$ ${v.valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-      ctx.font='bold 13px Arial'; ctx.textAlign='right';
-      ctx.fillStyle='#c49b00';
-      ctx.fillText(val, W-18, y+ROW/2+5);
-    });
-
-    // Rodapé
-    const yf=HEADER+docs.length*ROW+14;
-    ctx.font='11px Arial'; ctx.textAlign='center'; ctx.fillStyle='rgba(255,255,255,.35)';
-    ctx.fillText('AgoraVAP! · Método VAP de Vendas de Alta Performance', W/2, yf+16);
-
-    wrap.style.display='block';
-    toast('Arte gerada! Baixe ou compartilhe no WhatsApp.');
-  } catch(e) { console.error('[VAP] arteTop10:',e); toast('Erro ao gerar arte.'); }
+    const saved = document.getElementById('vap-top10-saved');
+    if (imgEl) imgEl.src = _vapTop10ImgBase64;
+    if (wrap)  wrap.style.display  = 'block';
+    if (saved) saved.style.display = 'none';
+    const msg = document.getElementById('vap-top10-msg');
+    if (msg) msg.textContent = 'Imagem carregada. Clique em "Salvar arte para a equipe" para publicar.';
+  };
+  reader.readAsDataURL(file);
 }
-window.vapGerarArteTop10 = vapGerarArteTop10;
+window.vapPreviewTop10 = vapPreviewTop10;
 
-function vapDownloadArteTop10() {
-  const canvas=document.getElementById('vap-top10-canvas');
-  if(!canvas)return;
-  const mes  = document.getElementById('vap-rank-mes')?.value||'';
-  const ano  = document.getElementById('vap-rank-ano')?.value||'';
-  const a=document.createElement('a');
-  a.download=`AgoraVAP_Top10_${ano}-${mes}.png`;
-  a.href=canvas.toDataURL('image/png');
+async function vapSalvarArteTop10() {
+  if (!_vapTop10ImgBase64) { toast('Nenhuma imagem selecionada.'); return; }
+  const CID = _vapGetCompanyId(); if (!CID) return;
+  const msg = document.getElementById('vap-top10-msg');
+  if (msg) msg.textContent = 'Salvando...';
+  try {
+    const { doc: fsDoc, updateDoc: fsUpdate } = { doc, updateDoc };
+    await fsUpdate(fsDoc(db, 'companies', CID), { arteTop10: _vapTop10ImgBase64 });
+    // Mostra no bloco "salvo"
+    const savedImg = document.getElementById('vap-top10-saved-img');
+    const saved    = document.getElementById('vap-top10-saved');
+    const wrap     = document.getElementById('vap-top10-wrap');
+    if (savedImg) savedImg.src = _vapTop10ImgBase64;
+    if (saved)    saved.style.display = 'block';
+    if (wrap)     wrap.style.display  = 'none';
+    _vapTop10ImgBase64 = '';
+    // Atualiza visão do vendedor em tempo real
+    _vapExibirArteTop10Vendedor(_vapTop10ImgBase64 || savedImg?.src || '');
+    toast('Arte Top 10 publicada para toda a equipe!');
+  } catch(e) {
+    console.error('[VAP] salvarArteTop10:', e);
+    if (msg) msg.textContent = 'Erro ao salvar. Tente novamente.';
+  }
+}
+window.vapSalvarArteTop10 = vapSalvarArteTop10;
+
+function vapRemoverArteTop10() {
+  _vapTop10ImgBase64 = '';
+  const wrap = document.getElementById('vap-top10-wrap');
+  const imgEl = document.getElementById('vap-top10-img');
+  if (imgEl) imgEl.src = '';
+  if (wrap)  wrap.style.display = 'none';
+  const inp = document.getElementById('vap-top10-input');
+  if (inp) inp.value = '';
+}
+window.vapRemoverArteTop10 = vapRemoverArteTop10;
+
+async function vapRemoverArteTop10Salva() {
+  if (!confirm('Remover a arte Top 10? Os vendedores não verão mais a imagem.')) return;
+  const CID = _vapGetCompanyId(); if (!CID) return;
+  try {
+    await updateDoc(doc(db, 'companies', CID), { arteTop10: '' });
+    const saved = document.getElementById('vap-top10-saved');
+    const savedImg = document.getElementById('vap-top10-saved-img');
+    if (saved)    saved.style.display = 'none';
+    if (savedImg) savedImg.src = '';
+    _vapExibirArteTop10Vendedor('');
+    toast('Arte Top 10 removida.');
+  } catch(e) { console.error('[VAP] removerArteTop10:', e); }
+}
+window.vapRemoverArteTop10Salva = vapRemoverArteTop10Salva;
+
+// Carrega a arte salva no Firestore (chamada no login/init)
+async function vapCarregarArteTop10() {
+  const CID = _vapGetCompanyId(); if (!CID) return;
+  try {
+    const snap = await getDoc(doc(db, 'companies', CID));
+    const arte = snap.data()?.arteTop10 || '';
+    if (arte) {
+      // Visão Líder — mostra no bloco "salvo"
+      const savedImg = document.getElementById('vap-top10-saved-img');
+      const saved    = document.getElementById('vap-top10-saved');
+      if (savedImg) { savedImg.src = arte; }
+      if (saved)    { saved.style.display = 'block'; }
+      // Visão Vendedor
+      _vapExibirArteTop10Vendedor(arte);
+    }
+  } catch(e) { console.error('[VAP] carregarArteTop10:', e); }
+}
+window.vapCarregarArteTop10 = vapCarregarArteTop10;
+
+function _vapExibirArteTop10Vendedor(src) {
+  const wrap = document.getElementById('vap-top10-vendedor-wrap');
+  const img  = document.getElementById('vap-top10-vendedor-img');
+  if (!wrap || !img) return;
+  if (src) {
+    img.src = src;
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+    img.src = '';
+  }
+}
+
+function vapBaixarArteTop10Vendedor() {
+  const img = document.getElementById('vap-top10-vendedor-img');
+  if (!img || !img.src) return;
+  const a = document.createElement('a');
+  a.href = img.src;
+  a.download = 'AgoraVAP_Top10.png';
   a.click();
 }
-window.vapDownloadArteTop10 = vapDownloadArteTop10;
-
-async function vapCompartilharArteTop10() {
-  const canvas=document.getElementById('vap-top10-canvas');
-  if(!canvas)return;
-  try {
-    canvas.toBlob(async blob=>{
-      const file=new File([blob],'Top10_AgoraVAP.png',{type:'image/png'});
-      if(navigator.canShare&&navigator.canShare({files:[file]})){
-        await navigator.share({files:[file],title:'Top 10 Clientes — AgoraVAP!'});
-      } else {
-        // Fallback: abre WhatsApp Web sem imagem (mobile não suporta blob direto)
-        vapDownloadArteTop10();
-        toast('Imagem baixada! Envie manualmente pelo WhatsApp.');
-      }
-    },'image/png');
-  } catch(e){ console.error('[VAP] shareTop10:',e); vapDownloadArteTop10(); }
-}
-window.vapCompartilharArteTop10 = vapCompartilharArteTop10;
+window.vapBaixarArteTop10Vendedor = vapBaixarArteTop10Vendedor;
 
 // Carregar ranking — visão Vendedor (meus lançamentos + ranking geral)
 async function vapCarregarRankingVendedor() {
@@ -4378,13 +4411,18 @@ function _vapRenderPromosPro(promos){
             <div style="font-size:10px;color:#95A5A6">Total vendido</div>
             <div style="font-size:13px;font-weight:700;color:#C53030" id="vap-lider-acum-${p.id}">R$ —</div>
           </div>
-          <button onclick="event.stopPropagation();vapApagarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;padding:4px"><i class="ti ti-trash" style="font-size:16px"></i></button>
+          <i class="ti ti-chevron-down" style="font-size:16px;color:#95A5A6;flex-shrink:0"></i>
         </div>
         <div id="vap-promo-det-${p.id}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;color:#566573;line-height:1.7">
           ${imgDetalhe}${det}
           <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
             <div style="font-weight:700;margin-bottom:6px">Vendas por vendedor</div>
             <div id="vap-lider-breakdown-${p.id}" style="font-size:11px;color:#95A5A6">Carregando...</div>
+          </div>
+          <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
+            <button onclick="event.stopPropagation();vapApagarPromo('${p.id}')" style="display:flex;align-items:center;gap:5px;background:#FEE2E2;border:1px solid #FECACA;color:#C53030;border-radius:var(--rsm);padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">
+              <i class="ti ti-trash" style="font-size:14px"></i> Apagar promoção
+            </button>
           </div>
         </div>
       </div>`;
@@ -4421,7 +4459,7 @@ function _vapRenderPromosVendedor(promos){
     const pills=(p.servicos||'').split('\n').filter(s=>s.trim()).map(s=>`<span class="pill">${s.trim()}</span>`).join('');
     const preco=p.precoDe?`<span class="p-old">R$ ${p.precoDe}</span><span class="p-new">R$ ${p.precoPor||'—'}</span>`:`<span class="p-new">R$ ${p.precoPor||'—'}</span>`;
     const bc=p.campanha?`<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`:'';
-    const img=p.imagemUrl?`<img src="${p.imagemUrl}" onclick="vapTogglePromoDetalheVendedor('${p.id}')" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;cursor:pointer" title="Clique para ampliar">`:'';
+    const img=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px">`:'';
     const vendaHoje=_vapVendasHoje[p.id]||{valor:0};
     const acum=_vapVendasAcum[p.id]||0;
     return `
@@ -4467,11 +4505,6 @@ function _vapRenderPromosVendedor(promos){
             <div id="vap-vp-msg-${p.id}" style="font-size:11px;color:var(--tl800);min-height:14px"></div>
           </div>
         </div>
-        <!-- Painel de imagem ampliada (vendedor) -->
-        ${p.imagemUrl?`<div id="vap-promo-img-full-${p.id}" style="display:none;padding:10px;border-top:1px solid var(--border);background:var(--bg)">
-          <img src="${p.imagemUrl}" style="width:100%;border-radius:var(--rsm);object-fit:contain;max-height:400px;cursor:pointer" onclick="vapTogglePromoDetalheVendedor('${p.id}')" title="Clique para fechar">
-          <div style="text-align:center;font-size:10px;color:#95A5A6;margin-top:4px">Toque na imagem para fechar</div>
-        </div>`:''}
       </div>`;
   }).join('');
 }
@@ -4519,23 +4552,16 @@ async function vapPublicarPromo(){
 }
 window.vapPublicarPromo=vapPublicarPromo;
 async function vapApagarPromo(id){
-  if(!confirm('Apagar esta promoção? As vendas vinculadas a ela também serão removidas.'))return;
+  if(!confirm('Apagar esta promoção? As vendas vinculadas também serão removidas.'))return;
   try{
-    // Remove a promoção
     await deleteDoc(doc(db,'promocoes',id));
-    // Remove em cascata todos os registros de vendas_promo vinculados
-    const vpSnap = await getDocs(collection(db,'vendas_promo'));
-    const lixo = vpSnap.docs.filter(d=>d.data().promoId===id);
+    const vpSnap=await getDocs(collection(db,'vendas_promo'));
+    const lixo=vpSnap.docs.filter(d=>d.data().promoId===id);
     await Promise.all(lixo.map(d=>deleteDoc(doc(db,'vendas_promo',d.id))));
     toast('Promoção e vendas vinculadas removidas.');
   }catch(e){console.error('[VAP] apagarPromo:',e);alert('Erro ao apagar.');}
 }
 window.vapApagarPromo=vapApagarPromo;
-function vapTogglePromoDetalheVendedor(id){
-  const el=document.getElementById('vap-promo-img-full-'+id);
-  if(el) el.style.display=el.style.display==='none'?'block':'none';
-}
-window.vapTogglePromoDetalheVendedor=vapTogglePromoDetalheVendedor;
 function vapTogglePromoDetalhe(id){const el=document.getElementById('vap-promo-det-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 window.vapTogglePromoDetalhe=vapTogglePromoDetalhe;
 // ── Vendas por Promoção ───────────────────────────────────────────────────
@@ -4560,10 +4586,7 @@ async function vapRegistrarVendaPromo(promoId, promoNome) {
       return r.companyId===CID && r.promoId===promoId && r.vendedorUid===meuUid && r.data===hoje;
     });
     if (existente) {
-      const valorAnterior = existente.data().valor || 0;
-      const novoValor = valorAnterior + valor;
-      await updateDoc(doc(db,'vendas_promo',existente.id), { valor: novoValor, atualizadoEm: new Date().toISOString() });
-      _vapVendasHoje[promoId] = { valor: novoValor };
+      await updateDoc(doc(db,'vendas_promo',existente.id), { valor, atualizadoEm: new Date().toISOString() });
     } else {
       await addDoc(collection(db,'vendas_promo'), {
         companyId: CID, promoId, promoNome,
@@ -4572,8 +4595,8 @@ async function vapRegistrarVendaPromo(promoId, promoNome) {
         criadoEm: new Date().toISOString(),
         atualizadoEm: new Date().toISOString(),
       });
-      _vapVendasHoje[promoId] = { valor };
     }
+    _vapVendasHoje[promoId] = { valor };
     if (msgEl) { msgEl.textContent = 'Salvo!'; setTimeout(()=>msgEl.textContent='', 2000); }
     // Atualiza acumulado na tela sem re-render
     const acumEl = document.getElementById('vap-vacum-' + promoId);
@@ -4652,7 +4675,7 @@ async function vapCarregarAcumLider(promos) {
 }
 window.vapCarregarAcumLider = vapCarregarAcumLider;
 
-function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
+function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
 window.vapIniciarModulos=vapIniciarModulos;</script>
 
 <script>/* Chart.js 4.4.1 inline */
