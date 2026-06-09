@@ -4457,7 +4457,7 @@ function _vapRenderPromosVendedor(promos){
     const pills=(p.servicos||'').split('\n').filter(s=>s.trim()).map(s=>`<span class="pill">${s.trim()}</span>`).join('');
     const preco=p.precoDe?`<span class="p-old">R$ ${p.precoDe}</span><span class="p-new">R$ ${p.precoPor||'—'}</span>`:`<span class="p-new">R$ ${p.precoPor||'—'}</span>`;
     const bc=p.campanha?`<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`:'';
-    const img=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px">`:'';
+    const img=p.imagemUrl?`<img src="${p.imagemUrl}" onclick="vapTogglePromoDetalheVendedor('${p.id}')" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;cursor:pointer" title="Clique para ampliar">`:'';
     const vendaHoje=_vapVendasHoje[p.id]||{valor:0};
     const acum=_vapVendasAcum[p.id]||0;
     return `
@@ -4503,6 +4503,10 @@ function _vapRenderPromosVendedor(promos){
             <div id="vap-vp-msg-${p.id}" style="font-size:11px;color:var(--tl800);min-height:14px"></div>
           </div>
         </div>
+        ${p.imagemUrl?`<div id="vap-promo-img-full-${p.id}" style="display:none;padding:10px;border-top:1px solid var(--border);background:var(--bg)">
+          <img src="${p.imagemUrl}" style="width:100%;border-radius:var(--rsm);object-fit:contain;max-height:400px;cursor:pointer;display:block;margin:0 auto" onclick="vapTogglePromoDetalheVendedor('${p.id}')" title="Clique para fechar">
+          <div style="text-align:center;font-size:10px;color:#95A5A6;margin-top:4px">Toque na imagem para fechar</div>
+        </div>`:''}
       </div>`;
   }).join('');
 }
@@ -4562,6 +4566,8 @@ async function vapApagarPromo(id){
 window.vapApagarPromo=vapApagarPromo;
 function vapTogglePromoDetalhe(id){const el=document.getElementById('vap-promo-det-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 window.vapTogglePromoDetalhe=vapTogglePromoDetalhe;
+function vapTogglePromoDetalheVendedor(id){const el=document.getElementById('vap-promo-img-full-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+window.vapTogglePromoDetalheVendedor=vapTogglePromoDetalheVendedor;
 // ── Vendas por Promoção ───────────────────────────────────────────────────
 
 // Registrar venda do dia (vendedor)
