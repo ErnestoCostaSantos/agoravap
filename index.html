@@ -56,7 +56,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 .auth-success{background:#D5F5E3;color:#1E8449;border-radius:var(--rsm);padding:9px 13px;font-size:.83rem;margin-bottom:.9rem;display:none}
 .pw-wrap{position:relative}
 .pw-wrap input{padding-right:42px}
-.pw-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray);padding:4px;line-height:1;display:flex;align-items:center}
+.pw-wrap input::-ms-reveal,.pw-wrap input::-ms-clear{display:none}
+.pw-wrap input::-webkit-credentials-auto-fill-button{visibility:hidden;pointer-events:none}
+.pw-wrap input::-webkit-contacts-auto-fill-button{visibility:hidden;pointer-events:none}
+.pw-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#666;padding:4px;line-height:1;display:flex;align-items:center}
 .pw-eye:hover{color:var(--dark)}
 .pw-eye svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .pw-eye .eye-off{display:none}
@@ -419,7 +422,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <label>Senha</label>
           <div class="pw-wrap">
             <input type="password" id="li-pass" placeholder="••••••••" autocomplete="off"/>
-            <button class="pw-eye" id="eye-login" type="button" title="Mostrar/ocultar senha"><svg class="eye-on" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+            <button class="pw-eye" id="eye-login" type="button" title="Mostrar/ocultar senha"><svg class="eye-on" viewBox="0 0 24 24"><path fill="none" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle fill="none" cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24"><path fill="none" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line fill="none" x1="1" y1="1" x2="23" y2="23"/></svg></button>
           </div>
         </div>
         <button class="btn-auth" id="btn-login">Entrar</button>
@@ -453,7 +456,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <label>Criar senha <span style="color:var(--r)">*</span></label>
         <div class="pw-wrap">
           <input type="password" id="pr-pass" placeholder="Mínimo 8 caracteres" autocomplete="new-password" oninput="checkPwStrength('pr-pass','pw-str1','hint-pw1')"/>
-          <button class="pw-eye" id="eye-pr1" type="button" title="Mostrar/ocultar senha"><svg class="eye-on" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+          <button class="pw-eye" id="eye-pr1" type="button" title="Mostrar/ocultar senha"><svg class="eye-on" viewBox="0 0 24 24"><path fill="none" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle fill="none" cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24"><path fill="none" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line fill="none" x1="1" y1="1" x2="23" y2="23"/></svg></button>
         </div>
         <div class="pw-strength" id="pw-str1"></div>
         <div class="pw-hint" id="hint-pw1">Mín. 8 caracteres · 1 maiúscula · 1 número · 1 caractere especial (!@#$%)</div>
@@ -462,7 +465,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <label>Confirmar senha <span style="color:var(--r)">*</span></label>
         <div class="pw-wrap">
           <input type="password" id="pr-pass2" placeholder="Repita a senha" autocomplete="new-password"/>
-          <button class="pw-eye" id="eye-pr2" type="button" title="Mostrar/ocultar senha"><svg class="eye-on" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+          <button class="pw-eye" id="eye-pr2" type="button" title="Mostrar/ocultar senha"><svg class="eye-on" viewBox="0 0 24 24"><path fill="none" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle fill="none" cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24"><path fill="none" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line fill="none" x1="1" y1="1" x2="23" y2="23"/></svg></button>
         </div>
         <div class="pw-hint" id="hint-pw2"></div>
       </div>
