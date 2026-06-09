@@ -195,6 +195,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .slot.confirm{background:var(--tl50);border-color:var(--tl400);color:var(--tl800)}
 /* HELP */
 .help-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-end;justify-content:center}
+.audio-card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg2);border-radius:12px;margin-bottom:8px;border:1px solid var(--br)}
+.audio-card.playing{border-color:var(--pk400);background:var(--pk50,#fdf0f5)}
+.audio-play-btn{width:40px;height:40px;border-radius:50%;background:var(--pk500,#D4537E);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.audio-play-btn:hover{background:var(--pk600,#b8406a)}
+.audio-play-btn i{font-size:16px;color:#fff}
+.audio-progress{flex:1;height:4px;background:var(--br);border-radius:2px;cursor:pointer;position:relative}
+.audio-progress-bar{height:100%;background:var(--pk400,#D4537E);border-radius:2px;width:0%;transition:width .3s linear}
+.audio-time{font-size:10px;color:var(--tx3);min-width:36px;text-align:right}
 .help-overlay.open{display:flex}
 @media(min-width:600px){.help-overlay{align-items:center}}
 .help-panel{background:var(--bg);border-radius:16px 16px 0 0;width:100%;max-width:580px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
@@ -533,7 +541,7 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
       <!-- Equipe + Agenda hoje -->
       <div class="two-col">
         <div class="card">
-          <div class="card-title">Equipe hoje <span class="card-link" onclick="goTo('p-equipe',null)">ver todos →</span></div>
+          <div class="card-title" id="dash-equipe-titulo">Equipe hoje <span class="card-link" onclick="goTo('p-equipe',null)" id="dash-equipe-link">ver todos →</span></div>
           <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaLuna&backgroundColor=fbeaf0" style="width:28px;height:28px;border-radius:50%" alt="Carla M."><div><div class="row-name" style="font-size:12px">Carla Mendes</div><div class="row-sub">Estética facial</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">5 hoje</div></div>
           <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=FernandaR&backgroundColor=e1f5ee" style="width:28px;height:28px;border-radius:50%" alt="Fernanda R."><div><div class="row-name" style="font-size:12px">Fernanda Rocha</div><div class="row-sub">Dermato estética</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">4 hoje</div></div>
           <div class="row-item"><div class="dot dot-off"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=JulianaS&backgroundColor=eeedfe" style="width:28px;height:28px;border-radius:50%" alt="Juliana S."><div><div class="row-name" style="font-size:12px">Juliana Santos</div><div class="row-sub">Design &amp; micropigm.</div></div><div class="row-right" style="font-size:11px;color:var(--tx3)">folga</div></div>
@@ -1119,9 +1127,11 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
       <!-- Passo 0: Profissional de preferência -->
       <div class="card" style="margin-bottom:10px">
         <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">1. Profissional de preferência</div>
+        <div id="cli-prof-wrap">
         <select id="cli-prof-sel" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);font-family:inherit">
           <option value="">Sem preferência (qualquer disponível)</option>
         </select>
+        </div>
       </div>
       <!-- Passo 1: Escolha o dia -->
       <div class="card" style="margin-bottom:10px">
@@ -1147,7 +1157,7 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
             <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Serviço</span><span style="font-weight:600;color:var(--pk700)" id="resumo-svc">—</span></div>
             <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Data</span><span style="font-weight:600" id="resumo-dia">—</span></div>
             <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Horário</span><span style="font-weight:600" id="resumo-hora">—</span></div>
-            <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Profissional</span><span style="font-weight:600" id="resumo-prof">Sem preferência</span></div>
+            <div id="resumo-prof-row" style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Profissional</span><span style="font-weight:600" id="resumo-prof">Sem preferência</span></div>
           </div>
           <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--br);display:flex;align-items:center;gap:6px">
             <span style="background:#fff3cd;color:#856404;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;border:1px solid #ffc107">Aguardando confirmação</span>
@@ -1217,8 +1227,61 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
         <button class="help-cat" onclick="filterCat('imagens',this)">Imagens</button>
         <button class="help-cat" onclick="filterCat('equipe',this)">Equipe</button>
         <button class="help-cat" onclick="filterCat('conta',this)">Conta</button>
+        <button class="help-cat" onclick="mostrarTutoriais(this)" id="cat-tutoriais">🎧 Tutoriais</button>
       </div>
       <div id="faq-list"></div>
+      <!-- Seção tutoriais em áudio -->
+      <div id="tutoriais-section" style="display:none;padding:4px 0 8px">
+        <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;padding:0 2px">
+          🎧 Tutoriais em Áudio — MeCuidar v4.1
+        </div>
+        <div class="audio-card" id="audio-card-1">
+          <button class="audio-play-btn" onclick="toggleAudio(1)"><i class="ti ti-player-play" id="audio-icon-1"></i></button>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tutorial 1 — Introdução ao MeCuidar</div>
+            <div class="audio-progress" onclick="seekAudio(1,event)"><div class="audio-progress-bar" id="audio-prog-1"></div></div>
+          </div>
+          <span class="audio-time" id="audio-time-1">0:00</span>
+          <audio id="audio-el-1" src="Locucao1.mp3" preload="none"></audio>
+        </div>
+        <div class="audio-card" id="audio-card-2">
+          <button class="audio-play-btn" onclick="toggleAudio(2)"><i class="ti ti-player-play" id="audio-icon-2"></i></button>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tutorial 2 — Login e Tela Principal</div>
+            <div class="audio-progress" onclick="seekAudio(2,event)"><div class="audio-progress-bar" id="audio-prog-2"></div></div>
+          </div>
+          <span class="audio-time" id="audio-time-2">0:00</span>
+          <audio id="audio-el-2" src="Locucao2.mp3" preload="none"></audio>
+        </div>
+        <div class="audio-card" id="audio-card-3">
+          <button class="audio-play-btn" onclick="toggleAudio(3)"><i class="ti ti-player-play" id="audio-icon-3"></i></button>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tutorial 3 — Agendando um Serviço</div>
+            <div class="audio-progress" onclick="seekAudio(3,event)"><div class="audio-progress-bar" id="audio-prog-3"></div></div>
+          </div>
+          <span class="audio-time" id="audio-time-3">0:00</span>
+          <audio id="audio-el-3" src="Locucao3.mp3" preload="none"></audio>
+        </div>
+        <div class="audio-card" id="audio-card-4">
+          <button class="audio-play-btn" onclick="toggleAudio(4)"><i class="ti ti-player-play" id="audio-icon-4"></i></button>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tutorial 4 — Promoções e Pop-up</div>
+            <div class="audio-progress" onclick="seekAudio(4,event)"><div class="audio-progress-bar" id="audio-prog-4"></div></div>
+          </div>
+          <span class="audio-time" id="audio-time-4">0:00</span>
+          <audio id="audio-el-4" src="Locucao4.mp3" preload="none"></audio>
+        </div>
+        <div class="audio-card" id="audio-card-5">
+          <button class="audio-play-btn" onclick="toggleAudio(5)"><i class="ti ti-player-play" id="audio-icon-5"></i></button>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tutorial 5 — Campanhas e Promoções (Líder)</div>
+            <div class="audio-progress" onclick="seekAudio(5,event)"><div class="audio-progress-bar" id="audio-prog-5"></div></div>
+          </div>
+          <span class="audio-time" id="audio-time-5">0:00</span>
+          <audio id="audio-el-5" src="Locucao5.mp3" preload="none"></audio>
+        </div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;margin-top:8px">Cada tutorial tem ~2 minutos · Requer conexão com internet</div>
+      </div>
       <div class="help-contact">
         <div class="av" style="background:var(--tl50);color:var(--tl800);font-size:18px"><i class="ti ti-brand-whatsapp"></i></div>
         <div style="flex:1"><div style="font-size:13px;font-weight:600">Não encontrou?</div><div style="font-size:11px;color:var(--tx2)">Fale com nosso suporte via WhatsApp</div></div>
@@ -1571,6 +1634,16 @@ function showPane(id){
   document.getElementById('tb-act').style.display=id.startsWith('c-')?'none':'inline-flex';
 }
 function initDashboard(){
+  // Modo solo: ajusta card "Equipe hoje"
+  const dashEquipeTit  = document.getElementById('dash-equipe-titulo');
+  const dashEquipeLink = document.getElementById('dash-equipe-link');
+  if(dashEquipeTit && modoSolo()){
+    dashEquipeTit.childNodes[0].textContent = 'Você hoje ';
+    if(dashEquipeLink) dashEquipeLink.style.display = 'none';
+  } else if(dashEquipeTit) {
+    dashEquipeTit.childNodes[0].textContent = 'Equipe hoje ';
+    if(dashEquipeLink) dashEquipeLink.style.display = '';
+  }
   // Garante que tab Dashboard está ativo
   document.querySelectorAll('#mob-pro .mob-tab').forEach(t => t.classList.remove('active'));
   const tabDash = document.getElementById('tab-p-dash');
@@ -2239,6 +2312,9 @@ function selecionarHorario(btn, horario){
     : 'Sem preferência';
   const resumoProf = document.getElementById('resumo-prof');
   if(resumoProf) resumoProf.textContent = profNome2;
+  // Modo solo: esconde linha profissional do resumo (já está definida)
+  const resumoProfRow = document.getElementById('resumo-prof-row');
+  if(resumoProfRow) resumoProfRow.style.display = modoSolo() ? 'none' : 'flex';
   document.getElementById('cli-enviar-wrap').style.display = 'block';
 }
 
@@ -3337,6 +3413,16 @@ function initPromoForm() {
   const hoje = new Date();
   // Popula select de profissional
   const profSel = document.getElementById('promo-prof');
+  // Modo solo: desabilita o select e pré-seleciona a única profissional
+  if(profSel && modoSolo()){
+    profSel.disabled = true;
+    profSel.style.opacity = '0.6';
+    profSel.style.cursor = 'not-allowed';
+  } else if(profSel) {
+    profSel.disabled = false;
+    profSel.style.opacity = '';
+    profSel.style.cursor = '';
+  }
   if(profSel){
     profSel.innerHTML = '<option value="">Equipe (qualquer uma)</option>' +
       (window.equipeDB||[]).filter(p=>p.ativa).map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
@@ -3572,6 +3658,93 @@ function fecharPromoPopup() {
 }
 window.fecharPromoPopup = fecharPromoPopup;
 
+// ── Player de Áudio — Tutoriais ─────────────────────────────────
+let _audioAtivo = null;
+
+function mostrarTutoriais(btn) {
+  // Desativa todas as cats
+  document.querySelectorAll('.help-cat').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Esconde FAQ, mostra tutoriais
+  const faqList = document.getElementById('faq-list');
+  const tutSec  = document.getElementById('tutoriais-section');
+  if(faqList) faqList.style.display = 'none';
+  if(tutSec)  tutSec.style.display  = 'block';
+}
+window.mostrarTutoriais = mostrarTutoriais;
+
+// Quando uma categoria FAQ é clicada, esconde tutoriais
+const _origFilterCat = window.filterCat;
+window.filterCat = function(cat, btn){
+  const tutSec = document.getElementById('tutoriais-section');
+  const faqList = document.getElementById('faq-list');
+  if(tutSec)  tutSec.style.display  = 'none';
+  if(faqList) faqList.style.display = 'block';
+  if(typeof _origFilterCat === 'function') _origFilterCat(cat, btn);
+};
+
+function toggleAudio(n) {
+  const el   = document.getElementById(`audio-el-${n}`);
+  const icon = document.getElementById(`audio-icon-${n}`);
+  const card = document.getElementById(`audio-card-${n}`);
+  if(!el) return;
+
+  // Se outro áudio está tocando, pause-o
+  if(_audioAtivo && _audioAtivo !== n) {
+    const prevEl   = document.getElementById(`audio-el-${_audioAtivo}`);
+    const prevIcon = document.getElementById(`audio-icon-${_audioAtivo}`);
+    const prevCard = document.getElementById(`audio-card-${_audioAtivo}`);
+    if(prevEl) prevEl.pause();
+    if(prevIcon) prevIcon.className = 'ti ti-player-play';
+    if(prevCard) prevCard.classList.remove('playing');
+  }
+
+  if(el.paused) {
+    el.play().catch(e => console.warn('[Audio]', e));
+    icon.className = 'ti ti-player-pause';
+    card.classList.add('playing');
+    _audioAtivo = n;
+    // Atualizar progresso
+    el.ontimeupdate = () => updateAudioProgress(n);
+    el.onended = () => {
+      icon.className = 'ti ti-player-play';
+      card.classList.remove('playing');
+      document.getElementById(`audio-prog-${n}`).style.width = '0%';
+      document.getElementById(`audio-time-${n}`).textContent = '0:00';
+      _audioAtivo = null;
+    };
+  } else {
+    el.pause();
+    icon.className = 'ti ti-player-play';
+    card.classList.remove('playing');
+    _audioAtivo = null;
+  }
+}
+window.toggleAudio = toggleAudio;
+
+function updateAudioProgress(n) {
+  const el   = document.getElementById(`audio-el-${n}`);
+  const prog = document.getElementById(`audio-prog-${n}`);
+  const time = document.getElementById(`audio-time-${n}`);
+  if(!el || !prog) return;
+  const pct = el.duration ? (el.currentTime / el.duration) * 100 : 0;
+  prog.style.width = pct + '%';
+  const m = Math.floor(el.currentTime / 60);
+  const s = Math.floor(el.currentTime % 60).toString().padStart(2,'0');
+  if(time) time.textContent = `${m}:${s}`;
+}
+
+function seekAudio(n, e) {
+  const el   = document.getElementById(`audio-el-${n}`);
+  const bar  = e.currentTarget;
+  if(!el || !el.duration) return;
+  const rect = bar.getBoundingClientRect();
+  const pct  = (e.clientX - rect.left) / rect.width;
+  el.currentTime = pct * el.duration;
+  updateAudioProgress(n);
+}
+window.seekAudio = seekAudio;
+
 // ── Verificar e exibir pop-up após login cliente ─────────────────
 async function verificarEExibirPopup() {
   try {
@@ -3651,6 +3824,21 @@ window.fecharReagendamento = function(){};
 
 // ── Módulo Equipe ─────────────────────────────────────────────────────────
 const BG_CORES = ['fbeaf0','e1f5ee','eeedfe','faece7','faeeda','e8f4ff'];
+// ── Modo Solo ──────────────────────────────────────────────────────────────
+// Retorna true automaticamente quando há apenas 1 profissional na equipe.
+// Para expandir para clínica, basta cadastrar uma segunda profissional — sem
+// alterar nenhum código.
+function modoSolo() {
+  const ativas = (window.equipeDB || equipeDB).filter(p => p.ativa !== false);
+  return ativas.length <= 1;
+}
+function nomeSolo() {
+  const ativas = (window.equipeDB || equipeDB).filter(p => p.ativa !== false);
+  return ativas.length === 1 ? ativas[0].nome : '';
+}
+window.modoSolo = modoSolo;
+window.nomeSolo = nomeSolo;
+
 let equipeDB = [
   {id:'carla', nome:'Carla Mendes', wpp:'(11) 91111-1111', sexo:'F',
    espec:'Estética facial · Dermato', disp:['Seg','Ter','Qua','Qui','Sex'],
@@ -3843,6 +4031,20 @@ window.fecharModalProfissional= fecharModalProfissional;
 window.salvarProfissional     = salvarProfissional;
 window.editarProfissional     = editarProfissional;
 window.verAgendaProfissional  = verAgendaProfissional;
+// Aplica modo solo ao select ag-prof após popular
+(function(){
+  const agProf = document.getElementById('ag-prof');
+  if(!agProf) return;
+  if(modoSolo()){
+    agProf.disabled = true;
+    agProf.style.opacity = '0.6';
+    // Seleciona a única prof
+    if(equipeDB.length > 0) agProf.value = equipeDB[0].id;
+  } else {
+    agProf.disabled = false;
+    agProf.style.opacity = '';
+  }
+})();
 window.atualizarSelectProfissional = atualizarSelectProfissional;
 
 // Inicializa lista ao carregar
@@ -3858,12 +4060,34 @@ document.addEventListener('DOMContentLoaded', () => {
   if(slotsSel){
     slotsSel.innerHTML = '<option value="geral">Todas as profissionais</option>' +
       equipeDB.map(p => `<option value="${p.id}">${p.nome.split(' ')[0]} ${p.nome.split(' ')[1]?.[0]||''}.</option>`).join('');
+    // Modo solo: esconde o filtro — só uma profissional, sem necessidade
+    const slotsProfWrap = slotsSel.parentElement;
+    if(modoSolo()){
+      slotsSel.style.display = 'none';
+      if(slotsProfWrap && slotsProfWrap.tagName !== 'DIV') slotsSel.style.display = 'none';
+    } else {
+      slotsSel.style.display = '';
+    }
   }
   // Popula select de preferência de profissional no agendamento da cliente
   const cliProfSel = document.getElementById('cli-prof-sel');
   if(cliProfSel){
     cliProfSel.innerHTML = '<option value="">Sem preferência (qualquer disponível)</option>' +
       equipeDB.filter(p => p.ativa).map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+    // Modo solo: esconde campo e pré-seleciona a única profissional
+    const wrapProfCli = document.getElementById('cli-prof-wrap');
+    if(modoSolo()){
+      const soloProf = equipeDB.filter(p => p.ativa)[0];
+      if(soloProf){
+        cliProfSel.value = soloProf.id;
+        // Pré-preenche o resumo
+        const resumoProf = document.getElementById('resumo-prof');
+        if(resumoProf) resumoProf.textContent = soloProf.nome;
+      }
+      if(wrapProfCli) wrapProfCli.style.display = 'none';
+    } else {
+      if(wrapProfCli) wrapProfCli.style.display = 'block';
+    }
   }
 });
 
