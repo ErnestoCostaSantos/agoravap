@@ -2263,7 +2263,7 @@ window._fsQuery    = query;
 window._fsWhere    = where;
 window._fsOnSnapshot = onSnapshot;
 window._fsDocs     = getDocs;
-window._CLINICA_ID = (typeof CLINICA_ID !== 'undefined') ? CLINICA_ID : 'studio-luna';
+// window._CLINICA_ID definido após const CLINICA_ID abaixo
 
 // ── Listeners Clientes e Equipe ──────────────────────────────────────────
 let unsubClientes = null;
@@ -2482,6 +2482,7 @@ const clientesDB = [
    ultimoSvc:'Design sobrancelha', prof:'Juliana S.', top:false, score:1.9,
    avatar:'https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe'},
 ];
+window.clientesDB = clientesDB; // expõe para outros blocos
 
 function renderClientesLista(){
   const lista = document.getElementById('clientes-lista');
@@ -2637,6 +2638,7 @@ function salvarCliente(){
 // ══════════════════════════════════════════════════════════════════════════════
 
 const CLINICA_ID = 'belezza-50e76'; // clinicaId padrão
+window._CLINICA_ID = CLINICA_ID;
 
 // ── Listener de agendamentos (profissional) ───────────────────────────────────
 let unsubAgendamentos = null;
@@ -3970,13 +3972,11 @@ const BG_CORES = ['fbeaf0','e1f5ee','eeedfe','faece7','faeeda','e8f4ff'];
 // Para expandir para clínica, basta cadastrar uma segunda profissional — sem
 // alterar nenhum código.
 function modoSolo() {
-  const db2 = (typeof window.equipeDB !== 'undefined' ? window.equipeDB
-             : typeof equipeDB !== 'undefined' ? equipeDB : []);
+  const db2 = window.equipeDB || [];
   return db2.filter(p => p.ativa !== false).length <= 1;
 }
 function nomeSolo() {
-  const db2 = (typeof window.equipeDB !== 'undefined' ? window.equipeDB
-             : typeof equipeDB !== 'undefined' ? equipeDB : []);
+  const db2 = window.equipeDB || [];
   const ativas = db2.filter(p => p.ativa !== false);
   return ativas.length === 1 ? ativas[0].nome : '';
 }
@@ -4001,6 +4001,7 @@ let equipeDB = [
    ticket:180, avaliacao:4.7, domicilio:true, obs:'', ativa:true, agMes:12,
    seed:'BeatrizL', bgColor:'faece7'},
 ];
+window.equipeDB = equipeDB; // expõe para outros blocos
 
 function renderEquipe(lista){
   const el = document.getElementById('equipe-lista');
