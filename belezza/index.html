@@ -466,8 +466,8 @@ function acaoTopbar(){
   if(pid==='pane-p-clientes'){ if(window.abrirModalCliente) window.abrirModalCliente(); return; }
   abrirModalAg();
 }
-function goTo(id,el){ if(window.goTo) window.goTo(id,el); }
-function goToMob(id,el){ if(window.goToMob) window.goToMob(id,el); }
+function goTo(id,el){ if(window._goToImpl) window._goToImpl(id,el); }
+function goToMob(id,el){ if(window._goToMobImpl) window._goToMobImpl(id,el); }
 function setRole(r,el){ if(window.setRole) window.setRole(r,el); }
 function toggleSB(){ if(window.toggleSB) window.toggleSB(); }
 function openHelp(){ if(window.openHelp) window.openHelp(); }
@@ -4343,7 +4343,9 @@ window.openHelp = openHelp;
 window.closeHelp = closeHelp;
 window.handleOvClick = handleOvClick;
 window.showPane = showPane;
+window._goToImpl = goTo;
 window.goTo = goTo;
+window._goToMobImpl = goToMob;
 window.goToMob = goToMob;
 window.setRole = setRole;
 window.toggleSB = toggleSB;
