@@ -472,13 +472,33 @@ function setRole(r,el){ if(window._setRoleImpl) window._setRoleImpl(r,el); }
 function toggleSB(){ if(window._toggleSBImpl) window._toggleSBImpl(); }
 function openHelp(){ if(window._openHelpImpl) window._openHelpImpl(); }
 // Funções dos modais — delegam para o módulo
-function salvarCliente(){ if(window._salvarCliente) window._salvarCliente(); }
+function salvarCliente(){
+  console.log('[BZ-diag] salvarCliente chamado | _salvarCliente=', typeof window._salvarCliente);
+  if(window._salvarCliente) window._salvarCliente();
+  else console.error('[BZ-diag] _salvarCliente INDEFINIDO — módulo não registrou');
+}
 function fecharModalCliente(){ if(window._fecharModalCliente) window._fecharModalCliente(); }
-function abrirModalCliente(){ if(window._abrirModalCliente) window._abrirModalCliente(); }
-function salvarProfissional(){ if(window._salvarProfissional) window._salvarProfissional(); }
+function abrirModalCliente(){
+  console.log('[BZ-diag] abrirModalCliente chamado | _abrirModalCliente=', typeof window._abrirModalCliente);
+  if(window._abrirModalCliente) window._abrirModalCliente();
+  else console.error('[BZ-diag] _abrirModalCliente INDEFINIDO');
+}
+function salvarProfissional(){
+  console.log('[BZ-diag] salvarProfissional chamado | _salvarProfissional=', typeof window._salvarProfissional);
+  if(window._salvarProfissional) window._salvarProfissional();
+  else console.error('[BZ-diag] _salvarProfissional INDEFINIDO');
+}
 function fecharModalProfissional(){ if(window._fecharModalProfissional) window._fecharModalProfissional(); }
-function abrirModalProfissional(id){ if(window._abrirModalProfissional) window._abrirModalProfissional(id); }
-function editarProfissional(id){ if(window._editarProfissional) window._editarProfissional(id); }
+function abrirModalProfissional(id){
+  console.log('[BZ-diag] abrirModalProfissional chamado id=', id, '| _abrirModalProfissional=', typeof window._abrirModalProfissional);
+  if(window._abrirModalProfissional) window._abrirModalProfissional(id);
+  else console.error('[BZ-diag] _abrirModalProfissional INDEFINIDO');
+}
+function editarProfissional(id){
+  console.log('[BZ-diag] editarProfissional chamado id=', id, '| _editarProfissional=', typeof window._editarProfissional);
+  if(window._editarProfissional) window._editarProfissional(id);
+  else console.error('[BZ-diag] _editarProfissional INDEFINIDO');
+}
 function verAgendaProfissional(id,nome){ if(window._verAgendaProfissional) window._verAgendaProfissional(id,nome); }
 function filtrarEquipe(q){ if(window._filtrarEquipe) window._filtrarEquipe(q); }
 function abrirPerfilCliente(id){ if(window._abrirPerfilCliente) window._abrirPerfilCliente(id); }
