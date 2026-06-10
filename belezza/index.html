@@ -1651,7 +1651,8 @@ function initDashboard(){
   // Modo solo: ajusta card "Equipe hoje"
   const dashEquipeTit  = document.getElementById('dash-equipe-titulo');
   const dashEquipeLink = document.getElementById('dash-equipe-link');
-  if(dashEquipeTit && modoSolo()){
+  const _modoSolo = typeof modoSolo === 'function' ? modoSolo : (window.modoSolo || (()=>false));
+  if(dashEquipeTit && _modoSolo()){
     dashEquipeTit.childNodes[0].textContent = 'Você hoje ';
     if(dashEquipeLink) dashEquipeLink.style.display = 'none';
   } else if(dashEquipeTit) {
@@ -2262,7 +2263,7 @@ window._fsQuery    = query;
 window._fsWhere    = where;
 window._fsOnSnapshot = onSnapshot;
 window._fsDocs     = getDocs;
-window._CLINICA_ID = CLINICA_ID;
+window._CLINICA_ID = (typeof CLINICA_ID !== 'undefined') ? CLINICA_ID : 'studio-luna';
 
 // ── Listeners Clientes e Equipe ──────────────────────────────────────────
 let unsubClientes = null;
@@ -3969,11 +3970,14 @@ const BG_CORES = ['fbeaf0','e1f5ee','eeedfe','faece7','faeeda','e8f4ff'];
 // Para expandir para clínica, basta cadastrar uma segunda profissional — sem
 // alterar nenhum código.
 function modoSolo() {
-  const ativas = (window.equipeDB || equipeDB).filter(p => p.ativa !== false);
-  return ativas.length <= 1;
+  const db2 = (typeof window.equipeDB !== 'undefined' ? window.equipeDB
+             : typeof equipeDB !== 'undefined' ? equipeDB : []);
+  return db2.filter(p => p.ativa !== false).length <= 1;
 }
 function nomeSolo() {
-  const ativas = (window.equipeDB || equipeDB).filter(p => p.ativa !== false);
+  const db2 = (typeof window.equipeDB !== 'undefined' ? window.equipeDB
+             : typeof equipeDB !== 'undefined' ? equipeDB : []);
+  const ativas = db2.filter(p => p.ativa !== false);
   return ativas.length === 1 ? ativas[0].nome : '';
 }
 window.modoSolo = modoSolo;
@@ -4059,7 +4063,8 @@ function abrirModalProfissional(id){
   document.getElementById('prof-toast').style.display = 'none';
 
   if(id){
-    const p = equipeDB.find(x => x.id === id);
+    const _eqDB = window.equipeDB || equipeDB;
+    const p = _eqDB.find(x => x.id === id);
     if(!p) return;
     editId.value = id;
     titulo.textContent = 'Editar Profissional';
@@ -4104,7 +4109,8 @@ async function salvarProfissional(){
   const obs   = document.getElementById('prof-obs').value;
   const editId= document.getElementById('prof-edit-id').value;
 
-  const idx = editId ? equipeDB.findIndex(x => x.id === editId) : -1;
+  const _eqDB2 = window.equipeDB || equipeDB;
+  const idx = editId ? _eqDB2.findIndex(x => x.id === editId) : -1;
 
   // Calcula se está ativa hoje (baseado nos dias selecionados)
   const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
@@ -4113,7 +4119,9 @@ async function salvarProfissional(){
 
   if(idx >= 0){
     // Edição
-    equipeDB[idx] = { ...equipeDB[idx], nome, wpp, sexo, espec, disp, ticket, avaliacao:aval, domicilio:dom, obs, ativa:ativaHoje };
+    const _eq3 = window.equipeDB || equipeDB;
+    _eq3[idx] = { ..._eq3[idx], nome, wpp, sexo, espec, disp, ticket, avaliacao:aval, domicilio:dom, obs, ativa:ativaHoje };
+    window.equipeDB = _eq3;
     window.equipeDB = equipeDB;
     renderEquipe(equipeDB);
     // Atualiza select de profissional no modal de agendamento
@@ -4135,7 +4143,8 @@ async function salvarProfissional(){
     // Novo
     const id = 'prof-' + Date.now();
     const seed = nome.replace(/\s/g,'') + id.slice(-4);
-    const bgColor = BG_CORES[equipeDB.length % BG_CORES.length];
+    const _eq4 = window.equipeDB || equipeDB;
+    const bgColor = BG_CORES[_eq4.length % BG_CORES.length];
     // Persistir nova profissional no Firestore
     try {
       const _db  = window._db;
@@ -4148,14 +4157,16 @@ async function salvarProfissional(){
           domicilio:dom, obs, ativa:ativaHoje,
           criadoEm: new Date().toISOString() });
     } catch(e){ console.warn('[Belezza] novaProf Firestore:', e); }
-    equipeDB.push({id, nome, wpp, sexo, espec, disp, ticket, avaliacao:aval,
+    const _eq5 = window.equipeDB || equipeDB;
+    _eq5.push({id, nome, wpp, sexo, espec, disp, ticket, avaliacao:aval,
       domicilio:dom, obs, ativa:ativaHoje, agMes:0, seed, bgColor});
     // Adiciona no select de agendamento
     atualizarSelectProfissional();
     mostrarToastProf('Profissional cadastrada!');
   }
-  window.equipeDB = equipeDB;
-  renderEquipe(equipeDB);
+  const _eqFinal = window.equipeDB || equipeDB;
+  window.equipeDB = _eqFinal;
+  renderEquipe(_eqFinal);
   setTimeout(fecharModalProfissional, 1600);
 }
 
