@@ -1067,7 +1067,7 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
       </div>
     </div>
 
-    <div class="pane" id="pane-c-promos">
+    <div class="pane" id="pane-c-promos" style="overflow-y:auto;-webkit-overflow-scrolling:touch">
       <div class="sec-lbl">Promoções</div>
       <div id="cli-promos-lista">
         <div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0">Carregando promoções...</div>
@@ -1863,6 +1863,41 @@ function adicionarConfirmado(ag){
 }
 
 function abrirModalAg(){
+  // Popula select de clientes do DB real
+  const selCli = document.getElementById('ag-cliente');
+  if(selCli){
+    const lista = (window.clientesDB || clientesDB || [])
+      .slice().sort((a,b) => a.nome.localeCompare(b.nome));
+    selCli.innerHTML = '<option value="">Selecione...</option>' +
+      lista.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+  }
+  // Popula select de serviços das especialidades da equipe
+  const selSvc = document.getElementById('ag-servico');
+  if(selSvc){
+    const eqDB = window.equipeDB || equipeDB || [];
+    const servs = [...new Set(
+      eqDB.flatMap(p => (p.espec||'').split(/[·,]/).map(s => s.trim()).filter(Boolean))
+    )].sort();
+    selSvc.innerHTML = '<option value="">Selecione...</option>' +
+      servs.map(s => `<option value="${s}">${s}</option>`).join('');
+  }
+  // Popula select de profissionais
+  const selProf = document.getElementById('ag-prof');
+  if(selProf){
+    const eqDB = window.equipeDB || equipeDB || [];
+    const ativas = eqDB.filter(p => p.ativa !== false);
+    selProf.innerHTML = '<option value="">Sem preferência</option>' +
+      ativas.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+    // Modo solo: pré-seleciona e desabilita
+    if(typeof modoSolo === 'function' && modoSolo() && ativas.length === 1){
+      selProf.value = ativas[0].id;
+      selProf.disabled = true;
+      selProf.style.opacity = '0.6';
+    } else {
+      selProf.disabled = false;
+      selProf.style.opacity = '';
+    }
+  }
   // Popula selects de Dia / Mês / Ano
   const hoje = new Date();
   const diaEl  = document.getElementById('ag-dia');
@@ -1906,7 +1941,8 @@ function salvarNovoAg(){
   const horaEl    = document.getElementById('ag-hora');
   const profEl    = document.getElementById('ag-prof');
   const origemEl  = document.getElementById('ag-origem');
-  const cliente   = clienteEl ? clienteEl.options[clienteEl.selectedIndex]?.text || clienteEl.value : '';
+  const clienteId = clienteEl ? clienteEl.value : '';
+  const cliente   = clienteEl ? (clienteEl.options[clienteEl.selectedIndex]?.text || clienteEl.value) : '';
   const servico   = servicoEl ? servicoEl.value : '';
   const data      = dataEl    ? dataEl.value : '';
   const hora      = horaEl    ? horaEl.value : '';
@@ -2099,6 +2135,11 @@ function goToCliSection(id){
   const mobCli  = document.getElementById('mob-cli');
   if(backBar) backBar.style.display = 'flex';
   if(mobCli)  mobCli.style.display  = 'block';
+  // Para clientes reais (não profissional simulando): ajusta label do botão Voltar
+  if(cp && cp.role === 'cliente'){
+    const backBtn = backBar ? backBar.querySelector('button') : null;
+    if(backBtn) backBtn.innerHTML = '&#x2190; Início';
+  }
 
   // Navega direto para a aba — sem passar por setRole
   showPane(id);
@@ -2152,6 +2193,9 @@ function voltarParaProfissional(){
 function voltarHomeCliente(){
   const appDiv = document.querySelector('.app');
   if(appDiv) appDiv.style.display = 'none';
+  // Garante que home-cli-screen está visível (cliente real)
+  const homeCli = document.getElementById('home-cli-screen');
+  if(homeCli && cp && cp.role === 'cliente') homeCli.style.display = 'flex';
 
   // Restaura elementos da visão profissional para próximo uso
   const roleBar = document.querySelector('.role-bar');
@@ -3438,6 +3482,11 @@ function initPromoForm() {
   if(profSel){
     profSel.innerHTML = '<option value="">Equipe (qualquer uma)</option>' +
       (window.equipeDB||[]).filter(p=>p.ativa).map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
+    // Modo solo: pré-seleciona a única profissional APÓS popular o select
+    if(modoSolo()){
+      const soloNome = nomeSolo();
+      if(soloNome) profSel.value = soloNome;
+    }
   }
   // Popula select de campanhas do Firestore (campanhasDB já carregado)
   if(typeof atualizarSelectCampanhas === 'function') {
@@ -3959,7 +4008,7 @@ function fecharModalProfissional(){
   document.getElementById('modal-prof').style.display = 'none';
 }
 
-function salvarProfissional(){
+async function salvarProfissional(){
   const nome = document.getElementById('prof-nome').value.trim();
   const wpp  = document.getElementById('prof-wpp').value.trim();
   const espec= document.getElementById('prof-espec').value.trim();
@@ -3986,14 +4035,28 @@ function salvarProfissional(){
   if(idx >= 0){
     // Edição
     equipeDB[idx] = { ...equipeDB[idx], nome, wpp, sexo, espec, disp, ticket, avaliacao:aval, domicilio:dom, obs, ativa:ativaHoje };
+    window.equipeDB = equipeDB;
+    renderEquipe(equipeDB);
     // Atualiza select de profissional no modal de agendamento
     atualizarSelectProfissional();
+    // Persistir edição no Firestore
+    try {
+      if(window.db && window.CLINICA_ID){
+        const { doc: fsDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').catch(()=>({}));
+        if(setDoc) await setDoc(fsDoc(window.db, 'equipe', editId), { clinicaId:window.CLINICA_ID, nome, wpp, sexo, espec, disp, ticket:Number(ticket)||0, avaliacao:Number(aval)||0, domicilio:dom, obs, ativa:ativaHoje }, { merge:true });
+      }
+    } catch(e){ console.warn('[Belezza] editarProf Firestore:', e); }
     mostrarToastProf('Profissional atualizada!');
   } else {
     // Novo
     const id = 'prof-' + Date.now();
     const seed = nome.replace(/\s/g,'') + id.slice(-4);
     const bgColor = BG_CORES[equipeDB.length % BG_CORES.length];
+    // Persistir nova profissional no Firestore
+    try {
+      const { doc, setDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').catch(()=>({}));
+      if(setDoc && db) await setDoc(doc(db, 'equipe', id), { clinicaId:CLINICA_ID, nome, wpp, sexo, espec, disp, ticket:Number(ticket)||0, avaliacao:Number(aval)||0, domicilio:dom, obs, ativa:ativaHoje, criadoEm: new Date().toISOString() });
+    } catch(e){ console.warn('[Belezza] novaProf Firestore:', e); }
     equipeDB.push({id, nome, wpp, sexo, espec, disp, ticket, avaliacao:aval,
       domicilio:dom, obs, ativa:ativaHoje, agMes:0, seed, bgColor});
     // Adiciona no select de agendamento
@@ -4745,25 +4808,12 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
       <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Cliente</label>
       <select id="ag-cliente" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
         <option value="">Selecione...</option>
-        <option>Ana Paula Ferreira</option>
-        <option>Mariana Costa</option>
-        <option>Leticia Barros</option>
-        <option>Sofia Alves</option>
-        <option>Camila Duarte</option>
-        <option>Renata Silva</option>
       </select>
     </div>
     <div style="margin-bottom:12px">
       <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Serviço</label>
       <select id="ag-servico" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
         <option value="">Selecione...</option>
-        <option>Limpeza de pele</option>
-        <option>Botox</option>
-        <option>Design de sobrancelha</option>
-        <option>Preenchimento labial</option>
-        <option>Microblading</option>
-        <option>Peeling químico</option>
-        <option>Massagem relaxante</option>
       </select>
     </div>
     <div style="margin-bottom:12px">
@@ -4780,10 +4830,7 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
     <div style="margin-bottom:12px">
       <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Profissional</label>
       <select id="ag-prof" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
-        <option>Carla Mendes</option>
-        <option>Fernanda Rocha</option>
-        <option>Juliana Santos</option>
-        <option>Beatriz Lima</option>
+        <option value="">Selecione...</option>
       </select>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
