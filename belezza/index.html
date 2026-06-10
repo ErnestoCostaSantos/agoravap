@@ -1413,6 +1413,8 @@ onAuthStateChanged(auth, async user => {
           if(window.iniciarListenerThreads) window.iniciarListenerThreads();
           if(window.iniciarListenerPromos) window.iniciarListenerPromos();
           if(window.iniciarListenerCampanhas) window.iniciarListenerCampanhas();
+          if(window.iniciarListenerClientes) window.iniciarListenerClientes();
+          if(window.iniciarListenerEquipe)   window.iniciarListenerEquipe();
           // Mostra visão líder no chat
           const cliView = document.getElementById('cli-chat-view');
           const liderView = document.getElementById('lider-chat-view');
@@ -1692,6 +1694,8 @@ function renderAgendaConfirmados(){
 function goTo(id,el){
   if(id==='p-dash') setTimeout(initDashboard, 50);
   if(id==='p-agenda') setTimeout(()=>{ if(agView==='hoje') renderAgHoje(); else if(agView==='semana') renderAgSemana(); else renderAgMes(); }, 50);
+  if(id==='p-clientes') setTimeout(()=>{ if(window.renderClientesLista) window.renderClientesLista(); }, 50);
+  if(id==='p-equipe')   setTimeout(()=>{ if(typeof renderEquipe==='function') renderEquipe(window.equipeDB||equipeDB); }, 50);
   if(id==='p-promos') setTimeout(()=>{ if(window.initPromoForm) window.initPromoForm(); }, 50);
   if(id==='c-promos') setTimeout(()=>{ if(window.iniciarListenerPromos && !unsubPromos) window.iniciarListenerPromos(); }, 50);
   if(id==='p-camp'){
@@ -2248,6 +2252,55 @@ window._goToCliSection    = goToCliSection;
 window._sairCli           = sairCli;
 window._voltarHomeCliente = voltarHomeCliente;
 
+// Expõe db e funções Firestore para outros blocos <script>
+window._db         = db;
+window._fsDoc      = doc;
+window._fsSetDoc   = setDoc;
+window._fsAddDoc   = addDoc;
+window._fsCollection = collection;
+window._fsQuery    = query;
+window._fsWhere    = where;
+window._fsOnSnapshot = onSnapshot;
+window._fsDocs     = getDocs;
+window._CLINICA_ID = CLINICA_ID;
+
+// ── Listeners Clientes e Equipe ──────────────────────────────────────────
+let unsubClientes = null;
+let unsubEquipe   = null;
+
+function iniciarListenerClientes() {
+  if(unsubClientes) unsubClientes();
+  const q = query(collection(db, 'clientes'), where('clinicaId', '==', CLINICA_ID));
+  unsubClientes = onSnapshot(q, snap => {
+    const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Atualiza array global
+    clientesDB.length = 0;
+    lista.forEach(c => clientesDB.push(c));
+    window.clientesDB = clientesDB;
+    // Re-renderiza lista de clientes se estiver visível
+    if(typeof renderClientesLista === 'function') renderClientesLista();
+  }, e => console.warn('[Belezza] onSnapshot clientes:', e));
+}
+
+function iniciarListenerEquipe() {
+  if(unsubEquipe) unsubEquipe();
+  const q = query(collection(db, 'equipe'), where('clinicaId', '==', CLINICA_ID));
+  unsubEquipe = onSnapshot(q, snap => {
+    const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Atualiza array global
+    equipeDB.length = 0;
+    lista.forEach(p => equipeDB.push(p));
+    window.equipeDB = equipeDB;
+    // Re-renderiza equipe se estiver visível
+    if(typeof renderEquipe === 'function') renderEquipe(equipeDB);
+    // Atualiza selects de profissional
+    if(typeof atualizarSelectProfissional === 'function') atualizarSelectProfissional();
+  }, e => console.warn('[Belezza] onSnapshot equipe:', e));
+}
+
+window.iniciarListenerClientes = iniciarListenerClientes;
+window.iniciarListenerEquipe   = iniciarListenerEquipe;
+
 // ── Calendário de agendamento ─────────────────────────────────────────────
 let selDia = null;
 let selHorario = null;
@@ -2428,6 +2481,32 @@ const clientesDB = [
    ultimoSvc:'Design sobrancelha', prof:'Juliana S.', top:false, score:1.9,
    avatar:'https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe'},
 ];
+
+function renderClientesLista(){
+  const lista = document.getElementById('clientes-lista');
+  if(!lista) return;
+  const db2 = window.clientesDB || clientesDB || [];
+  if(db2.length === 0){
+    lista.innerHTML = '<div style="text-align:center;color:var(--tx3);padding:32px;font-size:13px">Nenhuma cliente cadastrada ainda.</div>';
+    return;
+  }
+  lista.innerHTML = db2.map(c => {
+    const avatar = c.avatar || `https://api.dicebear.com/9.x/lorelei/svg?seed=${(c.nome||'').replace(/\s/g,'')}`;
+    return `<div class="cli-row" style="cursor:pointer" data-busca="${c.nome||''} ${c.wpp||''}" onclick="abrirPerfilCliente('${c.id}')">
+      <img src="${avatar}" style="width:40px;height:40px;border-radius:50%;flex-shrink:0">
+      <div style="flex:1;min-width:0">
+        <div class="row-name">${c.nome||''} <span style="font-size:10px;color:var(--tx3);font-weight:400">· ${c.sexo||'F'}</span></div>
+        <div class="row-sub">${c.interesse||'Sem preferência informada'}</div>
+        <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>${c.wpp||''}</div>
+      </div>
+      <div class="row-right">
+        <div style="font-size:10px;color:var(--tx3)">${c.ultimaVisita||''}</div>
+        <div style="font-size:11px;color:var(--pk600)">${c.visitas||0} visita${(c.visitas||0)===1?'':'s'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.renderClientesLista = renderClientesLista;
 
 function filtrarClientes(q){
   const lista = document.getElementById('clientes-lista');
@@ -4041,10 +4120,15 @@ async function salvarProfissional(){
     atualizarSelectProfissional();
     // Persistir edição no Firestore
     try {
-      if(window.db && window.CLINICA_ID){
-        const { doc: fsDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').catch(()=>({}));
-        if(setDoc) await setDoc(fsDoc(window.db, 'equipe', editId), { clinicaId:window.CLINICA_ID, nome, wpp, sexo, espec, disp, ticket:Number(ticket)||0, avaliacao:Number(aval)||0, domicilio:dom, obs, ativa:ativaHoje }, { merge:true });
-      }
+      const _db  = window._db;
+      const _doc = window._fsDoc;
+      const _set = window._fsSetDoc;
+      const _cid = window._CLINICA_ID || 'studio-luna';
+      if(_db && _set) await _set(_doc(_db, 'equipe', editId),
+        { clinicaId:_cid, nome, wpp, sexo, espec, disp,
+          ticket:Number(ticket)||0, avaliacao:Number(aval)||0,
+          domicilio:dom, obs, ativa:ativaHoje },
+        { merge:true });
     } catch(e){ console.warn('[Belezza] editarProf Firestore:', e); }
     mostrarToastProf('Profissional atualizada!');
   } else {
@@ -4054,8 +4138,15 @@ async function salvarProfissional(){
     const bgColor = BG_CORES[equipeDB.length % BG_CORES.length];
     // Persistir nova profissional no Firestore
     try {
-      const { doc, setDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').catch(()=>({}));
-      if(setDoc && db) await setDoc(doc(db, 'equipe', id), { clinicaId:CLINICA_ID, nome, wpp, sexo, espec, disp, ticket:Number(ticket)||0, avaliacao:Number(aval)||0, domicilio:dom, obs, ativa:ativaHoje, criadoEm: new Date().toISOString() });
+      const _db  = window._db;
+      const _doc = window._fsDoc;
+      const _set = window._fsSetDoc;
+      const _cid = window._CLINICA_ID || 'studio-luna';
+      if(_db && _set) await _set(_doc(_db, 'equipe', id),
+        { clinicaId:_cid, nome, wpp, sexo, espec, disp,
+          ticket:Number(ticket)||0, avaliacao:Number(aval)||0,
+          domicilio:dom, obs, ativa:ativaHoje,
+          criadoEm: new Date().toISOString() });
     } catch(e){ console.warn('[Belezza] novaProf Firestore:', e); }
     equipeDB.push({id, nome, wpp, sexo, espec, disp, ticket, avaliacao:aval,
       domicilio:dom, obs, ativa:ativaHoje, agMes:0, seed, bgColor});
