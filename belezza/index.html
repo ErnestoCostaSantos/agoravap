@@ -4368,9 +4368,9 @@ function enviarSolicitacao(){ if(window.enviarSolicitacao) window.enviarSolicita
 function abrirAgendaPromo(n){ if(window.abrirAgendaPromo) window.abrirAgendaPromo(n); }
 function selecionarServico(c,n,p){ if(window.selecionarServico) window.selecionarServico(c,n,p); }
 function abrirAgendaServico(){ if(window.abrirAgendaServico) window.abrirAgendaServico(); }
-function abrirModalCliente(){ try{ window._abrirModalCliente && window._abrirModalCliente(); }catch(e){} }
-function fecharModalCliente(){ try{ window._fecharModalCliente && window._fecharModalCliente(); }catch(e){} }
-function salvarCliente(){ try{ window._salvarCliente && window._salvarCliente(); }catch(e){} }
+function abrirModalCliente(){ console.log('[BZ] abrirModalCliente | _fn=',typeof window._abrirModalCliente); try{ if(window._abrirModalCliente) window._abrirModalCliente(); else console.error('[BZ] _abrirModalCliente INDEFINIDO'); }catch(e){ console.error('[BZ] abrirModalCliente ERRO:',e); } }
+function fecharModalCliente(){ try{ window._fecharModalCliente && window._fecharModalCliente(); }catch(e){ console.error('[BZ] fecharModalCliente ERRO:',e); } }
+function salvarCliente(){ console.log('[BZ] salvarCliente | _fn=',typeof window._salvarCliente); try{ if(window._salvarCliente) window._salvarCliente(); else console.error('[BZ] _salvarCliente INDEFINIDO'); }catch(e){ console.error('[BZ] salvarCliente ERRO:',e); } }
 function abrirPerfilCliente(id){ try{ window._abrirPerfilCliente && window._abrirPerfilCliente(id); }catch(e){} }
 function fecharPerfilCliente(){ try{ window._fecharPerfilCliente && window._fecharPerfilCliente(); }catch(e){} }
 function filtrarClientes(q){ try{ window._filtrarClientes && window._filtrarClientes(q); }catch(e){} }
@@ -4379,8 +4379,8 @@ function salvarEdicaoCliente(id){ try{ window._salvarEdicaoCliente && window._sa
 function abrirModalAg(){ try{ window._abrirModalAg && window._abrirModalAg(); }catch(e){console.error('abrirModalAg:',e);} }
 function fecharModalAg(){ try{ window._fecharModalAg && window._fecharModalAg(); }catch(e){} }
 function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }catch(e){console.error('salvarNovoAg:',e);} }
-function abrirModalProfissional(id){ try{ window._abrirModalProfissional && window._abrirModalProfissional(id); }catch(e){} }
-function fecharModalProfissional(){ try{ window._fecharModalProfissional && window._fecharModalProfissional(); }catch(e){} }
+function abrirModalProfissional(id){ console.log('[BZ] abrirModalProfissional id=',id,'| _fn=',typeof window._abrirModalProfissional); try{ if(window._abrirModalProfissional) window._abrirModalProfissional(id); else console.error('[BZ] _abrirModalProfissional INDEFINIDO'); }catch(e){ console.error('[BZ] abrirModalProfissional ERRO:',e); } }
+function fecharModalProfissional(){ try{ window._fecharModalProfissional && window._fecharModalProfissional(); }catch(e){ console.error('[BZ] fecharModalProfissional ERRO:',e); } }
 function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.abrirReagendamento(id,s,p); }catch(e){} }
 function apagarPromo(id){ try{ window.apagarPromo && window.apagarPromo(id); }catch(e){} }
 function initPromoForm(){ try{ window.initPromoForm && window.initPromoForm(); }catch(e){} }
@@ -4411,8 +4411,8 @@ document.addEventListener('click', function(e){
     if(window.apagarAgendamentoCli) window.apagarAgendamentoCli(id);
   }
 });
-function salvarProfissional(){ try{ window._salvarProfissional && window._salvarProfissional(); }catch(e){} }
-function editarProfissional(id){ try{ window._editarProfissional && window._editarProfissional(id); }catch(e){} }
+function salvarProfissional(){ console.log('[BZ] salvarProfissional | _fn=',typeof window._salvarProfissional); try{ if(window._salvarProfissional) window._salvarProfissional(); else console.error('[BZ] _salvarProfissional INDEFINIDO'); }catch(e){ console.error('[BZ] salvarProfissional ERRO:',e); } }
+function editarProfissional(id){ console.log('[BZ] editarProfissional id=',id,'| _fn=',typeof window._editarProfissional); try{ if(window._editarProfissional) window._editarProfissional(id); else console.error('[BZ] _editarProfissional INDEFINIDO'); }catch(e){ console.error('[BZ] editarProfissional ERRO:',e); } }
 function verAgendaProfissional(id,nome){ try{ window._verAgendaProfissional && window._verAgendaProfissional(id,nome); }catch(e){} }
 function filtrarEquipe(q){ try{ window._filtrarEquipe && window._filtrarEquipe(q); }catch(e){} }
 function setAgView(v,el){ try{ window.setAgView && window.setAgView(v,el); }catch(e){} }
