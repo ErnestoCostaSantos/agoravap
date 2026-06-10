@@ -451,16 +451,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <script>
-// Stubs síncronos — garantem que onclick inline funcione antes do módulo carregar
-function confirmar(id){ setTimeout(()=>{ if(window._confirmar) window._confirmar(id); else console.warn('_confirmar não pronto'); },0); }
-function recusar(id){ setTimeout(()=>{ if(window._recusar) window._recusar(id); else console.warn('_recusar não pronto'); },0); }
-function abrirModalAg(){ setTimeout(()=>{ if(window._abrirModalAg) window._abrirModalAg(); else console.warn('_abrirModalAg não pronto'); },0); }
+// Stubs síncronos — delegam para o módulo via window._X (atribuído pelo módulo ao carregar)
+function confirmar(id){ if(window._confirmar) window._confirmar(id); }
+function recusar(id){ if(window._recusar) window._recusar(id); }
+function abrirModalAg(){ if(window._abrirModalAg) window._abrirModalAg(); }
 function fecharModalAg(){ if(window._fecharModalAg) window._fecharModalAg(); }
 function salvarNovoAg(){ if(window._salvarNovoAg) window._salvarNovoAg(); }
 function acaoTopbar(){
   const pane = document.querySelector('.pane.active');
   const pid = pane ? pane.id : '';
-  if(pid==='pane-p-camp'){ toggleNovaCamp(); return; }
+  if(pid==='pane-p-camp'){ if(window.toggleNovaCamp) window.toggleNovaCamp(); return; }
   if(pid==='pane-p-promos'){ return; }
   if(pid==='pane-p-equipe'){ if(window._abrirModalProfissional) window._abrirModalProfissional(); return; }
   if(pid==='pane-p-clientes'){ if(window._abrirModalCliente) window._abrirModalCliente(); return; }
@@ -468,9 +468,24 @@ function acaoTopbar(){
 }
 function goTo(id,el){ if(window._goToImpl) window._goToImpl(id,el); }
 function goToMob(id,el){ if(window._goToMobImpl) window._goToMobImpl(id,el); }
-function setRole(r,el){ if(window.setRole) window.setRole(r,el); }
-function toggleSB(){ if(window.toggleSB) window.toggleSB(); }
-function openHelp(){ if(window.openHelp) window.openHelp(); }
+function setRole(r,el){ if(window._setRoleImpl) window._setRoleImpl(r,el); }
+function toggleSB(){ if(window._toggleSBImpl) window._toggleSBImpl(); }
+function openHelp(){ if(window._openHelpImpl) window._openHelpImpl(); }
+// Funções dos modais — delegam para o módulo
+function salvarCliente(){ if(window._salvarCliente) window._salvarCliente(); }
+function fecharModalCliente(){ if(window._fecharModalCliente) window._fecharModalCliente(); }
+function abrirModalCliente(){ if(window._abrirModalCliente) window._abrirModalCliente(); }
+function salvarProfissional(){ if(window._salvarProfissional) window._salvarProfissional(); }
+function fecharModalProfissional(){ if(window._fecharModalProfissional) window._fecharModalProfissional(); }
+function abrirModalProfissional(id){ if(window._abrirModalProfissional) window._abrirModalProfissional(id); }
+function editarProfissional(id){ if(window._editarProfissional) window._editarProfissional(id); }
+function verAgendaProfissional(id,nome){ if(window._verAgendaProfissional) window._verAgendaProfissional(id,nome); }
+function filtrarEquipe(q){ if(window._filtrarEquipe) window._filtrarEquipe(q); }
+function abrirPerfilCliente(id){ if(window._abrirPerfilCliente) window._abrirPerfilCliente(id); }
+function fecharPerfilCliente(){ if(window._fecharPerfilCliente) window._fecharPerfilCliente(); }
+function filtrarClientes(q){ if(window._filtrarClientes) window._filtrarClientes(q); }
+function editarCliente(id){ if(window._editarCliente) window._editarCliente(id); }
+function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvarEdicaoCliente(id); }
 </script>
 <div class="content" id="content">
 
@@ -4259,6 +4274,7 @@ window.toggleFaq = toggleFaq;
 window.filterCat = filterCat;
 window.filterFaq = filterFaq;
 window.openHelp = openHelp;
+window._openHelpImpl = openHelp;
 window.closeHelp = closeHelp;
 window.handleOvClick = handleOvClick;
 window.showPane = showPane;
@@ -4267,7 +4283,9 @@ window._goToImpl = goTo;
 window.goToMob = goToMob;
 window._goToMobImpl = goToMob;
 window.setRole = setRole;
+window._setRoleImpl = setRole;
 window.toggleSB = toggleSB;
+window._toggleSBImpl = toggleSB;
 window.closeSB = closeSB;
 window.sendMsg = sendMsg;
 window.adj = adj;
