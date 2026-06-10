@@ -610,9 +610,8 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
 
     <div class="pane" id="pane-p-clientes">
       <!-- Busca + Nova -->
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <div class="search-bar" style="flex:1;margin-bottom:0"><i class="ti ti-search"></i><input id="cli-search" placeholder="Buscar cliente..." oninput="filtrarClientes(this.value)"></div>
-        <button class="btn pk" style="padding:8px 12px;font-size:12px" onclick="abrirModalCliente()"><i class="ti ti-plus"></i> Nova</button>
+      <div style="margin-bottom:10px">
+        <div class="search-bar"><i class="ti ti-search"></i><input id="cli-search" placeholder="Buscar cliente..." oninput="filtrarClientes(this.value)"></div>
       </div>
       <!-- Top 10 legenda -->
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:6px 10px;background:linear-gradient(90deg,#fffbea,#fef9e0);border-radius:var(--r);border:1px solid #f5d84a">
@@ -679,9 +678,8 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
     </div>
 
     <div class="pane" id="pane-p-equipe">
-      <div style="display:flex;gap:8px;margin-bottom:14px">
-        <div class="search-bar" style="flex:1;margin-bottom:0"><i class="ti ti-search"></i><input id="equipe-search" placeholder="Buscar profissional..." oninput="filtrarEquipe(this.value)"></div>
-        <button class="btn pk" style="padding:8px 12px;font-size:12px" onclick="abrirModalProfissional()"><i class="ti ti-plus"></i> Nova</button>
+      <div style="margin-bottom:14px">
+        <div class="search-bar"><i class="ti ti-search"></i><input id="equipe-search" placeholder="Buscar profissional..." oninput="filtrarEquipe(this.value)"></div>
       </div>
       <div id="equipe-lista"></div>
     </div>
@@ -4203,11 +4201,17 @@ function atualizarSelectProfissional(){
 
 // Expõe funções globais
 window.equipeDB               = equipeDB;
+window._filtrarEquipe          = filtrarEquipe;
 window.filtrarEquipe          = filtrarEquipe;
+window._abrirModalProfissional = abrirModalProfissional;
 window.abrirModalProfissional = abrirModalProfissional;
+window._fecharModalProfissional= fecharModalProfissional;
 window.fecharModalProfissional= fecharModalProfissional;
+window._salvarProfissional     = salvarProfissional;
 window.salvarProfissional     = salvarProfissional;
+window._editarProfissional     = editarProfissional;
 window.editarProfissional     = editarProfissional;
+window._verAgendaProfissional  = verAgendaProfissional;
 window.verAgendaProfissional  = verAgendaProfissional;
 // Aplica modo solo ao select ag-prof após popular
 (function(){
@@ -4340,13 +4344,21 @@ function salvarEdicaoCliente(id){
   if(btnCad){ btnCad.innerHTML = '<i class="ti ti-user-plus"></i> Cadastrar'; btnCad.setAttribute('onclick','salvarCliente()'); }
   setTimeout(() => fecharModalCliente(), 1800);
 }
+window._filtrarClientes      = filtrarClientes;
 window.filtrarClientes      = filtrarClientes;
+window._abrirPerfilCliente   = abrirPerfilCliente;
 window.abrirPerfilCliente   = abrirPerfilCliente;
+window._fecharPerfilCliente  = fecharPerfilCliente;
 window.fecharPerfilCliente  = fecharPerfilCliente;
+window._abrirModalCliente    = abrirModalCliente;
 window.abrirModalCliente    = abrirModalCliente;
+window._fecharModalCliente   = fecharModalCliente;
 window.fecharModalCliente   = fecharModalCliente;
+window._salvarCliente        = salvarCliente;
 window.salvarCliente        = salvarCliente;
+window._editarCliente        = editarCliente;
 window.editarCliente        = editarCliente;
+window._salvarEdicaoCliente  = salvarEdicaoCliente;
 window.salvarEdicaoCliente  = salvarEdicaoCliente;
 window.toggleFaq = toggleFaq;
 window.filterCat = filterCat;
@@ -4423,19 +4435,19 @@ function enviarSolicitacao(){ if(window.enviarSolicitacao) window.enviarSolicita
 function abrirAgendaPromo(n){ if(window.abrirAgendaPromo) window.abrirAgendaPromo(n); }
 function selecionarServico(c,n,p){ if(window.selecionarServico) window.selecionarServico(c,n,p); }
 function abrirAgendaServico(){ if(window.abrirAgendaServico) window.abrirAgendaServico(); }
-function abrirModalCliente(){ try{ window.abrirModalCliente && window.abrirModalCliente(); }catch(e){} }
-function fecharModalCliente(){ try{ window.fecharModalCliente && window.fecharModalCliente(); }catch(e){} }
-function salvarCliente(){ try{ window.salvarCliente && window.salvarCliente(); }catch(e){} }
-function abrirPerfilCliente(id){ try{ window.abrirPerfilCliente && window.abrirPerfilCliente(id); }catch(e){} }
-function fecharPerfilCliente(){ try{ window.fecharPerfilCliente && window.fecharPerfilCliente(); }catch(e){} }
-function filtrarClientes(q){ try{ window.filtrarClientes && window.filtrarClientes(q); }catch(e){} }
-function editarCliente(id){ try{ window.editarCliente && window.editarCliente(id); }catch(e){} }
-function salvarEdicaoCliente(id){ try{ window.salvarEdicaoCliente && window.salvarEdicaoCliente(id); }catch(e){} }
+function abrirModalCliente(){ try{ window._abrirModalCliente && window._abrirModalCliente(); }catch(e){} }
+function fecharModalCliente(){ try{ window._fecharModalCliente && window._fecharModalCliente(); }catch(e){} }
+function salvarCliente(){ try{ window._salvarCliente && window._salvarCliente(); }catch(e){} }
+function abrirPerfilCliente(id){ try{ window._abrirPerfilCliente && window._abrirPerfilCliente(id); }catch(e){} }
+function fecharPerfilCliente(){ try{ window._fecharPerfilCliente && window._fecharPerfilCliente(); }catch(e){} }
+function filtrarClientes(q){ try{ window._filtrarClientes && window._filtrarClientes(q); }catch(e){} }
+function editarCliente(id){ try{ window._editarCliente && window._editarCliente(id); }catch(e){} }
+function salvarEdicaoCliente(id){ try{ window._salvarEdicaoCliente && window._salvarEdicaoCliente(id); }catch(e){} }
 function abrirModalAg(){ try{ window._abrirModalAg && window._abrirModalAg(); }catch(e){console.error('abrirModalAg:',e);} }
 function fecharModalAg(){ try{ window._fecharModalAg && window._fecharModalAg(); }catch(e){} }
 function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }catch(e){console.error('salvarNovoAg:',e);} }
-function abrirModalProfissional(id){ try{ window.abrirModalProfissional && window.abrirModalProfissional(id); }catch(e){} }
-function fecharModalProfissional(){ try{ window.fecharModalProfissional && window.fecharModalProfissional(); }catch(e){} }
+function abrirModalProfissional(id){ try{ window._abrirModalProfissional && window._abrirModalProfissional(id); }catch(e){} }
+function fecharModalProfissional(){ try{ window._fecharModalProfissional && window._fecharModalProfissional(); }catch(e){} }
 function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.abrirReagendamento(id,s,p); }catch(e){} }
 function apagarPromo(id){ try{ window.apagarPromo && window.apagarPromo(id); }catch(e){} }
 function initPromoForm(){ try{ window.initPromoForm && window.initPromoForm(); }catch(e){} }
@@ -4466,10 +4478,10 @@ document.addEventListener('click', function(e){
     if(window.apagarAgendamentoCli) window.apagarAgendamentoCli(id);
   }
 });
-function salvarProfissional(){ try{ window.salvarProfissional && window.salvarProfissional(); }catch(e){} }
-function editarProfissional(id){ try{ window.editarProfissional && window.editarProfissional(id); }catch(e){} }
-function verAgendaProfissional(id,nome){ try{ window.verAgendaProfissional && window.verAgendaProfissional(id,nome); }catch(e){} }
-function filtrarEquipe(q){ try{ window.filtrarEquipe && window.filtrarEquipe(q); }catch(e){} }
+function salvarProfissional(){ try{ window._salvarProfissional && window._salvarProfissional(); }catch(e){} }
+function editarProfissional(id){ try{ window._editarProfissional && window._editarProfissional(id); }catch(e){} }
+function verAgendaProfissional(id,nome){ try{ window._verAgendaProfissional && window._verAgendaProfissional(id,nome); }catch(e){} }
+function filtrarEquipe(q){ try{ window._filtrarEquipe && window._filtrarEquipe(q); }catch(e){} }
 function setAgView(v,el){ try{ window.setAgView && window.setAgView(v,el); }catch(e){} }
 function navSemana(d){ try{ window.navSemana && window.navSemana(d); }catch(e){} }
 function navMes(d){ try{ window.navMes && window.navMes(d); }catch(e){} }
