@@ -462,8 +462,8 @@ function acaoTopbar(){
   const pid = pane ? pane.id : '';
   if(pid==='pane-p-camp'){ toggleNovaCamp(); return; }
   if(pid==='pane-p-promos'){ return; }
-  if(pid==='pane-p-equipe'){ if(window.abrirModalProfissional) window.abrirModalProfissional(); return; }
-  if(pid==='pane-p-clientes'){ if(window.abrirModalCliente) window.abrirModalCliente(); return; }
+  if(pid==='pane-p-equipe'){ if(window._abrirModalProfissional) window._abrirModalProfissional(); return; }
+  if(pid==='pane-p-clientes'){ if(window._abrirModalCliente) window._abrirModalCliente(); return; }
   abrirModalAg();
 }
 function goTo(id,el){ if(window._goToImpl) window._goToImpl(id,el); }
@@ -610,10 +610,7 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
 
     <div class="pane" id="pane-p-clientes">
       <!-- Busca + Nova -->
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <div class="search-bar" style="flex:1;margin-bottom:0"><i class="ti ti-search"></i><input id="cli-search" placeholder="Buscar cliente..." oninput="filtrarClientes(this.value)"></div>
-        <button class="btn pk" style="padding:8px 12px;font-size:12px" onclick="abrirModalCliente()"><i class="ti ti-plus"></i> Nova</button>
-      </div>
+      <div class="search-bar" style="margin-bottom:10px"><i class="ti ti-search"></i><input id="cli-search" placeholder="Buscar cliente..." oninput="filtrarClientes(this.value)"></div>
       <!-- Top 10 legenda -->
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:6px 10px;background:linear-gradient(90deg,#fffbea,#fef9e0);border-radius:var(--r);border:1px solid #f5d84a">
         <i class="ti ti-crown" style="font-size:14px;color:#c49b00"></i>
@@ -679,10 +676,7 @@ function openHelp(){ if(window.openHelp) window.openHelp(); }
     </div>
 
     <div class="pane" id="pane-p-equipe">
-      <div style="display:flex;gap:8px;margin-bottom:14px">
-        <div class="search-bar" style="flex:1;margin-bottom:0"><i class="ti ti-search"></i><input id="equipe-search" placeholder="Buscar profissional..." oninput="filtrarEquipe(this.value)"></div>
-        <button class="btn pk" style="padding:8px 12px;font-size:12px" onclick="abrirModalProfissional()"><i class="ti ti-plus"></i> Nova</button>
-      </div>
+      <div class="search-bar" style="margin-bottom:14px"><i class="ti ti-search"></i><input id="equipe-search" placeholder="Buscar profissional..." oninput="filtrarEquipe(this.value)"></div>
       <div id="equipe-lista"></div>
     </div>
 
@@ -1320,7 +1314,6 @@ const firebaseConfig = {
 const FA   = initializeApp(firebaseConfig);
 const auth = getAuth(FA);
 const db   = getFirestore(FA);
-window._db = db;
 
 // Instância secundária — para criar usuários sem derrubar sessão do admin
 const FA2   = initializeApp(firebaseConfig, 'admin');
@@ -2500,41 +2493,49 @@ function fecharModalCliente(){
 }
 async function salvarCliente(){
   const nome = document.getElementById('nc-nome').value.trim();
-  const wpp = document.getElementById('nc-wpp').value.trim();
-  if(!nome || !wpp){ document.getElementById('nc-error').textContent = 'Nome e WhatsApp são obrigatórios.'; return; }
-  const sexo = document.querySelector('input[name="nc-sexo"]:checked')?.value || 'F';
-  const id = 'cli-' + Date.now();
-  const seed = nome.replace(/\s/g,'') + id.slice(-4);
-  const avatar = sexo === 'F'
+  const wpp  = document.getElementById('nc-wpp').value.trim();
+  if(!nome||!wpp){ document.getElementById('nc-error').textContent='Nome e WhatsApp são obrigatórios.'; return; }
+  const sexo   = document.querySelector('input[name="nc-sexo"]:checked')?.value||'F';
+  const id     = 'cli-'+Date.now();
+  const seed   = nome.replace(/[^a-zA-Z0-9]/g,'')+id.slice(-4);
+  const avatar = sexo==='F'
     ? `https://api.dicebear.com/9.x/lorelei/svg?seed=${seed}&backgroundColor=fbeaf0`
     : `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&backgroundColor=e8f4ff`;
   const novo = {
-    id, nome, sexo, wpp,
-    email: document.getElementById('nc-email').value,
-    nasc: document.getElementById('nc-nasc').value,
-    origem: document.getElementById('nc-origem').value,
-    interesse: document.getElementById('nc-interesse').value,
-    alergias: document.getElementById('nc-alergias').value,
-    obs: document.getElementById('nc-obs').value,
-    clinicaId: CLINICA_ID,
+    id, nome, sexo, wpp, clinicaId: CLINICA_ID,
+    email:     document.getElementById('nc-email').value||'',
+    nasc:      document.getElementById('nc-nasc').value||'',
+    origem:    document.getElementById('nc-origem').value||'',
+    interesse: document.getElementById('nc-interesse').value||'',
+    alergias:  document.getElementById('nc-alergias').value||'',
+    obs:       document.getElementById('nc-obs').value||'',
     visitas:0, valor:0, ultimaVisita:'—', ultimoSvc:'—', prof:'—',
     top:false, score:0, avatar, criadoEm: new Date().toISOString()
   };
-  // Salvar no Firestore
-  try {
-    await setDoc(doc(db, 'clientes', id), novo);
-    console.log('[Belezza] cliente salvo:', id);
-  } catch(e) {
-    console.warn('[Belezza] salvarCliente Firestore:', e);
+  console.log('[Belezza] salvarCliente: salvando', id, 'clinicaId:', CLINICA_ID);
+  try { await setDoc(doc(db,'clientes',id), novo); console.log('[Belezza] salvarCliente: OK'); }
+  catch(e){ console.error('[Belezza] salvarCliente ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
+  clientesDB.push(novo);
+  window.clientesDB = clientesDB;
+  // Atualiza lista visual
+  const lista = document.getElementById('clientes-lista');
+  if(lista){
+    const row = document.createElement('div');
+    row.className='cli-row'; row.style.cursor='pointer';
+    row.dataset.busca=nome+' '+wpp;
+    row.onclick=()=>abrirPerfilCliente(id);
+    row.innerHTML=`
+      <img src="${avatar}" style="width:40px;height:40px;border-radius:50%;flex-shrink:0">
+      <div style="flex:1;min-width:0">
+        <div class="row-name">${nome} <span style="font-size:10px;color:var(--tx3);font-weight:400">· ${sexo}</span></div>
+        <div class="row-sub">Nova cliente</div>
+        <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>${wpp}</div>
+      </div>
+      <div class="row-right"><div style="font-size:10px;color:var(--tx3)">Hoje</div><div style="font-size:11px;color:var(--pk600)">0 visitas</div></div>`;
+    lista.appendChild(row);
   }
-  // Atualiza array local
-  const _cDB = window.clientesDB || clientesDB;
-  _cDB.push(novo);
-  window.clientesDB = _cDB;
-  // Re-renderiza lista
-  if(typeof renderClientesLista === 'function') renderClientesLista();
-  document.getElementById('nc-toast').style.display = 'flex';
-  setTimeout(() => fecharModalCliente(), 2000);
+  document.getElementById('nc-toast').style.display='flex';
+  setTimeout(()=>fecharModalCliente(), 2000);
 }
 
 
@@ -2544,8 +2545,7 @@ async function salvarCliente(){
 // MÓDULO FIRESTORE — Integração completa agendamentos
 // ══════════════════════════════════════════════════════════════════════════════
 
-const CLINICA_ID = 'belezza-50e76';
-window._CLINICA_ID = CLINICA_ID; // clinicaId padrão
+const CLINICA_ID = 'belezza-50e76'; // clinicaId padrão
 
 // ── Listener de agendamentos (profissional) ───────────────────────────────────
 let unsubAgendamentos = null;
@@ -2828,9 +2828,7 @@ async function enviarSolicitacaoFS() {
 
 // Expõe funções
 window.confirmarFS   = confirmarFS;
-window._confirmarFS = confirmarFS;
 window.recusarFS     = recusarFS;
-window._recusarFS = recusarFS;
 window.enviarSolicitacaoFS = enviarSolicitacaoFS;
 window.iniciarListenerAgendamentos = iniciarListenerAgendamentos;
 async function apagarAgendamentoCli(id) {
@@ -3022,16 +3020,11 @@ function detalhesDia(key){
 }
 
 window.previewDataAg = previewDataAg;
-window._previewDataAg = previewDataAg;
 window.setAgView   = setAgView;
-window._setAgView = setAgView;
 window.navSemana   = navSemana;
-window._navSemana = navSemana;
 window.navMes      = navMes;
-window._navMes = navMes;
 window.renderAgHoje= renderAgHoje;
 window.detalhesDia = detalhesDia;
-window._detalhesDia = detalhesDia;
 
 
 
@@ -3181,11 +3174,8 @@ async function responderLider() {
 window.iniciarListenerChat    = iniciarListenerChat;
 window.iniciarListenerThreads = iniciarListenerThreads;
 window.abrirThreadLider       = abrirThreadLider;
-window._abrirThreadLider = abrirThreadLider;
 window.fecharThreadLider      = fecharThreadLider;
-window._fecharThreadLider = fecharThreadLider;
 window.responderLider         = responderLider;
-window._responderLider = responderLider;
 
 
 
@@ -3453,17 +3443,12 @@ async function encerrarCampanha(campId) {
 
 // ── Expõe funções (padrão reutilizável) ───────────────────────────────────
 window.criarCampanha          = criarCampanha;
-window._criarCampanha = criarCampanha;
 window.campanhasDB            = campanhasDB; // referência atualizada pelo listener
 window.iniciarListenerCampanhas = iniciarListenerCampanhas;
 window.marcarEtapaEnviada     = marcarEtapaEnviada;
-window._marcarEtapaEnviada = marcarEtapaEnviada;
 window.adjCamp                = adjCamp;
-window._adjCamp = adjCamp;
 window.encerrarCampanha       = encerrarCampanha;
-window._encerrarCampanha = encerrarCampanha;
 window.initCampForm           = initCampForm;
-window._initCampForm = initCampForm;
 
 // ── Módulo Promoções ─────────────────────────────────────────────────────
 const MESES_PROMO = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -3701,7 +3686,6 @@ function togglePromoDetalhe(id) {
   if(el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 window.togglePromoDetalhe    = togglePromoDetalhe;
-window._togglePromoDetalhe = togglePromoDetalhe;
 // Referência para re-renderizar promoções quando agendamentos da cliente atualizam
 let renderPromosClienteAtual = null;
 window.iniciarListenerPromos = iniciarListenerPromos;
@@ -3853,9 +3837,7 @@ async function verificarEExibirPopup() {
 window.verificarEExibirPopup = verificarEExibirPopup;
 window.publicarPromo         = publicarPromo;
 window.apagarPromo           = apagarPromo;
-window._apagarPromo = apagarPromo;
 window.initPromoForm         = initPromoForm;
-window._initPromoForm = initPromoForm;
 
 // ── Reagendamento: redireciona para fluxo normal de agendamento ─────────────
 function abrirReagendamento(agId, servico, profAnterior) {
@@ -3887,9 +3869,7 @@ function abrirReagendamento(agId, servico, profAnterior) {
   }, 150);
 }
 window.abrirReagendamento       = abrirReagendamento;
-window._abrirReagendamento = abrirReagendamento;
 window.voltarParaProfissional   = voltarParaProfissional;
-window._voltarParaProfissional = voltarParaProfissional;
 window.fecharReagendamento = function(){};
 
 // ── Módulo Equipe ─────────────────────────────────────────────────────────
@@ -3989,7 +3969,7 @@ function abrirModalProfissional(id){
   document.getElementById('prof-toast').style.display = 'none';
 
   if(id){
-    const p = equipeDB.find(x => x.id === id);
+    const p = (window.equipeDB || equipeDB).find(x => x.id === id);
     if(!p) return;
     editId.value = id;
     titulo.textContent = 'Editar Profissional';
@@ -4034,8 +4014,8 @@ async function salvarProfissional(){
   const obs   = document.getElementById('prof-obs').value;
   const editId= document.getElementById('prof-edit-id').value;
 
-  const _eqDB = window.equipeDB || equipeDB;
-  const idx = editId ? _eqDB.findIndex(x => x.id === editId) : -1;
+  const _eq = window.equipeDB || equipeDB;
+  const idx = editId ? _eq.findIndex(x => x.id === editId) : -1;
 
   // Calcula se está ativa hoje (baseado nos dias selecionados)
   const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
@@ -4044,45 +4024,43 @@ async function salvarProfissional(){
 
   if(idx >= 0){
     // Edição
-    _eqDB[idx] = { ..._eqDB[idx], nome, wpp, sexo, espec, disp, ticket, avaliacao:aval, domicilio:dom, obs, ativa:ativaHoje };
-    window.equipeDB = _eqDB;
-    renderEquipe(_eqDB);
+    _eq[idx] = { ..._eq[idx], nome, wpp, sexo, espec, disp, ticket, avaliacao:aval, domicilio:dom, obs, ativa:ativaHoje };
+    window.equipeDB = _eq;
+    window.equipeDB = equipeDB;
+    renderEquipe(equipeDB);
     // Atualiza select de profissional no modal de agendamento
     atualizarSelectProfissional();
-    // Persistir edição no Firestore (usa db e setDoc já importados no módulo)
+    // Persistir edição no Firestore
+    console.log('[Belezza] editarProf: salvando', editId);
     try {
-      await setDoc(doc(db, 'equipe', editId),
-        { clinicaId:CLINICA_ID, nome, wpp, sexo, espec, disp,
-          ticket:Number(ticket)||0, avaliacao:Number(aval)||0,
-          domicilio:dom, obs, ativa:ativaHoje },
-        { merge:true });
-      console.log('[Belezza] prof atualizada:', editId);
-    } catch(e){ console.warn('[Belezza] editarProf Firestore:', e); }
+      await setDoc(doc(db,'equipe',editId),
+        {clinicaId:CLINICA_ID,nome,wpp,sexo,espec,disp,
+         ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
+         domicilio:dom,obs,ativa:ativaHoje},{merge:true});
+    } catch(e){ console.error('[Belezza] editarProf ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
     mostrarToastProf('Profissional atualizada!');
   } else {
     // Novo
     const id = 'prof-' + Date.now();
     const seed = nome.replace(/\s/g,'') + id.slice(-4);
-    const _eqDB2 = window.equipeDB || equipeDB;
-    const bgColor = BG_CORES[_eqDB2.length % BG_CORES.length];
-    // Persistir nova profissional no Firestore (usa db e setDoc já importados)
+    const bgColor = BG_CORES[equipeDB.length % BG_CORES.length];
+    // Persistir nova profissional no Firestore
+    console.log('[Belezza] novaProf: salvando', id);
     try {
-      await setDoc(doc(db, 'equipe', id),
-        { clinicaId:CLINICA_ID, nome, wpp, sexo, espec, disp,
-          ticket:Number(ticket)||0, avaliacao:Number(aval)||0,
-          domicilio:dom, obs, ativa:ativaHoje,
-          criadoEm: new Date().toISOString() });
-      console.log('[Belezza] prof salva:', id);
-    } catch(e){ console.warn('[Belezza] novaProf Firestore:', e); }
-    _eqDB2.push({id, nome, wpp, sexo, espec, disp, ticket, avaliacao:aval,
+      await setDoc(doc(db,'equipe',id),
+        {clinicaId:CLINICA_ID,nome,wpp,sexo,espec,disp,
+         ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
+         domicilio:dom,obs,ativa:ativaHoje,
+         criadoEm:new Date().toISOString()});
+    } catch(e){ console.error('[Belezza] novaProf ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
+    (window.equipeDB || equipeDB).push({id, nome, wpp, sexo, espec, disp, ticket, avaliacao:aval,
       domicilio:dom, obs, ativa:ativaHoje, agMes:0, seed, bgColor});
     // Adiciona no select de agendamento
     atualizarSelectProfissional();
     mostrarToastProf('Profissional cadastrada!');
   }
-  const _eqFinal = window.equipeDB || equipeDB;
-  window.equipeDB = _eqFinal;
-  renderEquipe(_eqFinal);
+  window.equipeDB = equipeDB;
+  renderEquipe(equipeDB);
   setTimeout(fecharModalProfissional, 1600);
 }
 
@@ -4119,17 +4097,17 @@ function atualizarSelectProfissional(){
 // Expõe funções globais
 window.equipeDB               = equipeDB;
 window.filtrarEquipe          = filtrarEquipe;
-window._filtrarEquipe = filtrarEquipe;
+window._filtrarEquipe          = filtrarEquipe;
 window.abrirModalProfissional = abrirModalProfissional;
 window._abrirModalProfissional = abrirModalProfissional;
 window.fecharModalProfissional= fecharModalProfissional;
-window._fecharModalProfissional = fecharModalProfissional;
+window._fecharModalProfissional= fecharModalProfissional;
 window.salvarProfissional     = salvarProfissional;
-window._salvarProfissional = salvarProfissional;
+window._salvarProfissional     = salvarProfissional;
 window.editarProfissional     = editarProfissional;
-window._editarProfissional = editarProfissional;
+window._editarProfissional     = editarProfissional;
 window.verAgendaProfissional  = verAgendaProfissional;
-window._verAgendaProfissional = verAgendaProfissional;
+window._verAgendaProfissional  = verAgendaProfissional;
 // Aplica modo solo ao select ag-prof após popular
 (function(){
   const agProf = document.getElementById('ag-prof');
@@ -4262,21 +4240,21 @@ function salvarEdicaoCliente(id){
   setTimeout(() => fecharModalCliente(), 1800);
 }
 window.filtrarClientes      = filtrarClientes;
-window._filtrarClientes = filtrarClientes;
+window._filtrarClientes      = filtrarClientes;
 window.abrirPerfilCliente   = abrirPerfilCliente;
-window._abrirPerfilCliente = abrirPerfilCliente;
+window._abrirPerfilCliente   = abrirPerfilCliente;
 window.fecharPerfilCliente  = fecharPerfilCliente;
-window._fecharPerfilCliente = fecharPerfilCliente;
+window._fecharPerfilCliente  = fecharPerfilCliente;
 window.abrirModalCliente    = abrirModalCliente;
-window._abrirModalCliente = abrirModalCliente;
+window._abrirModalCliente    = abrirModalCliente;
 window.fecharModalCliente   = fecharModalCliente;
-window._fecharModalCliente = fecharModalCliente;
+window._fecharModalCliente   = fecharModalCliente;
 window.salvarCliente        = salvarCliente;
-window._salvarCliente = salvarCliente;
+window._salvarCliente        = salvarCliente;
 window.editarCliente        = editarCliente;
-window._editarCliente = editarCliente;
+window._editarCliente        = editarCliente;
 window.salvarEdicaoCliente  = salvarEdicaoCliente;
-window._salvarEdicaoCliente = salvarEdicaoCliente;
+window._salvarEdicaoCliente  = salvarEdicaoCliente;
 window.toggleFaq = toggleFaq;
 window.filterCat = filterCat;
 window.filterFaq = filterFaq;
@@ -4318,10 +4296,11 @@ window.enviarSolicitacao  = enviarSolicitacao;
 
 </script>
 <script>
-// Bridge — todos os proxies usam window._X para evitar loop com window.X do módulo
+// Bridge — garante que funções do module estejam disponíveis para onclick inline
 function handleCliKey(e){ if(window._handleCliKey) window._handleCliKey(e); }
 function doLoginCli(){
   if(window._doLoginCli){ window._doLoginCli(); return; }
+  // Módulo ainda carregando — aguarda até 3s
   const btn = document.getElementById('cli-entrar-btn');
   if(btn){ btn.textContent='Aguarde...'; btn.disabled=true; }
   let tries=0;
@@ -4342,78 +4321,70 @@ function toggleCliPass(){ if(window._toggleCliPass) window._toggleCliPass(); }
 function recuperarSenhaCli(){ if(window._recuperarSenhaCli) window._recuperarSenhaCli(); }
 function voltarLoginPro(){ if(window._voltarLoginPro) window._voltarLoginPro(); }
 function abrirLoginCliente(){ if(window._abrirLoginCliente) window._abrirLoginCliente(); }
-function goTo(id,el){ if(window._goToImpl) window._goToImpl(id,el); }
-function goToMob(id,el){ if(window._goToMobImpl) window._goToMobImpl(id,el); }
 function goToCliSection(id){ if(window._goToCliSection) window._goToCliSection(id); }
 function sairCli(){ if(window._sairCli) window._sairCli(); }
 function voltarHomeCliente(){ if(window._voltarHomeCliente) window._voltarHomeCliente(); }
-function setRole(r,el){ if(window.setRole) window.setRole(r,el); }
-function toggleSB(){ if(window.toggleSB) window.toggleSB(); }
-function openHelp(){ if(window.openHelp) window.openHelp(); }
-// Agendamento cliente
 function selecionarDia(b,l,s){ if(window.selecionarDia) window.selecionarDia(b,l,s); }
 function selecionarHorario(b,h){ if(window.selecionarHorario) window.selecionarHorario(b,h); }
 function enviarSolicitacao(){ if(window.enviarSolicitacao) window.enviarSolicitacao(); }
 function abrirAgendaPromo(n){ if(window.abrirAgendaPromo) window.abrirAgendaPromo(n); }
 function selecionarServico(c,n,p){ if(window.selecionarServico) window.selecionarServico(c,n,p); }
 function abrirAgendaServico(){ if(window.abrirAgendaServico) window.abrirAgendaServico(); }
-// Modal agendamento prof
-function abrirModalAg(){ if(window._abrirModalAg) window._abrirModalAg(); }
-function fecharModalAg(){ if(window._fecharModalAg) window._fecharModalAg(); }
-function salvarNovoAg(){ if(window._salvarNovoAg) window._salvarNovoAg(); }
-function previewDataAg(){ if(window._previewDataAg) window._previewDataAg(); }
-// Clientes — usam _X para evitar loop
-function abrirModalCliente(){ if(window._abrirModalCliente) window._abrirModalCliente(); }
-function fecharModalCliente(){ if(window._fecharModalCliente) window._fecharModalCliente(); }
-function salvarCliente(){ if(window._salvarCliente) window._salvarCliente(); }
-function abrirPerfilCliente(id){ if(window._abrirPerfilCliente) window._abrirPerfilCliente(id); }
-function fecharPerfilCliente(){ if(window._fecharPerfilCliente) window._fecharPerfilCliente(); }
-function filtrarClientes(q){ if(window._filtrarClientes) window._filtrarClientes(q); }
-function editarCliente(id){ if(window._editarCliente) window._editarCliente(id); }
-function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvarEdicaoCliente(id); }
-// Equipe — usam _X para evitar loop
-function abrirModalProfissional(id){ if(window._abrirModalProfissional) window._abrirModalProfissional(id); }
-function fecharModalProfissional(){ if(window._fecharModalProfissional) window._fecharModalProfissional(); }
-function salvarProfissional(){ if(window._salvarProfissional) window._salvarProfissional(); }
-function editarProfissional(id){ if(window._editarProfissional) window._editarProfissional(id); }
-function verAgendaProfissional(id,nome){ if(window._verAgendaProfissional) window._verAgendaProfissional(id,nome); }
-function filtrarEquipe(q){ if(window._filtrarEquipe) window._filtrarEquipe(q); }
-// Agenda
-function setAgView(v,el){ if(window._setAgView) window._setAgView(v,el); }
-function navSemana(d){ if(window._navSemana) window._navSemana(d); }
-function navMes(d){ if(window._navMes) window._navMes(d); }
-function detalhesDia(k){ if(window._detalhesDia) window._detalhesDia(k); }
-function confirmarFS(id){ if(window._confirmarFS) window._confirmarFS(id); }
-function recusarFS(id){ if(window._recusarFS) window._recusarFS(id); }
-// Campanhas
-function criarCampanha(){ if(window._criarCampanha) window._criarCampanha(); }
-function marcarEtapaEnviada(id,i){ if(window._marcarEtapaEnviada) window._marcarEtapaEnviada(id,i); }
-function adjCamp(id,c,d){ if(window._adjCamp) window._adjCamp(id,c,d); }
-function encerrarCampanha(id){ if(window._encerrarCampanha) window._encerrarCampanha(id); }
-function initCampForm(){ if(window._initCampForm) window._initCampForm(); }
-// Promoções
-function apagarPromo(id){ if(window._apagarPromo) window._apagarPromo(id); }
-function initPromoForm(){ if(window._initPromoForm) window._initPromoForm(); }
-function togglePromoDetalhe(id){ if(window._togglePromoDetalhe) window._togglePromoDetalhe(id); }
-// Chat
-function abrirThreadLider(uid,n){ if(window._abrirThreadLider) window._abrirThreadLider(uid,n); }
-function fecharThreadLider(){ if(window._fecharThreadLider) window._fecharThreadLider(); }
-function responderLider(){ if(window._responderLider) window._responderLider(); }
-// Misc
-function voltarParaProfissional(){ if(window._voltarParaProfissional) window._voltarParaProfissional(); }
-function abrirReagendamento(id,s,p){ if(window._abrirReagendamento) window._abrirReagendamento(id,s,p); }
-function doLogout(){ if(window.doLogout) window.doLogout(); else window.location.reload(); }
+function abrirModalCliente(){ try{ window._abrirModalCliente && window._abrirModalCliente(); }catch(e){} }
+function fecharModalCliente(){ try{ window._fecharModalCliente && window._fecharModalCliente(); }catch(e){} }
+function salvarCliente(){ try{ window._salvarCliente && window._salvarCliente(); }catch(e){} }
+function abrirPerfilCliente(id){ try{ window._abrirPerfilCliente && window._abrirPerfilCliente(id); }catch(e){} }
+function fecharPerfilCliente(){ try{ window._fecharPerfilCliente && window._fecharPerfilCliente(); }catch(e){} }
+function filtrarClientes(q){ try{ window._filtrarClientes && window._filtrarClientes(q); }catch(e){} }
+function editarCliente(id){ try{ window._editarCliente && window._editarCliente(id); }catch(e){} }
+function salvarEdicaoCliente(id){ try{ window._salvarEdicaoCliente && window._salvarEdicaoCliente(id); }catch(e){} }
+function abrirModalAg(){ try{ window._abrirModalAg && window._abrirModalAg(); }catch(e){console.error('abrirModalAg:',e);} }
+function fecharModalAg(){ try{ window._fecharModalAg && window._fecharModalAg(); }catch(e){} }
+function salvarNovoAg(){ try{ window._salvarNovoAg && window._salvarNovoAg(); }catch(e){console.error('salvarNovoAg:',e);} }
+function abrirModalProfissional(id){ try{ window._abrirModalProfissional && window._abrirModalProfissional(id); }catch(e){} }
+function fecharModalProfissional(){ try{ window._fecharModalProfissional && window._fecharModalProfissional(); }catch(e){} }
+function abrirReagendamento(id,s,p){ try{ window.abrirReagendamento && window.abrirReagendamento(id,s,p); }catch(e){} }
+function apagarPromo(id){ try{ window.apagarPromo && window.apagarPromo(id); }catch(e){} }
+function initPromoForm(){ try{ window.initPromoForm && window.initPromoForm(); }catch(e){} }
+function togglePromoDetalhe(id){ try{ window.togglePromoDetalhe && window.togglePromoDetalhe(id); }catch(e){} }
+function criarCampanha(){ try{ window.criarCampanha && window.criarCampanha(); }catch(e){} }
+function marcarEtapaEnviada(id,i){ try{ window.marcarEtapaEnviada && window.marcarEtapaEnviada(id,i); }catch(e){} }
+function adjCamp(id,c,d){ try{ window.adjCamp && window.adjCamp(id,c,d); }catch(e){} }
+function encerrarCampanha(id){ try{ window.encerrarCampanha && window.encerrarCampanha(id); }catch(e){} }
+function initCampForm(){ try{ window.initCampForm && window.initCampForm(); }catch(e){} }
+function abrirThreadLider(uid,n){ try{ window.abrirThreadLider && window.abrirThreadLider(uid,n); }catch(e){} }
+function fecharThreadLider(){ try{ window.fecharThreadLider && window.fecharThreadLider(); }catch(e){} }
+function voltarParaProfissional(){ try{ window.voltarParaProfissional && window.voltarParaProfissional(); }catch(e){ console.error('voltarParaProfissional:',e); } }
+function responderLider(){ try{ window.responderLider && window.responderLider(); }catch(e){} }
 
-// Delegação para botões gerados dinamicamente
+// Delegação para botões Reagendar e Apagar gerados dinamicamente
 document.addEventListener('click', function(e){
   const btnReag = e.target.closest('.btn-reag-cli');
   if(btnReag){
-    abrirReagendamento(btnReag.getAttribute('data-id')||'', btnReag.getAttribute('data-svc')||'', btnReag.getAttribute('data-prof')||'');
+    const id   = btnReag.getAttribute('data-id')  || '';
+    const svc  = btnReag.getAttribute('data-svc') || '';
+    const prof = btnReag.getAttribute('data-prof')|| '';
+    abrirReagendamento(id, svc, prof);
     return;
   }
   const btnDel = e.target.closest('.btn-del-cli');
-  if(btnDel && window.apagarAgendamentoCli) window.apagarAgendamentoCli(btnDel.getAttribute('data-id')||'');
+  if(btnDel){
+    const id = btnDel.getAttribute('data-id') || '';
+    if(window.apagarAgendamentoCli) window.apagarAgendamentoCli(id);
+  }
 });
+function salvarProfissional(){ try{ window._salvarProfissional && window._salvarProfissional(); }catch(e){} }
+function editarProfissional(id){ try{ window._editarProfissional && window._editarProfissional(id); }catch(e){} }
+function verAgendaProfissional(id,nome){ try{ window._verAgendaProfissional && window._verAgendaProfissional(id,nome); }catch(e){} }
+function filtrarEquipe(q){ try{ window._filtrarEquipe && window._filtrarEquipe(q); }catch(e){} }
+function setAgView(v,el){ try{ window.setAgView && window.setAgView(v,el); }catch(e){} }
+function navSemana(d){ try{ window.navSemana && window.navSemana(d); }catch(e){} }
+function navMes(d){ try{ window.navMes && window.navMes(d); }catch(e){} }
+function detalhesDia(k){ try{ window.detalhesDia && window.detalhesDia(k); }catch(e){} }
+function confirmarFS(id){ try{ window.confirmarFS && window.confirmarFS(id); }catch(e){} }
+function recusarFS(id){ try{ window.recusarFS && window.recusarFS(id); }catch(e){} }
+function previewDataAg(){ try{ window.previewDataAg && window.previewDataAg(); }catch(e){} }
+function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ window.location.reload(); } }
 </script>
 
 <!-- LOGIN CLIENTE -->
