@@ -632,8 +632,70 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
     </div>
 
     <div class="pane" id="pane-p-clientes">
-      <!-- Busca + Nova -->
-      <div class="search-bar" style="margin-bottom:10px"><i class="ti ti-search"></i><input id="cli-search" placeholder="Buscar cliente..." oninput="filtrarClientes(this.value)"></div>
+      <!-- Busca + Importar -->
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+        <div class="search-bar" style="flex:1;margin-bottom:0"><i class="ti ti-search"></i><input id="cli-search" placeholder="Buscar cliente..." oninput="filtrarClientes(this.value)"></div>
+        <button class="btn sm" onclick="toggleImportarClientes()" style="flex-shrink:0;white-space:nowrap;color:var(--tl800);border-color:var(--tl400)">
+          <i class="ti ti-file-import"></i> Importar
+        </button>
+      </div>
+
+      <!-- Painel de importação (colapsável, inline) -->
+      <div id="painel-importar" style="display:none;border:1px solid var(--tl100);border-radius:var(--rl);background:var(--bg);margin-bottom:14px;overflow:hidden">
+
+        <!-- Header -->
+        <div style="background:var(--tl50);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--tl100)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <i class="ti ti-file-import" style="font-size:16px;color:var(--tl400)"></i>
+            <span style="font-size:13px;font-weight:700;color:var(--tl800)">Importar clientes</span>
+          </div>
+          <button onclick="toggleImportarClientes()" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:18px;line-height:1">✕</button>
+        </div>
+
+        <!-- Abas CSV / VCF -->
+        <div style="display:flex;gap:0;border-bottom:1px solid var(--br)">
+          <button id="imp-tab-csv" onclick="setImportTab('csv')"
+            style="flex:1;padding:9px;border:none;cursor:pointer;font-size:12px;font-weight:700;background:var(--bg);color:var(--tl800);border-bottom:2px solid var(--tl400);transition:all .15s">
+            <i class="ti ti-table"></i> Planilha / CSV
+          </button>
+          <button id="imp-tab-vcf" onclick="setImportTab('vcf')"
+            style="flex:1;padding:9px;border:none;cursor:pointer;font-size:12px;font-weight:500;background:var(--bg2);color:var(--tx2);border-bottom:2px solid transparent;transition:all .15s">
+            <i class="ti ti-address-book"></i> Agenda (VCF)
+          </button>
+        </div>
+
+        <!-- Painel CSV -->
+        <div id="imp-painel-csv" style="padding:14px">
+          <div style="font-size:12px;color:var(--tx2);margin-bottom:10px;line-height:1.6">
+            <strong>Como exportar do Google Contatos:</strong> Contatos → Exportar → Google CSV<br>
+            <strong>Do Excel/Sheets:</strong> Arquivo → Baixar → CSV<br>
+            <span style="color:var(--tx3)">O arquivo precisa ter colunas com Nome e WhatsApp/Telefone (o app detecta automaticamente).</span>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:2px dashed var(--br2);border-radius:var(--r);cursor:pointer;font-size:12px;color:var(--tx2);justify-content:center">
+            <i class="ti ti-upload" style="font-size:18px;color:var(--tl400)"></i>
+            <span id="imp-csv-label-txt">Selecionar arquivo .csv ou .xlsx</span>
+            <input type="file" accept=".csv,.xlsx,.xls,.txt" style="display:none" onchange="importarCSV(this)">
+          </label>
+          <div id="imp-csv-preview" style="display:none;margin-top:12px"></div>
+        </div>
+
+        <!-- Painel VCF -->
+        <div id="imp-painel-vcf" style="display:none;padding:14px">
+          <div style="font-size:12px;color:var(--tx2);margin-bottom:10px;line-height:1.6">
+            <strong>iPhone:</strong> Contatos → selecione contatos → Compartilhar → Salvar como .vcf<br>
+            <strong>Android:</strong> Contatos → Menu → Exportar → Exportar para arquivo VCF<br>
+            <strong>WhatsApp Business:</strong> não exporta contatos diretamente — use Google Contatos.<br>
+            <span style="color:var(--tx3)">O app lê Nome e Telefone de cada contato do arquivo.</span>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:2px dashed var(--br2);border-radius:var(--r);cursor:pointer;font-size:12px;color:var(--tx2);justify-content:center">
+            <i class="ti ti-upload" style="font-size:18px;color:var(--tl400)"></i>
+            <span id="imp-vcf-label-txt">Selecionar arquivo .vcf</span>
+            <input type="file" accept=".vcf,.vcard" style="display:none" onchange="importarVCF(this)">
+          </label>
+          <div id="imp-vcf-preview" style="display:none;margin-top:12px"></div>
+        </div>
+
+      </div><!-- /painel-importar -->
       <!-- Top 10 legenda -->
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:6px 10px;background:linear-gradient(90deg,#fffbea,#fef9e0);border-radius:var(--r);border:1px solid #f5d84a">
         <i class="ti ti-crown" style="font-size:14px;color:#c49b00"></i>
@@ -1543,6 +1605,10 @@ const firebaseConfig = {
 const FA   = initializeApp(firebaseConfig);
 const auth = getAuth(FA);
 const db   = getFirestore(FA);
+// Expõe para módulos síncronos (importação de clientes)
+window.db     = db;
+window.setDoc = setDoc;
+window.doc    = doc;
 
 // Instância secundária — para criar usuários sem derrubar sessão do admin
 const FA2   = initializeApp(firebaseConfig, 'admin');
@@ -1791,6 +1857,10 @@ const faqs=[
   {cat:'clientes',q:'Como cadastrar uma nova cliente?',a:'Na aba Clientes, clique em "+ Nova". Preencha nome, WhatsApp (obrigatórios) e dados opcionais como e-mail, data de nascimento, alergias e observações internas. A cliente aparece na lista e no select de agendamentos imediatamente.'},
   {cat:'clientes',q:'Como editar os dados de uma cliente?',a:'Abra o perfil da cliente (clique no card) e clique em "Editar dados". O modal abre pré-preenchido. Após salvar, o card na lista é atualizado automaticamente.'},
   {cat:'clientes',q:'Como agendar para uma cliente pelo perfil dela?',a:'Abra o perfil da cliente e clique em "Agendar". O app fecha o perfil e abre o modal de Novo Agendamento já pronto para preencher.'},
+  {cat:'clientes',q:'Como importar clientes do WhatsApp ou da agenda do celular?',a:'Na aba Clientes, clique em "Importar". Escolha a aba "Agenda (VCF)" para importar contatos exportados do celular (iPhone ou Android), ou "Planilha / CSV" para importar de uma planilha Excel ou Google Sheets. O app lê automaticamente os campos Nome e WhatsApp.'},
+  {cat:'clientes',q:'Como exportar contatos do celular para importar no app?',a:'iPhone: Contatos → selecione os contatos → Compartilhar → salve como .vcf. Android: Contatos → Menu → Exportar → Exportar para arquivo VCF. Em seguida, abra o app, vá em Clientes → Importar → aba Agenda (VCF) e selecione o arquivo.'},
+  {cat:'clientes',q:'Como exportar uma planilha do Google Sheets ou Excel para importar?',a:'Google Sheets: Arquivo → Fazer download → CSV. Excel: Arquivo → Salvar Como → CSV. A planilha precisa ter colunas com os títulos "Nome" e "WhatsApp" (ou Telefone/Celular). O app detecta automaticamente.'},
+  {cat:'clientes',q:'O app detecta clientes duplicadas na importação?',a:'Sim. O app verifica o número de WhatsApp antes de importar — clientes já cadastradas com o mesmo número são ignoradas automaticamente. Ao final da importação o app mostra quantas foram importadas e quantas eram duplicatas.'},
   {cat:'agendamentos',q:'Como funciona o novo fluxo de agendamento com Firebase?',a:'Quando a cliente envia uma solicitação pelo app, ela é gravada em tempo real no Firestore com status "Aguardando". A líder vê a solicitação aparecer automaticamente no Dashboard e na Agenda, sem precisar recarregar a página.'},
   {cat:'agendamentos',q:'O que acontece quando a líder confirma ou recusa um agendamento?',a:'Ao confirmar, o status muda para "Confirmado" no Firestore e a cliente vê o status atualizado em "Seus agendamentos" em tempo real. Ao recusar, o status muda para "Não disponível" e a líder recebe um aviso amarelo para entrar em contato com a cliente.'},
   {cat:'agendamentos',q:'O que a cliente deve fazer quando o agendamento é recusado?',a:'A cliente verá o status "Não disponível" na aba Agendamentos e poderá clicar em "Reagendar". O app exibirá os horários disponíveis de todas as profissionais que realizam o serviço solicitado, organizados por profissional.'},
@@ -4565,6 +4635,309 @@ window.editarCliente        = editarCliente;
 window._editarCliente        = editarCliente;
 window.salvarEdicaoCliente  = salvarEdicaoCliente;
 window._salvarEdicaoCliente  = salvarEdicaoCliente;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MÓDULO IMPORTAÇÃO DE CLIENTES — CSV / VCF
+// ══════════════════════════════════════════════════════════════════════════════
+
+function toggleImportarClientes() {
+  const p = document.getElementById('painel-importar');
+  if (!p) return;
+  const opening = p.style.display === 'none';
+  p.style.display = opening ? 'block' : 'none';
+  if (opening) {
+    setImportTab('csv');
+    // Limpa previews anteriores
+    ['imp-csv-preview','imp-vcf-preview'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+    });
+    document.getElementById('imp-csv-label-txt').textContent = 'Selecionar arquivo .csv ou .xlsx';
+    document.getElementById('imp-vcf-label-txt').textContent = 'Selecionar arquivo .vcf';
+  }
+}
+window.toggleImportarClientes = toggleImportarClientes;
+
+function setImportTab(tab) {
+  const csv = document.getElementById('imp-painel-csv');
+  const vcf = document.getElementById('imp-painel-vcf');
+  const btnCsv = document.getElementById('imp-tab-csv');
+  const btnVcf = document.getElementById('imp-tab-vcf');
+  if (!csv || !vcf) return;
+  if (tab === 'csv') {
+    csv.style.display = ''; vcf.style.display = 'none';
+    btnCsv.style.fontWeight = '700'; btnCsv.style.background = 'var(--bg)';
+    btnCsv.style.color = 'var(--tl800)'; btnCsv.style.borderBottom = '2px solid var(--tl400)';
+    btnVcf.style.fontWeight = '500'; btnVcf.style.background = 'var(--bg2)';
+    btnVcf.style.color = 'var(--tx2)'; btnVcf.style.borderBottom = '2px solid transparent';
+  } else {
+    vcf.style.display = ''; csv.style.display = 'none';
+    btnVcf.style.fontWeight = '700'; btnVcf.style.background = 'var(--bg)';
+    btnVcf.style.color = 'var(--tl800)'; btnVcf.style.borderBottom = '2px solid var(--tl400)';
+    btnCsv.style.fontWeight = '500'; btnCsv.style.background = 'var(--bg2)';
+    btnCsv.style.color = 'var(--tx2)'; btnCsv.style.borderBottom = '2px solid transparent';
+  }
+}
+window.setImportTab = setImportTab;
+
+// ── Parser CSV ─────────────────────────────────────────────────────────────
+function importarCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('imp-csv-label-txt').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const linhas = e.target.result
+        .split(/\r?\n/)
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+      if (linhas.length < 2) { _impMostrarErro('csv', 'Arquivo vazio ou sem dados.'); return; }
+
+      // Detecta separador (vírgula ou ponto-e-vírgula)
+      const sep = linhas[0].includes(';') ? ';' : ',';
+
+      // Detecta índices de Nome e Telefone/WhatsApp na primeira linha (header)
+      const header = linhas[0].split(sep).map(h => h.replace(/['"]/g,'').toLowerCase().trim());
+      const iNome = header.findIndex(h =>
+        h.includes('nome') || h.includes('name') || h === 'contato');
+      const iWpp = header.findIndex(h =>
+        h.includes('whatsapp') || h.includes('wpp') || h.includes('telefon') ||
+        h.includes('celular') || h.includes('fone') || h.includes('phone') ||
+        h.includes('mobile') || h.includes('número') || h.includes('numero'));
+
+      if (iNome === -1 || iWpp === -1) {
+        _impMostrarErro('csv',
+          `Colunas não encontradas. Cabeçalho detectado: "${header.join(' | ')}". ` +
+          'O arquivo precisa ter colunas com "Nome" e "WhatsApp" (ou Telefone/Celular).');
+        return;
+      }
+
+      // Parseia linhas de dados
+      const contatos = [];
+      for (let i = 1; i < linhas.length; i++) {
+        const cols = linhas[i].split(sep).map(c => c.replace(/^["']|["']$/g,'').trim());
+        const nome = cols[iNome] || '';
+        const wpp  = _normalizarTel(cols[iWpp] || '');
+        if (nome && wpp) contatos.push({ nome, wpp });
+      }
+      _impMostrarPreview('csv', contatos);
+    } catch(err) {
+      _impMostrarErro('csv', 'Erro ao ler o arquivo: ' + err.message);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+window.importarCSV = importarCSV;
+
+// ── Parser VCF ─────────────────────────────────────────────────────────────
+function importarVCF(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('imp-vcf-label-txt').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const texto = e.target.result;
+      const blocos = texto.split(/BEGIN:VCARD/i).filter(b => b.includes('END:VCARD'));
+      const contatos = [];
+      blocos.forEach(bloco => {
+        // Nome: FN ou N
+        let nome = '';
+        const fnMatch = bloco.match(/^FN(?:;[^:]*)?:(.+)$/im);
+        if (fnMatch) {
+          nome = fnMatch[1].trim().replace(/\\,/g, ',');
+        } else {
+          const nMatch = bloco.match(/^N(?:;[^:]*)?:(.+)$/im);
+          if (nMatch) {
+            // Formato: Sobrenome;Nome;Meio;Prefixo;Sufixo
+            const partes = nMatch[1].split(';').map(p => p.trim()).filter(Boolean);
+            nome = partes.slice(0,2).reverse().join(' ');
+          }
+        }
+        // Telefone: TEL
+        const telMatches = [...bloco.matchAll(/^TEL(?:;[^:]*)?:(.+)$/gim)];
+        let wpp = '';
+        for (const m of telMatches) {
+          const t = _normalizarTel(m[1].trim());
+          if (t) { wpp = t; break; }
+        }
+        if (nome && wpp) contatos.push({ nome, wpp });
+      });
+      if (contatos.length === 0) {
+        _impMostrarErro('vcf', 'Nenhum contato com nome e telefone encontrado no arquivo.');
+        return;
+      }
+      _impMostrarPreview('vcf', contatos);
+    } catch(err) {
+      _impMostrarErro('vcf', 'Erro ao ler o arquivo: ' + err.message);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+window.importarVCF = importarVCF;
+
+// ── Normaliza número de telefone ──────────────────────────────────────────
+function _normalizarTel(raw) {
+  let n = raw.replace(/[^\d+]/g, '');          // só dígitos e +
+  n = n.replace(/^\+55/, '');                  // remove DDI 55
+  n = n.replace(/^55(\d{10,11})$/, '$1');      // remove 55 sem +
+  n = n.replace(/^0/, '');                     // remove 0 inicial
+  if (n.length < 8) return '';
+  // Formata: (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX
+  if (n.length === 11) return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
+  if (n.length === 10) return `(${n.slice(0,2)}) ${n.slice(2,6)}-${n.slice(6)}`;
+  return raw.trim(); // retorna original se não encaixa
+}
+
+// ── Mostra preview dos contatos importados ────────────────────────────────
+function _impMostrarPreview(tipo, contatos) {
+  const divId = tipo === 'csv' ? 'imp-csv-preview' : 'imp-vcf-preview';
+  const div = document.getElementById(divId);
+  if (!div) return;
+
+  const MAX_PREVIEW = 5;
+  const amostra = contatos.slice(0, MAX_PREVIEW);
+  const resto = contatos.length - MAX_PREVIEW;
+
+  div.style.display = '';
+  div.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:var(--tl800);margin-bottom:6px">
+      <i class="ti ti-circle-check" style="font-size:13px"></i>
+      ${contatos.length} contato${contatos.length > 1 ? 's' : ''} encontrado${contatos.length > 1 ? 's' : ''}
+    </div>
+    <div style="border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-bottom:10px">
+      ${amostra.map(c => `
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--br);font-size:12px">
+          <i class="ti ti-user" style="font-size:13px;color:var(--tx3);flex-shrink:0"></i>
+          <span style="flex:1;font-weight:600;color:var(--tx)">${_escHtml(c.nome)}</span>
+          <span style="color:var(--tl400)">${_escHtml(c.wpp)}</span>
+        </div>`).join('')}
+      ${resto > 0 ? `<div style="padding:6px 10px;font-size:11px;color:var(--tx3);text-align:center">... e mais ${resto} contato${resto > 1 ? 's' : ''}</div>` : ''}
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="_impCancelar('${tipo}')" class="btn" style="flex:1">
+        <i class="ti ti-x"></i> Cancelar
+      </button>
+      <button onclick="_impConfirmar('${tipo}', ${JSON.stringify(contatos).replace(/'/g,"\\'")})" class="btn tl" style="flex:1;font-weight:700">
+        <i class="ti ti-user-plus"></i> Importar ${contatos.length} clientes
+      </button>
+    </div>`;
+
+  // Armazena para confirmação
+  window[`_impContatos_${tipo}`] = contatos;
+
+  // Re-renderiza o botão com chamada simples
+  const btnImportar = div.querySelector('button.btn.tl');
+  if (btnImportar) {
+    btnImportar.onclick = () => _impConfirmar(tipo, window[`_impContatos_${tipo}`]);
+  }
+}
+
+function _escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function _impCancelar(tipo) {
+  const divId = tipo === 'csv' ? 'imp-csv-preview' : 'imp-vcf-preview';
+  const lbId  = tipo === 'csv' ? 'imp-csv-label-txt' : 'imp-vcf-label-txt';
+  const div = document.getElementById(divId);
+  if (div) { div.style.display = 'none'; div.innerHTML = ''; }
+  document.getElementById(lbId).textContent =
+    tipo === 'csv' ? 'Selecionar arquivo .csv ou .xlsx' : 'Selecionar arquivo .vcf';
+}
+window._impCancelar = _impCancelar;
+
+function _impMostrarErro(tipo, msg) {
+  const divId = tipo === 'csv' ? 'imp-csv-preview' : 'imp-vcf-preview';
+  const div = document.getElementById(divId);
+  if (!div) return;
+  div.style.display = '';
+  div.innerHTML = `<div style="padding:10px;background:var(--co50);border-radius:var(--r);font-size:12px;color:var(--co800)">
+    <i class="ti ti-alert-triangle"></i> ${_escHtml(msg)}</div>`;
+}
+
+// ── Confirmação e importação em lote ──────────────────────────────────────
+async function _impConfirmar(tipo, contatos) {
+  const divId  = tipo === 'csv' ? 'imp-csv-preview' : 'imp-vcf-preview';
+  const div    = document.getElementById(divId);
+
+  // Botão de loading
+  if (div) {
+    div.innerHTML = `<div style="text-align:center;padding:14px;font-size:13px;color:var(--tl800)">
+      <i class="ti ti-loader" style="font-size:20px"></i><br>Importando ${contatos.length} clientes...</div>`;
+  }
+
+  const lista  = document.getElementById('clientes-lista');
+  const db     = window.clientesDB || [];
+  let importados = 0;
+  let duplicados = 0;
+
+  for (const c of contatos) {
+    // Verifica duplicata por WhatsApp
+    const wppNorm = c.wpp.replace(/\D/g,'');
+    const jaExiste = db.some(x => x.wpp && x.wpp.replace(/\D/g,'') === wppNorm);
+    if (jaExiste) { duplicados++; continue; }
+
+    const id     = 'cli-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);
+    const seed   = c.nome.replace(/[^a-zA-Z0-9]/g,'') + id.slice(-4);
+    const avatar = `https://api.dicebear.com/9.x/lorelei/svg?seed=${seed}&backgroundColor=fbeaf0`;
+    const novo   = {
+      id, nome: c.nome, sexo: 'F', wpp: c.wpp, clinicaId: CLINICA_ID,
+      email: '', nasc: '', origem: 'Importação', interesse: '', alergias: '', obs: '',
+      visitas: 0, valor: 0, ultimaVisita: '—', ultimoSvc: '—', prof: '—',
+      top: false, score: 0, avatar, criadoEm: new Date().toISOString()
+    };
+
+    // Salva no Firestore (silencioso — não bloqueia se falhar)
+    try {
+      if (window.db && window.setDoc && window.doc) {
+        await window.setDoc(window.doc(window.db, 'clientes', id), novo);
+      }
+    } catch(e) { console.warn('[Importação] Firestore:', e.message); }
+
+    // Adiciona ao DB local
+    db.push(novo);
+    window.clientesDB = db;
+    importados++;
+
+    // Adiciona card na lista
+    if (lista) {
+      const row = document.createElement('div');
+      row.className = 'cli-row';
+      row.style.cursor = 'pointer';
+      row.dataset.busca = novo.nome + ' ' + novo.wpp;
+      row.onclick = () => window.abrirPerfilCliente && window.abrirPerfilCliente(id);
+      row.innerHTML = `
+        <img src="${avatar}" style="width:40px;height:40px;border-radius:50%;flex-shrink:0">
+        <div style="flex:1;min-width:0">
+          <div class="row-name">${_escHtml(novo.nome)} <span style="font-size:10px;color:var(--tx3);font-weight:400">· F</span></div>
+          <div class="row-sub"><i class="ti ti-file-import" style="font-size:11px"></i> Importada</div>
+          <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>${_escHtml(novo.wpp)}</div>
+        </div>
+        <div class="row-right"><div style="font-size:10px;color:var(--tx3)">Hoje</div>
+          <div style="font-size:11px;color:var(--pk600)">0 visitas</div></div>`;
+      lista.appendChild(row);
+    }
+  }
+
+  // Resultado final
+  if (div) {
+    const dupMsg = duplicados > 0
+      ? `<div style="font-size:11px;color:var(--tx3);margin-top:4px">${duplicados} já cadastrada${duplicados>1?'s':''} (ignorada${duplicados>1?'s':''})</div>`
+      : '';
+    div.innerHTML = `
+      <div style="padding:12px 14px;background:var(--tl50);border-radius:var(--r);border:1px solid var(--tl100);text-align:center">
+        <i class="ti ti-circle-check" style="font-size:22px;color:var(--tl400);display:block;margin-bottom:4px"></i>
+        <div style="font-size:13px;font-weight:700;color:var(--tl800)">${importados} cliente${importados>1?'s':''} importada${importados>1?'s':''}!</div>
+        ${dupMsg}
+        <button onclick="toggleImportarClientes()" class="btn tl sm" style="margin-top:10px">Fechar</button>
+      </div>`;
+  }
+}
+window._impConfirmar = _impConfirmar;
+
+
 window.toggleFaq = toggleFaq;
 window.filterCat = filterCat;
 window.filterFaq = filterFaq;
