@@ -1149,13 +1149,18 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
           </div>
 
           <!-- Resultado do filtro por perfil -->
-          <div id="crm-p-resultado" style="display:none">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-              <div style="font-size:12px;font-weight:600;color:var(--tx)" id="crm-p-count"></div>
-              <button onclick="crmPSelecionarTodas()" class="btn sm" style="font-size:11px">Selecionar todas</button>
+          <div id="crm-p-resultado" style="display:none;margin-top:4px">
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--pu50);border-radius:var(--r);border:1px solid var(--pu400);margin-bottom:10px">
+              <i class="ti ti-users" style="font-size:16px;color:var(--pu800)"></i>
+              <div style="flex:1">
+                <div style="font-size:12px;font-weight:700;color:var(--pu800)" id="crm-p-count"></div>
+                <div style="font-size:10px;color:var(--pu400)">Toque em uma cliente para selecionar e ver o botão WhatsApp</div>
+              </div>
+              <button onclick="crmPSelecionarTodas()" class="btn sm" style="font-size:11px;border-color:var(--pu400);color:var(--pu800)">Todas</button>
             </div>
             <div id="crm-p-lista"></div>
-            <div id="crm-p-vazio" style="display:none;font-size:12px;color:var(--tx3);text-align:center;padding:16px 0">
+            <div id="crm-p-vazio" style="display:none;font-size:12px;color:var(--tx3);text-align:center;padding:16px 0;background:var(--bg2);border-radius:var(--r)">
+              <i class="ti ti-mood-empty" style="font-size:20px;display:block;margin-bottom:4px"></i>
               Nenhuma cliente encontrada com esses filtros.
             </div>
           </div>
@@ -1230,13 +1235,18 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
           </div>
 
           <!-- Resultado do filtro por histórico -->
-          <div id="crm-h-resultado" style="display:none">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-              <div style="font-size:12px;font-weight:600;color:var(--tx)" id="crm-h-count"></div>
-              <button onclick="crmHSelecionarTodas()" class="btn sm" style="font-size:11px">Selecionar todas</button>
+          <div id="crm-h-resultado" style="display:none;margin-top:4px">
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--pu50);border-radius:var(--r);border:1px solid var(--pu400);margin-bottom:10px">
+              <i class="ti ti-users" style="font-size:16px;color:var(--pu800)"></i>
+              <div style="flex:1">
+                <div style="font-size:12px;font-weight:700;color:var(--pu800)" id="crm-h-count"></div>
+                <div style="font-size:10px;color:var(--pu400)">Toque em uma cliente para selecionar e ver o botão WhatsApp</div>
+              </div>
+              <button onclick="crmHSelecionarTodas()" class="btn sm" style="font-size:11px;border-color:var(--pu400);color:var(--pu800)">Todas</button>
             </div>
             <div id="crm-h-lista"></div>
-            <div id="crm-h-vazio" style="display:none;font-size:12px;color:var(--tx3);text-align:center;padding:16px 0">
+            <div id="crm-h-vazio" style="display:none;font-size:12px;color:var(--tx3);text-align:center;padding:16px 0;background:var(--bg2);border-radius:var(--r)">
+              <i class="ti ti-mood-empty" style="font-size:20px;display:block;margin-bottom:4px"></i>
               Nenhuma cliente encontrada com esses filtros.
             </div>
           </div>
@@ -2658,6 +2668,7 @@ const clientesDB = [
    ultimoSvc:'Design sobrancelha', prof:'Juliana S.', top:false, score:1.9,
    avatar:'https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe'},
 ];
+window.clientesDB = clientesDB; // expõe para módulo CRM desde o início
 
 function filtrarClientes(q){
   const lista = document.getElementById('clientes-lista');
@@ -4851,6 +4862,9 @@ function _crmRenderLista(tipo, clientes) {
   if (!resultDiv || !listaDiv) return;
 
   resultDiv.style.display = '';
+
+  // Scroll automático até o resultado
+  setTimeout(() => resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
 
   if (clientes.length === 0) {
     listaDiv.innerHTML = '';
