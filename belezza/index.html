@@ -285,6 +285,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   align-items: flex-end !important;
   justify-content: center !important;
 } }
+@keyframes fadeInDown {
+  from { opacity:0; transform:translateX(-50%) translateY(-10px); }
+  to   { opacity:1; transform:translateX(-50%) translateY(0); }
+}
 </style>
 </head>
 <body>
@@ -414,6 +418,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <button onclick="doLogout()" style="width:100%;margin-top:8px;padding:8px;border-radius:var(--r);border:1px solid var(--br);background:transparent;cursor:pointer;font-size:12px;color:var(--tx2);display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .15s" onmouseover="this.style.background='var(--pk50)';this.style.color='var(--pk600)';this.style.borderColor='var(--pk100)'" onmouseout="this.style.background='transparent';this.style.color='var(--tx2)';this.style.borderColor='var(--br)'">
       <i class="ti ti-logout" style="font-size:15px"></i> Sair da conta
+    </button>
+    <button id="btn-backup" onclick="exportarBackup()" style="width:100%;margin-top:6px;padding:8px;border-radius:var(--r);border:1px solid var(--br);background:transparent;cursor:pointer;font-size:12px;color:var(--tx3);display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .15s" onmouseover="this.style.background='var(--tl50)';this.style.color='var(--tl800)';this.style.borderColor='var(--tl100)'" onmouseout="this.style.background='transparent';this.style.color='var(--tx3)';this.style.borderColor='var(--br)'">
+      <i class="ti ti-database-export" style="font-size:15px"></i> <span id="btn-backup-lbl">Exportar dados</span>
     </button>
   </div>
 </nav>
@@ -1502,6 +1509,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
         <button class="help-cat" onclick="filterCat('conta',this)">Conta</button>
         <button class="help-cat" onclick="filterCat('config',this)">⚙️ Configuração</button>
         <button class="help-cat" onclick="filterCat('crm',this)">🎯 CRM</button>
+        <button class="help-cat" onclick="filterCat('backup',this)">💾 Backup</button>
         <button class="help-cat" onclick="mostrarTutoriais(this)" id="cat-tutoriais">🎧 Tutoriais</button>
       </div>
       <div id="faq-list"></div>
@@ -1773,6 +1781,83 @@ window.doLogout       = doLogout;
 window.doLogin        = doLogin;
 window.recuperarSenha = recuperarSenha;
 
+// ══════════════════════════════════════════════════════════════════════════════
+// MÓDULO BACKUP — Exportação de dados da clínica
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function exportarBackup() {
+  const btn = document.getElementById('btn-backup');
+  const lbl = document.getElementById('btn-backup-lbl');
+  if (btn) { btn.disabled = true; }
+  if (lbl) lbl.textContent = 'Exportando...';
+
+  try {
+    const backup = {
+      versao:    '1.0',
+      app:       'MeCuidar',
+      clinicaId: CLINICA_ID,
+      geradoEm:  new Date().toISOString(),
+      dados:     {}
+    };
+
+    // Coleções simples filtradas por clinicaId
+    const colecoes = ['agendamentos', 'clientes', 'equipe', 'promocoes', 'campanhas'];
+    for (const col of colecoes) {
+      const snap = await getDocs(
+        query(collection(db, col), where('clinicaId', '==', CLINICA_ID))
+      );
+      backup.dados[col] = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    }
+
+    // Mensagens — estrutura aninhada /mensagens/{clinicaId}/threads/{uid}/msgs/{id}
+    backup.dados.mensagens = [];
+    try {
+      const threadsSnap = await getDocs(
+        collection(db, 'mensagens', CLINICA_ID, 'threads')
+      );
+      for (const threadDoc of threadsSnap.docs) {
+        const thread = { _id: threadDoc.id, ...threadDoc.data(), msgs: [] };
+        const msgsSnap = await getDocs(
+          collection(db, 'mensagens', CLINICA_ID, 'threads', threadDoc.id, 'msgs')
+        );
+        thread.msgs = msgsSnap.docs.map(m => ({ _id: m.id, ...m.data() }));
+        backup.dados.mensagens.push(thread);
+      }
+    } catch(e) { /* mensagens opcionais */ }
+
+    // Gera resumo
+    const resumo = Object.entries(backup.dados)
+      .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.length : 0}`)
+      .join(', ');
+    backup.resumo = resumo;
+
+    // Download do arquivo JSON
+    const json     = JSON.stringify(backup, null, 2);
+    const blob     = new Blob([json], { type: 'application/json' });
+    const url      = URL.createObjectURL(blob);
+    const a        = document.createElement('a');
+    const dataStr  = new Date().toISOString().slice(0,10);
+    a.href         = url;
+    a.download     = `mecuidar-backup-${CLINICA_ID}-${dataStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    if (lbl) lbl.textContent = '✓ Backup exportado!';
+    setTimeout(() => { if (lbl) lbl.textContent = 'Exportar dados'; if (btn) btn.disabled = false; }, 3000);
+
+  } catch(e) {
+    console.error('[Backup]', e.message);
+    alert('Erro ao exportar: ' + e.message);
+    if (lbl) lbl.textContent = 'Exportar dados';
+    if (btn) btn.disabled = false;
+  }
+}
+window.exportarBackup = exportarBackup;
+
+
+
 // ── Enter no campo de senha faz login ─────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const passEl = document.querySelector('#login-screen input[type="password"]');
@@ -1908,6 +1993,14 @@ const faqs=[
   {cat:'crm',q:'Como criar e vender Pacotes pelo CRM?',a:'Para pacotes, a líder define o preço e cria uma imagem promocional com os serviços incluídos. O convite pode ser enviado periodicamente pelo módulo "Por Histórico" — basta selecionar o serviço principal do pacote e o intervalo desejado desde a última visita. O app lista automaticamente as clientes elegíveis.'},
   {cat:'crm',q:'O MeCuidar oferece suporte sobre estratégias de vendas?',a:'Sim! Para dúvidas sobre vendas ampliadas, cruzadas, pacotes, frequência de contato e outras práticas de empreendedorismo de alta performance em estética e beleza, entre em contato com a ECS Consultoria. Uma mentoria especializada pode ser agendada sem custo adicional para clientes MeCuidar.'},
   {cat:'crm',q:'Clientes sem data de nascimento aparecem no filtro por idade?',a:'Sim — elas aparecem na lista com o indicador "sem data" para que a líder decida incluí-las ou não no envio. Assim nenhuma cliente é excluída automaticamente por falta de dado.'},
+
+  // ── Backup & Restauração ─────────────────────────────────────────────────
+  {cat:'backup',q:'Os dados do app ficam seguros automaticamente?',a:'Sim — o Firebase (Google) mantém redundância automática em múltiplos data centers. Mas recomendamos exportar um backup periódico como camada extra de proteção contra exclusão acidental ou encerramento de conta.'},
+  {cat:'backup',q:'Como exportar o backup dos dados?',a:'No menu lateral esquerdo, role até o final e clique em "Exportar dados". O app coleta todos os dados da sua clínica (clientes, agendamentos, equipe, promoções, campanhas e mensagens) e baixa um arquivo .json com a data no nome. Guarde esse arquivo em local seguro (Google Drive, e-mail, pendrive).'},
+  {cat:'backup',q:'Com que frequência devo exportar o backup?',a:'Recomendamos semanalmente para clínicas ativas. Uma boa prática é exportar sempre antes de fazer alterações grandes (importação de clientes em lote, exclusão de promoções, etc.).'},
+  {cat:'backup',q:'O que o arquivo de backup contém?',a:'Todas as coleções da sua clínica no Firestore: clientes, agendamentos, equipe, promoções, campanhas e histórico de mensagens. O arquivo é um JSON legível — você pode abri-lo em qualquer editor de texto ou planilha para consulta.'},
+  {cat:'backup',q:'Como restaurar os dados a partir do backup?',a:'A restauração requer o script restaurar-backup.js (fornecido pela ECS Consultoria). Execute via Node.js com o arquivo .json do backup: node restaurar-backup.js mecuidar-backup-CLINICA-DATA.json. O script reimporta todos os documentos no Firestore. Em caso de dúvida, contate a ECS Consultoria.'},
+  {cat:'backup',q:'O backup automático funciona sem nenhuma ação minha?',a:'O app não faz backup automático sem interação — o botão "Exportar dados" precisa ser clicado. Para backup automático e agendado (semanal ou diário), a ECS Consultoria pode configurar o script backup-automatico.js no seu computador ou servidor. Entre em contato para mais detalhes.'},
 ];
 
 let curCat='todos',curSearch='';
@@ -2631,27 +2724,53 @@ function initCalendario(){
   cal.innerHTML = '';
   selDia = null; selHorario = null;
   const hoje = new Date();
+
+  // Pega profissional selecionada
+  const profSel = document.getElementById('cli-prof-sel');
+  const profId  = profSel ? profSel.value : '';
+  const prof    = profId ? (window.equipeDB||[]).find(p => p.id === profId) : null;
+
+  // Dias de trabalho da profissional: array de strings ['Seg','Ter',...] ou índices
+  // equipeDB.disp pode ser array de 'Seg','Ter','Qua','Qui','Sex','Sáb' ou [1,2,3,4,5,6]
+  const DISP_MAP = {'Dom':0,'Seg':1,'Ter':2,'Qua':3,'Qui':4,'Sex':5,'Sáb':6,'Sab':6};
+  let diasTrab = null;
+  if (prof && prof.disp && prof.disp.length > 0) {
+    diasTrab = prof.disp.map(d => typeof d === 'number' ? d : (DISP_MAP[d] ?? -1)).filter(d => d >= 0);
+  }
+
   const diasAdicionados = [];
   let d = new Date(hoje);
   d.setDate(d.getDate() + 1); // começa amanhã
-  while(diasAdicionados.length < 15){
-    if(d.getDay() !== 0){ // 0 = domingo
-      const dia = d.getDate();
-      const mes = d.getMonth() + 1;
+  let tentativas = 0;
+  while(diasAdicionados.length < 15 && tentativas < 60){
+    tentativas++;
+    const diaSemana = d.getDay(); // 0=Dom
+    // Pula domingo sempre; pula dias fora da disponibilidade da profissional (se definida)
+    const disponivelParaProf = !diasTrab || diasTrab.includes(diaSemana);
+    if(diaSemana !== 0 && disponivelParaProf){
+      const dia   = d.getDate();
+      const mes   = d.getMonth() + 1;
       const label = `${String(dia).padStart(2,'0')}/${String(mes).padStart(2,'0')}`;
-      const semana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()];
-      const btn = document.createElement('button');
+      const nomeDia = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][diaSemana];
+      const btn   = document.createElement('button');
       btn.className = 'dia-btn';
-      btn.innerHTML = `<span style="font-size:10px;color:var(--tx3)">${semana}</span><span style="font-size:14px;font-weight:700">${dia}</span><span style="font-size:10px;color:var(--tx3)">${String(mes).padStart(2,'0')}</span>`;
-      btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:7px 4px;border-radius:var(--r);border:1px solid var(--br);background:var(--bg2);cursor:pointer;gap:2px;font-family:inherit;transition:all .15s;width:100%';
       btn.dataset.label = label;
-      btn.onclick = function(){ selecionarDia(this, label, semana); };
+      btn.innerHTML = `<span style="font-size:10px;color:var(--tx3)">${nomeDia}</span><span style="font-size:14px;font-weight:700">${dia}</span><span style="font-size:10px;color:var(--tx3)">${String(mes).padStart(2,'0')}</span>`;
+      btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:7px 4px;border-radius:var(--r);border:1px solid var(--br);background:var(--bg2);cursor:pointer;gap:2px;font-family:inherit;transition:all .15s;width:100%';
+      btn.onclick = function(){ selecionarDia(this, label, nomeDia); };
       cal.appendChild(btn);
       diasAdicionados.push(label);
     }
     d.setDate(d.getDate() + 1);
   }
 }
+
+// Reconstrói calendário quando muda a profissional
+(function(){
+  document.addEventListener('change', function(e){
+    if(e.target && e.target.id === 'cli-prof-sel') initCalendario();
+  });
+})();
 
 function selecionarDia(btn, label, semana){
   document.querySelectorAll('.dia-btn').forEach(b => {
@@ -2664,19 +2783,42 @@ function selecionarDia(btn, label, semana){
   btn.style.color = 'white';
   selDia = label;
   selHorario = null;
-  // Mostra horários
-  const card = document.getElementById('cli-horarios-card');
+
+  const card   = document.getElementById('cli-horarios-card');
   const label2 = document.getElementById('cli-horarios-label');
-  const grid = document.getElementById('cli-avail-grid');
+  const grid   = document.getElementById('cli-avail-grid');
+  if(!card || !grid) return;
   card.style.display = 'block';
-  label2.textContent = `Horários disponíveis — ${semana} ${label}`;
-  const horarios = ['09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
-  const ocupados = ['10:00','14:30','16:00'];
+  if(label2) label2.textContent = `Horários disponíveis — ${semana} ${label}`;
+
+  // Horários padrão (podem vir do equipeDB futuramente)
+  const horarios = ['08:00','09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
+
+  // Busca agendamentos confirmados nesse dia para marcar ocupados
+  const profSel  = document.getElementById('cli-prof-sel');
+  const profId   = profSel ? profSel.value : '';
+  const ags      = window.agendamentosDB || agendamentos || [];
+
+  const ocupados = ags
+    .filter(a => {
+      if (a.status === 'cancelado' || a.status === 'recusado') return false;
+      if (a.data !== label) return false;
+      // Se profissional específica selecionada, só bloqueia horários dela
+      if (profId) {
+        const profNome = (window.equipeDB||[]).find(p => p.id === profId)?.nome || '';
+        return profNome && (a.prof || '').toLowerCase().includes(profNome.split(' ')[0].toLowerCase());
+      }
+      return true; // sem preferência: bloqueia qualquer ocupado
+    })
+    .map(a => a.hora);
+
   grid.innerHTML = horarios.map(h => {
     const busy = ocupados.includes(h);
     return `<button class="slot ${busy?'busy':''}" ${busy?'disabled':''} onclick="selecionarHorario(this,'${h}')">${h}</button>`;
   }).join('');
-  const enviarWrap = document.getElementById('cli-enviar-wrap'); if(enviarWrap) enviarWrap.style.display = 'none';
+
+  const enviarWrap = document.getElementById('cli-enviar-wrap');
+  if(enviarWrap) enviarWrap.style.display = 'none';
 }
 
 function selecionarHorario(btn, horario){
@@ -2885,6 +3027,75 @@ const PLANO_ESTAB = window.PLANO_ESTAB || 'Clínica Pro';
 const WPP_ESTAB   = window.WPP_ESTAB   || '5511997261900';
 
 // ── Listener de agendamentos (profissional) ───────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// MÓDULO NOTIFICAÇÕES — title badge + som + vibração
+// ══════════════════════════════════════════════════════════════════════════════
+let _notifUltimosIds = new Set(); // IDs já vistos para detectar novos
+
+function _notifSom() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 120].forEach(delay => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0, ctx.currentTime + delay/1000);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + delay/1000 + 0.01);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + delay/1000 + 0.18);
+      osc.start(ctx.currentTime + delay/1000);
+      osc.stop(ctx.currentTime + delay/1000 + 0.2);
+    });
+  } catch(e) { /* AudioContext não disponível */ }
+}
+
+function _notifVibrar() {
+  try { if (navigator.vibrate) navigator.vibrate([80, 60, 80]); } catch(e) {}
+}
+
+function _notifAtualizarTitle(nPendentes) {
+  const base = 'MeCuidar — ' + (window.NOME_ESTAB || 'Studio Luna');
+  document.title = nPendentes > 0 ? `🔔 (${nPendentes}) ${base}` : base;
+}
+
+// Estado para detectar mudanças de status nos agendamentos — visão profissional
+const _notifStatusAnteriorPro = {}; // { [agId]: status }
+
+function _notifVerificarNovos(agendamentosAtuais) {
+  const pendentesNovos = agendamentosAtuais.filter(a =>
+    a.status === 'pendente' && !_notifUltimosIds.has(a.id)
+  );
+  // Detecta cancelamentos pela cliente (mudança para 'cancelado' com canceladoPor='cliente')
+  agendamentosAtuais.forEach(a => {
+    const anterior = _notifStatusAnteriorPro[a.id];
+    if (anterior !== undefined && anterior !== a.status) {
+      if (a.status === 'cancelado' && a.canceladoPor === 'cliente') {
+        _notifSom();
+        _notifVibrar();
+        // Toast na visão profissional
+        const base = 'MeCuidar — ' + (window.NOME_ESTAB || 'Studio Luna');
+        const pendentes = agendamentosAtuais.filter(x => x.status === 'pendente').length;
+        document.title = pendentes > 0 ? `🔔 (${pendentes}) ${base}` : base;
+      }
+    }
+    _notifStatusAnteriorPro[a.id] = a.status;
+    _notifUltimosIds.add(a.id);
+  });
+
+  const totalPendentes = agendamentosAtuais.filter(a => a.status === 'pendente').length;
+  _notifAtualizarTitle(totalPendentes);
+
+  if (pendentesNovos.length > 0) {
+    _notifSom();
+    _notifVibrar();
+  }
+}
+window._notifVerificarNovos = _notifVerificarNovos;
+window._notifAtualizarTitle = _notifAtualizarTitle;
+
+// ══════════════════════════════════════════════════════════════════════════════
+
 let unsubAgendamentos = null;
 
 function iniciarListenerAgendamentos() {
@@ -2897,7 +3108,9 @@ function iniciarListenerAgendamentos() {
   );
   unsubAgendamentos = onSnapshot(q, snap => {
     agendamentos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    window.agendamentosDB = agendamentos; // expõe para módulo CRM
+    window.agendamentosDB = agendamentos;
+    // Notificações: detecta novos pendentes, atualiza title badge
+    _notifVerificarNovos(agendamentos);
     // Atualiza UI da profissional em tempo real
     renderPendentesFirestore();
     if (typeof agView !== 'undefined') {
@@ -2913,6 +3126,62 @@ function iniciarListenerAgendamentos() {
 }
 
 // ── Listener de agendamentos (cliente) ───────────────────────────────────────
+// Estado para detectar mudanças de status nos agendamentos da cliente
+const _notifCliStatusAnterior = {}; // { [agId]: status }
+
+function _notifVerificarMudancasCliente(docs) {
+  docs.forEach(ag => {
+    const statusAnterior = _notifCliStatusAnterior[ag.id];
+    const statusAtual    = ag.status;
+
+    // Primeira carga — apenas registra, não notifica
+    if (statusAnterior === undefined) {
+      _notifCliStatusAnterior[ag.id] = statusAtual;
+      return;
+    }
+
+    // Mudança de status que interessa à cliente
+    if (statusAnterior !== statusAtual) {
+      _notifCliStatusAnterior[ag.id] = statusAtual;
+      if (statusAtual === 'confirmado') {
+        _notifSom();
+        _notifVibrar();
+        _notifToastCliente(`✓ Seu agendamento de ${ag.servico} foi confirmado!`, 'tl');
+      } else if (statusAtual === 'cancelado') {
+        _notifSom();
+        _notifVibrar();
+        _notifToastCliente(`Seu agendamento de ${ag.servico} foi cancelado.`, 'warn');
+      } else if (statusAtual === 'recusado') {
+        _notifSom();
+        _notifVibrar();
+        _notifToastCliente(`Horário indisponível para ${ag.servico}. Reagende abaixo.`, 'warn');
+      }
+    }
+  });
+}
+
+function _notifToastCliente(msg, tipo) {
+  // Cria toast flutuante na tela da cliente
+  const existente = document.getElementById('cli-notif-toast');
+  if (existente) existente.remove();
+  const cores = {
+    tl:   { bg: 'var(--tl400)', color: '#fff' },
+    warn: { bg: '#c0392b',       color: '#fff' },
+    info: { bg: 'var(--pu400)', color: '#fff' },
+  };
+  const c = cores[tipo] || cores.info;
+  const toast = document.createElement('div');
+  toast.id = 'cli-notif-toast';
+  toast.style.cssText = `position:fixed;top:16px;left:50%;transform:translateX(-50%);
+    background:${c.bg};color:${c.color};padding:10px 18px;border-radius:20px;
+    font-size:13px;font-weight:600;z-index:99990;max-width:90vw;text-align:center;
+    box-shadow:0 4px 16px rgba(0,0,0,.3);font-family:inherit;
+    animation:fadeInDown .2s ease`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 4000);
+}
+
 let unsubAgCli = null;
 
 function iniciarListenerAgCliente(uid) {
@@ -2937,6 +3206,8 @@ function iniciarListenerAgCliente(uid) {
       });
     // Atualiza cópia global para badge de promoções
     agendamentosCliente = docs;
+    // Notificações: detecta confirmação, cancelamento, recusa
+    _notifVerificarMudancasCliente(docs);
     // Re-renderiza promoções para atualizar badges em tempo real
     if(typeof renderPromosClienteAtual === 'function') renderPromosClienteAtual();
     if (docs.length === 0) {
@@ -2948,18 +3219,40 @@ function iniciarListenerAgCliente(uid) {
         pendente:    { label: 'Aguardando', bg: '#fff3cd', color: '#856404', border: '#ffc107' },
         confirmado:  { label: 'Confirmado ✓', bg: 'var(--tl50)', color: 'var(--tl800)', border: 'var(--tl200)' },
         recusado:    { label: 'Não disponível', bg: '#fde8e8', color: '#c0392b', border: '#f5c6cb' },
+        cancelado:   { label: 'Cancelado', bg: 'var(--bg3)', color: 'var(--tx3)', border: 'var(--br)' },
       };
       const s = statusMap[ag.status] || statusMap.pendente;
       const [dd, mm] = (ag.data || '').split('/');
       const meses = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      // Botão cancelar: apenas pendente ou confirmado com mais de 24h de antecedência
+      const agora = new Date();
+      const HORAS_MINIMAS = 24;
+      let podeCancel = false;
+      if (ag.status === 'pendente' || ag.status === 'confirmado') {
+        if (ag.data && ag.hora) {
+          const [ddAg, mmAg] = ag.data.split('/').map(Number);
+          const [hh, mi]     = ag.hora.split(':').map(Number);
+          const anoAg        = mmAg < agora.getMonth() + 1 ? agora.getFullYear() + 1 : agora.getFullYear();
+          const dataHoraAg   = new Date(anoAg, mmAg - 1, ddAg, hh, mi);
+          const diffHoras    = (dataHoraAg - agora) / (1000 * 60 * 60);
+          podeCancel = diffHoras > HORAS_MINIMAS;
+        } else {
+          podeCancel = true; // sem data/hora definida — permite cancelar
+        }
+      }
+      const btnCancelar = podeCancel
+        ? `<button class="btn-cancel-cli" data-id="${ag.id}" style="margin-top:6px;width:100%;padding:7px;border:none;border-radius:var(--r);background:var(--bg2);color:var(--tx3);font-size:11px;cursor:pointer;font-family:inherit;border:1px solid var(--br)"><i class="ti ti-x" style="font-size:12px"></i> Cancelar agendamento</button>`
+        : (ag.status === 'confirmado' || ag.status === 'pendente'
+            ? `<div style="margin-top:6px;font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">Cancelamento disponível até 24h antes. Para reagendar entre em contato.</div>`
+            : '');
       const btnReagendar = ag.status === 'recusado'
         ? `<button class="btn-reag-cli" data-id="${ag.id}" data-svc="${(ag.servico||'').replace(/"/g,'&quot;')}" data-prof="${(ag.prof||'').replace(/"/g,'&quot;')}" style="margin-top:6px;width:60%;padding:7px;border:none;border-radius:var(--r);background:var(--pk600);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit"><i class="ti ti-calendar-plus" style="font-size:12px"></i> Reagendar</button>`
         : '';
-      const btnApagar = (ag.status === 'recusado' || ag.status === 'confirmado')
+      const btnApagar = (ag.status === 'recusado' || ag.status === 'cancelado')
         ? `<button class="btn-del-cli" data-id="${ag.id}" style="margin-top:6px;${ag.status==='recusado'?'width:38%;margin-left:2%;':'width:100%;'}padding:7px;border:none;border-radius:var(--r);background:var(--bg2);color:var(--tx3);font-size:11px;cursor:pointer;font-family:inherit;border:1px solid var(--br)"><i class="ti ti-trash" style="font-size:12px"></i> Apagar</button>`
         : '';
       return `
-        <div class="sched-card" style="margin-bottom:8px;flex-direction:column;align-items:stretch">
+        <div class="sched-card" style="margin-bottom:8px;flex-direction:column;align-items:stretch" data-agid="${ag.id}">
           <div style="display:flex;align-items:center;gap:10px">
             <div class="scd-left" style="flex:1">
               <div class="scd-dt">
@@ -2974,7 +3267,7 @@ function iniciarListenerAgCliente(uid) {
             <span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;border:1px solid ${s.border};background:${s.bg};color:${s.color};white-space:nowrap">${s.label}</span>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:0">
-            ${btnReagendar}${btnApagar}
+            ${btnCancelar}${btnReagendar}${btnApagar}
           </div>
         </div>`;
     }).join('');
@@ -3031,7 +3324,7 @@ async function confirmarFS(id) {
       el.style.background = 'var(--tl50)';
       const btns = el.querySelector('div:last-child');
       if (btns) btns.innerHTML = '<span class="badge badge-ok">Confirmado ✓</span>';
-      setTimeout(() => el.remove(), 1000);
+      setTimeout(() => { el.remove(); _notifAtualizarTitle(agendamentos.filter(a=>a.status==='pendente').length); }, 1000);
     }
   } catch(e) {
     console.error('[Belezza] confirmarFS:', e);
@@ -3169,6 +3462,41 @@ window.confirmarFS   = confirmarFS;
 window.recusarFS     = recusarFS;
 window.enviarSolicitacaoFS = enviarSolicitacaoFS;
 window.iniciarListenerAgendamentos = iniciarListenerAgendamentos;
+
+// ── Cancelar agendamento (profissional ou cliente) ────────────────────────────
+async function cancelarFS(id, origem) {
+  const ag = agendamentos.find(a => a.id === id)
+           || agendamentosCliente.find(a => a.id === id);
+  const nomeServico = ag?.servico || 'agendamento';
+  const nomeCliente = ag?.cliente || 'a cliente';
+
+  // Confirmação contextual
+  const quemCancela = origem === 'cliente' ? 'Tem certeza que deseja cancelar este agendamento?' : `Cancelar o agendamento de ${nomeCliente} (${nomeServico})?`;
+  if (!confirm(quemCancela)) return;
+
+  try {
+    await updateDoc(doc(db, 'agendamentos', id), {
+      status:       'cancelado',
+      canceladoEm:  new Date().toISOString(),
+      canceladoPor: origem || 'lider',
+      canceladoUid: cu?.uid || 'admin'
+    });
+    // Feedback visual
+    const el = document.getElementById(id) || document.querySelector(`[data-agid="${id}"]`);
+    if (el) {
+      el.style.opacity = '0.5';
+      el.style.background = 'var(--bg3)';
+      const btns = el.querySelector('.ag-acoes, div:last-child');
+      if (btns) btns.innerHTML = '<span class="badge badge-done">Cancelado</span>';
+      setTimeout(() => el.remove(), 1500);
+    }
+    _notifAtualizarTitle(agendamentos.filter(a => a.status === 'pendente').length);
+  } catch(e) {
+    console.error('[Belezza] cancelarFS:', e);
+    alert('Erro ao cancelar. Tente novamente.');
+  }
+}
+window.cancelarFS = cancelarFS;
 async function apagarAgendamentoCli(id) {
   if(!confirm('Apagar este agendamento do histórico?')) return;
   try {
@@ -3218,14 +3546,17 @@ function renderAgHoje(){
     lista.innerHTML = '<div style="color:var(--tx3);font-size:13px;padding:10px 0">Sem agendamentos confirmados hoje.</div>';
   } else {
     lista.innerHTML = conf.map((ag,i) => `
-      <div class="ag-card">
+      <div class="ag-card" id="${ag.id}">
         <div class="ag-time">${ag.hora}</div>
         <div class="ag-bar" style="background:${CORES_BAR[i%CORES_BAR.length]}"></div>
         <div class="ag-info">
           <div class="ag-svc">${ag.servico}</div>
           <div class="ag-meta"><i class="ti ti-user" style="font-size:11px"></i>${ag.cliente} · ${ag.prof}</div>
         </div>
-        <span class="badge badge-ok">✓</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="badge badge-ok">✓</span>
+          <button onclick="cancelarFS('${ag.id}','lider')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--tx3);padding:2px 4px;border-radius:4px" title="Cancelar agendamento">✕</button>
+        </div>
       </div>`).join('');
   }
   renderSlots();
@@ -3369,8 +3700,12 @@ window.detalhesDia = detalhesDia;
 // ── Módulo Chat / Dúvidas ────────────────────────────────────────────────
 let unsubChat = null;
 
+// Estado para detectar novas respostas na visão da cliente
+let _notifChatUltimaMsg = null;
+
 function iniciarListenerChat(uid) {
   if(unsubChat) unsubChat();
+  _notifChatUltimaMsg = null; // reset ao abrir chat
   const msgs = document.getElementById('chat-msgs');
   if(msgs) msgs.innerHTML = '';
   const q = collection(db, 'mensagens', CLINICA_ID, 'threads', uid, 'msgs');
@@ -3379,6 +3714,19 @@ function iniciarListenerChat(uid) {
     if(!msgs) return;
     const docs = snap.docs.map(d => ({id:d.id,...d.data()}))
       .sort((a,b) => a.criadoEm > b.criadoEm ? 1 : -1);
+
+    // Notifica cliente: nova resposta da líder
+    const ultimaDoc = docs[docs.length - 1];
+    if (ultimaDoc && _notifChatUltimaMsg !== null &&
+        ultimaDoc.id !== _notifChatUltimaMsg &&
+        ultimaDoc.remetente === 'lider') {
+      _notifSom();
+      _notifVibrar();
+      _notifToastCliente(`💬 Nova resposta: "${ultimaDoc.texto.slice(0,40)}${ultimaDoc.texto.length>40?'…':''}"`, 'info');
+    }
+    if (ultimaDoc) _notifChatUltimaMsg = ultimaDoc.id;
+    else _notifChatUltimaMsg = '';
+
     msgs.innerHTML = docs.length === 0
       ? '<div style="text-align:center;color:rgba(255,255,255,.4);font-size:13px;padding:20px 0">Nenhuma mensagem ainda.<br>Envie sua dúvida abaixo!</div>'
       : docs.map(m => {
@@ -3408,9 +3756,11 @@ function limparMensagensAntigas() {
   }).catch(e => console.warn('[Belezza] limpar msgs:', e));
 }
 
+// Estado para detectar novas mensagens na visão da líder
+const _notifThreadsAnterior = {}; // { [threadId]: ultimaAt }
+
 function iniciarListenerThreads() {
   if(unsubThreads) unsubThreads();
-  // Limpa mensagens antigas ao iniciar (só a líder faz isso)
   limparMensagensAntigas();
   const q = collection(db, 'mensagens', CLINICA_ID, 'threads');
   unsubThreads = onSnapshot(q, snap => {
@@ -3419,6 +3769,28 @@ function iniciarListenerThreads() {
     renderThreadsLider(threads);
     const naoLidas = threads.filter(t => !t.lida).length;
     atualizarBadgeChat(naoLidas);
+
+    // Notifica líder: nova mensagem de cliente
+    threads.forEach(t => {
+      const anterior = _notifThreadsAnterior[t.id];
+      if (anterior === undefined) {
+        _notifThreadsAnterior[t.id] = t.ultimaAt || '';
+        return;
+      }
+      if (t.ultimaAt && t.ultimaAt !== anterior && !t.lida) {
+        _notifThreadsAnterior[t.id] = t.ultimaAt;
+        _notifSom();
+        _notifVibrar();
+        // Atualiza title com badge de mensagens não lidas
+        const base = 'MeCuidar — ' + (window.NOME_ESTAB || 'Studio Luna');
+        const pendentes = agendamentos.filter(a => a.status === 'pendente').length;
+        const label = [];
+        if (pendentes > 0)  label.push(`${pendentes} ag.`);
+        if (naoLidas > 0)   label.push(`${naoLidas} msg`);
+        document.title = label.length > 0 ? `🔔 (${label.join(' · ')}) ${base}` : base;
+      }
+    });
+
   }, err => { console.warn('[Belezza] threads:', err); });
 }
 
@@ -5468,7 +5840,7 @@ function fecharThreadLider(){ try{ window.fecharThreadLider && window.fecharThre
 function voltarParaProfissional(){ try{ window.voltarParaProfissional && window.voltarParaProfissional(); }catch(e){ console.error('voltarParaProfissional:',e); } }
 function responderLider(){ try{ window.responderLider && window.responderLider(); }catch(e){} }
 
-// Delegação para botões Reagendar e Apagar gerados dinamicamente
+// Delegação para botões Reagendar, Apagar e Cancelar gerados dinamicamente
 document.addEventListener('click', function(e){
   const btnReag = e.target.closest('.btn-reag-cli');
   if(btnReag){
@@ -5482,6 +5854,12 @@ document.addEventListener('click', function(e){
   if(btnDel){
     const id = btnDel.getAttribute('data-id') || '';
     if(window.apagarAgendamentoCli) window.apagarAgendamentoCli(id);
+    return;
+  }
+  const btnCancel = e.target.closest('.btn-cancel-cli');
+  if(btnCancel){
+    const id = btnCancel.getAttribute('data-id') || '';
+    if(window.cancelarFS) window.cancelarFS(id, 'cliente');
   }
 });
 function salvarProfissional(){ try{ window._salvarProfissional && window._salvarProfissional(); }catch(e){} }
@@ -5494,8 +5872,10 @@ function navMes(d){ try{ window.navMes && window.navMes(d); }catch(e){} }
 function detalhesDia(k){ try{ window.detalhesDia && window.detalhesDia(k); }catch(e){} }
 function confirmarFS(id){ try{ window.confirmarFS && window.confirmarFS(id); }catch(e){} }
 function recusarFS(id){ try{ window.recusarFS && window.recusarFS(id); }catch(e){} }
+function cancelarFS(id, origem){ try{ window.cancelarFS && window.cancelarFS(id, origem); }catch(e){} }
 function previewDataAg(){ try{ window.previewDataAg && window.previewDataAg(); }catch(e){} }
 function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ window.location.reload(); } }
+function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
 </script>
 
 <!-- LOGIN CLIENTE -->
