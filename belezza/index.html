@@ -1637,12 +1637,9 @@ function resetInactivityTimer() {
 onAuthStateChanged(auth, async user => {
   const appDiv = document.querySelector('.app');
 
-  console.log('[Belezza] onAuthStateChanged:', user ? user.email : 'null');
-
   if (user) {
     try {
       const snap = await getDoc(doc(db, 'users', user.uid));
-      console.log('[Belezza] Firestore snap exists:', snap.exists());
 
       if (!snap.exists()) {
         await signOut(auth);
@@ -2390,8 +2387,22 @@ function toggleCliPass(){
   el.type = el.type === 'password' ? 'text' : 'password';
 }
 let _splashPendente = false;
+// ── Rate limiting de login (5 tentativas / 15 min) ───────────────────────
+const _loginAttempts = { count: 0, lockedUntil: 0 };
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_LOCKOUT_MS   = 15 * 60 * 1000; // 15 minutos
+
 async function doLoginCli(){
-  _splashPendente = true; // sinaliza que o splash deve rodar
+  // Verifica bloqueio
+  const now = Date.now();
+  if (_loginAttempts.lockedUntil > now) {
+    const min = Math.ceil((_loginAttempts.lockedUntil - now) / 60000);
+    const errEl = document.getElementById('cli-error');
+    if (errEl) errEl.textContent = `Acesso bloqueado por excesso de tentativas. Aguarde ${min} min.`;
+    return;
+  }
+
+  _splashPendente = true;
   const email = (document.getElementById('cli-email')?.value || '').trim();
   const pass  = document.getElementById('cli-pass')?.value || '';
   const errEl = document.getElementById('cli-error');
@@ -2400,15 +2411,24 @@ async function doLoginCli(){
   if (btn) { btn.textContent = 'Entrando...'; btn.disabled = true; }
   try {
     await signInWithEmailAndPassword(auth, email, pass);
+    _loginAttempts.count = 0; // reset em sucesso
     // onAuthStateChanged cuida do roteamento por role automaticamente
   } catch(e) {
-    const msgs = {
-      'auth/invalid-credential':'E-mail ou senha incorretos.',
-      'auth/wrong-password':'Senha incorreta.',
-      'auth/user-not-found':'E-mail não cadastrado.',
-      'auth/too-many-requests':'Muitas tentativas. Tente mais tarde.'
-    };
-    if(errEl) errEl.textContent = msgs[e.code] || 'Erro ao entrar.';
+    _loginAttempts.count++;
+    if (_loginAttempts.count >= LOGIN_MAX_ATTEMPTS) {
+      _loginAttempts.lockedUntil = Date.now() + LOGIN_LOCKOUT_MS;
+      _loginAttempts.count = 0;
+      if(errEl) errEl.textContent = 'Muitas tentativas. Acesso bloqueado por 15 minutos.';
+    } else {
+      const restantes = LOGIN_MAX_ATTEMPTS - _loginAttempts.count;
+      const msgs = {
+        'auth/invalid-credential': `E-mail ou senha incorretos. ${restantes} tentativa${restantes > 1 ? 's' : ''} restante${restantes > 1 ? 's' : ''}.`,
+        'auth/wrong-password':     `Senha incorreta. ${restantes} tentativa${restantes > 1 ? 's' : ''} restante${restantes > 1 ? 's' : ''}.`,
+        'auth/user-not-found':     'E-mail não cadastrado.',
+        'auth/too-many-requests':  'Muitas tentativas. Tente mais tarde.'
+      };
+      if(errEl) errEl.textContent = msgs[e.code] || 'Erro ao entrar.';
+    }
   } finally {
     if (btn) { btn.textContent = 'Entrar'; btn.disabled = false; }
   }
@@ -2829,8 +2849,7 @@ async function salvarCliente(){
     visitas:0, valor:0, ultimaVisita:'—', ultimoSvc:'—', prof:'—',
     top:false, score:0, avatar, criadoEm: new Date().toISOString()
   };
-  console.log('[Belezza] salvarCliente: salvando', id, 'clinicaId:', CLINICA_ID);
-  try { await setDoc(doc(db,'clientes',id), novo); console.log('[Belezza] salvarCliente: OK'); }
+  try { await setDoc(doc(db,'clientes',id), novo); }
   catch(e){ console.error('[Belezza] salvarCliente ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
   clientesDB.push(novo);
   window.clientesDB = clientesDB;
@@ -4118,11 +4137,14 @@ window.seekAudio = seekAudio;
 async function verificarEExibirPopup() {
   try {
     const hoje = new Date();
-    const snap = await getDocs(collection(db, 'promocoes'));
+    const snap = await getDocs(
+      query(collection(db, 'promocoes'),
+        where('clinicaId', '==', CLINICA_ID),
+        where('popup', '==', true)
+      )
+    );
     const promos = snap.docs.map(d => ({id:d.id,...d.data()}))
       .filter(p => {
-        if(p.clinicaId !== CLINICA_ID) return false;
-        if(!p.popup) return false;
         if(!p.validadeFim) return true;
         const [dd,mm,aa] = p.validadeFim.split('/');
         return new Date(parseInt(aa), parseInt(mm)-1, parseInt(dd)) >= hoje;
@@ -4350,7 +4372,6 @@ async function salvarProfissional(){
     // Atualiza select de profissional no modal de agendamento
     atualizarSelectProfissional();
     // Persistir edição no Firestore
-    console.log('[Belezza] editarProf: salvando', editId);
     try {
       await setDoc(doc(db,'equipe',editId),
         {clinicaId:CLINICA_ID,nome,wpp,sexo,espec,disp,
@@ -4364,7 +4385,6 @@ async function salvarProfissional(){
     const seed = nome.replace(/\s/g,'') + id.slice(-4);
     const bgColor = BG_CORES[equipeDB.length % BG_CORES.length];
     // Persistir nova profissional no Firestore
-    console.log('[Belezza] novaProf: salvando', id);
     try {
       await setDoc(doc(db,'equipe',id),
         {clinicaId:CLINICA_ID,nome,wpp,sexo,espec,disp,
@@ -4657,6 +4677,12 @@ function toggleImportarClientes() {
   }
 }
 window.toggleImportarClientes = toggleImportarClientes;
+
+function toggleNcSenha() {
+  const el = document.getElementById('nc-senha');
+  if (el) el.type = el.type === 'password' ? 'text' : 'password';
+}
+window.toggleNcSenha = toggleNcSenha;
 
 function setImportTab(tab) {
   const csv = document.getElementById('imp-painel-csv');
@@ -5857,7 +5883,11 @@ function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ windo
       </div>
       <div>
         <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Senha provisória</label>
-        <input id="nc-senha" type="text" placeholder="Ex: luna@2026" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+        <div style="position:relative">
+          <input id="nc-senha" type="password" placeholder="Ex: luna@2026" autocomplete="new-password" style="width:100%;padding:9px 38px 9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+          <span onclick="toggleNcSenha()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);font-size:15px;user-select:none">👁</span>
+        </div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:3px">Mínimo 6 caracteres. A cliente poderá alterar após o primeiro acesso.</div>
       </div>
       <div style="grid-column:1/-1">
         <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Como conheceu a clínica</label>
