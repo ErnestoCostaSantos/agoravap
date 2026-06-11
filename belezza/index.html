@@ -1059,6 +1059,190 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <!-- Lista de promoções publicadas -->
       <div class="sec-lbl" style="margin-top:16px">Promoções publicadas</div>
       <div id="promo-lista-pro"></div>
+
+      <!-- ── PROMOÇÕES CRM ──────────────────────────────────────────────── -->
+      <div style="margin-top:24px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <i class="ti ti-users-group" style="font-size:16px;color:var(--pu400)"></i>
+          <span class="sec-lbl" style="margin-bottom:0">Promoções CRM</span>
+        </div>
+        <div style="font-size:11px;color:var(--tx3);margin-bottom:12px">Envios segmentados por perfil ou histórico de atendimento</div>
+
+        <!-- TAB switcher -->
+        <div style="display:flex;gap:4px;background:var(--bg3);border-radius:var(--r);padding:3px;margin-bottom:14px">
+          <button id="crm-tab-perfil" onclick="setCrmTab('perfil')"
+            style="flex:1;padding:6px 10px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:var(--bg);color:var(--pu800);border:1px solid var(--br);transition:all .15s">
+            <i class="ti ti-user-search"></i> Por Perfil
+          </button>
+          <button id="crm-tab-historico" onclick="setCrmTab('historico')"
+            style="flex:1;padding:6px 10px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:500;background:transparent;color:var(--tx2);border:1px solid transparent;transition:all .15s">
+            <i class="ti ti-history"></i> Por Histórico
+          </button>
+        </div>
+
+        <!-- ── PAINEL: POR PERFIL ── -->
+        <div id="crm-painel-perfil">
+          <div class="card" style="padding:14px 16px;margin-bottom:10px">
+            <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Configurar envio</div>
+
+            <!-- Nome da promoção -->
+            <div style="margin-bottom:10px">
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Nome da promoção *</label>
+              <input id="crm-p-nome" type="text" placeholder="Ex: Pacote Rejuvenescimento — Junho"
+                style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+            </div>
+
+            <!-- Mensagem WhatsApp -->
+            <div style="margin-bottom:10px">
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Mensagem WhatsApp *</label>
+              <textarea id="crm-p-msg" rows="3"
+                placeholder="Olá [nome]! Temos uma novidade especial para você. Que tal agendar sua consulta? 💜"
+                style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);resize:none;font-family:inherit;box-sizing:border-box"></textarea>
+              <div style="font-size:10px;color:var(--tx3);margin-top:2px">Use [nome] para personalizar com o nome da cliente</div>
+            </div>
+
+            <!-- Imagem -->
+            <div style="margin-bottom:14px">
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Imagem (opcional)</label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <label id="crm-p-img-label" style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--r);border:1px dashed var(--br2);cursor:pointer;font-size:11px;color:var(--tx2)">
+                  <i class="ti ti-photo-plus" style="font-size:16px;color:var(--pk400)"></i> Carregar imagem
+                  <input type="file" accept="image/*" style="display:none" onchange="crmPPreviewImg(this)">
+                </label>
+                <img id="crm-p-img-preview" style="display:none;width:48px;height:48px;object-fit:cover;border-radius:var(--r);cursor:pointer;border:1px solid var(--br)"
+                  onclick="document.querySelector('#crm-p-img-label input').click()" title="Clique para trocar">
+                <button id="crm-p-img-clear" onclick="crmPClearImg()" style="display:none;background:none;border:none;cursor:pointer;font-size:11px;color:var(--tx3)">✕ remover</button>
+              </div>
+            </div>
+
+            <!-- Filtros -->
+            <div style="border-top:1px solid var(--br);padding-top:12px">
+              <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Filtros de público</div>
+
+              <!-- Faixa etária -->
+              <div style="margin-bottom:10px">
+                <label style="font-size:10px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Faixa etária</label>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <input id="crm-p-idade-min" type="number" min="0" max="99" placeholder="De" value=""
+                    style="width:70px;padding:6px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);text-align:center">
+                  <span style="font-size:11px;color:var(--tx3)">até</span>
+                  <input id="crm-p-idade-max" type="number" min="0" max="99" placeholder="Até" value=""
+                    style="width:70px;padding:6px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);text-align:center">
+                  <span style="font-size:10px;color:var(--tx3)">anos · deixe em branco para todas</span>
+                </div>
+              </div>
+
+              <!-- Interesses -->
+              <div>
+                <label style="font-size:10px;font-weight:600;color:var(--tx2);display:block;margin-bottom:6px">Interesses</label>
+                <div id="crm-p-interesses" style="display:flex;flex-wrap:wrap;gap:6px">
+                  <span style="font-size:11px;color:var(--tx3)">Carregando interesses...</span>
+                </div>
+                <div style="font-size:10px;color:var(--tx3);margin-top:4px">Selecione um ou mais — deixe todos desmarcados para não filtrar por interesse</div>
+              </div>
+            </div>
+
+            <!-- Botão filtrar -->
+            <button onclick="crmFiltrarPerfil()" class="btn" style="width:100%;justify-content:center;margin-top:14px;padding:9px">
+              <i class="ti ti-filter"></i> Filtrar clientes
+            </button>
+          </div>
+
+          <!-- Resultado do filtro por perfil -->
+          <div id="crm-p-resultado" style="display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:12px;font-weight:600;color:var(--tx)" id="crm-p-count"></div>
+              <button onclick="crmPSelecionarTodas()" class="btn sm" style="font-size:11px">Selecionar todas</button>
+            </div>
+            <div id="crm-p-lista"></div>
+            <div id="crm-p-vazio" style="display:none;font-size:12px;color:var(--tx3);text-align:center;padding:16px 0">
+              Nenhuma cliente encontrada com esses filtros.
+            </div>
+          </div>
+        </div>
+
+        <!-- ── PAINEL: POR HISTÓRICO ── -->
+        <div id="crm-painel-historico" style="display:none">
+          <div class="card" style="padding:14px 16px;margin-bottom:10px">
+            <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Configurar envio</div>
+
+            <!-- Nome -->
+            <div style="margin-bottom:10px">
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Nome do convite *</label>
+              <input id="crm-h-nome" type="text" placeholder="Ex: Retorno Botox — Junho"
+                style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+            </div>
+
+            <!-- Mensagem -->
+            <div style="margin-bottom:10px">
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Mensagem WhatsApp *</label>
+              <textarea id="crm-h-msg" rows="3"
+                placeholder="Olá [nome]! Já faz um tempo desde seu último [serviço]. Que tal agendar um retorno? 💜"
+                style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);resize:none;font-family:inherit;box-sizing:border-box"></textarea>
+              <div style="font-size:10px;color:var(--tx3);margin-top:2px">Use [nome] e [serviço] para personalizar</div>
+            </div>
+
+            <!-- Imagem -->
+            <div style="margin-bottom:14px">
+              <label style="font-size:10px;font-weight:700;color:var(--tx2);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Imagem (opcional)</label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <label id="crm-h-img-label" style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--r);border:1px dashed var(--br2);cursor:pointer;font-size:11px;color:var(--tx2)">
+                  <i class="ti ti-photo-plus" style="font-size:16px;color:var(--pk400)"></i> Carregar imagem
+                  <input type="file" accept="image/*" style="display:none" onchange="crmHPreviewImg(this)">
+                </label>
+                <img id="crm-h-img-preview" style="display:none;width:48px;height:48px;object-fit:cover;border-radius:var(--r);cursor:pointer;border:1px solid var(--br)"
+                  onclick="document.querySelector('#crm-h-img-label input').click()" title="Clique para trocar">
+                <button id="crm-h-img-clear" onclick="crmHClearImg()" style="display:none;background:none;border:none;cursor:pointer;font-size:11px;color:var(--tx3)">✕ remover</button>
+              </div>
+            </div>
+
+            <!-- Filtros -->
+            <div style="border-top:1px solid var(--br);padding-top:12px">
+              <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Filtros de histórico</div>
+
+              <!-- Serviço -->
+              <div style="margin-bottom:10px">
+                <label style="font-size:10px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Serviço realizado</label>
+                <select id="crm-h-servico"
+                  style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
+                  <option value="">— selecione um serviço —</option>
+                </select>
+              </div>
+
+              <!-- Intervalo -->
+              <div>
+                <label style="font-size:10px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Última vez há mais de</label>
+                <select id="crm-h-dias"
+                  style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
+                  <option value="30">30 dias</option>
+                  <option value="60" selected>60 dias</option>
+                  <option value="90">90 dias</option>
+                  <option value="120">120 dias</option>
+                  <option value="180">180 dias (6 meses)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Botão filtrar -->
+            <button onclick="crmFiltrarHistorico()" class="btn" style="width:100%;justify-content:center;margin-top:14px;padding:9px">
+              <i class="ti ti-filter"></i> Filtrar clientes
+            </button>
+          </div>
+
+          <!-- Resultado do filtro por histórico -->
+          <div id="crm-h-resultado" style="display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:12px;font-weight:600;color:var(--tx)" id="crm-h-count"></div>
+              <button onclick="crmHSelecionarTodas()" class="btn sm" style="font-size:11px">Selecionar todas</button>
+            </div>
+            <div id="crm-h-lista"></div>
+            <div id="crm-h-vazio" style="display:none;font-size:12px;color:var(--tx3);text-align:center;padding:16px 0">
+              Nenhuma cliente encontrada com esses filtros.
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /crm block -->
     </div>
 
     <!-- ── CLIENTE ── -->
@@ -1245,6 +1429,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
         <button class="help-cat" onclick="filterCat('equipe',this)">Equipe</button>
         <button class="help-cat" onclick="filterCat('conta',this)">Conta</button>
         <button class="help-cat" onclick="filterCat('config',this)">⚙️ Configuração</button>
+        <button class="help-cat" onclick="filterCat('crm',this)">🎯 CRM</button>
         <button class="help-cat" onclick="mostrarTutoriais(this)" id="cat-tutoriais">🎧 Tutoriais</button>
       </div>
       <div id="faq-list"></div>
@@ -1637,7 +1822,17 @@ const faqs=[
   {cat:'versaocliente',q:'O que acontece logo após a cliente fazer login?',a:'Após o login bem-sucedido, o formulário some e a imagem de boas-vindas aparece em tela cheia por 2 segundos. Em seguida, a tela de flores é exibida. Se houver um pop-up promocional ativo, ele aparece antes das flores.'},
   {cat:'versaocliente',q:'Por que a imagem de login encolhe quando o teclado abre?',a:'Para garantir que o botão "Entrar" fique sempre visível mesmo com o teclado do celular aberto. A imagem reduz automaticamente para liberar espaço para o formulário completo.'},
   {cat:'acesso',q:'Quem desenvolveu o MeCuidar?',a:'O MeCuidar Studio Luna foi elaborado pela ECS Consultoria. Mais informações em agoravap.gurudevendas.com.br'},
+
+  // ── CRM ──────────────────────────────────────────────────────────────────
+  {cat:'crm',q:'O que são as Promoções CRM?',a:'São envios segmentados disponíveis na aba Promoções, abaixo das promoções publicadas. Diferente das promoções normais (visíveis para todas as clientes no app), as Promoções CRM são convites personalizados enviados via WhatsApp para um público filtrado pela líder.'},
+  {cat:'crm',q:'Qual a diferença entre "Por Perfil" e "Por Histórico"?',a:'"Por Perfil" filtra clientes pelo cadastro — faixa etária e/ou interesses declarados. Ideal para apresentar novos serviços ou pacotes alinhados ao perfil da cliente. "Por Histórico" filtra pelo último atendimento de um serviço específico — ideal para convidar quem está na hora de repetir um procedimento.'},
+  {cat:'crm',q:'Como funciona a seleção individual de clientes?',a:'Após aplicar o filtro, o app exibe a lista de clientes que atendem aos critérios. A líder pode marcar individualmente quem vai receber o convite, ou clicar em "Selecionar todas". Para cada cliente selecionada, aparece o botão WhatsApp com a mensagem pré-preenchida.'},
+  {cat:'crm',q:'Como usar vendas ampliadas e vendas cruzadas no CRM?',a:'As ações de upsell (venda de versão superior) e cross-sell (serviços complementares) podem ser destacadas nas imagens promocionais que acompanham os convites. A frequência de envio e o público são definidos pela líder com base no seu conhecimento das clientes — o app oferece os filtros, a decisão final é sua.'},
+  {cat:'crm',q:'Como criar e vender Pacotes pelo CRM?',a:'Para pacotes, a líder define o preço e cria uma imagem promocional com os serviços incluídos. O convite pode ser enviado periodicamente pelo módulo "Por Histórico" — basta selecionar o serviço principal do pacote e o intervalo desejado desde a última visita. O app lista automaticamente as clientes elegíveis.'},
+  {cat:'crm',q:'O MeCuidar oferece suporte sobre estratégias de vendas?',a:'Sim! Para dúvidas sobre vendas ampliadas, cruzadas, pacotes, frequência de contato e outras práticas de empreendedorismo de alta performance em estética e beleza, entre em contato com a ECS Consultoria. Uma mentoria especializada pode ser agendada sem custo adicional para clientes MeCuidar.'},
+  {cat:'crm',q:'Clientes sem data de nascimento aparecem no filtro por idade?',a:'Sim — elas aparecem na lista com o indicador "sem data" para que a líder decida incluí-las ou não no envio. Assim nenhuma cliente é excluída automaticamente por falta de dado.'},
 ];
+
 let curCat='todos',curSearch='';
 function renderFaq(){
   const list=document.getElementById('faq-list');
@@ -1992,6 +2187,7 @@ function salvarNovoAg(){
   const profAbrev = partes.length >= 2 ? partes[0] + ' ' + partes[1][0] + '.' : profNome;
   const novoAg = { id:'ag-'+Date.now(), cliente, servico, data:dataFmt, hora, prof:profAbrev, origem, status:'confirmado' };
   agendamentos.push(novoAg);
+  window.agendamentosDB = agendamentos; // expõe para módulo CRM
   adicionarConfirmado(novoAg);
   document.getElementById('ag-toast').style.display = 'flex';
   setTimeout(() => fecharModalAg(), 2000);
@@ -2601,6 +2797,7 @@ function iniciarListenerAgendamentos() {
   );
   unsubAgendamentos = onSnapshot(q, snap => {
     agendamentos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    window.agendamentosDB = agendamentos; // expõe para módulo CRM
     // Atualiza UI da profissional em tempo real
     renderPendentesFirestore();
     if (typeof agView !== 'undefined') {
@@ -4398,6 +4595,402 @@ window.abrirAgendaPromo   = abrirAgendaPromo;
 window.selecionarDia      = selecionarDia;
 window.selecionarHorario  = selecionarHorario;
 window.enviarSolicitacao  = enviarSolicitacao;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MÓDULO CRM — Promoções segmentadas por Perfil e por Histórico
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Estado interno CRM ────────────────────────────────────────────────────────
+let _crmTabAtiva = 'perfil';
+let _crmPImgBase64 = null;
+let _crmHImgBase64 = null;
+
+// ── Tab switcher ──────────────────────────────────────────────────────────────
+function setCrmTab(tab) {
+  _crmTabAtiva = tab;
+  const btnP = document.getElementById('crm-tab-perfil');
+  const btnH = document.getElementById('crm-tab-historico');
+  const panelP = document.getElementById('crm-painel-perfil');
+  const panelH = document.getElementById('crm-painel-historico');
+  if (!btnP || !btnH || !panelP || !panelH) return;
+  if (tab === 'perfil') {
+    btnP.style.background = 'var(--bg)';
+    btnP.style.color = 'var(--pu800)';
+    btnP.style.fontWeight = '600';
+    btnP.style.border = '1px solid var(--br)';
+    btnH.style.background = 'transparent';
+    btnH.style.color = 'var(--tx2)';
+    btnH.style.fontWeight = '500';
+    btnH.style.border = '1px solid transparent';
+    panelP.style.display = '';
+    panelH.style.display = 'none';
+  } else {
+    btnH.style.background = 'var(--bg)';
+    btnH.style.color = 'var(--pu800)';
+    btnH.style.fontWeight = '600';
+    btnH.style.border = '1px solid var(--br)';
+    btnP.style.background = 'transparent';
+    btnP.style.color = 'var(--tx2)';
+    btnP.style.fontWeight = '500';
+    btnP.style.border = '1px solid transparent';
+    panelH.style.display = '';
+    panelP.style.display = 'none';
+  }
+}
+window.setCrmTab = setCrmTab;
+
+// ── Helpers de imagem ─────────────────────────────────────────────────────────
+function crmCompressImg(file, cb) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 480;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      cb(canvas.toDataURL('image/jpeg', 0.6));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function crmPPreviewImg(input) {
+  const file = input.files[0]; if (!file) return;
+  crmCompressImg(file, b64 => {
+    _crmPImgBase64 = b64;
+    const prev = document.getElementById('crm-p-img-preview');
+    const clr  = document.getElementById('crm-p-img-clear');
+    const lbl  = document.getElementById('crm-p-img-label');
+    if (prev) { prev.src = b64; prev.style.display = ''; }
+    if (clr)  clr.style.display = '';
+    if (lbl)  lbl.style.display = 'none';
+  });
+}
+function crmPClearImg() {
+  _crmPImgBase64 = null;
+  const prev = document.getElementById('crm-p-img-preview');
+  const clr  = document.getElementById('crm-p-img-clear');
+  const lbl  = document.getElementById('crm-p-img-label');
+  if (prev) { prev.src = ''; prev.style.display = 'none'; }
+  if (clr)  clr.style.display = 'none';
+  if (lbl)  lbl.style.display = '';
+}
+function crmHPreviewImg(input) {
+  const file = input.files[0]; if (!file) return;
+  crmCompressImg(file, b64 => {
+    _crmHImgBase64 = b64;
+    const prev = document.getElementById('crm-h-img-preview');
+    const clr  = document.getElementById('crm-h-img-clear');
+    const lbl  = document.getElementById('crm-h-img-label');
+    if (prev) { prev.src = b64; prev.style.display = ''; }
+    if (clr)  clr.style.display = '';
+    if (lbl)  lbl.style.display = 'none';
+  });
+}
+function crmHClearImg() {
+  _crmHImgBase64 = null;
+  const prev = document.getElementById('crm-h-img-preview');
+  const clr  = document.getElementById('crm-h-img-clear');
+  const lbl  = document.getElementById('crm-h-img-label');
+  if (prev) { prev.src = ''; prev.style.display = 'none'; }
+  if (clr)  clr.style.display = 'none';
+  if (lbl)  lbl.style.display = '';
+}
+window.crmPPreviewImg = crmPPreviewImg;
+window.crmPClearImg   = crmPClearImg;
+window.crmHPreviewImg = crmHPreviewImg;
+window.crmHClearImg   = crmHClearImg;
+
+// ── Inicializa interesses e select de serviços ────────────────────────────────
+function crmInicializar() {
+  // Popula checkboxes de interesses a partir de clientesDB
+  const db = window.clientesDB || [];
+  const todosTags = new Set();
+  db.forEach(c => {
+    if (c.interesse) {
+      c.interesse.split(/[,;·\n]+/).forEach(t => {
+        const tag = t.trim();
+        if (tag) todosTags.add(tag);
+      });
+    }
+  });
+  const wrap = document.getElementById('crm-p-interesses');
+  if (wrap) {
+    if (todosTags.size === 0) {
+      wrap.innerHTML = '<span style="font-size:11px;color:var(--tx3)">Nenhum interesse cadastrado ainda.</span>';
+    } else {
+      wrap.innerHTML = Array.from(todosTags).sort().map(tag =>
+        `<label style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid var(--br);cursor:pointer;font-size:11px;color:var(--tx2);background:var(--bg2);user-select:none">
+          <input type="checkbox" value="${tag}" style="accent-color:var(--pu400)"> ${tag}
+        </label>`
+      ).join('');
+    }
+  }
+
+  // Popula select de serviços a partir dos agendamentos confirmados
+  const ags = window.agendamentosDB || [];
+  const svcs = new Set();
+  ags.forEach(a => { if (a.servico && a.status === 'confirmado') svcs.add(a.servico); });
+  // Fallback: serviços das clientes (ultimoSvc)
+  db.forEach(c => { if (c.ultimoSvc && c.ultimoSvc !== '—') svcs.add(c.ultimoSvc); });
+  const sel = document.getElementById('crm-h-servico');
+  if (sel && svcs.size > 0) {
+    sel.innerHTML = '<option value="">— selecione um serviço —</option>' +
+      Array.from(svcs).sort().map(s => `<option value="${s}">${s}</option>`).join('');
+  }
+}
+window.crmInicializar = crmInicializar;
+
+// ── Filtrar por Perfil ────────────────────────────────────────────────────────
+function crmFiltrarPerfil() {
+  const nome = (document.getElementById('crm-p-nome')?.value || '').trim();
+  if (!nome) { alert('Informe o nome da promoção antes de filtrar.'); return; }
+
+  const idadeMin = parseInt(document.getElementById('crm-p-idade-min')?.value) || 0;
+  const idadeMax = parseInt(document.getElementById('crm-p-idade-max')?.value) || 999;
+  const checkboxes = document.querySelectorAll('#crm-p-interesses input[type=checkbox]:checked');
+  const interessesFiltro = Array.from(checkboxes).map(cb => cb.value.toLowerCase());
+
+  const db = window.clientesDB || [];
+  const hoje = new Date();
+
+  const resultado = db.map(c => {
+    let idade = null;
+    let semData = false;
+    if (c.nasc) {
+      idade = Math.floor((hoje - new Date(c.nasc)) / (365.25 * 24 * 3600 * 1000));
+    } else {
+      semData = true;
+    }
+
+    // Filtro de idade (pula se sem data — inclui mas marca)
+    if (!semData && (idade < idadeMin || idade > idadeMax)) return null;
+
+    // Filtro de interesses
+    if (interessesFiltro.length > 0) {
+      const cInteresses = (c.interesse || '').toLowerCase();
+      const match = interessesFiltro.some(i => cInteresses.includes(i));
+      if (!match) return null;
+    }
+
+    return { ...c, _idade: semData ? null : idade, _semData: semData };
+  }).filter(Boolean);
+
+  _crmRenderLista('perfil', resultado);
+}
+window.crmFiltrarPerfil = crmFiltrarPerfil;
+
+// ── Filtrar por Histórico ─────────────────────────────────────────────────────
+function crmFiltrarHistorico() {
+  const nome = (document.getElementById('crm-h-nome')?.value || '').trim();
+  if (!nome) { alert('Informe o nome do convite antes de filtrar.'); return; }
+
+  const svcFiltro = (document.getElementById('crm-h-servico')?.value || '').trim();
+  if (!svcFiltro) { alert('Selecione um serviço para filtrar.'); return; }
+
+  const diasMin = parseInt(document.getElementById('crm-h-dias')?.value) || 60;
+
+  const db = window.clientesDB || [];
+  const ags = window.agendamentosDB || [];
+  const hoje = new Date();
+
+  // Mapeia última data de cada serviço por cliente
+  const ultimaDataPorCliente = {};
+  ags.forEach(a => {
+    if (a.status !== 'confirmado') return;
+    const svcNorm = (a.servico || '').toLowerCase();
+    const filtNorm = svcFiltro.toLowerCase();
+    if (!svcNorm.includes(filtNorm) && !filtNorm.includes(svcNorm)) return;
+    const dataAg = new Date(a.data?.split('/').reverse().join('-') || a.criadoEm);
+    if (isNaN(dataAg)) return;
+    const key = a.clienteId || a.cliente;
+    if (!ultimaDataPorCliente[key] || dataAg > ultimaDataPorCliente[key]) {
+      ultimaDataPorCliente[key] = dataAg;
+    }
+  });
+
+  // Fallback: usa ultimoSvc de clientesDB
+  db.forEach(c => {
+    const svcNorm = (c.ultimoSvc || '').toLowerCase();
+    const filtNorm = svcFiltro.toLowerCase();
+    if (!svcNorm.includes(filtNorm) && !filtNorm.includes(svcNorm)) return;
+    const key = c.id;
+    if (!ultimaDataPorCliente[key] && c.ultimaVisita && c.ultimaVisita !== '—') {
+      const parts = c.ultimaVisita.split('/');
+      if (parts.length === 3) {
+        const dt = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+        if (!isNaN(dt)) ultimaDataPorCliente[key] = dt;
+      }
+    }
+  });
+
+  const resultado = db.map(c => {
+    const ultima = ultimaDataPorCliente[c.id] || ultimaDataPorCliente[c.nome];
+    if (!ultima) return null;
+    const diasDecorridos = Math.floor((hoje - ultima) / (24 * 3600 * 1000));
+    if (diasDecorridos < diasMin) return null;
+    return { ...c, _diasDecorridos: diasDecorridos, _ultimaData: ultima };
+  }).filter(Boolean)
+    .sort((a, b) => b._diasDecorridos - a._diasDecorridos);
+
+  _crmRenderLista('historico', resultado);
+}
+window.crmFiltrarHistorico = crmFiltrarHistorico;
+
+// ── Renderiza lista de resultados ─────────────────────────────────────────────
+function _crmRenderLista(tipo, clientes) {
+  const prefix = tipo === 'perfil' ? 'crm-p' : 'crm-h';
+  const resultDiv  = document.getElementById(`${prefix}-resultado`);
+  const listaDiv   = document.getElementById(`${prefix}-lista`);
+  const vazioDiv   = document.getElementById(`${prefix}-vazio`);
+  const countDiv   = document.getElementById(`${prefix}-count`);
+  if (!resultDiv || !listaDiv) return;
+
+  resultDiv.style.display = '';
+
+  if (clientes.length === 0) {
+    listaDiv.innerHTML = '';
+    if (vazioDiv) vazioDiv.style.display = '';
+    if (countDiv) countDiv.textContent = '';
+    return;
+  }
+  if (vazioDiv) vazioDiv.style.display = 'none';
+  if (countDiv) countDiv.textContent = `${clientes.length} cliente${clientes.length > 1 ? 's' : ''} encontrada${clientes.length > 1 ? 's' : ''}`;
+
+  listaDiv.innerHTML = clientes.map((c, idx) => {
+    const avatarSrc = c.avatar || `https://api.dicebear.com/9.x/lorelei/svg?seed=${c.id}&backgroundColor=fbeaf0`;
+    const tagIdade = c._semData
+      ? `<span style="font-size:9px;background:var(--am50);color:var(--am800);border-radius:20px;padding:1px 7px;margin-left:4px">sem data nasc.</span>`
+      : (c._idade != null ? `<span style="font-size:10px;color:var(--tx3)">${c._idade} anos</span>` : '');
+    const tagHistorico = c._diasDecorridos != null
+      ? `<span style="font-size:10px;color:var(--pu400);font-weight:600">${c._diasDecorridos} dias atrás</span>`
+      : '';
+
+    return `
+    <div id="${prefix}-row-${idx}" data-idx="${idx}" data-cli-id="${c.id}"
+      style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);
+             border:1px solid var(--br);background:var(--bg);margin-bottom:6px;cursor:pointer;transition:background .15s"
+      onclick="crmToggleRow('${prefix}',${idx})">
+      <!-- checkbox visual -->
+      <div id="${prefix}-check-${idx}" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--br2);
+           flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s">
+      </div>
+      <!-- avatar -->
+      <img src="${avatarSrc}" style="width:36px;height:36px;border-radius:50%;flex-shrink:0"
+           onerror="this.src='https://api.dicebear.com/9.x/lorelei/svg?seed=${c.id}&backgroundColor=fbeaf0'">
+      <!-- info -->
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--tx)">${c.nome} ${tagIdade}</div>
+        <div style="font-size:11px;color:var(--tx2);margin-top:1px">
+          ${c.interesse ? `<i class="ti ti-heart" style="font-size:10px"></i> ${c.interesse.slice(0,40)}${c.interesse.length>40?'…':''} · ` : ''}
+          ${tagHistorico}
+        </div>
+      </div>
+      <!-- wpp -->
+      <div style="font-size:11px;color:var(--tl400);flex-shrink:0">${c.wpp || '—'}</div>
+    </div>`;
+  }).join('');
+
+  // Armazena resultado para uso no disparo
+  window[`_crmResultado_${prefix}`] = clientes;
+}
+
+// ── Toggle seleção de row ─────────────────────────────────────────────────────
+function crmToggleRow(prefix, idx) {
+  const row   = document.getElementById(`${prefix}-row-${idx}`);
+  const check = document.getElementById(`${prefix}-check-${idx}`);
+  if (!row) return;
+  const selected = row.dataset.selected === '1';
+  if (selected) {
+    row.dataset.selected = '0';
+    row.style.background = 'var(--bg)';
+    row.style.borderColor = 'var(--br)';
+    if (check) { check.innerHTML = ''; check.style.background = ''; check.style.borderColor = 'var(--br2)'; }
+    // Remove botão WPP se existir
+    const btn = document.getElementById(`${prefix}-wpp-${idx}`);
+    if (btn) btn.remove();
+  } else {
+    row.dataset.selected = '1';
+    row.style.background = 'var(--pu50)';
+    row.style.borderColor = 'var(--pu400)';
+    if (check) {
+      check.innerHTML = '<i class="ti ti-check" style="font-size:12px;color:var(--pu800)"></i>';
+      check.style.background = 'var(--pu50)';
+      check.style.borderColor = 'var(--pu400)';
+    }
+    // Adiciona botão WhatsApp inline
+    _crmAdicionarBotaoWpp(prefix, idx, row);
+  }
+}
+window.crmToggleRow = crmToggleRow;
+
+function _crmAdicionarBotaoWpp(prefix, idx, row) {
+  const clientes = window[`_crmResultado_${prefix}`] || [];
+  const c = clientes[idx];
+  if (!c || !c.wpp) return;
+
+  const isTipo = prefix === 'crm-p' ? 'perfil' : 'historico';
+  const msgTemplate = document.getElementById(isTipo === 'perfil' ? 'crm-p-msg' : 'crm-h-msg')?.value || '';
+  const svcLabel = isTipo === 'historico'
+    ? (document.getElementById('crm-h-servico')?.options[document.getElementById('crm-h-servico').selectedIndex]?.text || '')
+    : '';
+
+  const msg = msgTemplate
+    .replace(/\[nome\]/gi, c.nome.split(' ')[0])
+    .replace(/\[serviço\]/gi, svcLabel)
+    .replace(/\[servico\]/gi, svcLabel);
+
+  const wppNum = '55' + c.wpp.replace(/\D/g, '');
+  const url = `https://wa.me/${wppNum}?text=${encodeURIComponent(msg)}`;
+
+  // Insere botão logo abaixo do row
+  const btnWrap = document.createElement('div');
+  btnWrap.id = `${prefix}-wpp-${idx}`;
+  btnWrap.style.cssText = 'margin:-2px 0 6px 32px;display:flex;gap:6px;align-items:center';
+  btnWrap.innerHTML = `
+    <a href="${url}" target="_blank"
+      style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--r);
+             background:var(--tl400);color:#fff;font-size:11px;font-weight:600;text-decoration:none;
+             border:none;cursor:pointer">
+      <i class="ti ti-brand-whatsapp" style="font-size:14px"></i> Enviar para ${c.nome.split(' ')[0]}
+    </a>
+    <span style="font-size:10px;color:var(--tx3)">${c.wpp}</span>`;
+  row.after(btnWrap);
+}
+
+// ── Selecionar todas ──────────────────────────────────────────────────────────
+function crmPSelecionarTodas() { _crmSelecionarTodas('crm-p'); }
+function crmHSelecionarTodas() { _crmSelecionarTodas('crm-h'); }
+function _crmSelecionarTodas(prefix) {
+  const clientes = window[`_crmResultado_${prefix}`] || [];
+  clientes.forEach((_, idx) => {
+    const row = document.getElementById(`${prefix}-row-${idx}`);
+    if (row && row.dataset.selected !== '1') crmToggleRow(prefix, idx);
+  });
+}
+window.crmPSelecionarTodas = crmPSelecionarTodas;
+window.crmHSelecionarTodas = crmHSelecionarTodas;
+
+// ── Inicializa CRM quando pane-p-promos fica ativo ───────────────────────────
+// Hook no goTo existente via listener de mutação simples
+(function() {
+  const observer = new MutationObserver(() => {
+    const pane = document.getElementById('pane-p-promos');
+    if (pane && pane.classList.contains('active')) {
+      crmInicializar();
+    }
+  });
+  const content = document.getElementById('content');
+  if (content) observer.observe(content, { subtree: true, attributeFilter: ['class'] });
+})();
+
+// ── Expõe também via window para stubs ───────────────────────────────────────
+window.crmFiltrarPerfil    = crmFiltrarPerfil;
+window.crmFiltrarHistorico = crmFiltrarHistorico;
 
 </script>
 <script>
