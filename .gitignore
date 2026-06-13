@@ -1,0 +1,9 @@
+# Chave do Firebase — acesso total ao projeto, NUNCA subir
+serviceAccountKey.json
+
+# Relatórios de onboarding — contêm senhas provisórias
+clientes/
+
+# Arquivos JSON gerados localmente (exceto manifest.json)
+!manifest.json
+*.json
