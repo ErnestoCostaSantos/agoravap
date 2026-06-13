@@ -1657,6 +1657,7 @@ onAuthStateChanged(auth, async user => {
 
       cp = snap.data();
       cu = user;
+      window.cp = cp; // expõe para iniciarListenerEquipe
 
       if (cp.role === 'cliente') {
         const loginScreen = document.getElementById('login-cli-screen');
@@ -3491,7 +3492,9 @@ const BG_CORES_FS = ['fbeaf0','e1f5ee','eeedfe','faece7','faeeda','e8f4ff'];
 
 function iniciarListenerEquipe() {
   if (unsubEquipe) unsubEquipe();
-  const profRef = collection(db, 'equipe', CLINICA_ID, 'profissionais');
+  // Usa o clinicaId do usuário logado (cp), não o CLINICA_ID hardcoded
+  const clinicaIdAtual = (window.cp && window.cp.clinicaId) ? window.cp.clinicaId : CLINICA_ID;
+  const profRef = collection(db, 'equipe', clinicaIdAtual, 'profissionais');
 
   unsubEquipe = onSnapshot(profRef, snap => {
     if (snap.empty) {
