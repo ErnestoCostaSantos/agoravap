@@ -1703,6 +1703,7 @@ onAuthStateChanged(auth, async user => {
         if (uAv)   uAv.textContent = (cp.name || 'U').charAt(0).toUpperCase();
         // Inicia listeners da profissional
         setTimeout(() => {
+          if(window.iniciarListenerEquipe) window.iniciarListenerEquipe();
           if(window.iniciarListenerAgendamentos) window.iniciarListenerAgendamentos();
           if(window.iniciarListenerThreads) window.iniciarListenerThreads();
           if(window.iniciarListenerPromos) window.iniciarListenerPromos();
@@ -3481,6 +3482,126 @@ window.confirmarFS   = confirmarFS;
 window.recusarFS     = recusarFS;
 window.enviarSolicitacaoFS = enviarSolicitacaoFS;
 window.iniciarListenerAgendamentos = iniciarListenerAgendamentos;
+
+// ── Listener de Equipe — carrega profissionais do Firestore ───────────────────
+// Substitui o equipeDB hardcoded pelos dados reais da clínica logada.
+// modoSolo() passa a refletir o Firestore automaticamente.
+let unsubEquipe = null;
+const BG_CORES_FS = ['fbeaf0','e1f5ee','eeedfe','faece7','faeeda','e8f4ff'];
+
+function iniciarListenerEquipe() {
+  if (unsubEquipe) unsubEquipe();
+  const profRef = collection(db, 'equipe', CLINICA_ID, 'profissionais');
+
+  unsubEquipe = onSnapshot(profRef, snap => {
+    if (snap.empty) {
+      // Nenhuma profissional no Firestore — limpa apenas para clínicas reais
+      if (CLINICA_ID !== 'belezza-50e76') {
+        equipeDB = [];
+        window.equipeDB = equipeDB;
+        aplicarModoSolo();
+      }
+      return;
+    }
+
+    // Mapeia documentos do Firestore para o formato do equipeDB
+    const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+    const diaHoje = diasSemana[new Date().getDay()];
+
+    equipeDB = snap.docs.map((d, i) => {
+      const data = d.data();
+      const disp = data.diasTrabalho || data.disp || [];
+      const dispNorm = disp.map(x => x.charAt(0).toUpperCase() + x.slice(1));
+      const ativa = dispNorm.length === 0 || dispNorm.includes(diaHoje);
+      const seed = (data.nome || d.id).replace(/\s/g,'') + d.id.slice(-4);
+      return {
+        id:        d.id,
+        nome:      data.nome       || 'Profissional',
+        wpp:       data.wpp        || '',
+        sexo:      data.sexo       || 'F',
+        espec:     data.espec      || data.funcao || '',
+        disp:      dispNorm,
+        ticket:    data.ticket     || 0,
+        avaliacao: data.avaliacao  || 5.0,
+        domicilio: data.domicilio  || false,
+        obs:       data.obs        || '',
+        ativa,
+        agMes:     data.agMes      || 0,
+        seed,
+        bgColor:   data.bgColor    || BG_CORES_FS[i % BG_CORES_FS.length],
+      };
+    });
+
+    window.equipeDB = equipeDB;
+
+    // Atualiza UI
+    renderEquipe(equipeDB);
+    atualizarSelectProfissional();
+    aplicarModoSolo();
+
+    // Atualiza select slots por profissional
+    const slotsSel = document.getElementById('slots-prof-sel');
+    if (slotsSel) {
+      slotsSel.innerHTML = '<option value="geral">Todas as profissionais</option>' +
+        equipeDB.map(p => `<option value="${p.id}">${p.nome.split(' ')[0]} ${p.nome.split(' ')[1]?.[0]||''}.</option>`).join('');
+      slotsSel.style.display = modoSolo() ? 'none' : '';
+    }
+    // Atualiza select preferência de profissional (cliente)
+    const cliProfSel = document.getElementById('cli-prof-sel');
+    if (cliProfSel) {
+      cliProfSel.innerHTML = '<option value="">Sem preferência (qualquer disponível)</option>' +
+        equipeDB.filter(p => p.ativa).map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+      const wrapProfCli = document.getElementById('cli-prof-wrap');
+      if (modoSolo()) {
+        const soloProf = equipeDB.filter(p => p.ativa)[0];
+        if (soloProf) cliProfSel.value = soloProf.id;
+        if (wrapProfCli) wrapProfCli.style.display = 'none';
+      } else {
+        if (wrapProfCli) wrapProfCli.style.display = 'block';
+      }
+    }
+  }, err => { console.warn('[Belezza] equipe listener:', err); });
+}
+
+// Aplica mudanças de UI dependentes do modoSolo() após carregar equipe do Firestore
+function aplicarModoSolo() {
+  const solo = modoSolo();
+
+  // Badge de plano na sidebar
+  const sbPlano = document.querySelector('.sb-plan');
+  if (sbPlano) sbPlano.textContent = window.PLANO_ESTAB || (solo ? 'Solo Pro' : 'Clínica Pro');
+
+  // Dashboard: "Equipe hoje" vs "Você hoje"
+  const dashEquipeTit  = document.getElementById('dash-equipe-titulo');
+  const dashEquipeLink = document.getElementById('dash-equipe-link');
+  if (dashEquipeTit) {
+    dashEquipeTit.childNodes[0].textContent = solo ? 'Você hoje ' : 'Equipe hoje ';
+    if (dashEquipeLink) dashEquipeLink.style.display = solo ? 'none' : '';
+  }
+
+  // Resumo agendamento: linha profissional
+  const resumoProfRow = document.getElementById('resumo-prof-row');
+  if (resumoProfRow) resumoProfRow.style.display = solo ? 'none' : 'flex';
+
+  // Select ag-prof no modal de novo agendamento
+  const agProf = document.getElementById('ag-prof');
+  if (agProf) {
+    if (solo && equipeDB.length > 0) {
+      agProf.value    = equipeDB[0].id;
+      agProf.disabled = true;
+      agProf.style.opacity = '0.6';
+    } else {
+      agProf.disabled = false;
+      agProf.style.opacity = '';
+    }
+  }
+
+  // Re-renderiza dashboard
+  if (typeof initDashboard === 'function') setTimeout(initDashboard, 50);
+}
+
+window.iniciarListenerEquipe = iniciarListenerEquipe;
+window.aplicarModoSolo       = aplicarModoSolo;
 
 // ── Cancelar agendamento (profissional ou cliente) ────────────────────────────
 async function cancelarFS(id, origem) {
