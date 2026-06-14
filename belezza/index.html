@@ -2570,20 +2570,87 @@ function recuperarSenhaCli(){
   if (!val) { if(errEl) errEl.textContent='Digite seu WhatsApp acima.'; return; }
   // Converte WhatsApp → e-mail sintético
   const wppNum = val.replace(/\D/g, '');
-  const email  = wppNum.length >= 8
-    ? wppNum + '@' + CLINICA_ID + '.mecuidar.app'
-    : val; // fallback para e-mail direto (admin)
-  sendPasswordResetEmail(auth, email)
+
+  if (wppNum.length >= 8) {
+    // Cliente: não há e-mail real para receber o link — orienta contato direto
+    if(errEl){
+      errEl.textContent = 'Entre em contato pelo WhatsApp de sua Profissional para redefinir sua senha';
+      errEl.style.color = '#b3ffda';
+    }
+    return;
+  }
+
+  // Fallback: e-mail direto (admin/profissional) — fluxo padrão do Firebase
+  sendPasswordResetEmail(auth, val)
     .then(() => {
       if(errEl){
-        errEl.textContent = wppNum.length >= 8
-          ? 'Link de redefinição enviado para o e-mail cadastrado!'
-          : 'E-mail de recuperação enviado!';
+        errEl.textContent = 'E-mail de recuperação enviado!';
         errEl.style.color='#b3ffda';
       }
     })
-    .catch(() => { if(errEl) errEl.textContent='WhatsApp não encontrado. Verifique o número.'; });
+    .catch(() => { if(errEl) errEl.textContent='E-mail não encontrado. Verifique o endereço.'; });
 }
+
+// ── Alterar senha (cliente logada) ────────────────────────────────────────
+function abrirModalSenhaCli(){
+  const modal = document.getElementById('modal-senha-cli');
+  ['senha-cli-atual','senha-cli-nova','senha-cli-conf'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  const msg = document.getElementById('senha-cli-msg');
+  if(msg){ msg.textContent=''; }
+  if(modal) modal.style.display = 'flex';
+}
+function fecharModalSenhaCli(){
+  const modal = document.getElementById('modal-senha-cli');
+  if(modal) modal.style.display = 'none';
+}
+function toggleSenhaCliVis(id){
+  const el = document.getElementById(id);
+  if(el) el.type = el.type === 'password' ? 'text' : 'password';
+}
+async function salvarNovaSenhaCli(){
+  const atual = document.getElementById('senha-cli-atual')?.value || '';
+  const nova  = document.getElementById('senha-cli-nova')?.value  || '';
+  const conf  = document.getElementById('senha-cli-conf')?.value  || '';
+  const msg   = document.getElementById('senha-cli-msg');
+  const btn   = document.getElementById('senha-cli-btn');
+
+  if(!atual || !nova || !conf){ if(msg){ msg.textContent='Preencha todos os campos.'; msg.style.color='#d4537e'; } return; }
+  if(nova.length < 6){ if(msg){ msg.textContent='A nova senha precisa ter no mínimo 6 caracteres.'; msg.style.color='#d4537e'; } return; }
+  if(nova !== conf){ if(msg){ msg.textContent='As senhas não coincidem.'; msg.style.color='#d4537e'; } return; }
+  if(!cu || !cu.email){ if(msg){ msg.textContent='Sessão expirada. Faça login novamente.'; msg.style.color='#d4537e'; } return; }
+
+  if(btn){ btn.textContent='Salvando...'; btn.disabled=true; }
+  if(msg){ msg.textContent=''; }
+
+  try {
+    const cred = EmailAuthProvider.credential(cu.email, atual);
+    await reauthenticateWithCredential(cu, cred);
+    await updatePassword(cu, nova);
+    if(msg){ msg.textContent='Senha alterada com sucesso! ✓'; msg.style.color='#2e7d32'; }
+    setTimeout(fecharModalSenhaCli, 1500);
+  } catch(e) {
+    if(e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'){
+      if(msg){ msg.textContent='Senha atual incorreta.'; msg.style.color='#d4537e'; }
+    } else if(e.code === 'auth/weak-password'){
+      if(msg){ msg.textContent='Senha muito fraca. Use pelo menos 6 caracteres.'; msg.style.color='#d4537e'; }
+    } else if(e.code === 'auth/too-many-requests'){
+      if(msg){ msg.textContent='Muitas tentativas. Tente novamente mais tarde.'; msg.style.color='#d4537e'; }
+    } else {
+      if(msg){ msg.textContent='Erro ao alterar senha. Tente novamente.'; msg.style.color='#d4537e'; }
+      console.error('[AlterarSenha]', e.message);
+    }
+  } finally {
+    if(btn){ btn.textContent='Salvar nova senha'; btn.disabled=false; }
+  }
+}
+window._abrirModalSenhaCli  = abrirModalSenhaCli;
+window._fecharModalSenhaCli = fecharModalSenhaCli;
+window._toggleSenhaCliVis   = toggleSenhaCliVis;
+window._salvarNovaSenhaCli  = salvarNovaSenhaCli;
+
 function goToCliSection(id){
   // Esconde tela das flores
   const homeCliente = document.getElementById('home-cli-screen');
@@ -6098,6 +6165,10 @@ function fecharCadastro(){ if(window.fecharCadastro) window.fecharCadastro(); }
 function cadastrarCliente(){ if(window.cadastrarCliente) window.cadastrarCliente(); }
 function toggleCadSenha(){ if(window.toggleCadSenha) window.toggleCadSenha(); }
 function recuperarSenhaCli(){ if(window._recuperarSenhaCli) window._recuperarSenhaCli(); }
+function abrirModalSenhaCli(){ if(window._abrirModalSenhaCli) window._abrirModalSenhaCli(); }
+function fecharModalSenhaCli(){ if(window._fecharModalSenhaCli) window._fecharModalSenhaCli(); }
+function toggleSenhaCliVis(id){ if(window._toggleSenhaCliVis) window._toggleSenhaCliVis(id); }
+function salvarNovaSenhaCli(){ if(window._salvarNovaSenhaCli) window._salvarNovaSenhaCli(); }
 function voltarLoginPro(){ if(window._voltarLoginPro) window._voltarLoginPro(); }
 function abrirLoginCliente(){ if(window._abrirLoginCliente) window._abrirLoginCliente(); }
 function goToCliSection(id){ if(window._goToCliSection) window._goToCliSection(id); }
@@ -6352,6 +6423,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       </div>
       <div id="cli-home-estab" style="font-size:10px;color:#9a7a8a;letter-spacing:.2em;text-transform:uppercase;margin-top:2px">Studio Luna</div>
       <div style="font-size:14px;color:#993556;margin-top:8px;font-weight:500" id="cli-welcome">Olá!</div>
+      <div onclick="abrirModalSenhaCli()" style="font-size:11px;color:#b3789a;margin-top:6px;cursor:pointer;text-decoration:underline;display:inline-flex;align-items:center;gap:4px">🔒 Alterar senha</div>
     </div>
     <!-- Botões rosa — responsivos -->
     <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 16px 20px;gap:clamp(12px,3vw,24px)">
@@ -6454,6 +6526,40 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     </div>
   </div>
 </div><!-- /home-cli-screen -->
+
+
+<!-- MODAL ALTERAR SENHA (cliente) -->
+<div id="modal-senha-cli" style="display:none;position:fixed;inset:0;z-index:8300;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+  <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:420px;max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700;color:var(--tx)">Alterar senha</div>
+      <button onclick="fecharModalSenhaCli()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">&#x2715;</button>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Senha atual</label>
+      <div style="position:relative">
+        <input id="senha-cli-atual" type="password" placeholder="Senha atual" autocomplete="current-password" style="width:100%;padding:9px 38px 9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+        <span onclick="toggleSenhaCliVis('senha-cli-atual')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);font-size:15px;user-select:none">👁</span>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Nova senha</label>
+      <div style="position:relative">
+        <input id="senha-cli-nova" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" style="width:100%;padding:9px 38px 9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+        <span onclick="toggleSenhaCliVis('senha-cli-nova')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);font-size:15px;user-select:none">👁</span>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Confirmar nova senha</label>
+      <div style="position:relative">
+        <input id="senha-cli-conf" type="password" placeholder="Repita a nova senha" autocomplete="new-password" style="width:100%;padding:9px 38px 9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+        <span onclick="toggleSenhaCliVis('senha-cli-conf')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);font-size:15px;user-select:none">👁</span>
+      </div>
+    </div>
+    <div id="senha-cli-msg" style="font-size:12px;text-align:center;margin-bottom:8px;min-height:14px;font-weight:600"></div>
+    <button id="senha-cli-btn" onclick="salvarNovaSenhaCli()" style="width:100%;padding:12px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:14px;font-weight:700;letter-spacing:.04em;cursor:pointer;font-family:inherit">Salvar nova senha</button>
+  </div>
+</div>
 
 
 
