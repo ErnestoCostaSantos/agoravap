@@ -1974,7 +1974,7 @@ const faqs=[
   {cat:'clientes',q:'Como exportar contatos do celular para importar no app?',a:'iPhone: Contatos → selecione os contatos → Compartilhar → salve como .vcf. Android: Contatos → Menu → Exportar → Exportar para arquivo VCF. Em seguida, abra o app, vá em Clientes → Importar → aba Agenda (VCF) e selecione o arquivo.'},
   {cat:'clientes',q:'Como exportar uma planilha do Google Sheets ou Excel para importar?',a:'Google Sheets: Arquivo → Fazer download → CSV. Excel: Arquivo → Salvar Como → CSV. A planilha precisa ter colunas com os títulos "Nome" e "WhatsApp" (ou Telefone/Celular). O app detecta automaticamente.'},
   {cat:'clientes',q:'O app detecta clientes duplicadas na importação?',a:'Sim. O app verifica o número de WhatsApp antes de importar — clientes já cadastradas com o mesmo número são ignoradas automaticamente. Ao final da importação o app mostra quantas foram importadas e quantas eram duplicatas.'},
-  {cat:'clientes',q:'A importação traz todos os contatos da minha agenda?',a:'Não. O app importa apenas contatos que parecem ser celulares brasileiros (DDD + 9 dígitos). Contatos com telefone fixo, incompletos ou estrangeiros são ignorados automaticamente, e o app mostra quantos foram ignorados.'},
+  {cat:'clientes',q:'A importação traz todos os contatos da minha agenda?',a:'Não. O app importa apenas contatos com celular brasileiro no formato atual (DDD + 9 dígitos, ex: 11 99999-9999). Telefones fixos, números antigos sem o 9, incompletos ou estrangeiros são ignorados automaticamente, e o app mostra quantos foram ignorados.'},
   {cat:'clientes',q:'Como envio o convite do app para uma cliente importada?',a:'No preview da importação (antes de confirmar), cada contato tem um botão verde do WhatsApp. Toque nele para abrir o WhatsApp já com a mensagem de convite e o link do app preenchidos — só falta enviar. Você pode fazer isso para suas clientes mais importantes e importar o restante normalmente.'},
   {cat:'agendamentos',q:'Como funciona o novo fluxo de agendamento com Firebase?',a:'Quando a cliente envia uma solicitação pelo app, ela é gravada em tempo real no Firestore com status "Aguardando". A líder vê a solicitação aparecer automaticamente no Dashboard e na Agenda, sem precisar recarregar a página.'},
   {cat:'agendamentos',q:'O que acontece quando a líder confirma ou recusa um agendamento?',a:'Ao confirmar, o status muda para "Confirmado" no Firestore e a cliente vê o status atualizado em "Seus agendamentos" em tempo real. Ao recusar, o status muda para "Não disponível" e a líder recebe um aviso amarelo para entrar em contato com a cliente.'},
@@ -5566,16 +5566,11 @@ function _normalizarTel(raw) {
   n = n.replace(/^55(\d{10,11})$/, '$1');      // remove 55 sem +
   n = n.replace(/^0/, '');                     // remove 0 inicial
 
-  // 11 dígitos com 9 após o DDD → celular já no formato atual
+  // 11 dígitos com 9 após o DDD → celular no formato atual (único caso aceito)
   if (n.length === 11 && n[2] === '9') {
     return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
   }
-  // 10 dígitos → celular antigo sem o 9 inicial: adiciona automaticamente
-  if (n.length === 10) {
-    const comNove = n.slice(0,2) + '9' + n.slice(2);
-    return `(${comNove.slice(0,2)}) ${comNove.slice(2,7)}-${comNove.slice(7)}`;
-  }
-  // Qualquer outro formato (fixo, incompleto, internacional) → ignora
+  // Qualquer outro formato (fixo, 10 dígitos ambíguo, incompleto, internacional) → ignora
   return '';
 }
 
