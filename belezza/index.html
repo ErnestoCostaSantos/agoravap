@@ -5462,6 +5462,7 @@ window.setImportTab = setImportTab;
 function importarCSV(input) {
   const file = input.files[0];
   if (!file) return;
+  input.value = ''; // permite selecionar o mesmo arquivo novamente
   document.getElementById('imp-csv-label-txt').textContent = file.name;
   const reader = new FileReader();
   reader.onload = e => {
@@ -5514,6 +5515,7 @@ window.importarCSV = importarCSV;
 function importarVCF(input) {
   const file = input.files[0];
   if (!file) return;
+  input.value = ''; // permite selecionar o mesmo arquivo novamente
   document.getElementById('imp-vcf-label-txt').textContent = file.name;
   const reader = new FileReader();
   reader.onload = e => {
