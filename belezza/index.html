@@ -280,6 +280,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .two-col{grid-template-columns:1fr}
   .content{padding:14px}
 }
+/* Remove ícone nativo de "mostrar senha" do navegador (evita duplicar com o ícone 👁 customizado) */
+/* Remove ícone nativo de "mostrar senha" do navegador (evita duplicar com o ícone 👁 customizado) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display:none !important;
+  visibility:hidden !important;
+  width:0 !important;
+  height:0 !important;
+  pointer-events:none !important;
+}
 /* Olho da senha: só no mobile */
 @media(min-width:700px){ .cli-eye-btn{ display:none !important; }
 /* Bottom-sheet modals */
@@ -6551,7 +6561,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         <input id="nc-nasc" type="date" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
       </div>
       <div>
-        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Senha da cliente</label>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Senha Cliente</label>
         <div style="position:relative">
           <input id="nc-senha" type="password" placeholder="Ex: luna@2026" autocomplete="new-password" style="width:100%;padding:9px 38px 9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
           <span onclick="toggleNcSenha()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);font-size:15px;user-select:none">👁</span>
