@@ -731,53 +731,18 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
         <i class="ti ti-crown" style="font-size:14px;color:#c49b00"></i>
         <span style="font-size:11px;color:#7a5f00;font-weight:600">Top 10 — score = visitas (60%) + valor gasto (40%)</span>
       </div>
-      <!-- Lista -->
-      <div id="clientes-lista">
-        <div class="cli-row" style="border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent);cursor:pointer" onclick="abrirPerfilCliente('mariana')">
-          <div style="position:relative;flex-shrink:0">
-            <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaRosa&backgroundColor=e1f5ee" style="width:40px;height:40px;border-radius:50%">
-            <div style="position:absolute;top:-4px;right:-4px;background:#f5d84a;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="font-size:9px;color:#7a5f00"></i></div>
-          </div>
-          <div style="flex:1;min-width:0">
-            <div class="row-name">Mariana Costa <span style="font-size:10px;color:var(--tx3);font-weight:400">· F</span></div>
-            <div class="row-sub"><i class="ti ti-sparkles" style="font-size:11px"></i> Botox · Fernanda R.</div>
-            <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 91234-5678</div>
-          </div>
-          <div class="row-right">
-            <div style="font-size:10px;color:var(--tx3)">15/05/2026</div>
-            <div style="font-size:11px;font-weight:600;color:#c49b00">5 visitas</div>
-            <div style="font-size:10px;color:#c49b00;font-weight:700">score 4.8</div>
-          </div>
-        </div>
-        <div class="cli-row" style="border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent);cursor:pointer" onclick="abrirPerfilCliente('anapaula')">
-          <div style="position:relative;flex-shrink:0">
-            <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaFlor&backgroundColor=fbeaf0" style="width:40px;height:40px;border-radius:50%">
-            <div style="position:absolute;top:-4px;right:-4px;background:#f5d84a;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="font-size:9px;color:#7a5f00"></i></div>
-          </div>
-          <div style="flex:1;min-width:0">
-            <div class="row-name">Ana Paula Ferreira <span style="font-size:10px;color:var(--tx3);font-weight:400">· F</span></div>
-            <div class="row-sub"><i class="ti ti-sparkles" style="font-size:11px"></i> Limpeza de pele · Carla M.</div>
-            <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 98765-4321</div>
-          </div>
-          <div class="row-right">
-            <div style="font-size:10px;color:var(--tx3)">28/05/2026</div>
-            <div style="font-size:11px;font-weight:600;color:#c49b00">3 visitas</div>
-            <div style="font-size:10px;color:#c49b00;font-weight:700">score 3.2</div>
-          </div>
-        </div>
-        <div class="cli-row" style="cursor:pointer" onclick="abrirPerfilCliente('leticia')">
-          <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe" style="width:40px;height:40px;border-radius:50%;flex-shrink:0">
-          <div style="flex:1;min-width:0">
-            <div class="row-name">Leticia Barros <span style="font-size:10px;color:var(--tx3);font-weight:400">· F</span></div>
-            <div class="row-sub"><i class="ti ti-sparkles" style="font-size:11px"></i> Design sobrancelha · Juliana S.</div>
-            <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>(11) 97890-1234</div>
-          </div>
-          <div class="row-right">
-            <div style="font-size:10px;color:var(--tx3)">02/05/2026</div>
-            <div style="font-size:11px;font-weight:600;color:var(--pk600)">2 visitas</div>
-          </div>
-        </div>
+      <!-- Contagem + ordenação -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+        <span id="clientes-contagem" style="font-size:11px;color:var(--tx3)"></span>
+        <select id="clientes-ordenar" onchange="_clientesReordenar(this.value)" style="font-size:12px;padding:6px 10px;border:1px solid var(--br);border-radius:var(--r);background:var(--bg);color:var(--tx)">
+          <option value="recentes">Mais recentes</option>
+          <option value="nome">Nome (A-Z)</option>
+          <option value="visita">Última visita</option>
+          <option value="score">Score / Top 10</option>
+        </select>
       </div>
+      <!-- Lista -->
+      <div id="clientes-lista"></div>
       <!-- Drawer perfil cliente -->
       <div id="cli-perfil" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.4)" onclick="fecharPerfilCliente()">
         <div style="position:absolute;right:0;top:0;bottom:0;width:min(420px,100%);background:var(--bg);overflow-y:auto;padding:20px" onclick="event.stopPropagation()">
@@ -1729,6 +1694,7 @@ onAuthStateChanged(auth, async user => {
         setTimeout(() => {
           if(window.iniciarListenerEquipe) window.iniciarListenerEquipe();
           if(window.iniciarListenerAgendamentos) window.iniciarListenerAgendamentos();
+          if(window.iniciarListenerClientes) window.iniciarListenerClientes();
           if(window.iniciarListenerThreads) window.iniciarListenerThreads();
           if(window.iniciarListenerPromos) window.iniciarListenerPromos();
           if(window.iniciarListenerCampanhas) window.iniciarListenerCampanhas();
@@ -3019,7 +2985,9 @@ function abrirAgendaPromo(nome){
 const _origGoTo = window.goTo;
 
 // ── Dados de clientes em memória ──────────────────────────────────────────
-const clientesDB = [
+// Exemplos fixos usados apenas como fallback no ambiente de teste (Studio Luna)
+// quando a coleção /clientes ainda não tem documentos no Firestore.
+const _clientesExemploFixo = [
   {id:'mariana', nome:'Mariana Costa', sexo:'F', wpp:'(11) 91234-5678', email:'mariana@email.com',
    nasc:'1990-03-15', origem:'Instagram', interesse:'Botox, Preenchimento', alergias:'',
    obs:'Prefere horários da manhã', visitas:5, valor:820, ultimaVisita:'15/05/2026',
@@ -3036,7 +3004,151 @@ const clientesDB = [
    ultimoSvc:'Design sobrancelha', prof:'Juliana S.', top:false, score:1.9,
    avatar:'https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe'},
 ];
+
+// clientesDB começa com os exemplos fixos (visível antes do Firestore responder)
+// e é substituído pelo conteúdo real de /clientes assim que o listener carregar.
+let clientesDB = _clientesExemploFixo.slice();
 window.clientesDB = clientesDB; // expõe para módulo CRM desde o início
+
+// ── Ordenação da lista de Clientes ─────────────────────────────────────────
+let clientesOrdenacao = 'recentes';
+
+function _clienteDataVisita(c){
+  const m = String(c.ultimaVisita||'').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(!m) return 0;
+  return new Date(+m[3], +m[2]-1, +m[1]).getTime();
+}
+
+function _clienteDataCriacao(c){
+  if(c.criadoEm){
+    const t = new Date(c.criadoEm).getTime();
+    if(!isNaN(t)) return t;
+  }
+  return _clienteDataVisita(c);
+}
+
+function ordenarClientes(lista, modo){
+  const arr = (lista||[]).slice();
+  switch(modo){
+    case 'nome':
+      arr.sort((a,b) => (a.nome||'').localeCompare(b.nome||'', 'pt-BR'));
+      break;
+    case 'visita':
+      arr.sort((a,b) => _clienteDataVisita(b) - _clienteDataVisita(a));
+      break;
+    case 'score':
+      arr.sort((a,b) => (b.score||0) - (a.score||0));
+      break;
+    case 'recentes':
+    default:
+      arr.sort((a,b) => _clienteDataCriacao(b) - _clienteDataCriacao(a));
+      break;
+  }
+  return arr;
+}
+window.ordenarClientes = ordenarClientes;
+
+function _atualizarContagemClientes(n){
+  const el = document.getElementById('clientes-contagem');
+  if(el) el.textContent = n === 0 ? '' : `${n} cliente${n>1?'s':''}`;
+}
+
+// ── Renderiza a lista de Clientes a partir de clientesDB ───────────────────
+function renderClientesLista(){
+  const lista = document.getElementById('clientes-lista');
+  if(!lista) return;
+  const db = window.clientesDB || clientesDB || [];
+  const ordenados = ordenarClientes(db, clientesOrdenacao);
+
+  // Mantém o seletor de ordenação sincronizado (ex: após reload)
+  const sel = document.getElementById('clientes-ordenar');
+  if(sel && sel.value !== clientesOrdenacao) sel.value = clientesOrdenacao;
+
+  if(ordenados.length === 0){
+    lista.innerHTML = `<div style="text-align:center;padding:30px 10px;color:var(--tx3);font-size:12px">
+      <i class="ti ti-users" style="font-size:28px;display:block;margin-bottom:6px"></i>
+      Nenhuma cliente cadastrada ainda.
+    </div>`;
+    _atualizarContagemClientes(0);
+    return;
+  }
+
+  lista.innerHTML = ordenados.map(c => {
+    const isTop = !!c.top;
+    const borderStyle = isTop ? 'border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent);' : '';
+    const crownBadge = isTop
+      ? `<div style="position:absolute;top:-4px;right:-4px;background:#f5d84a;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="font-size:9px;color:#7a5f00"></i></div>`
+      : '';
+    const scoreLine = (isTop && c.score != null)
+      ? `<div style="font-size:10px;color:#c49b00;font-weight:700">score ${c.score}</div>`
+      : '';
+    const visitasColor = isTop ? '#c49b00' : 'var(--pk600)';
+    const temServico = c.ultimoSvc && c.ultimoSvc !== '—';
+    const subLine = temServico
+      ? `<i class="ti ti-sparkles" style="font-size:11px"></i> ${_escHtml(c.ultimoSvc)}${(c.prof && c.prof !== '—') ? ' · ' + _escHtml(c.prof) : ''}`
+      : `<i class="ti ti-file-import" style="font-size:11px"></i> ${_escHtml(c.origem || 'Cadastrada')}`;
+    const visitaLabel = (c.ultimaVisita && c.ultimaVisita !== '—') ? c.ultimaVisita : 'Sem visitas';
+    const avatarSrc = c.avatar || (c.sexo === 'M'
+      ? `https://api.dicebear.com/9.x/notionists/svg?seed=${c.id}&backgroundColor=e8f4ff`
+      : `https://api.dicebear.com/9.x/lorelei/svg?seed=${c.id}&backgroundColor=fbeaf0`);
+    return `
+      <div class="cli-row" style="${borderStyle}cursor:pointer" data-busca="${_escHtml((c.nome||'') + ' ' + (c.wpp||''))}" onclick="abrirPerfilCliente('${c.id}')">
+        <div style="position:relative;flex-shrink:0">
+          <img src="${avatarSrc}" style="width:40px;height:40px;border-radius:50%">
+          ${crownBadge}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="row-name">${_escHtml(c.nome)} <span style="font-size:10px;color:var(--tx3);font-weight:400">· ${c.sexo||'F'}</span></div>
+          <div class="row-sub">${subLine}</div>
+          <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>${_escHtml(c.wpp||'')}</div>
+        </div>
+        <div class="row-right">
+          <div style="font-size:10px;color:var(--tx3)">${visitaLabel}</div>
+          <div style="font-size:11px;font-weight:600;color:${visitasColor}">${c.visitas||0} visita${c.visitas===1?'':'s'}</div>
+          ${scoreLine}
+        </div>
+      </div>`;
+  }).join('');
+
+  _atualizarContagemClientes(ordenados.length);
+}
+window.renderClientesLista = renderClientesLista;
+
+function _clientesReordenar(modo){
+  clientesOrdenacao = modo;
+  renderClientesLista();
+}
+window._clientesReordenar = _clientesReordenar;
+
+// ── Listener real da coleção /clientes (Firestore) ─────────────────────────
+let unsubClientes = null;
+
+function iniciarListenerClientes(){
+  if(unsubClientes) unsubClientes();
+  const clinicaIdAtual = (window.cp && window.cp.clinicaId) ? window.cp.clinicaId : CLINICA_ID;
+  const q = query(
+    collection(db, 'clientes'),
+    where('clinicaId', '==', clinicaIdAtual)
+    // orderBy('criadoEm','desc') — requer índice composto no Firestore
+  );
+  unsubClientes = onSnapshot(q, snap => {
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if(docs.length === 0 && CLINICA_ID === 'belezza-50e76'){
+      // Ambiente de teste sem dados reais ainda — mantém os 3 exemplos fixos
+      clientesDB = _clientesExemploFixo.slice();
+    } else {
+      clientesDB = docs;
+    }
+    window.clientesDB = clientesDB;
+    renderClientesLista();
+  }, err => {
+    console.warn('[Belezza] onSnapshot clientes:', err);
+  });
+}
+window.iniciarListenerClientes = iniciarListenerClientes;
+
+// Renderização inicial (mostra os exemplos fixos até o listener do Firestore responder)
+renderClientesLista();
 
 function filtrarClientes(q){
   const lista = document.getElementById('clientes-lista');
@@ -3159,23 +3271,8 @@ async function salvarCliente(){
   catch(e){ console.error('[Belezza] salvarCliente ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
   clientesDB.push(novo);
   window.clientesDB = clientesDB;
-  // Atualiza lista visual
-  const lista = document.getElementById('clientes-lista');
-  if(lista){
-    const row = document.createElement('div');
-    row.className='cli-row'; row.style.cursor='pointer';
-    row.dataset.busca=nome+' '+wpp;
-    row.onclick=()=>abrirPerfilCliente(id);
-    row.innerHTML=`
-      <img src="${avatar}" style="width:40px;height:40px;border-radius:50%;flex-shrink:0">
-      <div style="flex:1;min-width:0">
-        <div class="row-name">${nome} <span style="font-size:10px;color:var(--tx3);font-weight:400">· ${sexo}</span></div>
-        <div class="row-sub">Nova cliente</div>
-        <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>${wpp}</div>
-      </div>
-      <div class="row-right"><div style="font-size:10px;color:var(--tx3)">Hoje</div><div style="font-size:11px;color:var(--pk600)">0 visitas</div></div>`;
-    lista.appendChild(row);
-  }
+  // Atualiza lista visual (re-renderiza respeitando a ordenação atual)
+  renderClientesLista();
   document.getElementById('nc-toast').style.display='flex';
   setTimeout(()=>fecharModalCliente(), 2000);
 }
@@ -5366,20 +5463,8 @@ function salvarEdicaoCliente(id){
     alergias:   document.getElementById('nc-alergias').value,
     obs:        document.getElementById('nc-obs').value,
   };
-  // Atualiza card na lista
-  const lista = document.getElementById('clientes-lista');
-  if(lista){
-    const rows = lista.querySelectorAll('.cli-row');
-    rows.forEach(row => {
-      if(row.onclick && row.onclick.toString().includes(id)){
-        const nomeEl = row.querySelector('.row-name');
-        const wppEl  = row.querySelector('.cli-wpp');
-        if(nomeEl) nomeEl.innerHTML = nome + ' <span style="font-size:10px;color:var(--tx3);font-weight:400">· ' + sexo + '</span>';
-        if(wppEl)  wppEl.innerHTML  = '<i class="ti ti-brand-whatsapp" style="font-size:11px"></i>' + wpp;
-        row.dataset.busca = nome + ' ' + wpp;
-      }
-    });
-  }
+  // Atualiza card na lista (re-renderiza respeitando a ordenação atual)
+  renderClientesLista();
   const toast = document.getElementById('nc-toast');
   const toastMsg = toast.querySelector ? toast : toast;
   if(toast){ toast.innerHTML = '<i class="ti ti-circle-check" style="font-size:18px"></i> Dados atualizados!'; toast.style.display = 'flex'; }
@@ -5596,11 +5681,16 @@ function _impMostrarPreview(tipo, contatos, ignorados) {
       ${ignorados} ignorado${ignorados > 1 ? 's' : ''} (não parecem celular)
     </div>` : ''}
     <div style="font-size:11px;color:var(--tx2);margin-bottom:8px">
-      💡 Toque no <i class="ti ti-brand-whatsapp" style="color:#25D366"></i> para já enviar o convite às clientes mais importantes. Os demais ficam salvos para convidar depois.
+      💡 Desmarque quem não deve ser importada (contatos pessoais, por exemplo). Toque no <i class="ti ti-brand-whatsapp" style="color:#25D366"></i> para já enviar o convite às clientes mais importantes.
     </div>
     <div style="border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-bottom:10px;max-height:280px;overflow-y:auto">
-      ${contatos.map(c => `
+      <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--br);background:var(--tl50);font-size:11px;font-weight:700;color:var(--tl800)">
+        <input type="checkbox" id="_imp-todos-${tipo}" checked onchange="_impToggleTodos('${tipo}')" style="width:16px;height:16px;flex-shrink:0;cursor:pointer">
+        <label for="_imp-todos-${tipo}" style="cursor:pointer;flex:1">Selecionar todos</label>
+      </div>
+      ${contatos.map((c, i) => `
         <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--br);font-size:12px">
+          <input type="checkbox" class="_imp-chk-${tipo}" data-idx="${i}" checked onchange="_impAtualizarContagem('${tipo}')" style="width:16px;height:16px;flex-shrink:0;cursor:pointer">
           <i class="ti ti-user" style="font-size:13px;color:var(--tx3);flex-shrink:0"></i>
           <span style="flex:1;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_escHtml(c.nome)}</span>
           <span style="color:var(--tl400);white-space:nowrap">${_escHtml(c.wpp)}</span>
@@ -5613,14 +5703,45 @@ function _impMostrarPreview(tipo, contatos, ignorados) {
       <button onclick="_impCancelar('${tipo}')" class="btn" style="flex:1">
         <i class="ti ti-x"></i> Cancelar
       </button>
-      <button onclick="_impConfirmar('${tipo}', window['_impContatos_${tipo}'])" class="btn tl" style="flex:1;font-weight:700">
-        <i class="ti ti-user-plus"></i> Importar ${contatos.length} clientes
+      <button onclick="_impConfirmar('${tipo}')" class="btn tl" id="_imp-btn-confirmar-${tipo}" style="flex:1;font-weight:700">
+        <i class="ti ti-user-plus"></i> Importar <span id="_imp-contagem-${tipo}">${contatos.length}</span> cliente${contatos.length > 1 ? 's' : ''}
       </button>
     </div>`;
 
   // Armazena para confirmação
   window[`_impContatos_${tipo}`] = contatos;
 }
+
+// ── Seleção de contatos no preview de importação ───────────────────────────
+function _impAtualizarContagem(tipo) {
+  const checks = document.querySelectorAll(`._imp-chk-${tipo}`);
+  const marcados = Array.from(checks).filter(c => c.checked).length;
+
+  const span = document.getElementById(`_imp-contagem-${tipo}`);
+  if (span) span.textContent = marcados;
+
+  const btn = document.getElementById(`_imp-btn-confirmar-${tipo}`);
+  if (btn) {
+    btn.disabled = marcados === 0;
+    btn.style.opacity = marcados === 0 ? '0.5' : '1';
+    btn.style.cursor = marcados === 0 ? 'not-allowed' : 'pointer';
+    const icone = btn.querySelector('i');
+    btn.innerHTML = (icone ? icone.outerHTML : '<i class="ti ti-user-plus"></i>')
+      + ` Importar <span id="_imp-contagem-${tipo}">${marcados}</span> cliente${marcados === 1 ? '' : 's'}`;
+  }
+
+  const todos = document.getElementById(`_imp-todos-${tipo}`);
+  if (todos) todos.checked = marcados > 0 && marcados === checks.length;
+}
+window._impAtualizarContagem = _impAtualizarContagem;
+
+function _impToggleTodos(tipo) {
+  const todos = document.getElementById(`_imp-todos-${tipo}`);
+  if (!todos) return;
+  document.querySelectorAll(`._imp-chk-${tipo}`).forEach(c => c.checked = todos.checked);
+  _impAtualizarContagem(tipo);
+}
+window._impToggleTodos = _impToggleTodos;
 
 // ── Envia convite individual pelo WhatsApp ─────────────────────────────────
 function _impConvidar(nome, numero) {
@@ -5655,9 +5776,21 @@ function _impMostrarErro(tipo, msg) {
 }
 
 // ── Confirmação e importação em lote ──────────────────────────────────────
-async function _impConfirmar(tipo, contatos) {
+async function _impConfirmar(tipo) {
   const divId  = tipo === 'csv' ? 'imp-csv-preview' : 'imp-vcf-preview';
   const div    = document.getElementById(divId);
+
+  // Filtra apenas os contatos com checkbox marcado
+  const todosContatos = window[`_impContatos_${tipo}`] || [];
+  const checks = document.querySelectorAll(`._imp-chk-${tipo}`);
+  const contatos = [];
+  checks.forEach(chk => {
+    if (chk.checked) {
+      const idx = parseInt(chk.dataset.idx, 10);
+      if (todosContatos[idx]) contatos.push(todosContatos[idx]);
+    }
+  });
+  if (contatos.length === 0) return; // botão já fica desabilitado nesse caso
 
   // Botão de loading
   if (div) {
@@ -5665,8 +5798,7 @@ async function _impConfirmar(tipo, contatos) {
       <i class="ti ti-loader" style="font-size:20px"></i><br>Importando ${contatos.length} clientes...</div>`;
   }
 
-  const lista  = document.getElementById('clientes-lista');
-  const db     = window.clientesDB || [];
+  const db = window.clientesDB || [];
   let importados = 0;
   let duplicados = 0;
 
@@ -5697,26 +5829,10 @@ async function _impConfirmar(tipo, contatos) {
     db.push(novo);
     window.clientesDB = db;
     importados++;
-
-    // Adiciona card na lista
-    if (lista) {
-      const row = document.createElement('div');
-      row.className = 'cli-row';
-      row.style.cursor = 'pointer';
-      row.dataset.busca = novo.nome + ' ' + novo.wpp;
-      row.onclick = () => window.abrirPerfilCliente && window.abrirPerfilCliente(id);
-      row.innerHTML = `
-        <img src="${avatar}" style="width:40px;height:40px;border-radius:50%;flex-shrink:0">
-        <div style="flex:1;min-width:0">
-          <div class="row-name">${_escHtml(novo.nome)} <span style="font-size:10px;color:var(--tx3);font-weight:400">· F</span></div>
-          <div class="row-sub"><i class="ti ti-file-import" style="font-size:11px"></i> Importada</div>
-          <div class="cli-wpp"><i class="ti ti-brand-whatsapp" style="font-size:11px"></i>${_escHtml(novo.wpp)}</div>
-        </div>
-        <div class="row-right"><div style="font-size:10px;color:var(--tx3)">Hoje</div>
-          <div style="font-size:11px;color:var(--pk600)">0 visitas</div></div>`;
-      lista.appendChild(row);
-    }
   }
+
+  // Atualiza a lista visual de uma vez, respeitando a ordenação atual
+  if (importados > 0 && window.renderClientesLista) window.renderClientesLista();
 
   // Resultado final
   if (div) {
