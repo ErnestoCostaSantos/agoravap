@@ -486,6 +486,7 @@ input[type="password"]::-ms-clear {
 window.NOME_ESTAB  = 'Studio Luna';    // nome exibido em sidebar, telas e mensagens
 window.PLANO_ESTAB = 'Clínica Pro';    // badge no sidebar (ex: 'Solo Pro', 'Studio', 'Espaço')
 window.WPP_ESTAB   = '5511997261900'; // WhatsApp do estabelecimento (só números, com DDI)
+window.APP_URL     = 'https://mecuidar.app.br'; // link do app enviado nos convites às clientes
 document.title = 'MeCuidar — ' + window.NOME_ESTAB;
 // ─────────────────────────────────────────────────────────────────────────────
 // Stubs síncronos — delegam para o módulo via window._X (atribuído pelo módulo ao carregar)
@@ -1973,6 +1974,8 @@ const faqs=[
   {cat:'clientes',q:'Como exportar contatos do celular para importar no app?',a:'iPhone: Contatos → selecione os contatos → Compartilhar → salve como .vcf. Android: Contatos → Menu → Exportar → Exportar para arquivo VCF. Em seguida, abra o app, vá em Clientes → Importar → aba Agenda (VCF) e selecione o arquivo.'},
   {cat:'clientes',q:'Como exportar uma planilha do Google Sheets ou Excel para importar?',a:'Google Sheets: Arquivo → Fazer download → CSV. Excel: Arquivo → Salvar Como → CSV. A planilha precisa ter colunas com os títulos "Nome" e "WhatsApp" (ou Telefone/Celular). O app detecta automaticamente.'},
   {cat:'clientes',q:'O app detecta clientes duplicadas na importação?',a:'Sim. O app verifica o número de WhatsApp antes de importar — clientes já cadastradas com o mesmo número são ignoradas automaticamente. Ao final da importação o app mostra quantas foram importadas e quantas eram duplicatas.'},
+  {cat:'clientes',q:'A importação traz todos os contatos da minha agenda?',a:'Não. O app importa apenas contatos que parecem ser celulares brasileiros (DDD + 9 dígitos). Contatos com telefone fixo, incompletos ou estrangeiros são ignorados automaticamente, e o app mostra quantos foram ignorados.'},
+  {cat:'clientes',q:'Como envio o convite do app para uma cliente importada?',a:'No preview da importação (antes de confirmar), cada contato tem um botão verde do WhatsApp. Toque nele para abrir o WhatsApp já com a mensagem de convite e o link do app preenchidos — só falta enviar. Você pode fazer isso para suas clientes mais importantes e importar o restante normalmente.'},
   {cat:'agendamentos',q:'Como funciona o novo fluxo de agendamento com Firebase?',a:'Quando a cliente envia uma solicitação pelo app, ela é gravada em tempo real no Firestore com status "Aguardando". A líder vê a solicitação aparecer automaticamente no Dashboard e na Agenda, sem precisar recarregar a página.'},
   {cat:'agendamentos',q:'O que acontece quando a líder confirma ou recusa um agendamento?',a:'Ao confirmar, o status muda para "Confirmado" no Firestore e a cliente vê o status atualizado em "Seus agendamentos" em tempo real. Ao recusar, o status muda para "Não disponível" e a líder recebe um aviso amarelo para entrar em contato com a cliente.'},
   {cat:'agendamentos',q:'O que a cliente deve fazer quando o agendamento é recusado?',a:'A cliente verá o status "Não disponível" na aba Agendamentos e poderá clicar em "Reagendar". O app exibirá os horários disponíveis de todas as profissionais que realizam o serviço solicitado, organizados por profissional.'},
@@ -5490,13 +5493,15 @@ function importarCSV(input) {
 
       // Parseia linhas de dados
       const contatos = [];
+      let ignorados = 0;
       for (let i = 1; i < linhas.length; i++) {
         const cols = linhas[i].split(sep).map(c => c.replace(/^["']|["']$/g,'').trim());
         const nome = cols[iNome] || '';
         const wpp  = _normalizarTel(cols[iWpp] || '');
         if (nome && wpp) contatos.push({ nome, wpp });
+        else if (nome && (cols[iWpp] || '').trim()) ignorados++;
       }
-      _impMostrarPreview('csv', contatos);
+      _impMostrarPreview('csv', contatos, ignorados);
     } catch(err) {
       _impMostrarErro('csv', 'Erro ao ler o arquivo: ' + err.message);
     }
@@ -5516,6 +5521,7 @@ function importarVCF(input) {
       const texto = e.target.result;
       const blocos = texto.split(/BEGIN:VCARD/i).filter(b => b.includes('END:VCARD'));
       const contatos = [];
+      let ignorados = 0;
       blocos.forEach(bloco => {
         // Nome: FN ou N
         let nome = '';
@@ -5538,12 +5544,13 @@ function importarVCF(input) {
           if (t) { wpp = t; break; }
         }
         if (nome && wpp) contatos.push({ nome, wpp });
+        else if (nome && telMatches.length > 0) ignorados++;
       });
       if (contatos.length === 0) {
-        _impMostrarErro('vcf', 'Nenhum contato com nome e telefone encontrado no arquivo.');
+        _impMostrarErro('vcf', 'Nenhum contato com celular válido encontrado no arquivo.');
         return;
       }
-      _impMostrarPreview('vcf', contatos);
+      _impMostrarPreview('vcf', contatos, ignorados);
     } catch(err) {
       _impMostrarErro('vcf', 'Erro ao ler o arquivo: ' + err.message);
     }
@@ -5552,62 +5559,80 @@ function importarVCF(input) {
 }
 window.importarVCF = importarVCF;
 
-// ── Normaliza número de telefone ──────────────────────────────────────────
+// ── Normaliza número de telefone (filtro: só celular BR com 9 dígitos) ────
 function _normalizarTel(raw) {
   let n = raw.replace(/[^\d+]/g, '');          // só dígitos e +
   n = n.replace(/^\+55/, '');                  // remove DDI 55
   n = n.replace(/^55(\d{10,11})$/, '$1');      // remove 55 sem +
   n = n.replace(/^0/, '');                     // remove 0 inicial
-  if (n.length < 8) return '';
-  // Formata: (DDD) 9XXXX-XXXX ou (DDD) XXXX-XXXX
-  if (n.length === 11) return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
-  if (n.length === 10) return `(${n.slice(0,2)}) ${n.slice(2,6)}-${n.slice(6)}`;
-  return raw.trim(); // retorna original se não encaixa
+
+  // 11 dígitos com 9 após o DDD → celular já no formato atual
+  if (n.length === 11 && n[2] === '9') {
+    return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
+  }
+  // 10 dígitos → celular antigo sem o 9 inicial: adiciona automaticamente
+  if (n.length === 10) {
+    const comNove = n.slice(0,2) + '9' + n.slice(2);
+    return `(${comNove.slice(0,2)}) ${comNove.slice(2,7)}-${comNove.slice(7)}`;
+  }
+  // Qualquer outro formato (fixo, incompleto, internacional) → ignora
+  return '';
 }
 
 // ── Mostra preview dos contatos importados ────────────────────────────────
-function _impMostrarPreview(tipo, contatos) {
+function _impMostrarPreview(tipo, contatos, ignorados) {
   const divId = tipo === 'csv' ? 'imp-csv-preview' : 'imp-vcf-preview';
   const div = document.getElementById(divId);
   if (!div) return;
 
-  const MAX_PREVIEW = 5;
-  const amostra = contatos.slice(0, MAX_PREVIEW);
-  const resto = contatos.length - MAX_PREVIEW;
+  ignorados = ignorados || 0;
 
   div.style.display = '';
   div.innerHTML = `
-    <div style="font-size:11px;font-weight:700;color:var(--tl800);margin-bottom:6px">
+    <div style="font-size:11px;font-weight:700;color:var(--tl800);margin-bottom:4px">
       <i class="ti ti-circle-check" style="font-size:13px"></i>
       ${contatos.length} contato${contatos.length > 1 ? 's' : ''} encontrado${contatos.length > 1 ? 's' : ''}
     </div>
-    <div style="border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-bottom:10px">
-      ${amostra.map(c => `
+    ${ignorados > 0 ? `
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:6px">
+      <i class="ti ti-info-circle" style="font-size:13px"></i>
+      ${ignorados} ignorado${ignorados > 1 ? 's' : ''} (não parecem celular)
+    </div>` : ''}
+    <div style="font-size:11px;color:var(--tx2);margin-bottom:8px">
+      💡 Toque no <i class="ti ti-brand-whatsapp" style="color:#25D366"></i> para já enviar o convite às clientes mais importantes. Os demais ficam salvos para convidar depois.
+    </div>
+    <div style="border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-bottom:10px;max-height:280px;overflow-y:auto">
+      ${contatos.map(c => `
         <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--br);font-size:12px">
           <i class="ti ti-user" style="font-size:13px;color:var(--tx3);flex-shrink:0"></i>
-          <span style="flex:1;font-weight:600;color:var(--tx)">${_escHtml(c.nome)}</span>
-          <span style="color:var(--tl400)">${_escHtml(c.wpp)}</span>
+          <span style="flex:1;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_escHtml(c.nome)}</span>
+          <span style="color:var(--tl400);white-space:nowrap">${_escHtml(c.wpp)}</span>
+          <button onclick="_impConvidar('${_escHtml(c.nome).replace(/'/g,"\\'")}','${c.wpp.replace(/\D/g,'')}')" title="Convidar pelo WhatsApp" style="flex-shrink:0;border:none;background:#25D366;color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">
+            <i class="ti ti-brand-whatsapp" style="font-size:14px"></i>
+          </button>
         </div>`).join('')}
-      ${resto > 0 ? `<div style="padding:6px 10px;font-size:11px;color:var(--tx3);text-align:center">... e mais ${resto} contato${resto > 1 ? 's' : ''}</div>` : ''}
     </div>
     <div style="display:flex;gap:8px">
       <button onclick="_impCancelar('${tipo}')" class="btn" style="flex:1">
         <i class="ti ti-x"></i> Cancelar
       </button>
-      <button onclick="_impConfirmar('${tipo}', ${JSON.stringify(contatos).replace(/'/g,"\\'")})" class="btn tl" style="flex:1;font-weight:700">
+      <button onclick="_impConfirmar('${tipo}', window['_impContatos_${tipo}'])" class="btn tl" style="flex:1;font-weight:700">
         <i class="ti ti-user-plus"></i> Importar ${contatos.length} clientes
       </button>
     </div>`;
 
   // Armazena para confirmação
   window[`_impContatos_${tipo}`] = contatos;
-
-  // Re-renderiza o botão com chamada simples
-  const btnImportar = div.querySelector('button.btn.tl');
-  if (btnImportar) {
-    btnImportar.onclick = () => _impConfirmar(tipo, window[`_impContatos_${tipo}`]);
-  }
 }
+
+// ── Envia convite individual pelo WhatsApp ─────────────────────────────────
+function _impConvidar(nome, numero) {
+  const link = (window.APP_URL || 'https://mecuidar.app.br') + '/?convite=1';
+  const estab = window.NOME_ESTAB || 'Studio Luna';
+  const msg = `Oi ${nome}! Aqui é do ${estab} 💕 Agora você pode agendar seus horários e ver nossas promoções direto pelo app: ${link}`;
+  window.open('https://wa.me/55' + numero + '?text=' + encodeURIComponent(msg), '_blank');
+}
+window._impConvidar = _impConvidar;
 
 function _escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
