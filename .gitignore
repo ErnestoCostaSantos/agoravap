@@ -2,7 +2,7 @@
 serviceAccountKey.json
 
 # Relatórios de onboarding — contêm senhas provisórias
-clientes/
+relatorios/
 
 # Arquivos JSON gerados localmente (exceto manifest.json)
 !manifest.json
