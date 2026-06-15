@@ -3010,8 +3010,11 @@ const _clientesExemploFixo = [
 let clientesDB = _clientesExemploFixo.slice();
 window.clientesDB = clientesDB; // expõe para módulo CRM desde o início
 
-// ── Ordenação da lista de Clientes ─────────────────────────────────────────
+// ── Ordenação, busca e paginação da lista de Clientes ──────────────────────
 let clientesOrdenacao = 'recentes';
+let clientesFiltroBusca = '';
+let clientesPaginaAtual = 1;
+const CLIENTES_POR_PAGINA = 30;
 
 function _clienteDataVisita(c){
   const m = String(c.ultimaVisita||'').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
@@ -3048,17 +3051,31 @@ function ordenarClientes(lista, modo){
 }
 window.ordenarClientes = ordenarClientes;
 
-function _atualizarContagemClientes(n){
+function _atualizarContagemClientes(mostrados, total){
   const el = document.getElementById('clientes-contagem');
-  if(el) el.textContent = n === 0 ? '' : `${n} cliente${n>1?'s':''}`;
+  if(!el) return;
+  if(total === 0){ el.textContent = ''; return; }
+  el.textContent = (mostrados < total)
+    ? `${mostrados} de ${total} cliente${total>1?'s':''}`
+    : `${total} cliente${total>1?'s':''}`;
 }
 
 // ── Renderiza a lista de Clientes a partir de clientesDB ───────────────────
+// Aplica busca (clientesFiltroBusca), ordenação (clientesOrdenacao) e
+// paginação (clientesPaginaAtual × CLIENTES_POR_PAGINA) — evita renderizar
+// centenas de cards de uma vez só quando a base crescer.
 function renderClientesLista(){
   const lista = document.getElementById('clientes-lista');
   if(!lista) return;
   const db = window.clientesDB || clientesDB || [];
-  const ordenados = ordenarClientes(db, clientesOrdenacao);
+
+  // Filtro de busca (nome + WhatsApp)
+  const termo = clientesFiltroBusca.toLowerCase().trim();
+  const filtrados = termo
+    ? db.filter(c => ((c.nome||'') + ' ' + (c.wpp||'')).toLowerCase().includes(termo))
+    : db;
+
+  const ordenados = ordenarClientes(filtrados, clientesOrdenacao);
 
   // Mantém o seletor de ordenação sincronizado (ex: após reload)
   const sel = document.getElementById('clientes-ordenar');
@@ -3067,13 +3084,17 @@ function renderClientesLista(){
   if(ordenados.length === 0){
     lista.innerHTML = `<div style="text-align:center;padding:30px 10px;color:var(--tx3);font-size:12px">
       <i class="ti ti-users" style="font-size:28px;display:block;margin-bottom:6px"></i>
-      Nenhuma cliente cadastrada ainda.
+      ${termo ? 'Nenhuma cliente encontrada para essa busca.' : 'Nenhuma cliente cadastrada ainda.'}
     </div>`;
-    _atualizarContagemClientes(0);
+    _atualizarContagemClientes(0, db.length);
     return;
   }
 
-  lista.innerHTML = ordenados.map(c => {
+  const limite = clientesPaginaAtual * CLIENTES_POR_PAGINA;
+  const visiveis = ordenados.slice(0, limite);
+  const restantes = ordenados.length - visiveis.length;
+
+  lista.innerHTML = visiveis.map(c => {
     const isTop = !!c.top;
     const borderStyle = isTop ? 'border-left:3px solid #f5d84a;background:linear-gradient(90deg,#fffdf0,transparent);' : '';
     const crownBadge = isTop
@@ -3110,15 +3131,29 @@ function renderClientesLista(){
       </div>`;
   }).join('');
 
-  _atualizarContagemClientes(ordenados.length);
+  if(restantes > 0){
+    lista.innerHTML += `
+      <button onclick="_clientesCarregarMais()" class="btn" style="width:100%;margin-top:6px;font-size:12px">
+        <i class="ti ti-chevron-down"></i> Carregar mais (${restantes} restante${restantes>1?'s':''})
+      </button>`;
+  }
+
+  _atualizarContagemClientes(visiveis.length, ordenados.length);
 }
 window.renderClientesLista = renderClientesLista;
 
 function _clientesReordenar(modo){
   clientesOrdenacao = modo;
+  clientesPaginaAtual = 1;
   renderClientesLista();
 }
 window._clientesReordenar = _clientesReordenar;
+
+function _clientesCarregarMais(){
+  clientesPaginaAtual++;
+  renderClientesLista();
+}
+window._clientesCarregarMais = _clientesCarregarMais;
 
 // ── Listener real da coleção /clientes (Firestore) ─────────────────────────
 let unsubClientes = null;
@@ -3151,15 +3186,9 @@ window.iniciarListenerClientes = iniciarListenerClientes;
 renderClientesLista();
 
 function filtrarClientes(q){
-  const lista = document.getElementById('clientes-lista');
-  if(!lista) return;
-  const term = (q||'').toLowerCase().trim();
-  const rows = lista.querySelectorAll('.cli-row');
-  rows.forEach(row => {
-    // Busca em texto visível + data-nome se existir
-    const txt = (row.textContent + ' ' + (row.dataset.busca||'')).toLowerCase();
-    row.style.display = (!term || txt.includes(term)) ? '' : 'none';
-  });
+  clientesFiltroBusca = q || '';
+  clientesPaginaAtual = 1;
+  renderClientesLista();
 }
 
 function abrirPerfilCliente(id){
