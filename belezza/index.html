@@ -2138,7 +2138,8 @@ function initDashboard(){
   const dataStr = `${dias[now.getDay()]}, ${now.getDate()} de ${meses[now.getMonth()]} de ${now.getFullYear()}`;
   const el = document.getElementById('dash-saudacao');
   const de = document.getElementById('dash-data');
-  if(el) el.textContent = saud + ', Carla!';
+  const primeiroNome = (window.cp?.name || window.cp?.nome || 'você').split(' ')[0];
+  if(el) el.textContent = saud + ', ' + primeiroNome + '!';
   if(de) de.textContent = dataStr;
   // Atualiza badge de pendentes
   atualizarPendentes();
