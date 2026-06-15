@@ -335,7 +335,7 @@ input[type="password"]::-ms-clear {
         max-width:420px;
         overflow:hidden;
       ">
-        <img src="hero-cliente.jpg" alt="Procedimento estético" style="
+        <img class="hero-cliente-img" src="hero-cliente.jpg" alt="Procedimento estético" style="
           width:100%;height:100%;
           object-fit:cover;object-position:center 28%;
           display:block;
@@ -422,6 +422,8 @@ input[type="password"]::-ms-clear {
     <button class="nav-item" onclick="goTo('p-promos',this)"><i class="ti ti-tag"></i>Promoções</button>
     <div class="sb-sec">Atendimento</div>
     <button class="nav-item" onclick="goTo('c-chat',this)"><i class="ti ti-message-circle"></i>Dúvidas</button>
+    <div class="sb-sec">Configurações</div>
+    <button class="nav-item" onclick="goTo('p-personalizacao',this)"><i class="ti ti-palette"></i>Personalização</button>
   </div>
   <div class="sb-nav" id="sb-cli" style="display:none">
     <div class="sb-sec">Navegação</div>
@@ -1312,9 +1314,54 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       </div><!-- /crm block -->
     </div>
 
+    <!-- PERSONALIZAÇÃO -->
+    <div class="pane" id="pane-p-personalizacao">
+      <div class="sec-lbl">Dados do estabelecimento</div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Nome do estabelecimento</label>
+          <input id="pers-nome" type="text" placeholder="Ex: Studio Luna" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">WhatsApp do estabelecimento</label>
+          <input id="pers-wpp" type="text" inputmode="numeric" placeholder="Ex: 5511999999999 (DDI+DDD+número, só dígitos)" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Plano / selo exibido no menu</label>
+          <input id="pers-plano" type="text" placeholder="Ex: Solo Pro, Clínica Pro, Studio, Espaço..." style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+        </div>
+      </div>
+
+      <div class="sec-lbl">Imagem de fundo da tela das clientes</div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--tx2);margin-bottom:10px">Escolha uma foto sua, da equipe ou da fachada do seu espaço. Ela aparece suavemente ao fundo da tela inicial e da tela de login das suas clientes no app.</div>
+        <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+          <label id="pers-img-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:96px;height:170px;border-radius:var(--r);border:1px dashed var(--br2);cursor:pointer;background:var(--bg2);color:var(--tx3);font-size:11px;gap:4px;text-align:center;padding:4px;box-sizing:border-box">
+            <i class="ti ti-photo-plus" style="font-size:24px;color:var(--pk400)"></i>
+            <span>Escolher foto</span>
+            <input type="file" accept="image/*" style="display:none" onchange="previewPersImg(this)">
+          </label>
+          <img id="pers-img-preview" style="display:none;width:96px;height:170px;object-fit:cover;border-radius:var(--r);cursor:pointer" onclick="document.querySelector('#pers-img-label input').click()">
+          <div style="flex:1;min-width:160px">
+            <div id="pers-img-hint" style="font-size:11px;color:var(--tx3)">Nenhuma foto personalizada — exibindo a imagem padrão.</div>
+            <button id="pers-img-remover" type="button" class="btn sm" style="display:none;margin-top:8px" onclick="removerPersImg()"><i class="ti ti-trash"></i> Remover foto</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="pers-erro" style="color:var(--pk600);font-size:12px;margin-bottom:8px;min-height:14px"></div>
+      <button id="pers-salvar-btn" class="btn pk" style="width:100%;justify-content:center;padding:11px;font-size:13px" onclick="salvarPersonalizacao()">
+        <i class="ti ti-check"></i> Salvar personalização
+      </button>
+      <div id="pers-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
+        <i class="ti ti-circle-check" style="font-size:18px"></i> Personalização salva! Suas clientes já verão as mudanças.
+      </div>
+    </div>
+
     <!-- ── CLIENTE ── -->
     <div class="pane" id="pane-c-servicos">
       <div class="sec-lbl">Nossos serviços</div>
+
       <div style="font-size:12px;color:var(--tx2);margin-bottom:8px">Toque no serviço para selecioná-lo</div>
       <div class="svc-grid">
         <div class="svc-card" onclick="selecionarServico(this,'Limpeza de pele','R$ 180')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-sparkles"></i></div><div class="svc-name">Limpeza de pele</div><div class="svc-desc">Extração profunda, esfoliação e hidratação</div><div class="svc-price">A partir de R$ 180</div></div>
@@ -1613,6 +1660,7 @@ const auth2 = getAuth(FA2);
 // ── Estado global ─────────────────────────────────────────────────────────
 let cu = null;   // current user (Firebase Auth)
 let cp = null;   // current profile (Firestore /users/{uid})
+let _clinicaIdConvite = null; // clinicaId vindo de ?convite=1&c={clinicaId} (cadastro self-service)
 
 // ── Inatividade (10 minutos) ──────────────────────────────────────────────
 const INACTIVITY_MS = 10 * 60 * 1000;
@@ -1646,6 +1694,9 @@ onAuthStateChanged(auth, async user => {
       cp = snap.data();
       cu = user;
       window.cp = cp; // expõe para iniciarListenerEquipe
+
+      // Carrega branding da clínica do usuário logado (/clinicas/{clinicaId})
+      carregarBranding(cp.clinicaId);
 
       if (cp.role === 'cliente') {
         const loginScreen = document.getElementById('login-cli-screen');
@@ -1723,8 +1774,10 @@ onAuthStateChanged(auth, async user => {
     const cliLogin = document.getElementById('login-cli-screen');
     if (cliLogin) cliLogin.style.display = 'flex';
 
-    // Link de convite (?convite=...) → abre direto o cadastro self-service
+    // Link de convite (?convite=1&c={clinicaId}) → identifica a clínica e abre o cadastro self-service
     const params = new URLSearchParams(window.location.search);
+    const clinicaParam = params.get('c');
+    if (clinicaParam) _clinicaIdConvite = clinicaParam;
     if (params.has('convite')) {
       mostrarCadastro();
     }
@@ -1792,7 +1845,7 @@ async function exportarBackup() {
     const backup = {
       versao:    '1.0',
       app:       'MeCuidar',
-      clinicaId: CLINICA_ID,
+      clinicaId: clinicaAtual(),
       geradoEm:  new Date().toISOString(),
       dados:     {}
     };
@@ -1801,7 +1854,7 @@ async function exportarBackup() {
     const colecoes = ['agendamentos', 'clientes', 'equipe', 'promocoes', 'campanhas'];
     for (const col of colecoes) {
       const snap = await getDocs(
-        query(collection(db, col), where('clinicaId', '==', CLINICA_ID))
+        query(collection(db, col), where('clinicaId', '==', clinicaAtual()))
       );
       backup.dados[col] = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
     }
@@ -1810,12 +1863,12 @@ async function exportarBackup() {
     backup.dados.mensagens = [];
     try {
       const threadsSnap = await getDocs(
-        collection(db, 'mensagens', CLINICA_ID, 'threads')
+        collection(db, 'mensagens', clinicaAtual(), 'threads')
       );
       for (const threadDoc of threadsSnap.docs) {
         const thread = { _id: threadDoc.id, ...threadDoc.data(), msgs: [] };
         const msgsSnap = await getDocs(
-          collection(db, 'mensagens', CLINICA_ID, 'threads', threadDoc.id, 'msgs')
+          collection(db, 'mensagens', clinicaAtual(), 'threads', threadDoc.id, 'msgs')
         );
         thread.msgs = msgsSnap.docs.map(m => ({ _id: m.id, ...m.data() }));
         backup.dados.mensagens.push(thread);
@@ -1835,7 +1888,7 @@ async function exportarBackup() {
     const a        = document.createElement('a');
     const dataStr  = new Date().toISOString().slice(0,10);
     a.href         = url;
-    a.download     = `mecuidar-backup-${CLINICA_ID}-${dataStr}.json`;
+    a.download     = `mecuidar-backup-${clinicaAtual()}-${dataStr}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -2051,7 +2104,7 @@ function closeHelp(){
 }
 function handleOvClick(e){if(e.target===document.getElementById('help-ov'))closeHelp();}
 
-const titulos={'p-dash':'Dashboard','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
+const titulos={'p-dash':'Dashboard','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','p-personalizacao':'Personalização','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
 const actLbl={'p-dash':'Novo agendamento','p-agenda':'Novo agendamento','p-clientes':'Nova cliente','p-equipe':'Add profissional','p-camp':'Nova campanha','p-promos':'Publicar promo'};
 let role='p';
 
@@ -2060,7 +2113,7 @@ function showPane(id){
   document.getElementById('pane-'+id)?.classList.add('active');
   document.getElementById('tb-t').textContent=titulos[id]||id;
   const lbl=actLbl[id];if(lbl)document.getElementById('tb-act-lbl').textContent=lbl;
-  document.getElementById('tb-act').style.display=id.startsWith('c-')?'none':'inline-flex';
+  document.getElementById('tb-act').style.display=(id.startsWith('c-')||id==='p-personalizacao')?'none':'inline-flex';
 }
 function initDashboard(){
   // Modo solo: ajusta card "Equipe hoje"
@@ -2114,6 +2167,9 @@ function goTo(id,el){
   if(id==='p-camp'){
     setTimeout(()=>{ if(window.initCampForm) window.initCampForm(); }, 50);
     document.getElementById('tb-act').style.display = 'none';
+  }
+  if(id==='p-personalizacao'){
+    setTimeout(()=>{ if(window.initPersonalizacaoForm) window.initPersonalizacaoForm(); }, 50);
   }
   if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(id==='c-promos')  setTimeout(() => { if(window.iniciarListenerPromos && !unsubPromos) window.iniciarListenerPromos(); }, 50);
@@ -2174,7 +2230,7 @@ async function sendMsg(){
   if(!cu){ alert('Sessão expirada. Faça login novamente.'); return; }
   i.value = '';
   try {
-    await addDoc(collection(db, 'mensagens', CLINICA_ID, 'threads', cu.uid, 'msgs'), {
+    await addDoc(collection(db, 'mensagens', clinicaAtual(), 'threads', cu.uid, 'msgs'), {
       texto:     t,
       remetente: 'cliente',
       nome:      cp?.name || cu.email.split('@')[0],
@@ -2182,13 +2238,13 @@ async function sendMsg(){
       criadoEm:  new Date().toISOString(),
     });
     // Atualiza thread principal para a líder ver
-    await setDoc(doc(db, 'mensagens', CLINICA_ID, 'threads', cu.uid), {
+    await setDoc(doc(db, 'mensagens', clinicaAtual(), 'threads', cu.uid), {
       clienteNome:  cp?.name || cu.email.split('@')[0],
       clienteEmail: cu.email,
       ultimaMsg:    t,
       ultimaAt:     new Date().toISOString(),
       lida:         false,
-      clinicaId:    CLINICA_ID,
+      clinicaId:    clinicaAtual(),
     }, { merge: true });
   } catch(e) {
     console.error('[Belezza] sendMsg:', e);
@@ -2518,7 +2574,7 @@ async function doLoginCli(){
   const wppRaw = (document.getElementById('cli-email')?.value || '').trim();
   const wppNum = wppRaw.replace(/\D/g, '');
   const email  = wppNum.length >= 8
-    ? wppNum + '@' + CLINICA_ID + '.mecuidar.app'
+    ? wppNum + '@cli.mecuidar.app'
     : wppRaw; // fallback: se não for número, trata como e-mail direto (admin)
   const pass  = document.getElementById('cli-pass')?.value || '';
   const errEl = document.getElementById('cli-error');
@@ -3160,7 +3216,7 @@ let unsubClientes = null;
 
 function iniciarListenerClientes(){
   if(unsubClientes) unsubClientes();
-  const clinicaIdAtual = (window.cp && window.cp.clinicaId) ? window.cp.clinicaId : CLINICA_ID;
+  const clinicaIdAtual = clinicaAtual();
   const q = query(
     collection(db, 'clientes'),
     where('clinicaId', '==', clinicaIdAtual)
@@ -3168,7 +3224,7 @@ function iniciarListenerClientes(){
   );
   unsubClientes = onSnapshot(q, snap => {
     const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if(docs.length === 0 && CLINICA_ID === 'belezza-50e76'){
+    if(docs.length === 0 && clinicaAtual() === 'belezza-50e76'){
       // Ambiente de teste sem dados reais ainda — mantém os 3 exemplos fixos
       clientesDB = _clientesExemploFixo.slice();
     } else {
@@ -3261,9 +3317,9 @@ async function salvarCliente(){
     : `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&backgroundColor=e8f4ff`;
   // Gera e-mail sintético a partir do WhatsApp
   const wppNum  = wpp.replace(/\D/g,'');
-  const emailSintetico = wppNum + '@' + CLINICA_ID + '.mecuidar.app';
+  const emailSintetico = wppNum + '@cli.mecuidar.app';
   const novo = {
-    id, nome, sexo, wpp, apelido, clinicaId: CLINICA_ID,
+    id, nome, sexo, wpp, apelido, clinicaId: clinicaAtual(),
     email:     emailSintetico,
     nasc:      document.getElementById('nc-nasc').value||'',
     origem:    document.getElementById('nc-origem').value||'',
@@ -3278,7 +3334,7 @@ async function salvarCliente(){
     try {
       const userCred = await createUserWithEmailAndPassword(auth2, emailSintetico, senha);
       await setDoc(doc(db,'users',userCred.user.uid), {
-        clinicaId: CLINICA_ID,
+        clinicaId: clinicaAtual(),
         role:      'cliente',
         nome,
         name:      nome,
@@ -3310,7 +3366,13 @@ async function salvarCliente(){
 // MÓDULO FIRESTORE — Integração completa agendamentos
 // ══════════════════════════════════════════════════════════════════════════════
 
-const CLINICA_ID = 'belezza-50e76'; // clinicaId padrão
+const CLINICA_ID = 'belezza-50e76'; // clinicaId padrão (fallback quando ainda não há sessão)
+
+// ── Helper multi-tenant — retorna a clínica do usuário logado, ou o padrão ────
+function clinicaAtual(){
+  return (window.cp && window.cp.clinicaId) || CLINICA_ID;
+}
+window.clinicaAtual = clinicaAtual;
 // Aliases locais das constantes de branding (declaradas no script síncrono)
 const NOME_ESTAB  = window.NOME_ESTAB  || 'Studio Luna';
 const PLANO_ESTAB = window.PLANO_ESTAB || 'Clínica Pro';
@@ -3392,7 +3454,7 @@ function iniciarListenerAgendamentos() {
   if (unsubAgendamentos) unsubAgendamentos(); // cancela listener anterior
   const q = query(
     collection(db, 'agendamentos'),
-    where('clinicaId', '==', CLINICA_ID)
+    where('clinicaId', '==', clinicaAtual())
     // orderBy('criadoEm','desc') — requer índice composto no Firestore
     // Crie em: https://console.firebase.google.com → Firestore → Indexes
   );
@@ -3699,7 +3761,7 @@ async function enviarSolicitacaoFS() {
     const dataFmt = dd + '/' + mm;
 
     await addDoc(collection(db, 'agendamentos'), {
-      clinicaId:  CLINICA_ID,
+      clinicaId:  clinicaAtual(),
       clienteId:  cu.uid,
       cliente:    nomeCliente,
       clienteEmail: cu.email,
@@ -3761,14 +3823,14 @@ const BG_CORES_FS = ['fbeaf0','e1f5ee','eeedfe','faece7','faeeda','e8f4ff'];
 
 function iniciarListenerEquipe() {
   if (unsubEquipe) unsubEquipe();
-  // Usa o clinicaId do usuário logado (cp), não o CLINICA_ID hardcoded
-  const clinicaIdAtual = (window.cp && window.cp.clinicaId) ? window.cp.clinicaId : CLINICA_ID;
+  // Usa o clinicaId do usuário logado (cp), via clinicaAtual()
+  const clinicaIdAtual = clinicaAtual();
   const profRef = collection(db, 'equipe', clinicaIdAtual, 'profissionais');
 
   unsubEquipe = onSnapshot(profRef, snap => {
     if (snap.empty) {
       // Nenhuma profissional no Firestore — limpa apenas para clínicas reais
-      if (CLINICA_ID !== 'belezza-50e76') {
+      if (clinicaAtual() !== 'belezza-50e76') {
         equipeDB = [];
         window.equipeDB = equipeDB;
         aplicarModoSolo();
@@ -3884,9 +3946,11 @@ function mostrarCadastro(){
   const cadScreen   = document.getElementById('cadastro-cli-screen');
   if(loginScreen) loginScreen.style.display = 'none';
   if(cadScreen)   cadScreen.style.display   = 'flex';
-  // Preenche nome do estab
+  // Preenche nome do estab (default imediato; sobrescrito por carregarBranding abaixo)
   const estabNome = document.getElementById('cadastro-estab-nome');
   if(estabNome) estabNome.textContent = window.NOME_ESTAB || 'Studio Luna';
+  // Se veio de um link de convite com ?c={clinicaId}, busca o branding daquela clínica
+  if(_clinicaIdConvite) carregarBranding(_clinicaIdConvite);
 }
 window.mostrarCadastro = mostrarCadastro;
 window.toggleCadSenha  = toggleCadSenha;
@@ -3913,12 +3977,14 @@ async function cadastrarCliente(){
   if(errEl) errEl.textContent = '';
   if(btn){ btn.textContent = 'Criando conta...'; btn.disabled = true; }
 
-  // Gera e-mail sintético
+  // Gera e-mail sintético (domínio global)
   const wppNum         = wpp.replace(/\D/g, '');
-  const emailSintetico = wppNum + '@' + CLINICA_ID + '.mecuidar.app';
+  const emailSintetico = wppNum + '@cli.mecuidar.app';
   const id             = 'cli-' + Date.now();
   const seed           = nome.replace(/[^a-zA-Z0-9]/g,'') + id.slice(-4);
   const avatar         = `https://api.dicebear.com/9.x/lorelei/svg?seed=${seed}&backgroundColor=fbeaf0`;
+  // clinicaId da nova cliente: vem do link de convite (?convite=1&c={clinicaId})
+  const clinicaIdNovaCliente = _clinicaIdConvite || clinicaAtual();
 
   try {
     // 1. Cria conta Firebase Auth
@@ -3927,7 +3993,7 @@ async function cadastrarCliente(){
 
     // 2. Cria /users/{uid}
     await setDoc(doc(db, 'users', uid), {
-      clinicaId: CLINICA_ID,
+      clinicaId: clinicaIdNovaCliente,
       role:      'cliente',
       nome,
       name:      nome,
@@ -3939,7 +4005,7 @@ async function cadastrarCliente(){
     // 3. Cria /clientes/{id}
     await setDoc(doc(db, 'clientes', id), {
       id, nome, sexo: 'F', wpp, uid,
-      clinicaId:  CLINICA_ID,
+      clinicaId:  clinicaIdNovaCliente,
       email:      emailSintetico,
       nasc:       '', origem: 'App (cadastro próprio)',
       interesse:  '', alergias: '', obs: '',
@@ -4214,7 +4280,7 @@ function iniciarListenerChat(uid) {
   _notifChatUltimaMsg = null; // reset ao abrir chat
   const msgs = document.getElementById('chat-msgs');
   if(msgs) msgs.innerHTML = '';
-  const q = collection(db, 'mensagens', CLINICA_ID, 'threads', uid, 'msgs');
+  const q = collection(db, 'mensagens', clinicaAtual(), 'threads', uid, 'msgs');
   unsubChat = onSnapshot(q, snap => {
     const msgs = document.getElementById('chat-msgs');
     if(!msgs) return;
@@ -4250,12 +4316,12 @@ function limparMensagensAntigas() {
   limite.setDate(limite.getDate() - 10);
   const limiteISO = limite.toISOString();
   // Lista threads e limpa msgs antigas
-  getDocs(collection(db, 'mensagens', CLINICA_ID, 'threads')).then(snap => {
+  getDocs(collection(db, 'mensagens', clinicaAtual(), 'threads')).then(snap => {
     snap.docs.forEach(async threadDoc => {
-      const msgs = await getDocs(collection(db, 'mensagens', CLINICA_ID, 'threads', threadDoc.id, 'msgs'));
+      const msgs = await getDocs(collection(db, 'mensagens', clinicaAtual(), 'threads', threadDoc.id, 'msgs'));
       msgs.docs.forEach(async msgDoc => {
         if(msgDoc.data().criadoEm < limiteISO){
-          await deleteDoc(doc(db, 'mensagens', CLINICA_ID, 'threads', threadDoc.id, 'msgs', msgDoc.id));
+          await deleteDoc(doc(db, 'mensagens', clinicaAtual(), 'threads', threadDoc.id, 'msgs', msgDoc.id));
         }
       });
     });
@@ -4268,7 +4334,7 @@ const _notifThreadsAnterior = {}; // { [threadId]: ultimaAt }
 function iniciarListenerThreads() {
   if(unsubThreads) unsubThreads();
   limparMensagensAntigas();
-  const q = collection(db, 'mensagens', CLINICA_ID, 'threads');
+  const q = collection(db, 'mensagens', clinicaAtual(), 'threads');
   unsubThreads = onSnapshot(q, snap => {
     const threads = snap.docs.map(d => ({id:d.id,...d.data()}))
       .sort((a,b) => a.ultimaAt > b.ultimaAt ? -1 : 1);
@@ -4338,7 +4404,7 @@ let unsubThreadMsgs = null;
 
 function abrirThreadLider(uid, nome) {
   threadAberta = uid;
-  setDoc(doc(db, 'mensagens', CLINICA_ID, 'threads', uid), { lida: true }, { merge: true });
+  setDoc(doc(db, 'mensagens', clinicaAtual(), 'threads', uid), { lida: true }, { merge: true });
   const wrap = document.getElementById('lider-chat-wrap');
   if(wrap) wrap.style.display = 'none';
   const conv = document.getElementById('lider-conv-wrap');
@@ -4346,7 +4412,7 @@ function abrirThreadLider(uid, nome) {
   const nomeEl = document.getElementById('lider-conv-nome');
   if(nomeEl) nomeEl.textContent = nome;
   if(unsubThreadMsgs) unsubThreadMsgs();
-  const q = collection(db, 'mensagens', CLINICA_ID, 'threads', uid, 'msgs');
+  const q = collection(db, 'mensagens', clinicaAtual(), 'threads', uid, 'msgs');
   unsubThreadMsgs = onSnapshot(q, snap => {
     const msgs = document.getElementById('lider-conv-msgs');
     if(!msgs) return;
@@ -4376,13 +4442,13 @@ async function responderLider() {
   if(!t) return;
   inp.value = '';
   try {
-    await addDoc(collection(db, 'mensagens', CLINICA_ID, 'threads', threadAberta, 'msgs'), {
+    await addDoc(collection(db, 'mensagens', clinicaAtual(), 'threads', threadAberta, 'msgs'), {
       texto: t, remetente: 'lider',
       nome: cp?.name || NOME_ESTAB,
       uid: cu?.uid || 'admin',
       criadoEm: new Date().toISOString(),
     });
-    await setDoc(doc(db, 'mensagens', CLINICA_ID, 'threads', threadAberta),
+    await setDoc(doc(db, 'mensagens', clinicaAtual(), 'threads', threadAberta),
       { ultimaMsg: t, ultimaAt: new Date().toISOString(), lida: true }, { merge: true });
   } catch(e) { console.error('[Belezza] responderLider:', e); }
 }
@@ -4396,7 +4462,7 @@ window.responderLider         = responderLider;
 
 
 // ══════════════════════════════════════════════════════════════════════════
-// MÓDULO CAMPANHAS — reutilizável (configurar apenas CLINICA_ID e cores)
+// MÓDULO CAMPANHAS — reutilizável (clinicaAtual() dinâmico + cores)
 // ══════════════════════════════════════════════════════════════════════════
 const MESES_CAMP = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 let unsubCampanhas = null;
@@ -4502,7 +4568,7 @@ async function criarCampanha() {
 
   try {
     await addDoc(collection(db, 'campanhas'), {
-      clinicaId:  CLINICA_ID,
+      clinicaId:  clinicaAtual(),
       nome,
       tipo,
       tipoLabel:  tipoConfig.label,
@@ -4537,7 +4603,7 @@ function iniciarListenerCampanhas() {
   unsubCampanhas = onSnapshot(q, snap => {
     campanhasDB = snap.docs
       .map(d => ({id:d.id,...d.data()}))
-      .filter(c => c.clinicaId === CLINICA_ID)
+      .filter(c => c.clinicaId === clinicaAtual())
       .sort((a,b) => a.criadoEm > b.criadoEm ? -1 : 1);
     window.campanhasDB = campanhasDB; // mantém referência global atualizada
     renderCampanhas(campanhasDB);
@@ -4731,7 +4797,7 @@ function iniciarListenerPromos() {
   const q = collection(db, 'promocoes');
   unsubPromos = onSnapshot(q, snap => {
     const promos = snap.docs.map(d => ({id:d.id,...d.data()}))
-      .filter(p => p.clinicaId === CLINICA_ID)
+      .filter(p => p.clinicaId === clinicaAtual())
       .sort((a,b) => a.criadoEm > b.criadoEm ? -1 : 1);
     renderPromosCliente(promos);
     renderPromosPro(promos);
@@ -4854,7 +4920,7 @@ async function publicarPromo() {
   };
   try {
     await addDoc(collection(db, 'promocoes'), {
-      clinicaId:   CLINICA_ID, nome,
+      clinicaId:   clinicaAtual(), nome,
       canal:       document.getElementById('promo-canal')?.value || '',
       profissional: document.getElementById('promo-prof')?.value || '',
       campanha:    document.getElementById('promo-campanha')?.value || '',
@@ -5017,7 +5083,7 @@ async function verificarEExibirPopup() {
     const hoje = new Date();
     const snap = await getDocs(
       query(collection(db, 'promocoes'),
-        where('clinicaId', '==', CLINICA_ID),
+        where('clinicaId', '==', clinicaAtual()),
         where('popup', '==', true)
       )
     );
@@ -5252,7 +5318,7 @@ async function salvarProfissional(){
     // Persistir edição no Firestore
     try {
       await setDoc(doc(db,'equipe',editId),
-        {clinicaId:CLINICA_ID,nome,wpp,sexo,espec,disp,
+        {clinicaId:clinicaAtual(),nome,wpp,sexo,espec,disp,
          ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
          domicilio:dom,obs,ativa:ativaHoje},{merge:true});
     } catch(e){ console.error('[Belezza] editarProf ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
@@ -5265,7 +5331,7 @@ async function salvarProfissional(){
     // Persistir nova profissional no Firestore
     try {
       await setDoc(doc(db,'equipe',id),
-        {clinicaId:CLINICA_ID,nome,wpp,sexo,espec,disp,
+        {clinicaId:clinicaAtual(),nome,wpp,sexo,espec,disp,
          ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
          domicilio:dom,obs,ativa:ativaHoje,
          criadoEm:new Date().toISOString()});
@@ -5341,12 +5407,20 @@ window._verAgendaProfissional  = verAgendaProfissional;
 })();
 window.atualizarSelectProfissional = atualizarSelectProfissional;
 
-// Inicializa lista ao carregar
-document.addEventListener('DOMContentLoaded', () => {
-  // ── Injeção de branding via NOME_ESTAB / PLANO_ESTAB / WPP_ESTAB ──────────
-  const NOME_ESTAB  = window.NOME_ESTAB  || 'Studio Luna';
-  const PLANO_ESTAB = window.PLANO_ESTAB || 'Clínica Pro';
-  const WPP_ESTAB   = window.WPP_ESTAB   || '5511997261900';
+// ── Branding dinâmico — aplica nome/plano/WhatsApp/imagem da clínica atual ──
+// Extraído da injeção fixa em DOMContentLoaded (item A.8). Idempotente: pode
+// ser chamada de novo (ex.: branding inicial com defaults + pós-login com
+// dados reais de /clinicas/{clinicaId}, ou ao salvar a tela "Personalização").
+function aplicarBranding(brand){
+  if(!brand) return;
+  const NOME_ESTAB  = brand.nomeEstab  || window.NOME_ESTAB  || 'Studio Luna';
+  const PLANO_ESTAB = brand.planoEstab || window.PLANO_ESTAB || 'Clínica Pro';
+  const WPP_ESTAB   = brand.wppEstab   || window.WPP_ESTAB   || '5511997261900';
+  // Atualiza globais usados pelo restante do app (modoSolo, sb-plan, mensagens, etc.)
+  window.NOME_ESTAB  = NOME_ESTAB;
+  window.PLANO_ESTAB = PLANO_ESTAB;
+  window.WPP_ESTAB   = WPP_ESTAB;
+
   // Sidebar: nome e badge de plano
   const sbNome = document.querySelector('.sb-name');
   const sbPlano = document.querySelector('.sb-plan');
@@ -5402,9 +5476,166 @@ document.addEventListener('DOMContentLoaded', () => {
   const toastTxt = document.getElementById('cli-ag-toast-txt');
   if (toastTxt) toastTxt.textContent = `A líder do ${NOME_ESTAB} confirmará em breve.`;
 
-  // ── fim injeção de branding ───────────────────────────────────────────────
+  // Cadastro self-service: nome do estabelecimento
+  const cadEstabNome = document.getElementById('cadastro-estab-nome');
+  if (cadEstabNome) cadEstabNome.textContent = NOME_ESTAB;
 
-  // Recalcula ativa para as profissionais do DB com base no dia de hoje
+  // Imagem de fundo personalizada da tela de flores / login (item B — Personalização)
+  // Definida em /clinicas/{clinicaId}.imagemFundoBase64 — guarda a imagem original
+  // em data-hero-orig na 1ª chamada para permitir reverter se a foto for removida.
+  const imgsFundo = document.querySelectorAll('.hero-cliente-img');
+  if (brand.imagemFundoBase64) {
+    imgsFundo.forEach(img => {
+      if (!img.dataset.heroOrig) img.dataset.heroOrig = img.getAttribute('src');
+      img.src = brand.imagemFundoBase64;
+    });
+  } else if (brand.imagemFundoBase64 === '') {
+    // String vazia = remoção explícita → volta para a imagem padrão
+    imgsFundo.forEach(img => {
+      if (img.dataset.heroOrig) img.src = img.dataset.heroOrig;
+    });
+  }
+}
+window.aplicarBranding = aplicarBranding;
+
+// ── Busca /clinicas/{clinicaId} e aplica o branding correspondente ──────────
+async function carregarBranding(clinicaId){
+  if(!clinicaId) return;
+  try {
+    const snap = await getDoc(doc(db, 'clinicas', clinicaId));
+    if (snap.exists()) aplicarBranding(snap.data());
+  } catch(e) {
+    console.warn('[Belezza] carregarBranding:', e);
+  }
+}
+window.carregarBranding = carregarBranding;
+
+// ══════════════════════════════════════════════════════════════════════════
+// MÓDULO PERSONALIZAÇÃO — tela self-service da profissional/administradora
+// Salva nome/WhatsApp/plano/imagem de fundo em /clinicas/{clinicaId} (merge)
+// e reaplica o branding em tempo real via aplicarBranding().
+// ══════════════════════════════════════════════════════════════════════════
+let _persImgBase64 = null; // null = sem alteração · '' = remover foto · string = nova foto (base64)
+let _persBrandAtual = null; // último snapshot de /clinicas/{clinicaId} carregado
+
+function previewPersImg(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  crmCompressImg(file, b64 => {
+    _persImgBase64 = b64;
+    const preview = document.getElementById('pers-img-preview');
+    const label    = document.getElementById('pers-img-label');
+    const hint     = document.getElementById('pers-img-hint');
+    const btnRem   = document.getElementById('pers-img-remover');
+    if(preview){ preview.src = b64; preview.style.display = 'block'; }
+    if(label) label.style.display = 'none';
+    if(hint) hint.textContent = 'Nova foto selecionada — clique em "Salvar personalização" para aplicar.';
+    if(btnRem) btnRem.style.display = 'inline-flex';
+  });
+}
+window.previewPersImg = previewPersImg;
+
+function removerPersImg(){
+  _persImgBase64 = ''; // sinaliza remoção ao salvar
+  const preview = document.getElementById('pers-img-preview');
+  const label    = document.getElementById('pers-img-label');
+  const hint     = document.getElementById('pers-img-hint');
+  const btnRem   = document.getElementById('pers-img-remover');
+  if(preview){ preview.src = ''; preview.style.display = 'none'; }
+  if(label) label.style.display = 'flex';
+  if(hint) hint.textContent = 'Foto removida — a imagem padrão volta a ser exibida ao salvar.';
+  if(btnRem) btnRem.style.display = 'none';
+}
+window.removerPersImg = removerPersImg;
+
+// Carrega /clinicas/{clinicaId} e popula o formulário ao abrir a tela
+async function initPersonalizacaoForm(){
+  _persImgBase64 = null;
+
+  const erroEl = document.getElementById('pers-erro');
+  const toast  = document.getElementById('pers-toast');
+  if(erroEl) erroEl.textContent = '';
+  if(toast)  toast.style.display = 'none';
+
+  const nomeEl  = document.getElementById('pers-nome');
+  const wppEl   = document.getElementById('pers-wpp');
+  const planoEl = document.getElementById('pers-plano');
+  const preview = document.getElementById('pers-img-preview');
+  const label    = document.getElementById('pers-img-label');
+  const hint     = document.getElementById('pers-img-hint');
+  const btnRem   = document.getElementById('pers-img-remover');
+
+  try {
+    const snap = await getDoc(doc(db, 'clinicas', clinicaAtual()));
+    _persBrandAtual = snap.exists() ? snap.data() : {};
+  } catch(e) {
+    console.warn('[Belezza] initPersonalizacaoForm:', e);
+    _persBrandAtual = {};
+  }
+
+  if(nomeEl)  nomeEl.value  = _persBrandAtual.nomeEstab  || window.NOME_ESTAB  || '';
+  if(wppEl)   wppEl.value   = _persBrandAtual.wppEstab   || window.WPP_ESTAB   || '';
+  if(planoEl) planoEl.value = _persBrandAtual.planoEstab || window.PLANO_ESTAB || '';
+
+  if(_persBrandAtual.imagemFundoBase64){
+    if(preview){ preview.src = _persBrandAtual.imagemFundoBase64; preview.style.display = 'block'; }
+    if(label) label.style.display = 'none';
+    if(hint) hint.textContent = 'Foto personalizada atual. Escolha outra para substituir.';
+    if(btnRem) btnRem.style.display = 'inline-flex';
+  } else {
+    if(preview){ preview.style.display = 'none'; preview.src = ''; }
+    if(label) label.style.display = 'flex';
+    if(hint) hint.textContent = 'Nenhuma foto personalizada — exibindo a imagem padrão.';
+    if(btnRem) btnRem.style.display = 'none';
+  }
+}
+window.initPersonalizacaoForm = initPersonalizacaoForm;
+
+// Salva /clinicas/{clinicaId} (merge) e reaplica o branding imediatamente
+async function salvarPersonalizacao(){
+  const erroEl = document.getElementById('pers-erro');
+  const btn    = document.getElementById('pers-salvar-btn');
+  const toast  = document.getElementById('pers-toast');
+  if(erroEl) erroEl.textContent = '';
+
+  const nome   = (document.getElementById('pers-nome')?.value  || '').trim();
+  const wppNum = (document.getElementById('pers-wpp')?.value   || '').replace(/\D/g, '');
+  const plano  = (document.getElementById('pers-plano')?.value || '').trim();
+
+  if(!nome)             { if(erroEl) erroEl.textContent = 'Informe o nome do estabelecimento.'; return; }
+  if(wppNum.length < 10){ if(erroEl) erroEl.textContent = 'Informe o WhatsApp com DDI+DDD (ex: 5511999999999).'; return; }
+  if(!plano)            { if(erroEl) erroEl.textContent = 'Informe o plano/selo exibido no menu.'; return; }
+
+  if(btn){ btn.innerHTML = 'Salvando...'; btn.disabled = true; }
+
+  const dados = { nomeEstab: nome, wppEstab: wppNum, planoEstab: plano };
+  // _persImgBase64: null = sem alteração · '' = remover · string = nova foto
+  if(_persImgBase64 !== null) dados.imagemFundoBase64 = _persImgBase64;
+
+  try {
+    await setDoc(doc(db, 'clinicas', clinicaAtual()), dados, { merge: true });
+    // Reaplica o branding em tempo real, sem precisar recarregar a página
+    aplicarBranding({ ..._persBrandAtual, ...dados });
+    _persBrandAtual = { ..._persBrandAtual, ...dados };
+    _persImgBase64 = null;
+    if(toast) toast.style.display = 'flex';
+    setTimeout(() => { if(toast) toast.style.display = 'none'; }, 4000);
+  } catch(e) {
+    console.error('[Belezza] salvarPersonalizacao:', e);
+    if(erroEl) erroEl.textContent = 'Erro ao salvar. Verifique sua conexão e tente novamente.';
+  } finally {
+    if(btn){ btn.innerHTML = '<i class="ti ti-check"></i> Salvar personalização'; btn.disabled = false; }
+  }
+}
+window.salvarPersonalizacao = salvarPersonalizacao;
+
+
+// Inicializa lista ao carregar
+document.addEventListener('DOMContentLoaded', () => {
+  // Branding inicial — usa os defaults declarados em window.NOME_ESTAB/PLANO_ESTAB/WPP_ESTAB
+  // (sobrescrito depois do login por carregarBranding(), ou no cadastro self-service por mostrarCadastro())
+  aplicarBranding({ nomeEstab: window.NOME_ESTAB, planoEstab: window.PLANO_ESTAB, wppEstab: window.WPP_ESTAB });
+
   const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
   const diaHoje = diasSemana[new Date().getDay()];
   equipeDB.forEach(p => { p.ativa = p.disp.length === 0 || p.disp.includes(diaHoje); });
@@ -5774,7 +6005,7 @@ window._impToggleTodos = _impToggleTodos;
 
 // ── Envia convite individual pelo WhatsApp ─────────────────────────────────
 function _impConvidar(nome, numero) {
-  const link = (window.APP_URL || 'https://mecuidar.app.br') + '/?convite=1';
+  const link = (window.APP_URL || 'https://mecuidar.app.br') + '/?convite=1&c=' + clinicaAtual();
   const estab = window.NOME_ESTAB || 'Studio Luna';
   const msg = `Oi ${nome}! Aqui é do ${estab} 💕 Agora você pode agendar seus horários e ver nossas promoções direto pelo app: ${link}`;
   window.open('https://wa.me/55' + numero + '?text=' + encodeURIComponent(msg), '_blank');
@@ -5841,7 +6072,7 @@ async function _impConfirmar(tipo) {
     const seed   = c.nome.replace(/[^a-zA-Z0-9]/g,'') + id.slice(-4);
     const avatar = `https://api.dicebear.com/9.x/lorelei/svg?seed=${seed}&backgroundColor=fbeaf0`;
     const novo   = {
-      id, nome: c.nome, sexo: 'F', wpp: c.wpp, clinicaId: CLINICA_ID,
+      id, nome: c.nome, sexo: 'F', wpp: c.wpp, clinicaId: clinicaAtual(),
       email: '', nasc: '', origem: 'Importação', interesse: '', alergias: '', obs: '',
       visitas: 0, valor: 0, ultimaVisita: '—', ultimoSvc: '—', prof: '—',
       top: false, score: 0, avatar, criadoEm: new Date().toISOString()
@@ -6518,9 +6749,9 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
   <div id="cli-layout">
     <div id="cli-foto">
       <!-- Mobile: imagem portrait 9:19 -->
-      <img class="mob" src="hero-cliente.jpg" alt="MeCuidar">
+      <img class="mob hero-cliente-img" src="hero-cliente.jpg" alt="MeCuidar">
       <!-- Desktop/Tablet: imagem landscape 16:9 -->
-      <img class="dsk" src="hero-cliente-desktop.jpg" alt="MeCuidar">
+      <img class="dsk hero-cliente-img" src="hero-cliente-desktop.jpg" alt="MeCuidar">
 
     </div>
 
@@ -6596,7 +6827,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
 <div id="home-cli-screen" style="position:fixed;inset:0;z-index:9050;display:none;flex-direction:column;overflow:hidden;">
   <!-- Fundo marca dagua -->
   <div style="position:absolute;inset:0;background:#fdf5f8">
-    <img src="hero-cliente.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block;opacity:.15">
+    <img class="hero-cliente-img" src="hero-cliente.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block;opacity:.15">
     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(253,245,248,.7) 0%,rgba(248,238,243,.85) 100%)"></div>
   </div>
   <!-- Conteúdo -->
