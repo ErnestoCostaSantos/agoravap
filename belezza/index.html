@@ -48,7 +48,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .nav-item:hover{background:var(--bg3);color:var(--tx)}
 .nav-item.active{background:var(--bg);color:var(--pk600);font-weight:600;border:1px solid var(--br)}
 .nav-item i{font-size:17px;flex-shrink:0}
-.sb-footer{padding:10px 8px;border-top:1px solid var(--br)}
+.sb-footer{padding:10px 8px;border-top:1px solid var(--br);flex-shrink:0}
 .sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);cursor:pointer}
 .sb-uav{width:30px;height:30px;border-radius:50%;background:var(--pk50);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--pk800)}
 .main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
@@ -282,7 +282,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #login-screen > div:first-child { min-height: 60vh; }
 }
 @media(max-width:700px){
-  .sidebar{position:fixed;top:0;left:0;height:100dvh;height:100vh;z-index:500;transform:translateX(-100%)}
+  .sidebar{position:fixed;top:0;left:0;height:100vh;height:100dvh;z-index:500;transform:translateX(-100%);display:flex;flex-direction:column}
   .sidebar.open{transform:translateX(0)}
   .tb-menu{display:block}
   .mob-nav{display:block}
@@ -333,7 +333,7 @@ input[type="password"]::-ms-clear {
         max-width:420px;
         overflow:hidden;
       ">
-        <img class="hero-cliente-img" src="hero-cliente.jpg" alt="Procedimento estético" style="
+        <img class="hero-cliente-img mob" src="hero-cliente.jpg" alt="Procedimento estético" style="
           width:100%;height:100%;
           object-fit:cover;object-position:center 28%;
           display:block;
@@ -5567,12 +5567,16 @@ function aplicarBranding(brand){
   // Imagem de fundo personalizada da tela de flores / login (item B — Personalização)
   // Definida em /clinicas/{clinicaId}.imagemFundoBase64 — guarda a imagem original
   // em data-hero-orig na 1ª chamada para permitir reverter se a foto for removida.
-  const imgsFundo = document.querySelectorAll('.hero-cliente-img');
+  // Aplicada apenas na versão mobile (.mob): a foto enviada é vertical/retrato,
+  // compatível com o container 9:19 do celular — mesmo enquadramento usado por ~90%
+  // das clientes. A versão desktop (.dsk, 16:9) mantém a imagem padrão do template,
+  // evitando o corte/deslocamento que ocorre ao forçar uma foto vertical num
+  // container horizontal largo.
+  const imgsFundo = document.querySelectorAll('.hero-cliente-img.mob');
   if (brand.imagemFundoBase64) {
     imgsFundo.forEach(img => {
       if (!img.dataset.heroOrig) img.dataset.heroOrig = img.getAttribute('src');
       img.src = brand.imagemFundoBase64;
-      // Garante enquadramento centralizado, independente da proporção da foto enviada
       img.style.objectPosition = 'center center';
     });
   } else if (brand.imagemFundoBase64 === '') {
@@ -7045,7 +7049,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
 <div id="home-cli-screen" style="position:fixed;inset:0;z-index:9050;display:none;flex-direction:column;overflow:hidden;">
   <!-- Fundo marca dagua -->
   <div style="position:absolute;inset:0;background:#fdf5f8">
-    <img class="hero-cliente-img" src="hero-cliente.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block;opacity:.15">
+    <img class="hero-cliente-img mob" src="hero-cliente.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block;opacity:.15">
     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(253,245,248,.7) 0%,rgba(248,238,243,.85) 100%)"></div>
   </div>
   <!-- Conteúdo -->
