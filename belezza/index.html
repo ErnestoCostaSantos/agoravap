@@ -300,13 +300,11 @@ input[type="password"]::-ms-clear {
   height:0 !important;
   pointer-events:none !important;
 }
-/* Olho da senha: só no mobile */
-@media(min-width:700px){ .cli-eye-btn{ display:none !important; }
 /* Bottom-sheet modals */
 [id^="modal-"]{
   align-items: flex-end !important;
   justify-content: center !important;
-} }
+}
 @keyframes fadeInDown {
   from { opacity:0; transform:translateX(-50%) translateY(-10px); }
   to   { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -1388,6 +1386,10 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <div class="sec-lbl">Imagem de fundo da tela das clientes</div>
       <div class="card" style="margin-bottom:14px">
         <div style="font-size:12px;color:var(--tx2);margin-bottom:10px">Escolha uma foto sua, da equipe ou da fachada do seu espaço. Ela aparece suavemente ao fundo da tela inicial e da tela de login das suas clientes no app.</div>
+        <div style="font-size:11px;color:var(--pk600);background:var(--pk50);border-radius:8px;padding:8px 10px;margin-bottom:12px;display:flex;align-items:flex-start;gap:6px">
+          <i class="ti ti-info-circle" style="flex-shrink:0;margin-top:1px"></i>
+          <span><strong>Dica:</strong> use uma foto retrato (vertical), de preferência <strong>1080×1920px</strong> (proporção 9:16). Fotos quadradas ou muito largas podem aparecer cortadas ou deslocadas nas telas das clientes.</span>
+        </div>
         <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
           <label id="pers-img-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:96px;height:170px;border-radius:var(--r);border:1px dashed var(--br2);cursor:pointer;background:var(--bg2);color:var(--tx3);font-size:11px;gap:4px;text-align:center;padding:4px;box-sizing:border-box">
             <i class="ti ti-photo-plus" style="font-size:24px;color:var(--pk400)"></i>
@@ -5562,6 +5564,8 @@ function aplicarBranding(brand){
     imgsFundo.forEach(img => {
       if (!img.dataset.heroOrig) img.dataset.heroOrig = img.getAttribute('src');
       img.src = brand.imagemFundoBase64;
+      // Garante enquadramento centralizado, independente da proporção da foto enviada
+      img.style.objectPosition = 'center center';
     });
   } else if (brand.imagemFundoBase64 === '') {
     // String vazia = remoção explícita → volta para a imagem padrão
