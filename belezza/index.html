@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%95%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <title>MeCuidar — Studio Luna</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💕</text></svg>">
+
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -369,12 +369,18 @@ input[type="password"]::-ms-clear {
         " onfocus="this.style.borderColor='#993556'" onblur="this.style.borderColor='#e0d6d0'">
       </div>
       <div style="margin-bottom:22px">
-        <input type="password" placeholder="Senha" style="
-          width:100%;padding:13px 16px;
-          background:#fff;border:1px solid #e0d6d0;border-radius:10px;
-          font-size:14px;color:#3a1f2e;outline:none;
-          font-family:inherit;letter-spacing:0.02em;
-        " onfocus="this.style.borderColor='#993556'" onblur="this.style.borderColor='#e0d6d0'">
+        <div style="position:relative">
+          <input id="pro-pass" type="password" placeholder="Senha" style="
+            width:100%;padding:13px 48px 13px 16px;
+            background:#fff;border:1px solid #e0d6d0;border-radius:10px;
+            font-size:14px;color:#3a1f2e;outline:none;
+            font-family:inherit;letter-spacing:0.02em;box-sizing:border-box;
+          " onfocus="this.style.borderColor='#993556'" onblur="this.style.borderColor='#e0d6d0'">
+          <span onclick="toggleProPass()" style="
+            position:absolute;right:14px;top:50%;transform:translateY(-50%);
+            cursor:pointer;font-size:18px;color:#c9aab8;user-select:none;line-height:1;
+          " id="pro-eye">👁</span>
+        </div>
       </div>
       <button onclick="doLogin()" style="
         width:100%;padding:14px;
@@ -417,6 +423,7 @@ input[type="password"]::-ms-clear {
     <button class="nav-item" onclick="goTo('p-agenda',this)"><i class="ti ti-calendar"></i>Agenda</button>
     <button class="nav-item" onclick="goTo('p-clientes',this)"><i class="ti ti-users"></i>Clientes</button>
     <button class="nav-item" onclick="goTo('p-equipe',this)"><i class="ti ti-user-circle"></i>Equipe</button>
+    <button class="nav-item" onclick="goTo('p-servicos',this)"><i class="ti ti-sparkles"></i>Serviços</button>
     <div class="sb-sec">Marketing</div>
     <button class="nav-item" onclick="goTo('p-camp',this)"><i class="ti ti-brand-whatsapp"></i>Campanhas</button>
     <button class="nav-item" onclick="goTo('p-promos',this)"><i class="ti ti-tag"></i>Promoções</button>
@@ -504,6 +511,7 @@ function acaoTopbar(){
   if(pid==='pane-p-promos'){ return; }
   if(pid==='pane-p-equipe'){ if(window._abrirModalProfissional) window._abrirModalProfissional(); return; }
   if(pid==='pane-p-clientes'){ if(window._abrirModalCliente) window._abrirModalCliente(); return; }
+  if(pid==='pane-p-servicos'){ abrirFormSvc(); return; }
   abrirModalAg();
 }
 function goTo(id,el){ if(window._goToImpl) window._goToImpl(id,el); }
@@ -762,7 +770,52 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <div id="equipe-lista"></div>
     </div>
 
-    <!-- CAMPANHAS -->
+    <!-- SERVIÇOS -->
+    <div class="pane" id="pane-p-servicos">
+      <div class="sec-lbl">Serviços cadastrados</div>
+      <div id="p-svc-lista" style="margin-bottom:18px">
+        <div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0">Carregando...</div>
+      </div>
+      <!-- Formulário novo serviço (oculto inicialmente) -->
+      <div id="p-svc-form-wrap" style="display:none;background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);padding:16px;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+          <span><i class="ti ti-sparkles" style="color:var(--pk600)"></i> Novo serviço</span>
+          <span onclick="fecharFormSvc()" style="cursor:pointer;color:var(--tx3);font-size:18px;line-height:1">×</span>
+        </div>
+        <div style="margin-bottom:8px">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Nome *</label>
+          <input id="svc-nome-inp" type="text" placeholder="Ex: Limpeza de pele" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:8px">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Descrição</label>
+          <input id="svc-desc-inp" type="text" placeholder="Ex: Extração profunda e hidratação" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:8px">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Preço</label>
+          <input id="svc-preco-inp" type="text" placeholder="Ex: R$ 180" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Ícone</label>
+          <select id="svc-icone-inp" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
+            <option value="ti-sparkles">✨ Brilho (sparkles)</option>
+            <option value="ti-droplet">💧 Gota (droplet)</option>
+            <option value="ti-heart">❤️ Coração (heart)</option>
+            <option value="ti-sun">☀️ Sol (sun)</option>
+            <option value="ti-stars">⭐ Estrelas (stars)</option>
+            <option value="ti-leaf">🍃 Folha (leaf)</option>
+            <option value="ti-flower">🌸 Flor (flower)</option>
+            <option value="ti-eye">👁 Olho (eye)</option>
+            <option value="ti-scissors">✂️ Tesoura (scissors)</option>
+            <option value="ti-wand">🪄 Varinha (wand)</option>
+          </select>
+        </div>
+        <div id="svc-form-erro" style="color:var(--pk600);font-size:11px;margin-bottom:8px;min-height:14px"></div>
+        <div style="display:flex;gap:8px">
+          <button onclick="fecharFormSvc()" class="btn" style="flex:1">Cancelar</button>
+          <button onclick="salvarSvc()" class="btn pk" style="flex:1"><i class="ti ti-check"></i> Salvar</button>
+        </div>
+      </div>
+    </div>
     <div class="pane" id="pane-p-camp">
       <div id="camp-static-wrap"><!-- cards estáticos removidos quando Firestore carrega -->
       <div class="sec-lbl">Campanha ativa</div>
@@ -1363,13 +1416,8 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <div class="sec-lbl">Nossos serviços</div>
 
       <div style="font-size:12px;color:var(--tx2);margin-bottom:8px">Toque no serviço para selecioná-lo</div>
-      <div class="svc-grid">
-        <div class="svc-card" onclick="selecionarServico(this,'Limpeza de pele','R$ 180')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-sparkles"></i></div><div class="svc-name">Limpeza de pele</div><div class="svc-desc">Extração profunda, esfoliação e hidratação</div><div class="svc-price">A partir de R$ 180</div></div>
-        <div class="svc-card" onclick="selecionarServico(this,'Botox','R$ 650')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-droplet"></i></div><div class="svc-name">Botox</div><div class="svc-desc">Resultado natural e duradouro</div><div class="svc-price">A partir de R$ 650</div></div>
-        <div class="svc-card" onclick="selecionarServico(this,'Design de sobrancelha','R$ 80')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-heart"></i></div><div class="svc-name">Design de sobrancelha</div><div class="svc-desc">Mapeamento facial personalizado</div><div class="svc-price">A partir de R$ 80</div></div>
-        <div class="svc-card" onclick="selecionarServico(this,'Preenchimento labial','R$ 550')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-sun"></i></div><div class="svc-name">Preenchimento labial</div><div class="svc-desc">Ácido hialurônico com anestesia inclusa</div><div class="svc-price">A partir de R$ 550</div></div>
-        <div class="svc-card" onclick="selecionarServico(this,'Microblading','R$ 420')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-stars"></i></div><div class="svc-name">Microblading</div><div class="svc-desc">Fio a fio com pigmento duradouro</div><div class="svc-price">A partir de R$ 420</div></div>
-        <div class="svc-card" onclick="selecionarServico(this,'Peeling químico','R$ 220')" style="cursor:pointer"><div class="svc-icon"><i class="ti ti-leaf"></i></div><div class="svc-name">Peeling químico</div><div class="svc-desc">Renovação celular para manchas</div><div class="svc-price">A partir de R$ 220</div></div>
+      <div class="svc-grid" id="svc-grid-cli">
+        <div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0;grid-column:1/-1">Carregando serviços...</div>
       </div>
       <!-- Botão Agendar aparece após selecionar serviço -->
       <div id="svc-selecionado" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:10px 14px;margin-top:10px;align-items:center;justify-content:space-between;gap:10px">
@@ -1749,6 +1797,7 @@ onAuthStateChanged(auth, async user => {
           if(window.iniciarListenerThreads) window.iniciarListenerThreads();
           if(window.iniciarListenerPromos) window.iniciarListenerPromos();
           if(window.iniciarListenerCampanhas) window.iniciarListenerCampanhas();
+          if(window.iniciarListenerServicosCli) window.iniciarListenerServicosCli();
           // Mostra visão líder no chat
           const cliView = document.getElementById('cli-chat-view');
           const liderView = document.getElementById('lider-chat-view');
@@ -1910,7 +1959,7 @@ window.exportarBackup = exportarBackup;
 
 // ── Enter no campo de senha faz login ─────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  const passEl = document.querySelector('#login-screen input[type="password"]');
+  const passEl = document.querySelector('#pro-pass') || document.querySelector('#login-screen input[type="password"]');
   if (passEl) passEl.addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
@@ -2104,8 +2153,8 @@ function closeHelp(){
 }
 function handleOvClick(e){if(e.target===document.getElementById('help-ov'))closeHelp();}
 
-const titulos={'p-dash':'Dashboard','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','p-personalizacao':'Personalização','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
-const actLbl={'p-dash':'Novo agendamento','p-agenda':'Novo agendamento','p-clientes':'Nova cliente','p-equipe':'Add profissional','p-camp':'Nova campanha','p-promos':'Publicar promo'};
+const titulos={'p-dash':'Dashboard','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-servicos':'Serviços','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','p-personalizacao':'Personalização','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
+const actLbl={'p-dash':'Novo agendamento','p-agenda':'Novo agendamento','p-clientes':'Nova cliente','p-equipe':'Add profissional','p-servicos':'+ Novo serviço','p-camp':'Nova campanha','p-promos':'Publicar promo'};
 let role='p';
 
 function showPane(id){
@@ -2171,6 +2220,9 @@ function goTo(id,el){
   }
   if(id==='p-personalizacao'){
     setTimeout(()=>{ if(window.initPersonalizacaoForm) window.initPersonalizacaoForm(); }, 50);
+  }
+  if(id==='p-servicos'){
+    setTimeout(()=>{ if(window.iniciarListenerServicos) window.iniciarListenerServicos(); }, 50);
   }
   if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(id==='c-promos')  setTimeout(() => { if(window.iniciarListenerPromos && !unsubPromos) window.iniciarListenerPromos(); }, 50);
@@ -2554,6 +2606,13 @@ function toggleCliPass(){
   const el = document.getElementById('cli-pass');
   el.type = el.type === 'password' ? 'text' : 'password';
 }
+function toggleProPass(){
+  const el = document.getElementById('pro-pass');
+  if(!el) return;
+  el.type = el.type === 'password' ? 'text' : 'password';
+  const eye = document.getElementById('pro-eye');
+  if(eye) eye.style.opacity = el.type === 'text' ? '0.9' : '0.5';
+}
 let _splashPendente = false;
 // ── Rate limiting de login (5 tentativas / 15 min) ───────────────────────
 const _loginAttempts = { count: 0, lockedUntil: 0 };
@@ -2727,6 +2786,7 @@ function goToCliSection(id){
   showPane(id);
   if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(id==='c-promos')  setTimeout(() => { if(window.iniciarListenerPromos) window.iniciarListenerPromos(); }, 50);
+  if(id==='c-servicos') setTimeout(() => { if(window.iniciarListenerServicosCli) window.iniciarListenerServicosCli(); }, 50);
   // Mostra botão voltar apenas se for profissional/admin
   const btnVPro = document.getElementById('btn-voltar-pro');
   if(btnVPro && cp && cp.role !== 'cliente') btnVPro.style.display = 'flex';
@@ -2811,10 +2871,21 @@ function setupCliKeyboard(){
   const inputs = document.querySelectorAll('#cli-email, #cli-pass');
   inputs.forEach(input => {
     input.addEventListener('focus', () => {
+      // Delay maior (500ms) para iOS/Safari PWA aguardar o teclado abrir
       setTimeout(() => {
         input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        document.getElementById('cli-form').scrollIntoView({ behavior: 'smooth', block: 'end' });
-      }, 300);
+        const form = document.getElementById('cli-form');
+        if(form) form.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        // Fallback extra para Safari PWA: rola o scroll interno do cli-form
+        if(window.visualViewport && window.innerWidth < 700){
+          const vvH = window.visualViewport.height;
+          const rect = input.getBoundingClientRect();
+          if(rect.bottom > vvH - 20){
+            const loginScreen = document.getElementById('login-cli-screen');
+            if(loginScreen) loginScreen.scrollTop += (rect.bottom - vvH + 40);
+          }
+        }
+      }, 500);
     });
   });
 }
@@ -2941,7 +3012,9 @@ function selecionarDia(btn, label, semana){
   btn.style.borderColor = 'var(--pk600)';
   btn.style.color = 'white';
   selDia = label;
+  window._selDia = label;   // expõe para selecionarHorario via window (fix bug resumo)
   selHorario = null;
+  window._selHorario = null;
 
   const card   = document.getElementById('cli-horarios-card');
   const label2 = document.getElementById('cli-horarios-label');
@@ -2990,7 +3063,7 @@ function selecionarHorario(btn, horario){
   const resumoDia  = document.getElementById('resumo-dia');
   const resumoHora = document.getElementById('resumo-hora');
   if(resumoSvc)  resumoSvc.textContent  = svcNome;
-  if(resumoDia)  resumoDia.textContent  = selDia || '—';
+  if(resumoDia)  resumoDia.textContent  = selDia || window._selDia || '—';
   if(resumoHora) resumoHora.textContent = horario;
   // Profissional preferida
   const profSelEl2 = document.getElementById('cli-prof-sel');
@@ -6553,6 +6626,134 @@ window.crmHSelecionarTodas = crmHSelecionarTodas;
 window.crmFiltrarPerfil    = crmFiltrarPerfil;
 window.crmFiltrarHistorico = crmFiltrarHistorico;
 
+// ════════════════════════════════════════════════════════════════════════════
+// MÓDULO SERVIÇOS DINÂMICOS
+// Firestore: /servicos/{clinicaId}/items/{id} → { nome, desc, preco, icone }
+// ════════════════════════════════════════════════════════════════════════════
+let _unsubServicos = null;
+let _unsubServicosCli = null;
+
+// ── Painel profissional: listener em tempo real ───────────────────────────
+function iniciarListenerServicos() {
+  if (_unsubServicos) return; // já ativo
+  const cid = clinicaAtual();
+  const ref = collection(db, 'servicos', cid, 'items');
+  _unsubServicos = onSnapshot(ref, snap => {
+    const lista = document.getElementById('p-svc-lista');
+    if (!lista) return;
+    if (snap.empty) {
+      lista.innerHTML = '<div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0">Nenhum serviço cadastrado ainda. Clique em <strong>+ Novo serviço</strong> para começar.</div>';
+      return;
+    }
+    lista.innerHTML = snap.docs.map(d => {
+      const s = d.data();
+      return `
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--pk50);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ${s.icone||'ti-sparkles'}" style="font-size:18px;color:var(--pk600)"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600">${s.nome||'Serviço'}</div>
+          <div style="font-size:11px;color:var(--tx2);margin-top:1px">${s.desc||''}</div>
+          <div style="font-size:11px;color:var(--pk600);font-weight:600;margin-top:2px">${s.preco||''}</div>
+        </div>
+        <button onclick="removerSvc('${d.id}')" class="btn sm" style="flex-shrink:0;color:var(--tx3);border-color:var(--br)">
+          <i class="ti ti-trash" style="font-size:14px"></i>
+        </button>
+      </div>`;
+    }).join('');
+  }, err => { console.warn('[Belezza] serviços listener:', err); });
+}
+
+// ── Tela cliente: listener separado ──────────────────────────────────────
+function iniciarListenerServicosCli() {
+  if (_unsubServicosCli) return;
+  const cid = clinicaAtual();
+  const ref = collection(db, 'servicos', cid, 'items');
+  _unsubServicosCli = onSnapshot(ref, snap => {
+    const grid = document.getElementById('svc-grid-cli');
+    if (!grid) return;
+    if (snap.empty) {
+      grid.innerHTML = '<div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0;grid-column:1/-1">Nenhum serviço cadastrado ainda. Em breve novidades! 💕</div>';
+      return;
+    }
+    grid.innerHTML = snap.docs.map(d => {
+      const s = d.data();
+      const nome  = (s.nome  || 'Serviço').replace(/'/g,"\'");
+      const preco = (s.preco || '').replace(/'/g,"\'");
+      return `<div class="svc-card" onclick="selecionarServico(this,'${nome}','${preco}')" style="cursor:pointer">
+        <div class="svc-icon"><i class="ti ${s.icone||'ti-sparkles'}"></i></div>
+        <div class="svc-name">${s.nome||'Serviço'}</div>
+        <div class="svc-desc">${s.desc||''}</div>
+        <div class="svc-price">${s.preco ? 'A partir de ' + s.preco : ''}</div>
+      </div>`;
+    }).join('');
+  }, err => {
+    console.warn('[Belezza] serviços cli listener:', err);
+    const grid = document.getElementById('svc-grid-cli');
+    if (grid) grid.innerHTML = '<div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0;grid-column:1/-1">Nenhum serviço cadastrado ainda. Em breve novidades! 💕</div>';
+  });
+}
+
+// ── Salvar novo serviço ───────────────────────────────────────────────────
+async function salvarSvc() {
+  const nome  = (document.getElementById('svc-nome-inp')?.value || '').trim();
+  const desc  = (document.getElementById('svc-desc-inp')?.value || '').trim();
+  const preco = (document.getElementById('svc-preco-inp')?.value || '').trim();
+  const icone = document.getElementById('svc-icone-inp')?.value || 'ti-sparkles';
+  const erro  = document.getElementById('svc-form-erro');
+  if (!nome) { if(erro) erro.textContent = 'Nome é obrigatório.'; return; }
+  if(erro) erro.textContent = '';
+  try {
+    const cid = clinicaAtual();
+    await addDoc(collection(db, 'servicos', cid, 'items'), {
+      nome, desc, preco, icone,
+      criadoEm: serverTimestamp()
+    });
+    fecharFormSvc();
+  } catch(e) {
+    console.error('[Belezza] salvarSvc:', e);
+    if(erro) erro.textContent = 'Erro ao salvar. Tente novamente.';
+  }
+}
+
+// ── Remover serviço ───────────────────────────────────────────────────────
+async function removerSvc(id) {
+  if (!confirm('Remover este serviço?')) return;
+  try {
+    const cid = clinicaAtual();
+    await deleteDoc(doc(db, 'servicos', cid, 'items', id));
+  } catch(e) { console.error('[Belezza] removerSvc:', e); }
+}
+
+// ── Abrir / fechar formulário ─────────────────────────────────────────────
+function abrirFormSvc() {
+  const wrap = document.getElementById('p-svc-form-wrap');
+  if (!wrap) return;
+  // Limpa campos
+  ['svc-nome-inp','svc-desc-inp','svc-preco-inp'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  const sel = document.getElementById('svc-icone-inp');
+  if(sel) sel.value = 'ti-sparkles';
+  const erro = document.getElementById('svc-form-erro');
+  if(erro) erro.textContent = '';
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function fecharFormSvc() {
+  const wrap = document.getElementById('p-svc-form-wrap');
+  if(wrap) wrap.style.display = 'none';
+}
+
+// ── Expõe tudo ───────────────────────────────────────────────────────────
+window.iniciarListenerServicos    = iniciarListenerServicos;
+window.iniciarListenerServicosCli = iniciarListenerServicosCli;
+window.salvarSvc    = salvarSvc;
+window.removerSvc   = removerSvc;
+window.abrirFormSvc = abrirFormSvc;
+window.fecharFormSvc= fecharFormSvc;
+
 </script>
 <script>
 // Bridge — garante que funções do module estejam disponíveis para onclick inline
@@ -6596,6 +6797,10 @@ function selecionarHorario(b,h){ if(window.selecionarHorario) window.selecionarH
 function enviarSolicitacao(){ if(window.enviarSolicitacao) window.enviarSolicitacao(); }
 function abrirAgendaPromo(n){ if(window.abrirAgendaPromo) window.abrirAgendaPromo(n); }
 function selecionarServico(c,n,p){ if(window.selecionarServico) window.selecionarServico(c,n,p); }
+function abrirFormSvc(){ if(window.abrirFormSvc) window.abrirFormSvc(); }
+function fecharFormSvc(){ if(window.fecharFormSvc) window.fecharFormSvc(); }
+function salvarSvc(){ if(window.salvarSvc) window.salvarSvc(); }
+function removerSvc(id){ if(window.removerSvc) window.removerSvc(id); }
 function abrirAgendaServico(){ if(window.abrirAgendaServico) window.abrirAgendaServico(); }
 function abrirModalCliente(){ try{ window._abrirModalCliente && window._abrirModalCliente(); }catch(e){} }
 function fecharModalCliente(){ try{ window._fecharModalCliente && window._fecharModalCliente(); }catch(e){} }
@@ -6766,7 +6971,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       </div>
       <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:10px 16px;margin-bottom:8px;border:1px solid rgba(255,255,255,.25)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><path d="M3 5a2 2 0 0 1 2-2h3.28a1 1 0 0 1 .95.68l1.45 4.36a1 1 0 0 1-.23 1.03L8.91 10.6a16 16 0 0 0 6.49 6.49l1.53-1.54a1 1 0 0 1 1.03-.23l4.36 1.45a1 1 0 0 1 .68.95V19a2 2 0 0 1-2 2A18 18 0 0 1 3 5z"/></svg>
-        <input id="cli-email" type="tel" placeholder="WhatsApp (ex: 11999990000)" inputmode="numeric" autocomplete="username" style="background:none;border:none;outline:none;color:white;font-size:16px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
+        <input id="cli-email" type="text" placeholder="WhatsApp ou e-mail" inputmode="text" autocomplete="username" style="background:none;border:none;outline:none;color:white;font-size:16px;flex:1;font-family:inherit" onkeydown="handleCliKey(event)">
       </div>
       <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);border-radius:30px;padding:10px 16px;margin-bottom:6px;border:1px solid rgba(255,255,255,.25)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 Q8 3 12 3 Q16 3 16 7 V11"/></svg>
