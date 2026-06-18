@@ -1734,7 +1734,18 @@ onAuthStateChanged(auth, async user => {
 
   if (user) {
     try {
-      const snap = await getDoc(doc(db, 'users', user.uid));
+      let snap = await getDoc(doc(db, 'users', user.uid));
+
+      // Corrida conhecida: cadastrarCliente() cria a conta no Auth, o que já dispara
+      // este listener, ANTES de terminar de gravar /users/{uid} no Firestore. Sem este
+      // retry, esse instante intermediário era lido como "perfil inexistente" e a cliente
+      // era deslogada no meio do próprio cadastro. Tenta de novo por até ~2s antes de desistir.
+      let tentativas = 0;
+      while (!snap.exists() && tentativas < 5) {
+        await new Promise(r => setTimeout(r, 400));
+        snap = await getDoc(doc(db, 'users', user.uid));
+        tentativas++;
+      }
 
       if (!snap.exists()) {
         await signOut(auth);
@@ -1828,7 +1839,9 @@ onAuthStateChanged(auth, async user => {
 
     // Link de convite (?convite=1&c={clinicaId}) → identifica a clínica e abre o cadastro self-service
     const params = new URLSearchParams(window.location.search);
-    const clinicaParam = params.get('c');
+    // Sanitiza: remove espaços e qualquer pontuação colada no final (ex.: vírgula ou ponto
+    // vindos de copiar o link de dentro de um texto), evitando criar cliente numa clinicaId errada.
+    const clinicaParam = (params.get('c') || '').trim().replace(/[^a-zA-Z0-9_-]+$/, '');
     if (clinicaParam) _clinicaIdConvite = clinicaParam;
     if (params.has('convite')) {
       mostrarCadastro();
