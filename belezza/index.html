@@ -481,8 +481,8 @@ input[type="password"]::-ms-clear {
       <span class="tb-title" id="tb-t">Dashboard</span>
     </div>
     <div class="tb-right">
-      <button class="btn" onclick="openHelp()"><i class="ti ti-help-circle"></i> Ajuda</button>
       <button class="btn pk" id="tb-act" onclick="acaoTopbar()"><i class="ti ti-plus"></i> <span id="tb-act-lbl">Novo agendamento</span></button>
+      <button class="btn" onclick="openHelp()"><i class="ti ti-help-circle"></i> Ajuda</button>
     </div>
   </div>
 
@@ -1830,9 +1830,18 @@ onAuthStateChanged(auth, async user => {
     if (appDiv) appDiv.style.display = 'none';
     const homeCliente = document.getElementById('home-cli-screen');
     if (homeCliente) homeCliente.style.display = 'none';
-    // Mostra tela única de login
+    // Mostra tela única de login — sem flash: aplica opacity:0 primeiro,
+    // depois transita para 1 no próximo frame para evitar o FOUC ao reaparecer
     const cliLogin = document.getElementById('login-cli-screen');
-    if (cliLogin) cliLogin.style.display = 'flex';
+    if (cliLogin) {
+      cliLogin.style.opacity = '0';
+      cliLogin.style.display = 'flex';
+      requestAnimationFrame(() => {
+        cliLogin.style.transition = 'opacity .18s';
+        cliLogin.style.opacity = '1';
+        setTimeout(() => { cliLogin.style.transition = ''; }, 200);
+      });
+    }
 
     // Link de convite (?convite=1&c={clinicaId}) → identifica a clínica e abre o cadastro self-service
     const params = new URLSearchParams(window.location.search);
@@ -2421,11 +2430,22 @@ function abrirModalAg(){
   const selSvc = document.getElementById('ag-servico');
   if(selSvc){
     const eqDB = window.equipeDB || equipeDB || [];
-    const servs = [...new Set(
-      eqDB.flatMap(p => (p.espec||'').split(/[·,]/).map(s => s.trim()).filter(Boolean))
-    )].sort();
-    selSvc.innerHTML = '<option value="">Selecione...</option>' +
-      servs.map(s => `<option value="${s}">${s}</option>`).join('');
+    const ativas = eqDB.filter(p => p.ativa !== false);
+    // Agrupado por profissional (optgroup) se há mais de uma
+    if(ativas.length > 1){
+      selSvc.innerHTML = '<option value="">Selecione...</option>' +
+        ativas.map(p => {
+          const servs = (p.espec||'').split(/[·,]/).map(s=>s.trim()).filter(Boolean);
+          if(!servs.length) return '';
+          return `<optgroup label="${p.nome}">${servs.map(s=>`<option value="${s}">${s}</option>`).join('')}</optgroup>`;
+        }).join('');
+    } else {
+      const servs = [...new Set(
+        ativas.flatMap(p => (p.espec||'').split(/[·,]/).map(s => s.trim()).filter(Boolean))
+      )].sort();
+      selSvc.innerHTML = '<option value="">Selecione...</option>' +
+        servs.map(s => `<option value="${s}">${s}</option>`).join('');
+    }
   }
   // Popula select de profissionais
   const selProf = document.getElementById('ag-prof');
@@ -3642,13 +3662,13 @@ function iniciarListenerAgCliente(uid) {
     if (!lista) return;
     const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => {
-        // Ordena por data DD/MM — mais recente primeiro
+        // Ordena por data DD/MM — mais próximo primeiro (crescente)
         const [da, ma] = (a.data||'01/01').split('/').map(Number);
         const [db, mb] = (b.data||'01/01').split('/').map(Number);
         const dateA = ma * 100 + da;
         const dateB = mb * 100 + db;
-        if(dateA !== dateB) return dateB - dateA;
-        return (b.hora||'') > (a.hora||'') ? 1 : -1;
+        if(dateA !== dateB) return dateA - dateB;
+        return (a.hora||'') > (b.hora||'') ? 1 : -1;
       });
     // Atualiza cópia global para badge de promoções
     agendamentosCliente = docs;
@@ -5412,9 +5432,10 @@ async function salvarProfissional(){
     renderEquipe(equipeDB);
     // Atualiza select de profissional no modal de agendamento
     atualizarSelectProfissional();
-    // Persistir edição no Firestore
+    // Persistir edição no Firestore — caminho correto: /equipe/{clinicaId}/profissionais/{id}
     try {
-      await setDoc(doc(db,'equipe',editId),
+      await setDoc(
+        doc(db, 'equipe', clinicaAtual(), 'profissionais', editId),
         {clinicaId:clinicaAtual(),nome,wpp,sexo,espec,disp,
          ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
          domicilio:dom,obs,ativa:ativaHoje},{merge:true});
@@ -5425,9 +5446,10 @@ async function salvarProfissional(){
     const id = 'prof-' + Date.now();
     const seed = nome.replace(/\s/g,'') + id.slice(-4);
     const bgColor = BG_CORES[equipeDB.length % BG_CORES.length];
-    // Persistir nova profissional no Firestore
+    // Persistir nova profissional no Firestore — caminho correto: /equipe/{clinicaId}/profissionais/{id}
     try {
-      await setDoc(doc(db,'equipe',id),
+      await setDoc(
+        doc(db, 'equipe', clinicaAtual(), 'profissionais', id),
         {clinicaId:clinicaAtual(),nome,wpp,sexo,espec,disp,
          ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
          domicilio:dom,obs,ativa:ativaHoje,
@@ -5437,7 +5459,7 @@ async function salvarProfissional(){
       domicilio:dom, obs, ativa:ativaHoje, agMes:0, seed, bgColor});
     // Adiciona no select de agendamento
     atualizarSelectProfissional();
-    mostrarToastProf('Profissional cadastrada!');
+    mostrarToastProf('Profissional cadastrado/a!');
   }
   window.equipeDB = equipeDB;
   renderEquipe(equipeDB);
@@ -5469,7 +5491,8 @@ function verAgendaProfissional(id, nome){
 function atualizarSelectProfissional(){
   const sel = document.getElementById('ag-prof');
   if(!sel) return;
-  sel.innerHTML = equipeDB.map(p =>
+  const db_atual = window.equipeDB || equipeDB;
+  sel.innerHTML = db_atual.map(p =>
     `<option value="${p.id}">${p.nome}</option>`
   ).join('');
 }
@@ -7280,7 +7303,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <button onclick="salvarProfissional()" class="btn pk" style="flex:1"><i class="ti ti-device-floppy"></i> <span id="prof-btn-txt">Cadastrar</span></button>
     </div>
     <div id="prof-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
-      <i class="ti ti-circle-check" style="font-size:18px"></i> <span id="prof-toast-msg">Profissional cadastrada!</span>
+      <i class="ti ti-circle-check" style="font-size:18px"></i> <span id="prof-toast-msg">Profissional cadastrado/a!</span>
     </div>
   </div>
 </div>
