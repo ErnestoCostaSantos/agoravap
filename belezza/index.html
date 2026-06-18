@@ -1762,9 +1762,12 @@ onAuthStateChanged(auth, async user => {
 
       if (cp.role === 'cliente') {
         const loginScreen = document.getElementById('login-cli-screen');
+        const cadScreen   = document.getElementById('cadastro-cli-screen');
         const homeCliente = document.getElementById('home-cli-screen');
         const welcome = document.getElementById('cli-welcome');
         if (welcome) welcome.textContent = 'Olá, ' + (cp.name || user.email.split('@')[0]) + '! 💕';
+        // Fecha tela de cadastro se ainda estiver aberta (fluxo de cadastro self-service)
+        if (cadScreen) cadScreen.style.display = 'none';
 
         // Inicia listeners
         setTimeout(() => {
@@ -4111,8 +4114,11 @@ async function cadastrarCliente(){
       criadoEm:   new Date().toISOString(),
     });
 
-    // 4. Fecha tela de cadastro — onAuthStateChanged vai rotear para tela de flores
-    fecharCadastro();
+    // 4. Conta criada com sucesso — mostra mensagem enquanto onAuthStateChanged roteia.
+    // NÃO chama fecharCadastro() aqui: isso abria o login screen por 1-2s (confuso),
+    // porque o onAuthStateChanged precisa de tempo para ler /users/{uid} e navegar.
+    if(btn){ btn.textContent = 'Entrando...'; btn.disabled = true; }
+    if(errEl){ errEl.style.color = '#b8ffd0'; errEl.textContent = 'Conta criada! Entrando...'; }
 
   } catch(e) {
     if(e.code === 'auth/email-already-in-use'){
@@ -6935,7 +6941,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     }
     #cli-foto img.mob{
       width:100%; height:100%;
-      object-fit:cover; object-position:center top;
+      object-fit:cover; object-position:center center;
       display:block;
     }
     #cli-foto img.dsk{ display:none; }
@@ -6984,7 +6990,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
   <div id="cli-layout">
     <div id="cli-foto">
       <!-- Mobile: imagem portrait 9:19 -->
-      <img class="mob hero-cliente-img" src="hero-cliente.jpg" alt="MeCuidar">
+      <img class="hero-cliente-img mob" src="hero-cliente.jpg" alt="MeCuidar">
       <!-- Desktop/Tablet: imagem landscape 16:9 -->
       <img class="dsk hero-cliente-img" src="hero-cliente-desktop.jpg" alt="MeCuidar">
 
