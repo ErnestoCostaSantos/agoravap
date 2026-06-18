@@ -2708,26 +2708,28 @@ async function doLoginCli(){
 function recuperarSenhaCli(){
   const val   = (document.getElementById('cli-email')?.value || '').trim();
   const errEl = document.getElementById('cli-error');
-  if (!val) { if(errEl) errEl.textContent='Digite seu WhatsApp acima.'; return; }
-  // Converte WhatsApp → e-mail sintético
-  const wppNum = val.replace(/\D/g, '');
 
-  if (wppNum.length >= 8) {
-    // Cliente: não há e-mail real para receber o link — orienta contato direto
+  if (val.replace(/\D/g,'').length >= 8) {
+    // Cliente (WhatsApp): abre WhatsApp do estabelecimento com mensagem automática
+    const wppEstab = (window.WPP_ESTAB || '5511997261900').replace(/\D/g,'');
+    const nome = val.replace(/\D/g,'');
+    const msg  = encodeURIComponent(
+      'Olá! Esqueci minha senha no app MeCuidar. Meu WhatsApp cadastrado é ' + nome + '. Pode me ajudar a redefinir?'
+    );
     if(errEl){
-      errEl.textContent = 'Entre em contato pelo WhatsApp de sua Profissional para redefinir sua senha';
+      errEl.textContent = 'Abrindo WhatsApp para redefinir sua senha...';
       errEl.style.color = '#b3ffda';
     }
+    setTimeout(() => { window.open('https://wa.me/' + wppEstab + '?text=' + msg, '_blank'); }, 600);
     return;
   }
+
+  if (!val) { if(errEl) errEl.textContent='Digite seu WhatsApp ou e-mail acima.'; return; }
 
   // Fallback: e-mail direto (admin/profissional) — fluxo padrão do Firebase
   sendPasswordResetEmail(auth, val)
     .then(() => {
-      if(errEl){
-        errEl.textContent = 'E-mail de recuperação enviado!';
-        errEl.style.color='#b3ffda';
-      }
+      if(errEl){ errEl.textContent = 'E-mail de recuperação enviado!'; errEl.style.color='#b3ffda'; }
     })
     .catch(() => { if(errEl) errEl.textContent='E-mail não encontrado. Verifique o endereço.'; });
 }
