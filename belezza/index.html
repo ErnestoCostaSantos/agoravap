@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>MeCuidar — Studio Luna</title>
+<title>MeCuidar</title>
 
 
 <!-- PWA -->
@@ -14,7 +14,7 @@
 <meta name="theme-color" content="#993556">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Studio Luna">
+<meta name="apple-mobile-web-app-title" content="MeCuidar">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
@@ -354,7 +354,7 @@ input[type="password"]::-ms-clear {
     <!-- Brand -->
     <div style="text-align:center;margin-bottom:28px">
       <div style="font-family:Georgia,serif;font-size:32px;font-weight:400;letter-spacing:0.12em;color:#3a1f2e;line-height:1">belezza</div>
-      <div id="login-estab-nome" style="font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#9a7a8a;margin-top:5px">Studio Luna</div>
+      <div id="login-estab-nome" style="font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#9a7a8a;margin-top:5px">Saúde e Bem-Estar</div>
     </div>
     <!-- Fields -->
     <div style="max-width:360px;margin:0 auto">
@@ -413,7 +413,7 @@ input[type="password"]::-ms-clear {
 <nav class="sidebar" id="sidebar">
   <div class="sb-brand">
     <div class="sb-av">SL</div>
-    <div><div class="sb-name">Studio Luna</div><span class="sb-plan">Clínica Pro</span></div>
+    <div><div class="sb-name">Saúde e Bem-Estar</div><span class="sb-plan">Clínica Pro</span></div>
   </div>
   <div class="sb-nav" id="sb-pro" style="display:block">
     <div class="sb-sec">Gestão</div>
@@ -490,7 +490,7 @@ input[type="password"]::-ms-clear {
 // ══════════════════════════════════════════════════════════════════════════════
 // CONFIGURAÇÃO DO ESTABELECIMENTO — altere apenas aqui para personalizar o app
 // ══════════════════════════════════════════════════════════════════════════════
-window.NOME_ESTAB  = 'Studio Luna';    // nome exibido em sidebar, telas e mensagens
+window.NOME_ESTAB  = 'Saúde e Bem-Estar'; // nome exibido em sidebar, telas e mensagens
 window.PLANO_ESTAB = 'Clínica Pro';    // badge no sidebar (ex: 'Solo Pro', 'Studio', 'Espaço')
 window.WPP_ESTAB   = '5511997261900'; // WhatsApp do estabelecimento (só números, com DDI)
 window.APP_URL     = 'https://mecuidar.app.br'; // link do app enviado nos convites às clientes
@@ -842,7 +842,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
               <div class="step-title">2. Aquecimento <span class="badge badge-pend" style="margin-left:4px">Hoje</span></div>
               <div class="step-sub">Envie uma mensagem de engajamento: depoimento, dica ou lembrete do prazo.</div>
               <div class="step-actions" id="a2">
-                <button class="btn tl sm" onclick="abrirWpp('Oi meninas! Nossa campanha de Dia dos Namorados está chegando ao fim - o Pacote Ritual Duo encerra em 12/06. Já agendaram? Qualquer dúvida é só chamar! - Studio Luna')"><i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp</button>
+                <button class="btn tl sm" onclick="abrirWpp('Oi meninas! Nossa campanha de Dia dos Namorados está chegando ao fim - o Pacote Ritual Duo encerra em 12/06. Já agendaram? Qualquer dúvida é só chamar! - MeCuidar')"><i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp</button>
                 <button class="btn sm" onclick="feito2()"><i class="ti ti-check"></i> Marcar enviado</button>
               </div>
             </div>
@@ -969,7 +969,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
           <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center">
             <div>
               <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Mensagem personalizada</label>
-              <textarea id="fidel-msg" rows="3" style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);resize:none;font-family:inherit;box-sizing:border-box">Ola! Voce foi uma das nossas clientes destaque em maio. Como agradecimento, preparamos uma surpresa especial para voce! Fala com a gente para saber mais. - Studio Luna</textarea>
+              <textarea id="fidel-msg" rows="3" style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);resize:none;font-family:inherit;box-sizing:border-box">Ola! Voce foi uma das nossas clientes destaque em maio. Como agradecimento, preparamos uma surpresa especial para voce! Fala com a gente para saber mais. - MeCuidar</textarea>
             </div>
             <div>
               <label id="fidel-img-label" style="
@@ -1371,7 +1371,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <div class="card" style="margin-bottom:14px">
         <div style="margin-bottom:12px">
           <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Nome do estabelecimento</label>
-          <input id="pers-nome" type="text" placeholder="Ex: Studio Luna" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+          <input id="pers-nome" type="text" placeholder="Ex: Clínica Bem-Estar" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
         </div>
         <div style="margin-bottom:12px">
           <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">WhatsApp do estabelecimento</label>
@@ -1442,12 +1442,12 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
     <div class="pane" id="pane-c-chat">
       <!-- Visão Cliente: envia dúvidas -->
       <div id="cli-chat-view">
-        <div class="sec-lbl">Fale com o Studio Luna</div>
+        <div class="sec-lbl">Fale com o MeCuidar</div>
         <div class="chat-wrap">
           <div class="chat-hd">
             <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaLuna&backgroundColor=fbeaf0" style="width:32px;height:32px;border-radius:50%">
-            <div style="flex:1"><div class="row-name" style="font-size:13px">Studio Luna · Líder</div><div class="chat-online">Online</div></div>
-            <i class="ti ti-phone" id="chat-phone-icon" style="font-size:18px;color:var(--tx2);cursor:pointer" onclick="abrirWpp('Olá! Vim pelo app Studio Luna.')"></i>
+            <div style="flex:1"><div class="row-name" style="font-size:13px">MeCuidar · Líder</div><div class="chat-online">Online</div></div>
+            <i class="ti ti-phone" id="chat-phone-icon" style="font-size:18px;color:var(--tx2);cursor:pointer" onclick="abrirWpp('Olá! Vim pelo app MeCuidar.')"></i>
           </div>
           <div class="msgs" id="chat-msgs">
             <div style="text-align:center;color:rgba(255,255,255,.4);font-size:13px;padding:20px 0">Carregando mensagens...</div>
@@ -1530,7 +1530,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
         </div>
         <div class="info-box" style="margin-bottom:10px">
           <i class="ti ti-info-circle" style="font-size:16px;flex-shrink:0"></i>
-          <span id="cli-ag-info-txt">A líder do Studio Luna confirmará em breve via WhatsApp.</span>
+          <span id="cli-ag-info-txt">A líder confirmará em breve via WhatsApp.</span>
         </div>
         <button class="btn pk" style="width:100%;justify-content:center;padding:11px" onclick="enviarSolicitacao()">
           <i class="ti ti-send"></i> Enviar solicitação
@@ -1539,7 +1539,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <!-- Toast confirmação -->
       <div id="cli-agenda-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:12px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
         <i class="ti ti-circle-check" style="font-size:20px"></i>
-        <div><strong>Solicitação enviada!</strong><br><span id="cli-ag-toast-txt">A líder do Studio Luna confirmará em breve.</span></div>
+        <div><strong>Solicitação enviada!</strong><br><span id="cli-ag-toast-txt">A líder confirmará em breve.</span></div>
       </div>
       <!-- Agendamentos existentes — populado pelo Firestore -->
       <div class="sec-lbl" style="margin-top:16px">Seus agendamentos</div>
@@ -2104,7 +2104,7 @@ const faqs=[
   // ── Login Cliente ────────────────────────────────────────────────
   {cat:'versaocliente',q:'O que acontece logo após a cliente fazer login?',a:'Após o login bem-sucedido, o formulário some e a imagem de boas-vindas aparece em tela cheia por 2 segundos. Em seguida, a tela de flores é exibida. Se houver um pop-up promocional ativo, ele aparece antes das flores.'},
   {cat:'versaocliente',q:'Por que a imagem de login encolhe quando o teclado abre?',a:'Para garantir que o botão "Entrar" fique sempre visível mesmo com o teclado do celular aberto. A imagem reduz automaticamente para liberar espaço para o formulário completo.'},
-  {cat:'acesso',q:'Quem desenvolveu o MeCuidar?',a:'O MeCuidar Studio Luna foi elaborado pela ECS Consultoria. Mais informações em agoravap.gurudevendas.com.br'},
+  {cat:'acesso',q:'Quem desenvolveu o MeCuidar?',a:'O MeCuidar foi elaborado pela ECS Consultoria. Mais informações em agoravap.gurudevendas.com.br'},
 
   // ── Notificações ─────────────────────────────────────────────────────────
   {cat:'agendamentos',q:'O app avisa quando chega um novo agendamento?',a:'Sim — quando o app está aberto, a profissional recebe um som duplo, vibração no celular e um contador na aba do browser (ex: 🔔 (2) MeCuidar). O aviso ocorre tanto no desktop quanto no celular, desde que o app esteja aberto.'},
@@ -3468,7 +3468,7 @@ function clinicaAtual(){
 }
 window.clinicaAtual = clinicaAtual;
 // Aliases locais das constantes de branding (declaradas no script síncrono)
-const NOME_ESTAB  = window.NOME_ESTAB  || 'Studio Luna';
+const NOME_ESTAB  = window.NOME_ESTAB  || 'Saúde e Bem-Estar';
 const PLANO_ESTAB = window.PLANO_ESTAB || 'Clínica Pro';
 const WPP_ESTAB   = window.WPP_ESTAB   || '5511997261900';
 
@@ -3501,7 +3501,7 @@ function _notifVibrar() {
 }
 
 function _notifAtualizarTitle(nPendentes) {
-  const base = 'MeCuidar — ' + (window.NOME_ESTAB || 'Studio Luna');
+  const base = 'MeCuidar — ' + (window.NOME_ESTAB || 'Saúde e Bem-Estar');
   document.title = nPendentes > 0 ? `🔔 (${nPendentes}) ${base}` : base;
 }
 
@@ -3520,7 +3520,7 @@ function _notifVerificarNovos(agendamentosAtuais) {
         _notifSom();
         _notifVibrar();
         // Toast na visão profissional
-        const base = 'MeCuidar — ' + (window.NOME_ESTAB || 'Studio Luna');
+        const base = 'MeCuidar — ' + (window.NOME_ESTAB || 'Saúde e Bem-Estar');
         const pendentes = agendamentosAtuais.filter(x => x.status === 'pendente').length;
         document.title = pendentes > 0 ? `🔔 (${pendentes}) ${base}` : base;
       }
@@ -4042,7 +4042,7 @@ function mostrarCadastro(){
   if(cadScreen)   cadScreen.style.display   = 'flex';
   // Preenche nome do estab (default imediato; sobrescrito por carregarBranding abaixo)
   const estabNome = document.getElementById('cadastro-estab-nome');
-  if(estabNome) estabNome.textContent = window.NOME_ESTAB || 'Studio Luna';
+  if(estabNome) estabNome.textContent = window.NOME_ESTAB || 'Saúde e Bem-Estar';
   // Se veio de um link de convite com ?c={clinicaId}, busca o branding daquela clínica
   if(_clinicaIdConvite) carregarBranding(_clinicaIdConvite);
 }
@@ -4451,7 +4451,7 @@ function iniciarListenerThreads() {
         _notifSom();
         _notifVibrar();
         // Atualiza title com badge de mensagens não lidas
-        const base = 'MeCuidar — ' + (window.NOME_ESTAB || 'Studio Luna');
+        const base = 'MeCuidar — ' + (window.NOME_ESTAB || 'Saúde e Bem-Estar');
         const pendentes = agendamentos.filter(a => a.status === 'pendente').length;
         const label = [];
         if (pendentes > 0)  label.push(`${pendentes} ag.`);
@@ -5510,7 +5510,7 @@ window.atualizarSelectProfissional = atualizarSelectProfissional;
 // dados reais de /clinicas/{clinicaId}, ou ao salvar a tela "Personalização").
 function aplicarBranding(brand){
   if(!brand) return;
-  const NOME_ESTAB  = brand.nomeEstab  || window.NOME_ESTAB  || 'Studio Luna';
+  const NOME_ESTAB  = brand.nomeEstab  || window.NOME_ESTAB  || 'Saúde e Bem-Estar';
   const PLANO_ESTAB = brand.planoEstab || window.PLANO_ESTAB || 'Clínica Pro';
   const WPP_ESTAB   = brand.wppEstab   || window.WPP_ESTAB   || '5511997261900';
   // Atualiza globais usados pelo restante do app (modoSolo, sb-plan, mensagens, etc.)
@@ -5528,7 +5528,7 @@ function aplicarBranding(brand){
   const loginSub = document.getElementById('login-estab-nome');
   if (loginSub) loginSub.textContent = NOME_ESTAB;
 
-  // Chat cliente: "Fale com o Studio Luna" e "Studio Luna · Líder"
+  // Chat cliente: "Fale com o MeCuidar" e "MeCuidar · Líder"
   document.querySelectorAll('.sec-lbl').forEach(el => {
     if (el.textContent.includes('Fale com o')) el.textContent = `Fale com o ${NOME_ESTAB}`;
   });
@@ -6109,7 +6109,7 @@ window._impToggleTodos = _impToggleTodos;
 // ── Envia convite individual pelo WhatsApp ─────────────────────────────────
 function _impConvidar(nome, numero) {
   const link = (window.APP_URL || 'https://mecuidar.app.br') + '/?convite=1&c=' + clinicaAtual();
-  const estab = window.NOME_ESTAB || 'Studio Luna';
+  const estab = window.NOME_ESTAB || 'Saúde e Bem-Estar';
   const msg = `Oi ${nome}! Aqui é do ${estab} 💕 Agora você pode agendar seus horários e ver nossas promoções direto pelo app: ${link}`;
   window.open('https://wa.me/55' + numero + '?text=' + encodeURIComponent(msg), '_blank');
 }
@@ -6918,7 +6918,6 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       max-height:52vh;    /* limita para form ficar visível */
       position:relative;
       overflow:hidden;
-      transition:max-height .25s ease;
     }
     /* Teclado aberto: encolhe imagem para o botão aparecer */
     #login-cli-screen.teclado-aberto #cli-foto{
@@ -7072,7 +7071,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <div style="font-family:Georgia,serif;font-size:22px;letter-spacing:.05em">
         <span style="color:#993556;font-weight:700">Me</span><span style="color:#6B2D8B">Cuidar</span>
       </div>
-      <div id="cli-home-estab" style="font-size:10px;color:#9a7a8a;letter-spacing:.2em;text-transform:uppercase;margin-top:2px">Studio Luna</div>
+      <div id="cli-home-estab" style="font-size:10px;color:#9a7a8a;letter-spacing:.2em;text-transform:uppercase;margin-top:2px">Saúde e Bem-Estar</div>
       <div style="font-size:14px;color:#993556;margin-top:8px;font-weight:500" id="cli-welcome">Olá!</div>
       <div onclick="abrirModalSenhaCli()" style="font-size:11px;color:#b3789a;margin-top:6px;cursor:pointer;text-decoration:underline;display:inline-flex;align-items:center;gap:4px">🔒 Alterar senha</div>
     </div>
@@ -7173,7 +7172,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     </div>
     <!-- Rodapé -->
     <div style="text-align:center;padding:8px 0 24px;flex-shrink:0">
-      <div id="cli-footer-estab" style="font-size:10px;color:#c9aab8;letter-spacing:.1em">belezza · Studio Luna</div>
+      <div id="cli-footer-estab" style="font-size:10px;color:#c9aab8;letter-spacing:.1em">belezza · MeCuidar</div>
     </div>
   </div>
 </div><!-- /home-cli-screen -->
@@ -7485,7 +7484,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <div style="font-family:Georgia,serif;font-size:26px;letter-spacing:.05em;margin-bottom:4px">
         <span style="color:#ffb3cc;font-weight:700">Me</span><span style="color:white">Cuidar</span>
       </div>
-      <div id="cadastro-estab-nome" style="font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.18em;text-transform:uppercase">Studio Luna</div>
+      <div id="cadastro-estab-nome" style="font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.18em;text-transform:uppercase">Saúde e Bem-Estar</div>
       <div style="font-size:13px;color:rgba(255,255,255,.8);margin-top:10px">Crie sua conta grátis 💕</div>
     </div>
 
