@@ -1785,15 +1785,9 @@ onAuthStateChanged(auth, async user => {
           setTimeout(() => { if(window.verificarEExibirPopup) window.verificarEExibirPopup(); }, 300);
         };
 
-        if(_splashPendente) {
-          // Veio do clique em Entrar → splash 2s com imagem limpa
-          _splashPendente = false;
-          if(loginScreen) loginScreen.classList.add('splash');
-          setTimeout(abrirFlores, 2000);
-        } else {
-          // Veio de sessão salva (reload) → vai direto para as flores
-          abrirFlores();
-        }
+        // Vai direto para as flores (sem splash intermediário)
+        _splashPendente = false;
+        abrirFlores();
 
       } else {
         // ── Rota Profissional/Admin → app principal ──
