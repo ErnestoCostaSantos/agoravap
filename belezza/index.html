@@ -2180,7 +2180,7 @@ function closeHelp(){
 function handleOvClick(e){if(e.target===document.getElementById('help-ov'))closeHelp();}
 
 const titulos={'p-dash':'Dashboard','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-servicos':'Serviços','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','p-personalizacao':'Personalização','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
-const actLbl={'p-dash':'Novo agendamento','p-agenda':'Novo agendamento','p-clientes':'Nova cliente','p-equipe':'Add profissional','p-servicos':'+ Novo serviço','p-camp':'Nova campanha','p-promos':'Publicar promo'};
+const actLbl={'p-dash':'Novo agendamento','p-agenda':'Novo agendamento','p-clientes':'Nova cliente','p-equipe':'Add profissional','p-servicos':'Novo serviço','p-camp':'Nova campanha','p-promos':'Publicar promo'};
 let role='p';
 
 function showPane(id){
@@ -2496,6 +2496,12 @@ function abrirModalAg(){
     anoEl.value      = String(anoAtual);
     previewDataAg();
   }
+  // Limpa campos que persistem entre aberturas do modal
+  const obsEl = document.getElementById('ag-obs');
+  if(obsEl) obsEl.value = '';
+  const horaEl2 = document.getElementById('ag-hora');
+  if(horaEl2) horaEl2.selectedIndex = 0;
+
   document.getElementById('modal-novo-ag').style.display = 'flex';
 }
 function previewDataAg(){
@@ -4333,7 +4339,7 @@ function renderAgSemana(){
         <div style="font-size:15px;font-weight:700;color:${hoje?'var(--pk600)':'var(--tx)'};margin-bottom:6px">${dd}</div>
         ${ags.length===0
           ? '<div style="font-size:10px;color:var(--tx3)">Livre</div>'
-          : ags.map(a=>`<div style="font-size:10px;background:var(--pk50);border-radius:4px;padding:2px 5px;margin-bottom:3px;color:var(--pk800);line-height:1.3"><b>${a.hora}</b> ${a.servico.split(' ')[0]}</div>`).join('')
+          : ags.map(a=>`<div style="font-size:10px;background:var(--pk50);border-radius:4px;padding:2px 5px;margin-bottom:3px;color:var(--pk800);line-height:1.3;display:flex;align-items:center;justify-content:space-between;gap:2px"><span><b>${a.hora}</b> ${a.servico.split(' ')[0]}</span><span onclick="cancelarFS('${a.id}','lider')" style="cursor:pointer;color:var(--tx3);font-size:11px;line-height:1;padding:1px 3px" title="Cancelar">✕</span></div>`).join('')
         }
         ${ags.length>0?`<div style="font-size:10px;color:var(--tx3);margin-top:3px">${ags.length} ag.</div>`:''}
       </div>`;
@@ -4394,9 +4400,15 @@ function renderAgMes(){
   });
 
   if(todosDoMes.length > 0){
+    const ordenados = todosDoMes.slice().sort((a,b) => {
+      const [da,ma] = (a.data||'01/01').split('/').map(Number);
+      const [db,mb] = (b.data||'01/01').split('/').map(Number);
+      if(ma!==mb) return ma-mb; if(da!==db) return da-db;
+      return (a.hora||'') > (b.hora||'') ? 1 : -1;
+    });
     html += `<div class="sec-lbl" style="margin-top:16px">Agendamentos — ${NOMES_MES[mes]}</div>`;
-    html += todosDoMes.map((ag,i) => `
-      <div class="ag-card">
+    html += ordenados.map((ag,i) => `
+      <div class="ag-card" id="${ag.id}">
         <div class="ag-time">${ag.data}</div>
         <div class="ag-bar" style="background:${CORES_BAR[i%CORES_BAR.length]}"></div>
         <div class="ag-info">
@@ -4404,6 +4416,7 @@ function renderAgMes(){
           <div class="ag-meta"><i class="ti ti-user" style="font-size:11px"></i>${ag.cliente} · ${ag.prof} · <span style="color:var(--tx3);font-size:10px">${ag.hora}</span></div>
         </div>
         <span class="badge badge-ok">✓</span>
+        <button onclick="cancelarFS('${ag.id}','lider')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--tx3);padding:2px 4px;border-radius:4px" title="Cancelar">✕</button>
       </div>`).join('');
   } else {
     html += '<div style="color:var(--tx3);font-size:13px;padding:12px 0;text-align:center">Sem agendamentos este mês.</div>';
