@@ -309,6 +309,8 @@ input[type="password"]::-ms-clear {
   from { opacity:0; transform:translateX(-50%) translateY(-10px); }
   to   { opacity:1; transform:translateX(-50%) translateY(0); }
 }
+#ag-servico optgroup{ font-size:11px; font-weight:700; }
+#ag-servico option{ font-size:12px; font-weight:400; }
 </style>
 </head>
 <body>
@@ -1245,10 +1247,9 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
               <!-- Interesses -->
               <div>
                 <label style="font-size:10px;font-weight:600;color:var(--tx2);display:block;margin-bottom:6px">Interesses</label>
-                <div id="crm-p-interesses" style="display:flex;flex-wrap:wrap;gap:6px">
-                  <span style="font-size:11px;color:var(--tx3)">Carregando interesses...</span>
-                </div>
-                <div style="font-size:10px;color:var(--tx3);margin-top:4px">Selecione um ou mais — deixe todos desmarcados para não filtrar por interesse</div>
+                <input id="crm-p-interesses-texto" type="text" placeholder="Ex: botox, preenchimento, limpeza de pele"
+                  style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+                <div style="font-size:10px;color:var(--tx3);margin-top:4px">Descreva com atenção os serviços que você quer filtrar, separados por vírgula ou espaço.</div>
               </div>
             </div>
 
@@ -1320,7 +1321,13 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
                 <label style="font-size:10px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Serviço realizado</label>
                 <select id="crm-h-servico"
                   style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
-                  <option value="">— selecione um serviço —</option>
+                  <option value="">Qualquer Serviço</option>
+                  <option value="facial">Tratamento Facial</option>
+                  <option value="corporal">Tratamento Corporal</option>
+                  <option value="capilar">Tratamento Capilar</option>
+                  <option value="cilios-unhas">Cílios e Unhas</option>
+                  <option value="cabelos">Cabelos</option>
+                  <option value="outros">Outros</option>
                 </select>
               </div>
 
@@ -2548,7 +2555,9 @@ function fecharModalAg(){
   document.getElementById('modal-novo-ag').style.display = 'none';
   document.getElementById('ag-toast').style.display = 'none';
 }
+let _salvandoAg = false;
 async function salvarNovoAg(){
+  if(_salvandoAg) return; // trava contra duplo-clique/duplo-toque (causa de agendamento duplicado)
   const clienteEl = document.getElementById('ag-cliente');
   const servicoEl = document.getElementById('ag-servico');
   const dataEl    = document.getElementById('ag-data');
@@ -2588,16 +2597,23 @@ async function salvarNovoAg(){
   const novoAg = { id, cliente, clienteId, servico, data:dataFmt, hora, prof:profAbrev, profId, origem,
     status:'confirmado', clinicaId:clinicaAtual(), criadoEm:new Date().toISOString() };
 
+  const btnConfirmar = document.querySelector('#modal-novo-ag button.btn.pk');
+  _salvandoAg = true;
+  if(btnConfirmar) btnConfirmar.disabled = true;
   try {
     await setDoc(doc(db, 'agendamentos', id), novoAg);
-    agendamentos.push(novoAg);
-    window.agendamentosDB = agendamentos;
-    adicionarConfirmado(novoAg);
+    // Não atualiza a UI manualmente aqui — o listener onSnapshot de /agendamentos
+    // (iniciarListenerAgendamentos) já está ativo e vai re-renderizar a lista assim
+    // que o Firestore confirmar a escrita. Atualizar manualmente AQUI também
+    // causava duplicidade visual quando os dois caminhos coincidiam.
     document.getElementById('ag-toast').style.display = 'flex';
     setTimeout(() => fecharModalAg(), 2000);
   } catch(e) {
     console.error('[Belezza] salvarNovoAg:', e);
     alert('Erro ao criar agendamento: ' + e.message);
+  } finally {
+    _salvandoAg = false;
+    if(btnConfirmar) btnConfirmar.disabled = false;
   }
 }
 
@@ -3069,7 +3085,9 @@ function popularProfPreferencia(){
   const profWrap = document.getElementById('cli-prof-wrap');
   const profCard = profSel ? profSel.closest('.card') : null;
   if(!profSel) return;
-  const eqDB = (window.equipeDB || []).filter(p => p.ativa !== false);
+  // Lista TODA a equipe (não filtra por "ativa hoje" — a folga de hoje não impede
+  // a cliente de escolher essa profissional para um dia futuro em que ela trabalha)
+  const eqDB = window.equipeDB || [];
   if(typeof modoSolo === 'function' && modoSolo()){
     if(profCard) profCard.style.display = 'none';
     profSel.innerHTML = '<option value="">Sem preferência (qualquer disponível)</option>';
@@ -4128,19 +4146,18 @@ function iniciarListenerEquipe() {
         equipeDB.map(p => `<option value="${p.id}">${p.nome.split(' ')[0]} ${p.nome.split(' ')[1]?.[0]||''}.</option>`).join('');
       slotsSel.style.display = modoSolo() ? 'none' : '';
     }
-    // Atualiza select preferência de profissional (cliente)
-    const cliProfSel = document.getElementById('cli-prof-sel');
-    if (cliProfSel) {
-      cliProfSel.innerHTML = '<option value="">Sem preferência (qualquer disponível)</option>' +
-        equipeDB.filter(p => p.ativa).map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
-      const wrapProfCli = document.getElementById('cli-prof-wrap');
-      if (modoSolo()) {
-        const soloProf = equipeDB.filter(p => p.ativa)[0];
-        if (soloProf) cliProfSel.value = soloProf.id;
-        if (wrapProfCli) wrapProfCli.style.display = 'none';
-      } else {
-        if (wrapProfCli) wrapProfCli.style.display = 'block';
-      }
+    // Atualiza select preferência de profissional (cliente) — usa a função única
+    // popularProfPreferencia(), que NÃO filtra por "ativa hoje" (a cliente pode
+    // agendar para qualquer dia futuro, não só para hoje)
+    if (window.popularProfPreferencia) window.popularProfPreferencia();
+
+    // Dashboard depende de equipeDB para a seção "Equipe hoje" — sem esta chamada,
+    // se o Dashboard for renderizado antes do Firestore responder, ele fica preso
+    // mostrando o equipeDB de exemplo (fallback) para sempre, mesmo depois dos
+    // dados reais chegarem.
+    if (typeof initDashboard === 'function' &&
+        document.getElementById('pane-p-dash')?.classList.contains('active')) {
+      initDashboard();
     }
   }, err => { console.warn('[Belezza] equipe listener:', err); });
 }
@@ -4732,26 +4749,26 @@ const CAMP_TIPOS = {
     label: 'Campanha simples',
     etapas: ['Lançamento', 'Aquecimento', 'Finalização'],
     msgs: [
-      `Oi! Temos uma novidade incrível pra vocês! Confira nossa promoção especial e garante a sua vaga. 💕 - ${NOME_ESTAB}`,
-      `Oi meninas! Nossa campanha está chegando ao fim. Já agendaram? Qualquer dúvida é só chamar! - ${NOME_ESTAB}`,
-      `Último dia da nossa campanha especial! Não perca essa oportunidade. Qualquer dúvida é só chamar! 💕 - ${NOME_ESTAB}`,
+      `Oi! Temos uma novidade incrível pra vocês! Confira nossa promoção especial e garante a sua vaga. 💕 - {{ESTAB}}`,
+      `Oi meninas! Nossa campanha está chegando ao fim. Já agendaram? Qualquer dúvida é só chamar! - {{ESTAB}}`,
+      `Último dia da nossa campanha especial! Não perca essa oportunidade. Qualquer dúvida é só chamar! 💕 - {{ESTAB}}`,
     ]
   },
   vip: {
     label: 'Campanha VIP',
     etapas: ['Lançamento VIP', 'Oferta Exclusiva', 'Encerramento VIP'],
     msgs: [
-      `Você foi selecionada para uma oferta exclusiva VIP! Confira o que preparamos especialmente para você. 👑 - ${NOME_ESTAB}`,
-      `Sua oferta VIP exclusiva está esperando por você! Aproveite antes que encerre. 💎 - ${NOME_ESTAB}`,
-      `Último dia da sua oferta VIP! Não perca. 👑 - ${NOME_ESTAB}`,
+      `Você foi selecionada para uma oferta exclusiva VIP! Confira o que preparamos especialmente para você. 👑 - {{ESTAB}}`,
+      `Sua oferta VIP exclusiva está esperando por você! Aproveite antes que encerre. 💎 - {{ESTAB}}`,
+      `Último dia da sua oferta VIP! Não perca. 👑 - {{ESTAB}}`,
     ]
   },
   flash: {
     label: 'Flash',
     etapas: ['Lançamento Flash', 'Encerramento Flash'],
     msgs: [
-      `⚡ FLASH! Promoção especial por tempo limitado. Corra! - ${NOME_ESTAB}`,
-      `⚡ Últimas horas da nossa Flash! Aproveite agora. - ${NOME_ESTAB}`,
+      `⚡ FLASH! Promoção especial por tempo limitado. Corra! - {{ESTAB}}`,
+      `⚡ Últimas horas da nossa Flash! Aproveite agora. - {{ESTAB}}`,
     ]
   }
 };
@@ -4815,11 +4832,15 @@ async function criarCampanha() {
   const nEtapas = tipoConfig.etapas.length;
   const datasEtapas = calcEtapas(iniDia, iniMes, fimDia, fimMes, nEtapas);
 
+  // Nome real da clínica/profissional (carregado pelo branding) — substitui o placeholder
+  // {{ESTAB}} no momento da criação, evitando mensagens presas no nome padrão de fallback
+  const nomeReal = window.NOME_ESTAB || 'MeCuidar';
+
   const etapas = tipoConfig.etapas.map((label, i) => ({
     numero:    i + 1,
     label,
     data:      datasEtapas[i] || '',
-    msg:       tipoConfig.msgs[i] || '',
+    msg:       (tipoConfig.msgs[i] || '').replace(/\{\{ESTAB\}\}/g, nomeReal),
     enviado:   false,
     enviadoEm: null,
   }));
@@ -4904,6 +4925,18 @@ function renderCampanhas(camps) {
             <div class="step-actions">
               <button class="btn tl sm" onclick="abrirWpp('${et.msg.replace(/'/g,"\\'")}')"><i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp</button>
               <button class="btn sm" onclick="marcarEtapaEnviada('${c.id}',${i})"><i class="ti ti-check"></i> Marcar enviado</button>
+            </div>
+            <div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              ${et.imagemBase64 ? `
+                <img src="${et.imagemBase64}" style="width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid var(--br)">
+                <button class="btn sm" onclick="baixarImagemEtapa('${c.id}',${i})" style="font-size:11px"><i class="ti ti-download"></i> Baixar imagem</button>
+                <button class="btn sm" onclick="removerImagemEtapa('${c.id}',${i})" style="font-size:11px;color:var(--pk600)"><i class="ti ti-x"></i></button>
+              ` : `
+                <label style="font-size:11px;color:var(--tx3);cursor:pointer;display:flex;align-items:center;gap:4px">
+                  <i class="ti ti-paperclip" style="font-size:13px"></i> Anexar imagem (opcional)
+                  <input type="file" accept="image/*" style="display:none" onchange="salvarImagemEtapa('${c.id}',${i},this.files[0])">
+                </label>
+              `}
             </div>` : enviado ? `<div style="font-size:11px;color:var(--tx3)">Enviado${et.enviadoEm ? ' em ' + new Date(et.enviadoEm).toLocaleDateString('pt-BR') : ''}</div>` : ''}
           </div>
         </div>`;
@@ -4963,6 +4996,44 @@ async function marcarEtapaEnviada(campId, etapaIdx) {
   } catch(e) { console.error('[Belezza] marcarEtapa:', e); }
 }
 
+// ── Imagem opcional por etapa de campanha ──────────────────────────────────
+// IMPORTANTE: o link do WhatsApp (wa.me) só consegue pré-preencher TEXTO — não existe
+// forma de anexar uma imagem automaticamente por essa via (limitação do próprio WhatsApp,
+// não do app). Por isso o fluxo aqui é: anexar → baixar para a galeria do celular →
+// anexar manualmente dentro da conversa do WhatsApp depois que ela abrir com o texto pronto.
+async function salvarImagemEtapa(campId, etapaIdx, file) {
+  if(!file) return;
+  const camp = campanhasDB.find(c => c.id === campId);
+  if(!camp) return;
+  crmCompressImg(file, async (b64) => {
+    const etapas = [...(camp.etapas||[])];
+    etapas[etapaIdx] = { ...etapas[etapaIdx], imagemBase64: b64 };
+    try {
+      await updateDoc(doc(db, 'campanhas', campId), { etapas });
+    } catch(e) { console.error('[Belezza] salvarImagemEtapa:', e); alert('Erro ao anexar imagem: ' + e.message); }
+  });
+}
+
+function baixarImagemEtapa(campId, etapaIdx) {
+  const camp = campanhasDB.find(c => c.id === campId);
+  const img = camp?.etapas?.[etapaIdx]?.imagemBase64;
+  if(!img) return;
+  const a = document.createElement('a');
+  a.href = img;
+  a.download = `campanha-${campId}-etapa${etapaIdx+1}.jpg`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+async function removerImagemEtapa(campId, etapaIdx) {
+  const camp = campanhasDB.find(c => c.id === campId);
+  if(!camp) return;
+  const etapas = [...(camp.etapas||[])];
+  etapas[etapaIdx] = { ...etapas[etapaIdx], imagemBase64: null };
+  try {
+    await updateDoc(doc(db, 'campanhas', campId), { etapas });
+  } catch(e) { console.error('[Belezza] removerImagemEtapa:', e); }
+}
+
 // ── Ajusta contadores ─────────────────────────────────────────────────────
 async function adjCamp(campId, campo, delta) {
   const camp = campanhasDB.find(c => c.id === campId);
@@ -4986,6 +5057,9 @@ window.criarCampanha          = criarCampanha;
 window.campanhasDB            = campanhasDB; // referência atualizada pelo listener
 window.iniciarListenerCampanhas = iniciarListenerCampanhas;
 window.marcarEtapaEnviada     = marcarEtapaEnviada;
+window.salvarImagemEtapa      = salvarImagemEtapa;
+window.baixarImagemEtapa      = baixarImagemEtapa;
+window.removerImagemEtapa     = removerImagemEtapa;
 window.adjCamp                = adjCamp;
 window.encerrarCampanha       = encerrarCampanha;
 window.initCampForm           = initCampForm;
@@ -5482,6 +5556,7 @@ function renderEquipe(lista){
         <div class="pro-actions">
           <button class="btn-sm2" onclick="verAgendaProfissional('${p.id}','${p.nome}')"><i class="ti ti-calendar" style="font-size:11px"></i> Agenda</button>
           <button class="btn-sm2" onclick="editarProfissional('${p.id}')"><i class="ti ti-pencil" style="font-size:11px"></i> Editar</button>
+          <button class="btn-sm2" onclick="apagarProfissional('${p.id}','${p.nome.replace(/'/g,"\\'")}')" style="color:#b3334d"><i class="ti ti-trash" style="font-size:11px"></i></button>
         </div>
       </div>
     </div>`;
@@ -5540,7 +5615,21 @@ function fecharModalProfissional(){
   document.getElementById('modal-prof').style.display = 'none';
 }
 
+let _salvandoProfissional = false;
 async function salvarProfissional(){
+  if(_salvandoProfissional) return; // trava contra duplo-clique/duplo-toque (causa de cadastro duplicado)
+  _salvandoProfissional = true;
+  const btnSalvar = document.querySelector('#modal-prof button.btn.pk');
+  if(btnSalvar) btnSalvar.disabled = true;
+  try {
+    await _salvarProfissionalImpl();
+  } finally {
+    _salvandoProfissional = false;
+    if(btnSalvar) btnSalvar.disabled = false;
+  }
+}
+
+async function _salvarProfissionalImpl(){
   const nome = document.getElementById('prof-nome').value.trim();
   const wpp  = document.getElementById('prof-wpp').value.trim();
   const espec= document.getElementById('prof-espec').value.trim();
@@ -5616,6 +5705,19 @@ function mostrarToastProf(msg){
 function editarProfissional(id){
   abrirModalProfissional(id);
 }
+
+async function apagarProfissional(id, nome){
+  if(!confirm(`Apagar a profissional "${nome}"? Esta ação não pode ser desfeita. Agendamentos já existentes dela não serão apagados.`)) return;
+  try {
+    await deleteDoc(doc(db, 'equipe', clinicaAtual(), 'profissionais', id));
+    mostrarToastProf('Profissional removido/a!');
+    // onSnapshot de equipe vai re-renderizar a lista automaticamente
+  } catch(e) {
+    console.error('[Belezza] apagarProfissional:', e);
+    alert('Erro ao apagar: ' + e.message);
+  }
+}
+window.apagarProfissional = apagarProfissional;
 
 function verAgendaProfissional(id, nome){
   // Vai para aba Agenda e filtra pelo nome abreviado
@@ -6534,41 +6636,7 @@ window.crmHClearImg   = crmHClearImg;
 
 // ── Inicializa interesses e select de serviços ────────────────────────────────
 function crmInicializar() {
-  // Popula checkboxes de interesses a partir de clientesDB
-  const db = window.clientesDB || [];
-  const todosTags = new Set();
-  db.forEach(c => {
-    if (c.interesse) {
-      c.interesse.split(/[,;·\n]+/).forEach(t => {
-        const tag = t.trim();
-        if (tag) todosTags.add(tag);
-      });
-    }
-  });
-  const wrap = document.getElementById('crm-p-interesses');
-  if (wrap) {
-    if (todosTags.size === 0) {
-      wrap.innerHTML = '<span style="font-size:11px;color:var(--tx3)">Nenhum interesse cadastrado ainda.</span>';
-    } else {
-      wrap.innerHTML = Array.from(todosTags).sort().map(tag =>
-        `<label style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid var(--br);cursor:pointer;font-size:11px;color:var(--tx2);background:var(--bg2);user-select:none">
-          <input type="checkbox" value="${tag}" style="accent-color:var(--pu400)"> ${tag}
-        </label>`
-      ).join('');
-    }
-  }
-
-  // Popula select de serviços a partir dos agendamentos confirmados
-  const ags = window.agendamentosDB || [];
-  const svcs = new Set();
-  ags.forEach(a => { if (a.servico && a.status === 'confirmado') svcs.add(a.servico); });
-  // Fallback: serviços das clientes (ultimoSvc)
-  db.forEach(c => { if (c.ultimoSvc && c.ultimoSvc !== '—') svcs.add(c.ultimoSvc); });
-  const sel = document.getElementById('crm-h-servico');
-  if (sel && svcs.size > 0) {
-    sel.innerHTML = '<option value="">— selecione um serviço —</option>' +
-      Array.from(svcs).sort().map(s => `<option value="${s}">${s}</option>`).join('');
-  }
+  // Select de "Serviço realizado" agora usa categorias fixas (ver HTML) — nada a popular aqui.
 }
 window.crmInicializar = crmInicializar;
 
@@ -6579,8 +6647,10 @@ function crmFiltrarPerfil() {
 
   const idadeMin = parseInt(document.getElementById('crm-p-idade-min')?.value) || 0;
   const idadeMax = parseInt(document.getElementById('crm-p-idade-max')?.value) || 999;
-  const checkboxes = document.querySelectorAll('#crm-p-interesses input[type=checkbox]:checked');
-  const interessesFiltro = Array.from(checkboxes).map(cb => cb.value.toLowerCase());
+  const textoInteresses = (document.getElementById('crm-p-interesses-texto')?.value || '').trim();
+  const interessesFiltro = textoInteresses
+    ? textoInteresses.split(/[,;\s]+/).map(s => s.trim().toLowerCase()).filter(Boolean)
+    : [];
 
   const db = window.clientesDB || [];
   const hoje = new Date();
@@ -6611,13 +6681,32 @@ function crmFiltrarPerfil() {
 }
 window.crmFiltrarPerfil = crmFiltrarPerfil;
 
+// Categorias fixas de "Serviço realizado" → palavras-chave usadas para casar com o
+// texto livre digitado no cadastro do serviço/agendamento (ex: "Botox" cai em "facial").
+const CATEGORIAS_SERVICO = {
+  facial:        ['facial','rosto','botox','preenchimento','limpeza de pele','peeling','skinbooster','bioestimulador','harmonização'],
+  corporal:      ['corporal','drenagem','criolipólise','criolipolise','massoterapia','massagem','modelagem','bumbum','lipo'],
+  capilar:       ['capilar','hidratação capilar','botox capilar','cronograma capilar','queratina'],
+  'cilios-unhas':['cílios','cilios','unha','unhas','sobrancelha','alongamento','design','micropigmentação','micropigmentacao'],
+  cabelos:       ['cabelo','corte','coloração','coloracao','mecha','progressiva','escova','luzes','penteado'],
+};
+function _servicoCasaCategoria(servicoTexto, categoria){
+  const txt = (servicoTexto || '').toLowerCase();
+  if(!categoria) return true; // "Qualquer Serviço"
+  if(categoria === 'outros'){
+    // "Outros" = não bate com nenhuma das categorias específicas
+    return !Object.values(CATEGORIAS_SERVICO).some(palavras => palavras.some(p => txt.includes(p)));
+  }
+  const palavras = CATEGORIAS_SERVICO[categoria] || [];
+  return palavras.some(p => txt.includes(p));
+}
+
 // ── Filtrar por Histórico ─────────────────────────────────────────────────────
 function crmFiltrarHistorico() {
   const nome = (document.getElementById('crm-h-nome')?.value || '').trim();
   if (!nome) { alert('Informe o nome do convite antes de filtrar.'); return; }
 
-  const svcFiltro = (document.getElementById('crm-h-servico')?.value || '').trim();
-  if (!svcFiltro) { alert('Selecione um serviço para filtrar.'); return; }
+  const svcFiltro = (document.getElementById('crm-h-servico')?.value || '').trim(); // '' = Qualquer Serviço
 
   const diasMin = parseInt(document.getElementById('crm-h-dias')?.value) || 60;
 
@@ -6629,9 +6718,7 @@ function crmFiltrarHistorico() {
   const ultimaDataPorCliente = {};
   ags.forEach(a => {
     if (a.status !== 'confirmado') return;
-    const svcNorm = (a.servico || '').toLowerCase();
-    const filtNorm = svcFiltro.toLowerCase();
-    if (!svcNorm.includes(filtNorm) && !filtNorm.includes(svcNorm)) return;
+    if (!_servicoCasaCategoria(a.servico, svcFiltro)) return;
     const dataAg = new Date(a.data?.split('/').reverse().join('-') || a.criadoEm);
     if (isNaN(dataAg)) return;
     const key = a.clienteId || a.cliente;
@@ -6642,9 +6729,7 @@ function crmFiltrarHistorico() {
 
   // Fallback: usa ultimoSvc de clientesDB
   db.forEach(c => {
-    const svcNorm = (c.ultimoSvc || '').toLowerCase();
-    const filtNorm = svcFiltro.toLowerCase();
-    if (!svcNorm.includes(filtNorm) && !filtNorm.includes(svcNorm)) return;
+    if (!_servicoCasaCategoria(c.ultimoSvc, svcFiltro)) return;
     const key = c.id;
     if (!ultimaDataPorCliente[key] && c.ultimaVisita && c.ultimaVisita !== '—') {
       const parts = c.ultimaVisita.split('/');
@@ -7549,7 +7634,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     </div>
     <div style="margin-bottom:12px">
       <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Serviço</label>
-      <select id="ag-servico" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+      <select id="ag-servico" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
         <option value="">Selecione...</option>
       </select>
     </div>
