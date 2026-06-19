@@ -3058,8 +3058,28 @@ function abrirAgendaServico(){
       svcNome.textContent = 'Serviço: ' + servicoSelecionado.nome + ' — ' + servicoSelecionado.preco;
       svcInfo.style.display = 'block';
     }
+    popularProfPreferencia();
   }, 150);
 }
+
+// Popula o select "Profissional de preferência" com a equipe real da clínica.
+// Em Modo Solo (≤1 profissional ativa), o passo inteiro é escondido — não há o que escolher.
+function popularProfPreferencia(){
+  const profSel = document.getElementById('cli-prof-sel');
+  const profWrap = document.getElementById('cli-prof-wrap');
+  const profCard = profSel ? profSel.closest('.card') : null;
+  if(!profSel) return;
+  const eqDB = (window.equipeDB || []).filter(p => p.ativa !== false);
+  if(typeof modoSolo === 'function' && modoSolo()){
+    if(profCard) profCard.style.display = 'none';
+    profSel.innerHTML = '<option value="">Sem preferência (qualquer disponível)</option>';
+    return;
+  }
+  if(profCard) profCard.style.display = '';
+  profSel.innerHTML = '<option value="">Sem preferência (qualquer disponível)</option>' +
+    eqDB.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+}
+window.popularProfPreferencia = popularProfPreferencia;
 
 function initCalendario(){
   const cal = document.getElementById('cli-cal');
@@ -3221,6 +3241,7 @@ function abrirAgendaPromo(nome){
       nomeEl.textContent = 'Agendando promoção: ' + nome;
       badge.style.display = 'flex';
     }
+    if(window.popularProfPreferencia) window.popularProfPreferencia();
   }, 150);
 }
 
@@ -3867,6 +3888,35 @@ async function confirmarFS(id) {
       confirmadoEm: new Date().toISOString(),
       confirmadoPor: cu?.uid || 'admin'
     });
+
+    // Acumula Visitas / Total Gasto / Última Visita na ficha da cliente.
+    // Só atualiza quando o agendamento está de fato vinculado a uma cliente cadastrada
+    // (clienteId) — agendamentos manuais antigos sem esse campo não são afetados.
+    const ag = agendamentos.find(a => a.id === id);
+    if (ag && ag.clienteId) {
+      try {
+        // Busca o documento real em /clientes (o clienteId do agendamento é o UID do Auth
+        // da cliente; o id do documento em /clientes pode ser diferente — então localiza pelo uid)
+        const cliLocal = (window.clientesDB || clientesDB).find(c => c.uid === ag.clienteId || c.id === ag.clienteId);
+        if (cliLocal) {
+          const novoValor = (cliLocal.valor || 0) + (ag.valorServico || 0);
+          const novasVisitas = (cliLocal.visitas || 0) + 1;
+          await updateDoc(doc(db, 'clientes', cliLocal.id), {
+            visitas: novasVisitas,
+            valor: novoValor,
+            ultimaVisita: ag.data,
+            ultimoSvc: ag.servico,
+            prof: ag.prof || cliLocal.prof || '—',
+          });
+          // Reflete na memória local para a UI atualizar sem precisar recarregar
+          cliLocal.visitas = novasVisitas;
+          cliLocal.valor = novoValor;
+          cliLocal.ultimaVisita = ag.data;
+          cliLocal.ultimoSvc = ag.servico;
+        }
+      } catch(eCli) { console.warn('[Belezza] acumular visitas/valor:', eCli); }
+    }
+
     // UI feedback imediato
     const el = document.getElementById(id);
     if (el) {
@@ -3963,6 +4013,7 @@ async function enviarSolicitacaoFS() {
       cliente:    nomeCliente,
       clienteEmail: cu.email,
       servico:    (servicoSelecionado?.nome) || (window.servicoSelecionado?.nome) || promoSelecionada || 'Serviço não especificado',
+      valorServico: parseFloat(String((servicoSelecionado?.preco)||(window.servicoSelecionado?.preco)||'0').replace(/[^\d,.-]/g,'').replace(',','.')) || 0,
       data:       dataFmt,
       hora:       selHorario,
       prof: (()=>{
