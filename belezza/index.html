@@ -603,10 +603,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <div class="two-col">
         <div class="card">
           <div class="card-title" id="dash-equipe-titulo">Equipe hoje <span class="card-link" onclick="goTo('p-equipe',null)" id="dash-equipe-link">ver todos →</span></div>
-          <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaLuna&backgroundColor=fbeaf0" style="width:28px;height:28px;border-radius:50%" alt="Carla M."><div><div class="row-name" style="font-size:12px">Carla Mendes</div><div class="row-sub">Estética facial</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">5 hoje</div></div>
-          <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=FernandaR&backgroundColor=e1f5ee" style="width:28px;height:28px;border-radius:50%" alt="Fernanda R."><div><div class="row-name" style="font-size:12px">Fernanda Rocha</div><div class="row-sub">Dermato estética</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">4 hoje</div></div>
-          <div class="row-item"><div class="dot dot-off"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=JulianaS&backgroundColor=eeedfe" style="width:28px;height:28px;border-radius:50%" alt="Juliana S."><div><div class="row-name" style="font-size:12px">Juliana Santos</div><div class="row-sub">Design &amp; micropigm.</div></div><div class="row-right" style="font-size:11px;color:var(--tx3)">folga</div></div>
-          <div class="row-item"><div class="dot dot-ok"></div><img src="https://api.dicebear.com/9.x/lorelei/svg?seed=BeatrizL&backgroundColor=faece7" style="width:28px;height:28px;border-radius:50%" alt="Beatriz L."><div><div class="row-name" style="font-size:12px">Beatriz Lima</div><div class="row-sub">Massoterapia</div></div><div class="row-right" style="font-size:11px;color:var(--tx2)">3 hoje</div></div>
+          <div id="dash-equipe-lista">
         </div>
         <div class="card">
           <div class="card-title">Agenda hoje <span class="card-link" onclick="goTo('p-agenda',null)">ver tudo →</span></div>
@@ -2197,13 +2194,32 @@ function initDashboard(){
   // Modo solo: ajusta card "Equipe hoje"
   const dashEquipeTit  = document.getElementById('dash-equipe-titulo');
   const dashEquipeLink = document.getElementById('dash-equipe-link');
-  if(dashEquipeTit && modoSolo()){
-    dashEquipeTit.childNodes[0].textContent = 'Você hoje ';
-    if(dashEquipeLink) dashEquipeLink.style.display = 'none';
-  } else if(dashEquipeTit) {
-    dashEquipeTit.childNodes[0].textContent = 'Equipe hoje ';
-    if(dashEquipeLink) dashEquipeLink.style.display = '';
+  const eqDB = window.equipeDB || equipeDB || [];
+  const solo = modoSolo();
+  if(dashEquipeTit){
+    dashEquipeTit.childNodes[0].textContent = solo ? 'Você hoje ' : 'Equipe hoje ';
+    if(dashEquipeLink) dashEquipeLink.style.display = solo ? 'none' : '';
   }
+
+  // Substitui linhas hardcoded de equipe pelos profissionais reais do Firestore
+  const dashEquipeList = document.getElementById('dash-equipe-lista');
+  if(dashEquipeList && eqDB.length > 0){
+    const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+    const diaHoje = diasSemana[new Date().getDay()];
+    dashEquipeList.innerHTML = eqDB.map(p => {
+      const ativa = !p.disp?.length || p.disp.includes(diaHoje);
+      const dot = ativa ? 'dot-ok' : 'dot-off';
+      const sub = ativa ? (p.espec?.split(/[·,]/)[0]?.trim() || '') : 'folga';
+      const right = ativa ? (p.agMes||0)+' hoje' : '';
+      return `<div class="row-item">
+        <div class="dot ${dot}"></div>
+        <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(p.seed||p.nome)}&backgroundColor=${p.bgColor||'fbeaf0'}" style="width:28px;height:28px;border-radius:50%" alt="${p.nome}">
+        <div><div class="row-name" style="font-size:12px">${p.nome}</div><div class="row-sub">${sub}</div></div>
+        <div class="row-right" style="font-size:11px;color:var(--tx${ativa?'2':'3'})">${right}</div>
+      </div>`;
+    }).join('');
+  }
+
   // Garante que tab Dashboard está ativo
   document.querySelectorAll('#mob-pro .mob-tab').forEach(t => t.classList.remove('active'));
   const tabDash = document.getElementById('tab-p-dash');
@@ -2500,7 +2516,7 @@ function fecharModalAg(){
   document.getElementById('modal-novo-ag').style.display = 'none';
   document.getElementById('ag-toast').style.display = 'none';
 }
-function salvarNovoAg(){
+async function salvarNovoAg(){
   const clienteEl = document.getElementById('ag-cliente');
   const servicoEl = document.getElementById('ag-servico');
   const dataEl    = document.getElementById('ag-data');
@@ -2513,21 +2529,44 @@ function salvarNovoAg(){
   const data      = dataEl    ? dataEl.value : '';
   const hora      = horaEl    ? horaEl.value : '';
   const profNome  = profEl    ? (profEl.options[profEl.selectedIndex]?.text || profEl.value) : '';
+  const profId    = profEl    ? profEl.value : '';
   const origem    = origemEl  ? origemEl.value : '';
   if(!cliente || cliente==='Selecione...' || !servico || !data){
     alert('Preencha cliente, serviço e data.'); return;
   }
+
+  // Validação: não permitir data passada
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
   const d = new Date(data + 'T00:00:00');
+  if(d < hoje){ alert('Não é possível criar agendamento para uma data passada.'); return; }
+
+  // Validação: não permitir horário passado quando é hoje
+  if(d.getTime() === hoje.getTime() && hora){
+    const [hh,mm] = hora.split(':').map(Number);
+    const now = new Date();
+    if(hh * 60 + mm <= now.getHours() * 60 + now.getMinutes()){
+      alert('O horário escolhido já passou. Selecione um horário futuro.'); return;
+    }
+  }
+
   const dataFmt = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
-  // Abrevia nome da profissional com segurança
   const partes = profNome.trim().split(' ');
   const profAbrev = partes.length >= 2 ? partes[0] + ' ' + partes[1][0] + '.' : profNome;
-  const novoAg = { id:'ag-'+Date.now(), cliente, servico, data:dataFmt, hora, prof:profAbrev, origem, status:'confirmado' };
-  agendamentos.push(novoAg);
-  window.agendamentosDB = agendamentos; // expõe para módulo CRM
-  adicionarConfirmado(novoAg);
-  document.getElementById('ag-toast').style.display = 'flex';
-  setTimeout(() => fecharModalAg(), 2000);
+  const id = 'ag-' + Date.now();
+  const novoAg = { id, cliente, clienteId, servico, data:dataFmt, hora, prof:profAbrev, profId, origem,
+    status:'confirmado', clinicaId:clinicaAtual(), criadoEm:new Date().toISOString() };
+
+  try {
+    await setDoc(doc(db, 'agendamentos', id), novoAg);
+    agendamentos.push(novoAg);
+    window.agendamentosDB = agendamentos;
+    adicionarConfirmado(novoAg);
+    document.getElementById('ag-toast').style.display = 'flex';
+    setTimeout(() => fecharModalAg(), 2000);
+  } catch(e) {
+    console.error('[Belezza] salvarNovoAg:', e);
+    alert('Erro ao criar agendamento: ' + e.message);
+  }
 }
 
 const slots=['08:00','09:00','09:30','10:00','10:30','11:00','14:00','14:30','15:00','15:30','16:00','17:00'];
