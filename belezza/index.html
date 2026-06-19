@@ -1744,6 +1744,29 @@ onAuthStateChanged(auth, async user => {
         tentativas++;
       }
 
+      // Se ainda não existe, tenta auto-criar a partir de /clientes (Firestore rules bloqueiam
+      // a escrita de /users/{clienteUid} pelo profissional — self-heal no login da cliente)
+      if (!snap.exists()) {
+        try {
+          const qCli = await getDocs(
+            query(collection(db, 'clientes'), where('email', '==', user.email))
+          );
+          if (!qCli.empty) {
+            const cData = qCli.docs[0].data();
+            await setDoc(doc(db, 'users', user.uid), {
+              clinicaId: cData.clinicaId || clinicaAtual(),
+              role:      'cliente',
+              nome:      cData.nome || user.email,
+              name:      cData.nome || user.email,
+              email:     user.email,
+              wpp:       cData.wpp  || '',
+              criadoEm:  new Date().toISOString(),
+            });
+            snap = await getDoc(doc(db, 'users', user.uid));
+          }
+        } catch(autoErr) { console.warn('[MeCuidar] auto-create /users:', autoErr); }
+      }
+
       if (!snap.exists()) {
         await signOut(auth);
         showLoginError('Usuário não encontrado. Contate o administrador.');
@@ -3416,7 +3439,7 @@ function abrirPerfilCliente(id){
   const drawer = document.getElementById('cli-perfil');
   if(!titulo || !conteudo || !drawer) return;
   titulo.textContent = c.nome;
-  const idade = c.nasc ? Math.floor((new Date() - new Date(c.nasc)) / (365.25*24*3600*1000)) : '—';
+  const idade = c.nasc ? Math.floor((new Date() - _parseNasc(c.nasc)) / (365.25*24*3600*1000)) : '—';
   const avatarMasc = 'https://api.dicebear.com/9.x/notionists/svg?seed=' + c.id + '&backgroundColor=e8f4ff';
   const avatarSrc = c.sexo === 'M' ? avatarMasc : c.avatar;
   conteudo.innerHTML = `
@@ -3526,6 +3549,16 @@ async function salvarCliente(){
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO FIRESTORE — Integração completa agendamentos
 // ══════════════════════════════════════════════════════════════════════════════
+
+
+// Parseia data de nascimento em DD/MM/AAAA ou YYYY-MM-DD
+function _parseNasc(s){
+  if(!s) return null;
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(s)){
+    const[d,m,a]=s.split('/'); return new Date(+a,+m-1,+d);
+  }
+  return new Date(s);
+}
 
 const CLINICA_ID = 'belezza-50e76'; // clinicaId padrão (fallback quando ainda não há sessão)
 
@@ -5886,15 +5919,14 @@ function editarCliente(id){
   modal.style.display = 'flex';
 }
 
-function salvarEdicaoCliente(id){
+async function salvarEdicaoCliente(id){
   const nome = document.getElementById('nc-nome').value.trim();
   const wpp  = document.getElementById('nc-wpp').value.trim();
   if(!nome || !wpp){ document.getElementById('nc-error').textContent = 'Nome e WhatsApp são obrigatórios.'; return; }
   const idx = clientesDB.findIndex(x => x.id === id);
   if(idx < 0) return;
   const sexo = document.querySelector('input[name="nc-sexo"]:checked')?.value || clientesDB[idx].sexo;
-  clientesDB[idx] = {
-    ...clientesDB[idx],
+  const alteracoes = {
     nome, wpp, sexo,
     apelido:    (document.getElementById('nc-apelido')?.value||'').toUpperCase().slice(0,2),
     nasc:       document.getElementById('nc-nasc').value,
@@ -5903,10 +5935,14 @@ function salvarEdicaoCliente(id){
     alergias:   document.getElementById('nc-alergias').value,
     obs:        document.getElementById('nc-obs').value,
   };
-  // Atualiza card na lista (re-renderiza respeitando a ordenação atual)
+  clientesDB[idx] = { ...clientesDB[idx], ...alteracoes };
+  window.clientesDB = clientesDB;
+  // Persiste no Firestore
+  try {
+    await updateDoc(doc(db, 'clientes', id), alteracoes);
+  } catch(e){ console.error('[Belezza] salvarEdicaoCliente ERRO:', e.message); }
   renderClientesLista();
   const toast = document.getElementById('nc-toast');
-  const toastMsg = toast.querySelector ? toast : toast;
   if(toast){ toast.innerHTML = '<i class="ti ti-circle-check" style="font-size:18px"></i> Dados atualizados!'; toast.style.display = 'flex'; }
   // Restaura modal para modo cadastro
   const modal = document.getElementById('modal-cli');
@@ -6499,7 +6535,7 @@ function crmFiltrarPerfil() {
     let idade = null;
     let semData = false;
     if (c.nasc) {
-      idade = Math.floor((hoje - new Date(c.nasc)) / (365.25 * 24 * 3600 * 1000));
+      idade = Math.floor((hoje - _parseNasc(c.nasc)) / (365.25 * 24 * 3600 * 1000));
     } else {
       semData = true;
     }
@@ -7391,7 +7427,14 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       </div>
       <div>
         <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Data de nascimento</label>
-        <input id="nc-nasc" type="date" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+        <input id="nc-nasc" type="text" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10"
+          oninput="
+            let v=this.value.replace(/\D/g,'');
+            if(v.length>2) v=v.slice(0,2)+'/'+v.slice(2);
+            if(v.length>5) v=v.slice(0,5)+'/'+v.slice(5);
+            this.value=v.slice(0,10);
+          "
+          style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
       </div>
       <div>
         <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Senha Cliente</label>
