@@ -58,7 +58,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .rbtn{padding:5px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12px;background:transparent;color:var(--tx2);transition:all .15s;font-weight:500}
 .rbtn.active{background:var(--bg);color:var(--tx);border:1px solid var(--br);font-weight:600}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--bg2);border-bottom:1px solid var(--br);flex-shrink:0;position:relative}
-.tb-agendar{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 .tb-left{display:flex;align-items:center;gap:10px}
 .tb-menu{display:none;background:none;border:none;cursor:pointer;color:var(--tx);font-size:20px;padding:2px}
 .tb-title{font-size:15px;font-weight:600}
@@ -290,10 +289,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .two-col{grid-template-columns:1fr}
   .content{padding:14px}
-  .tb-agendar{position:static;transform:none;padding:8px 10px}
-  .tb-agendar span{display:none}
-  #tb-act-lbl{display:none}
-  #tb-act{padding:8px 10px}
 }
 /* Remove ícone nativo de "mostrar senha" do navegador (evita duplicar com o ícone 👁 customizado) */
 /* Remove ícone nativo de "mostrar senha" do navegador (evita duplicar com o ícone 👁 customizado) */
@@ -487,9 +482,8 @@ input[type="password"]::-ms-clear {
       <button class="tb-menu" onclick="toggleSB()"><i class="ti ti-menu-2"></i></button>
       <span class="tb-title" id="tb-t">Painel</span>
     </div>
-    <button class="btn pk tb-agendar" onclick="abrirModalAg()"><i class="ti ti-calendar-plus"></i> <span>Agendar</span></button>
     <div class="tb-right">
-      <button class="btn pk" id="tb-act" onclick="acaoTopbar()"><i class="ti ti-plus"></i> <span id="tb-act-lbl">Novo agendamento</span></button>
+      <button class="btn pk" id="tb-act" onclick="acaoTopbar()"><i class="ti ti-plus"></i> <span id="tb-act-lbl">Agendar</span></button>
       <button class="btn" onclick="openHelp()"><i class="ti ti-help-circle"></i> Ajuda</button>
     </div>
   </div>
@@ -2304,7 +2298,7 @@ function closeHelp(){
 function handleOvClick(e){if(e.target===document.getElementById('help-ov'))closeHelp();}
 
 const titulos={'p-dash':'Painel','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-servicos':'Serviços','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','p-personalizacao':'Personalização','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
-const actLbl={'p-dash':'Novo agendamento','p-agenda':'Novo agendamento','p-clientes':'Nova cliente','p-equipe':'Add profissional','p-servicos':'Novo serviço','p-camp':'Nova campanha','p-promos':'Publicar promo'};
+const actLbl={'p-dash':'Agendar','p-agenda':'Agendar','p-clientes':'Nova cliente','p-equipe':'Add profissional','p-servicos':'Novo serviço','p-camp':'Nova campanha','p-promos':'Publicar promo'};
 let role='p';
 
 function showPane(id){
