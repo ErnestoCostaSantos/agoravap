@@ -2965,19 +2965,33 @@ async function doLoginCli(){
   }
 
   _splashPendente = true;
-  // Converte WhatsApp digitado → e-mail sintético para Firebase Auth
+  // Converte WhatsApp digitado → e-mail sintético para Firebase Auth.
+  // Número pode pertencer a uma cliente (@cli.mecuidar.app) ou a uma profissional
+  // de equipe (@equipe.mecuidar.app) — tenta cliente primeiro e, se a credencial
+  // for rejeitada, tenta equipe automaticamente, sem pedir nada extra à pessoa.
   const wppRaw = (document.getElementById('cli-email')?.value || '').trim();
   const wppNum = wppRaw.replace(/\D/g, '');
-  const email  = wppNum.length >= 8
-    ? wppNum + '@cli.mecuidar.app'
-    : wppRaw; // fallback: se não for número, trata como e-mail direto (admin)
+  const ehNumero = wppNum.length >= 8;
+  const emailCliente = ehNumero ? wppNum + '@cli.mecuidar.app' : wppRaw;
+  const emailEquipe   = ehNumero ? wppNum + '@equipe.mecuidar.app' : null;
   const pass  = document.getElementById('cli-pass')?.value || '';
   const errEl = document.getElementById('cli-error');
   const btn   = document.getElementById('cli-entrar-btn');
-  if (!email || !pass) { if(errEl) errEl.textContent='Preencha e-mail e senha.'; return; }
+  if (!emailCliente || !pass) { if(errEl) errEl.textContent='Preencha e-mail e senha.'; return; }
   if (btn) { btn.textContent = 'Entrando...'; btn.disabled = true; }
   try {
-    await signInWithEmailAndPassword(auth, email, pass);
+    try {
+      await signInWithEmailAndPassword(auth, emailCliente, pass);
+    } catch(eCliente) {
+      // Só tenta o domínio de equipe se o login era por número e a 1ª tentativa falhou
+      // por credencial/usuário não encontrado — outros erros (ex. too-many-requests) propagam direto.
+      const tentaEquipe = ehNumero && ['auth/invalid-credential','auth/user-not-found','auth/wrong-password'].includes(eCliente.code);
+      if (tentaEquipe) {
+        await signInWithEmailAndPassword(auth, emailEquipe, pass);
+      } else {
+        throw eCliente;
+      }
+    }
     _loginAttempts.count = 0; // reset em sucesso
     // onAuthStateChanged cuida do roteamento por role automaticamente
   } catch(e) {
@@ -3840,6 +3854,9 @@ async function salvarCliente(){
   const nome = document.getElementById('nc-nome').value.trim();
   const wpp  = document.getElementById('nc-wpp').value.trim();
   if(!nome||!wpp){ document.getElementById('nc-error').textContent='Nome e WhatsApp são obrigatórios.'; return; }
+  // Validação: data de nascimento, se preenchida, precisa ser uma data real (rejeita 31/02, mês 13, etc.)
+  const nascInput = document.getElementById('nc-nasc').value||'';
+  if(!_dataNascValida(nascInput)){ document.getElementById('nc-error').textContent='Data de nascimento inválida. Use o formato DD/MM/AAAA com uma data real.'; return; }
   // Validação: WhatsApp já cadastrado em outra cliente desta clínica (independe de ter senha —
   // antes só era pega indiretamente pelo erro do Firebase Auth, e só quando havia senha).
   const wppNumNovo = wpp.replace(/\D/g,'');
@@ -3913,6 +3930,22 @@ function _parseNasc(s){
     const[d,m,a]=s.split('/'); return new Date(+a,+m-1,+d);
   }
   return new Date(s);
+}
+
+// Valida se uma data DD/MM/AAAA é uma data real (rejeita 31/02, mês 13, dia 00, ano fora de faixa, etc.)
+// Retorna true se vazio (campo opcional) ou se a data for válida; false se preenchido com data inválida.
+function _dataNascValida(s){
+  if(!s) return true; // campo opcional — vazio é válido
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
+  if(!m) return false; // formato incompleto/incorreto
+  const d = +m[1], mo = +m[2], a = +m[3];
+  if(mo < 1 || mo > 12) return false;
+  if(d < 1 || d > 31) return false;
+  const anoAtual = new Date().getFullYear();
+  if(a < 1900 || a > anoAtual) return false;
+  // Confirma que a data "round-trip" bate (pega 31/02, 31/04 etc., que o JS rejeitaria "estourando" pro mês seguinte)
+  const dt = new Date(a, mo-1, d);
+  return dt.getFullYear()===a && dt.getMonth()===mo-1 && dt.getDate()===d;
 }
 
 const CLINICA_ID = 'belezza-50e76'; // clinicaId padrão (fallback quando ainda não há sessão)
@@ -6033,7 +6066,7 @@ function abrirModalProfissional(id){
   const btnTxt = document.getElementById('prof-btn-txt');
   const editId = document.getElementById('prof-edit-id');
   // Limpa campos
-  ['prof-nome','prof-wpp','prof-espec','prof-ticket','prof-avaliacao','prof-obs'].forEach(f => {
+  ['prof-nome','prof-wpp','prof-espec','prof-ticket','prof-avaliacao','prof-obs','prof-email-contato','prof-senha'].forEach(f => {
     const el = document.getElementById(f); if(el) el.value = '';
   });
   document.querySelectorAll('input[name="prof-sexo"]').forEach(r => r.checked = r.value === 'F');
@@ -6041,6 +6074,9 @@ function abrirModalProfissional(id){
   document.getElementById('prof-domicilio').checked = false;
   document.getElementById('prof-error').textContent = '';
   document.getElementById('prof-toast').style.display = 'none';
+
+  const blocoAcesso = document.getElementById('prof-acesso-bloco');
+  const campoSenha  = document.getElementById('prof-senha-wrap');
 
   if(id){
     const p = (window.equipeDB || equipeDB).find(x => x.id === id);
@@ -6055,14 +6091,23 @@ function abrirModalProfissional(id){
     document.getElementById('prof-avaliacao').value = p.avaliacao;
     document.getElementById('prof-obs').value = p.obs || '';
     document.getElementById('prof-domicilio').checked = !!p.domicilio;
+    document.getElementById('prof-email-contato').value = p.emailContato || '';
     document.querySelectorAll('input[name="prof-sexo"]').forEach(r => r.checked = r.value === p.sexo);
     document.querySelectorAll('input[name="prof-disp"]').forEach(c => {
       c.checked = (p.disp||[]).includes(c.value);
     });
+    // Na edição, não oferece criar senha por aqui (evita sobrescrever acesso já existente
+    // ou confundir com criação duplicada). Gerenciamento de acesso fica para uma tela futura.
+    if (campoSenha) campoSenha.style.display = 'none';
+    const infoEl = document.getElementById('prof-acesso-info');
+    if (infoEl) infoEl.textContent = p.emailContato ? 'E-mail de contato cadastrado. Gerenciamento de senha/acesso ainda é feito pelo Firebase Console.' : 'Sem acesso ao app vinculado ainda — para criar, use o Firebase Console por enquanto.';
   } else {
     editId.value = '';
     titulo.textContent = 'Nova Profissional';
     btnTxt.textContent = 'Cadastrar';
+    if (campoSenha) campoSenha.style.display = '';
+    const infoEl = document.getElementById('prof-acesso-info');
+    if (infoEl) infoEl.textContent = 'Login dela é o próprio WhatsApp acima. Preencha uma senha para liberar o acesso agora — sem senha, o cadastro fica só como registro de equipe, sem login.';
   }
   modal.style.display = 'flex';
 }
@@ -6101,6 +6146,9 @@ async function _salvarProfissionalImpl(){
   const dom   = document.getElementById('prof-domicilio').checked;
   const obs   = document.getElementById('prof-obs').value;
   const editId= document.getElementById('prof-edit-id').value;
+  // Acesso ao app — login técnico por WhatsApp (igual cliente), e-mail real só como contato
+  const emailContato = (document.getElementById('prof-email-contato')?.value || '').trim();
+  const senhaAcesso   = document.getElementById('prof-senha')?.value || '';
 
   const _eq = window.equipeDB || equipeDB;
   const idx = editId ? _eq.findIndex(x => x.id === editId) : -1;
@@ -6139,6 +6187,7 @@ async function _salvarProfissionalImpl(){
         {clinicaId:clinicaAtual(),nome,wpp,sexo,espec,disp,
          ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
          domicilio:dom,obs,ativa:ativaHoje,
+         emailContato: emailContato || '',
          criadoEm:new Date().toISOString()});
     } catch(e){ console.error('[Belezza] novaProf ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
     // Não atualiza equipeDB manualmente aqui — o listener onSnapshot de equipe
@@ -6146,7 +6195,40 @@ async function _salvarProfissionalImpl(){
     // que o Firestore confirmar a gravação. Um push manual aqui causava
     // duplicidade visual (profissional aparecia 2x até o próximo reload).
     atualizarSelectProfissional();
-    mostrarToastProf('Profissional cadastrado/a!');
+
+    // Cria acesso de login para a profissional, se uma senha foi definida.
+    // Login técnico = WhatsApp dela convertida em e-mail sintético (igual cliente),
+    // domínio próprio (@equipe.mecuidar.app) para diferenciar de cliente no Authentication.
+    // O e-mail real (emailContato) é guardado só como dado de contato — não é usado para login.
+    if (senhaAcesso && senhaAcesso.length >= 6) {
+      const wppNumProf = wpp.replace(/\D/g,'');
+      const emailSinteticoProf = wppNumProf + '@equipe.mecuidar.app';
+      try {
+        const userCredProf = await createUserWithEmailAndPassword(auth2, emailSinteticoProf, senhaAcesso);
+        await setDoc(doc(db,'users',userCredProf.user.uid), {
+          clinicaId:    clinicaAtual(),
+          role:         'profissional',
+          nome,
+          name:         nome,
+          email:        emailSinteticoProf,
+          emailContato: emailContato || '',
+          wpp,
+          profissionalId: id,
+          criadoEm:     new Date().toISOString(),
+        });
+        mostrarToastProf('Profissional cadastrado/a e acesso liberado!');
+      } catch(e){
+        if (e.code === 'auth/email-already-in-use') {
+          errEl.textContent = 'Este WhatsApp já tem um acesso cadastrado. O registro de equipe foi salvo, mas o acesso não foi criado.';
+        } else {
+          console.error('[Belezza] createUser profissional ERRO:', e.message);
+          errEl.textContent = 'Profissional cadastrada, mas houve um erro ao criar o acesso: ' + e.message;
+        }
+        mostrarToastProf('Profissional cadastrado/a (sem acesso)!');
+      }
+    } else {
+      mostrarToastProf('Profissional cadastrado/a!');
+    }
   }
   window.equipeDB = equipeDB;
   renderEquipe(equipeDB);
@@ -6521,6 +6603,9 @@ async function salvarEdicaoCliente(id){
   const nome = document.getElementById('nc-nome').value.trim();
   const wpp  = document.getElementById('nc-wpp').value.trim();
   if(!nome || !wpp){ document.getElementById('nc-error').textContent = 'Nome e WhatsApp são obrigatórios.'; return; }
+  // Validação: data de nascimento, se preenchida, precisa ser uma data real (rejeita 31/02, mês 13, etc.)
+  const nascEditInput = document.getElementById('nc-nasc').value||'';
+  if(!_dataNascValida(nascEditInput)){ document.getElementById('nc-error').textContent = 'Data de nascimento inválida. Use o formato DD/MM/AAAA com uma data real.'; return; }
   // Validação: WhatsApp já usado por OUTRA cliente (exclui a própria, já que editar sem trocar o número é válido)
   const wppNumEdit = wpp.replace(/\D/g,'');
   const jaExisteOutra = (window.clientesDB || clientesDB || []).some(c => c.id !== id && (c.wpp||'').replace(/\D/g,'') === wppNumEdit);
@@ -6598,6 +6683,12 @@ function toggleNcSenha() {
   if (el) el.type = el.type === 'password' ? 'text' : 'password';
 }
 window.toggleNcSenha = toggleNcSenha;
+
+function toggleProfSenha() {
+  const el = document.getElementById('prof-senha');
+  if (el) el.type = el.type === 'password' ? 'text' : 'password';
+}
+window.toggleProfSenha = toggleProfSenha;
 
 function setImportTab(tab) {
   const csv = document.getElementById('imp-painel-csv');
@@ -8035,6 +8126,22 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <div style="grid-column:1/-1">
         <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Observações internas</label>
         <textarea id="prof-obs" rows="2" placeholder="Notas sobre a profissional..." style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);resize:none;font-family:inherit;box-sizing:border-box"></textarea>
+      </div>
+      <div style="grid-column:1/-1;border-top:1px solid var(--br);margin-top:6px;padding-top:14px" id="prof-acesso-bloco">
+        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:2px"><i class="ti ti-key"></i> Acesso ao app</div>
+        <div id="prof-acesso-info" style="font-size:11px;color:var(--tx3);margin-bottom:10px">Login dela é o próprio WhatsApp acima. Preencha uma senha para liberar o acesso agora — sem senha, o cadastro fica só como registro de equipe, sem login.</div>
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">E-mail dela <span style="font-weight:400;color:var(--tx3)">(opcional — só contato, não é usado para entrar no app)</span></label>
+        <input id="prof-email-contato" type="email" placeholder="Ex: maria.silva@gmail.com" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+      <div style="grid-column:1/-1" id="prof-senha-wrap">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Senha de acesso</label>
+        <div style="position:relative">
+          <input id="prof-senha" type="password" placeholder="Ex: Adm37@mecuidar.app" autocomplete="new-password" style="width:100%;padding:9px 38px 9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+          <span onclick="toggleProfSenha()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);font-size:15px;user-select:none">👁</span>
+        </div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:3px">Mínimo 6 caracteres. Ela entra no app digitando só o WhatsApp + essa senha. Ela pode trocar a senha sozinha depois, pelo "Esqueci minha senha".</div>
       </div>
     </div>
     <div id="prof-error" style="color:var(--pk600);font-size:12px;margin-bottom:8px;min-height:16px"></div>
