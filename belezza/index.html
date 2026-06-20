@@ -1800,22 +1800,14 @@ onAuthStateChanged(auth, async user => {
       // normalmente (a Admin tem permissão lá); aqui, no primeiro login da PRÓPRIA profissional
       // (já autenticada com seu UID), localizamos esse registro via collectionGroup e
       // auto-criamos /users/{uid} com a sessão dela mesma — mesmo padrão usado para cliente acima.
+      // Busca só por emailContato (único índice de collection group necessário — ver cadastro,
+      // que agora exige e-mail de contato sempre que uma senha de acesso é definida).
       if (!snap.exists()) {
         try {
           const qProf = await getDocs(
             query(collectionGroup(db, 'profissionais'), where('emailContato', '==', user.email))
           );
-          // Fallback: algumas profissionais foram cadastradas por WhatsApp sem e-mail de contato —
-          // tenta de novo casando pelo número (extraído do próprio e-mail sintético @equipe.mecuidar.app).
-          // Usa wppNum (só dígitos, gravado no cadastro) para bater exatamente com o número do e-mail.
-          let profDoc = !qProf.empty ? qProf.docs[0] : null;
-          if (!profDoc && user.email.endsWith('@equipe.mecuidar.app')) {
-            const wppDoLogin = user.email.split('@')[0];
-            const qProfWpp = await getDocs(
-              query(collectionGroup(db, 'profissionais'), where('wppNum', '==', wppDoLogin))
-            );
-            if (!qProfWpp.empty) profDoc = qProfWpp.docs[0];
-          }
+          const profDoc = !qProf.empty ? qProf.docs[0] : null;
           if (profDoc) {
             const pData = profDoc.data();
             // clinicaId vem do path da subcoleção (/equipe/{clinicaId}/profissionais/{id}) —
@@ -6150,7 +6142,7 @@ function abrirModalProfissional(id){
     btnTxt.textContent = 'Cadastrar';
     if (campoSenha) campoSenha.style.display = '';
     const infoEl = document.getElementById('prof-acesso-info');
-    if (infoEl) infoEl.textContent = 'Login dela é o próprio WhatsApp acima. Preencha uma senha para liberar o acesso agora — sem senha, o cadastro fica só como registro de equipe, sem login.';
+    if (infoEl) infoEl.textContent = 'Login dela é o próprio WhatsApp acima. Preencha o e-mail e uma senha para liberar o acesso agora — sem isso, o cadastro fica só como registro de equipe, sem login.';
   }
   modal.style.display = 'flex';
 }
@@ -6192,6 +6184,13 @@ async function _salvarProfissionalImpl(){
   // Acesso ao app — login técnico por WhatsApp (igual cliente), e-mail real só como contato
   const emailContato = (document.getElementById('prof-email-contato')?.value || '').trim();
   const senhaAcesso   = document.getElementById('prof-senha')?.value || '';
+  // E-mail de contato é a chave usada para localizar a profissional no primeiro login dela
+  // (self-heal de /users/{uid} — ver onAuthStateChanged). Por isso é obrigatório sempre que
+  // uma senha de acesso é definida; sem ele, a conta seria criada no Authentication mas
+  // nunca conseguiria completar o login (cairia em "Usuário não encontrado").
+  if (senhaAcesso && senhaAcesso.length >= 6 && !emailContato) {
+    errEl.textContent = 'Para liberar o acesso, preencha também o e-mail dela.'; return;
+  }
 
   const _eq = window.equipeDB || equipeDB;
   const idx = editId ? _eq.findIndex(x => x.id === editId) : -1;
@@ -6213,7 +6212,7 @@ async function _salvarProfissionalImpl(){
     try {
       await setDoc(
         doc(db, 'equipe', clinicaAtual(), 'profissionais', editId),
-        {clinicaId:clinicaAtual(),nome,wpp,wppNum:wpp.replace(/\D/g,''),sexo,espec,disp,
+        {clinicaId:clinicaAtual(),nome,wpp,sexo,espec,disp,
          ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
          domicilio:dom,obs,ativa:ativaHoje,
          emailContato: emailContato || ''},{merge:true});
@@ -6224,12 +6223,11 @@ async function _salvarProfissionalImpl(){
     const id = 'prof-' + Date.now();
     const seed = nome.replace(/\s/g,'') + id.slice(-4);
     const bgColor = BG_CORES[equipeDB.length % BG_CORES.length];
-    const wppNumProf = wpp.replace(/\D/g,'');
     // Persistir nova profissional no Firestore — caminho correto: /equipe/{clinicaId}/profissionais/{id}
     try {
       await setDoc(
         doc(db, 'equipe', clinicaAtual(), 'profissionais', id),
-        {clinicaId:clinicaAtual(),nome,wpp,wppNum:wppNumProf,sexo,espec,disp,
+        {clinicaId:clinicaAtual(),nome,wpp,sexo,espec,disp,
          ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
          domicilio:dom,obs,ativa:ativaHoje,
          emailContato: emailContato || '',
@@ -8174,7 +8172,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         <div id="prof-acesso-info" style="font-size:11px;color:var(--tx3);margin-bottom:10px">Login dela é o próprio WhatsApp acima. Preencha uma senha para liberar o acesso agora — sem senha, o cadastro fica só como registro de equipe, sem login.</div>
       </div>
       <div style="grid-column:1/-1">
-        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">E-mail dela <span style="font-weight:400;color:var(--tx3)">(opcional — só contato, não é usado para entrar no app)</span></label>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">E-mail dela <span style="font-weight:400;color:var(--tx3)">(não é usado para entrar no app — obrigatório só se for liberar o acesso abaixo)</span></label>
         <input id="prof-email-contato" type="email" placeholder="Ex: maria.silva@gmail.com" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
       </div>
       <div style="grid-column:1/-1" id="prof-senha-wrap">
