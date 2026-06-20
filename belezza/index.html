@@ -593,7 +593,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <!-- Solicitações pendentes -->
       <div class="card" style="margin-bottom:12px;border-left:3px solid var(--pk400)">
         <div class="card-title">
-          <i class="ti ti-clock" style="color:var(--pk500)"></i>
+          <i class="ti ti-clock" style="color:var(--pk400)"></i>
           Solicitações pendentes
           <span class="card-link" onclick="goTo('p-agenda',null)">ver todas →</span>
         </div>
@@ -653,7 +653,17 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
           <div id="ag-semana-titulo" style="font-size:13px;font-weight:600;flex:1;text-align:center"></div>
           <button class="btn" style="padding:5px 10px" onclick="navSemana(1)"><i class="ti ti-chevron-right"></i></button>
         </div>
-        <div id="ag-semana-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px"></div>
+        <div id="ag-semana-grid" class="ag-semana-grid"></div>
+        <style>
+          /* Mobile: blocos empilhados verticalmente — evita que o conteúdo de cada
+             dia (hora + serviço) force a 6ª coluna (sábado) para fora da tela visível */
+          .ag-semana-grid{ display:grid; grid-template-columns:1fr; gap:8px; }
+          .ag-semana-cabecalho{ display:flex; align-items:baseline; gap:8px; margin-bottom:6px; }
+          @media(min-width:700px){
+            .ag-semana-grid{ grid-template-columns:repeat(6,1fr); gap:6px; }
+            .ag-semana-cabecalho{ flex-direction:column; align-items:flex-start; gap:0; }
+          }
+        </style>
       </div>
       <!-- View: MÊS -->
       <div id="ag-view-mes" style="display:none">
@@ -705,7 +715,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
             <strong>Como exportar do Google Contatos:</strong> Contatos → Exportar → Google CSV<br>
             <strong>Do Excel/Sheets:</strong> Arquivo → Baixar → CSV<br>
             <span style="color:var(--tx3)">O arquivo precisa ter colunas com Nome e WhatsApp/Telefone (o app detecta automaticamente).</span><br>
-            <span style="color:var(--tl600)">💡 <strong>Dica:</strong> A forma mais fácil de abrir o arquivo no celular é <strong>enviá-lo para si mesmo por e-mail</strong>, abrir o e-mail no celular, salvar o arquivo e selecionar aqui.</span>
+            <span style="color:var(--tl400)">💡 <strong>Dica:</strong> A forma mais fácil de abrir o arquivo no celular é <strong>enviá-lo para si mesmo por e-mail</strong>, abrir o e-mail no celular, salvar o arquivo e selecionar aqui.</span>
           </div>
           <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:2px dashed var(--br2);border-radius:var(--r);cursor:pointer;font-size:12px;color:var(--tx2);justify-content:center">
             <i class="ti ti-upload" style="font-size:18px;color:var(--tl400)"></i>
@@ -722,7 +732,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
             <strong>Android:</strong> Contatos → Menu → Exportar → Exportar para arquivo VCF<br>
             <strong>WhatsApp Business:</strong> não exporta contatos diretamente — use Google Contatos.<br>
             <span style="color:var(--tx3)">O app lê Nome e Telefone de cada contato do arquivo.</span><br>
-            <span style="color:var(--tl600)">💡 <strong>Dica:</strong> A forma mais fácil de abrir o arquivo no celular é <strong>enviá-lo para si mesmo por e-mail</strong>, abrir o e-mail no celular, salvar o arquivo e selecionar aqui.</span>
+            <span style="color:var(--tl400)">💡 <strong>Dica:</strong> A forma mais fácil de abrir o arquivo no celular é <strong>enviá-lo para si mesmo por e-mail</strong>, abrir o e-mail no celular, salvar o arquivo e selecionar aqui.</span>
           </div>
           <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:2px dashed var(--br2);border-radius:var(--r);cursor:pointer;font-size:12px;color:var(--tx2);justify-content:center">
             <i class="ti ti-upload" style="font-size:18px;color:var(--tl400)"></i>
@@ -738,15 +748,23 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
         <i class="ti ti-crown" style="font-size:14px;color:#c49b00"></i>
         <span style="font-size:11px;color:#7a5f00;font-weight:600">Top 10 — score = visitas (60%) + valor gasto (40%)</span>
       </div>
-      <!-- Contagem + ordenação -->
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+      <!-- Contagem + ordenação + seleção múltipla -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap">
         <span id="clientes-contagem" style="font-size:11px;color:var(--tx3)"></span>
-        <select id="clientes-ordenar" onchange="_clientesReordenar(this.value)" style="font-size:12px;padding:6px 10px;border:1px solid var(--br);border-radius:var(--r);background:var(--bg);color:var(--tx)">
-          <option value="recentes">Mais recentes</option>
-          <option value="nome">Nome (A-Z)</option>
-          <option value="visita">Última visita</option>
-          <option value="score">Score / Top 10</option>
-        </select>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button id="clientes-btn-selecionar" class="btn-sm2" onclick="toggleModoSelecaoClientes()">Selecionar</button>
+          <select id="clientes-ordenar" onchange="_clientesReordenar(this.value)" style="font-size:12px;padding:6px 10px;border:1px solid var(--br);border-radius:var(--r);background:var(--bg);color:var(--tx)">
+            <option value="recentes">Mais recentes</option>
+            <option value="nome">Nome (A-Z)</option>
+            <option value="visita">Última visita</option>
+            <option value="score">Score / Top 10</option>
+          </select>
+        </div>
+      </div>
+      <!-- Barra de ação em lote (aparece só no modo seleção) -->
+      <div id="clientes-acao-lote" style="display:none;align-items:center;justify-content:space-between;gap:8px;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:8px 12px;margin-bottom:8px">
+        <span id="clientes-lote-contagem" style="font-size:12px;color:var(--pk800);font-weight:600">0 selecionadas</span>
+        <button class="btn sm" style="background:#b3334d;border-color:#b3334d;color:#fff" onclick="apagarClientesSelecionadas()"><i class="ti ti-trash" style="font-size:12px"></i> Apagar selecionadas</button>
       </div>
       <!-- Lista -->
       <div id="clientes-lista"></div>
@@ -1075,8 +1093,8 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
                   <input id="promo-preco-de" type="text" placeholder="280,00" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:11px;background:var(--bg2);color:var(--tx3);text-decoration:line-through">
                 </div>
                 <div style="display:flex;align-items:center;gap:6px">
-                  <span style="font-size:10px;color:var(--pk700);font-weight:700;width:28px;flex-shrink:0">Por</span>
-                  <input id="promo-preco-por" type="text" placeholder="189,00" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--pk200);font-size:13px;background:var(--pk50);color:var(--pk700);font-weight:700">
+                  <span style="font-size:10px;color:var(--pk800);font-weight:700;width:28px;flex-shrink:0">Por</span>
+                  <input id="promo-preco-por" type="text" placeholder="189,00" style="flex:1;padding:5px 8px;border-radius:var(--r);border:1px solid var(--pk100);font-size:13px;background:var(--pk50);color:var(--pk800);font-weight:700">
                 </div>
               </div>
             </div>
@@ -1314,7 +1332,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
               <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Filtros de histórico</div>
 
               <!-- Serviço -->
-              <div style="margin-bottom:10px">
+              <div id="crm-h-servico-wrap" style="margin-bottom:10px">
                 <label style="font-size:10px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Serviço realizado</label>
                 <select id="crm-h-servico"
                   style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
@@ -1331,14 +1349,16 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
               <!-- Intervalo -->
               <div>
                 <label style="font-size:10px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Última vez há mais de</label>
-                <select id="crm-h-dias"
+                <select id="crm-h-dias" onchange="_crmToggleModoInativa()"
                   style="width:100%;padding:7px 10px;border-radius:var(--r);border:1px solid var(--br);font-size:12px;background:var(--bg2);color:var(--tx)">
                   <option value="30">30 dias</option>
                   <option value="60" selected>60 dias</option>
                   <option value="90">90 dias</option>
                   <option value="120">120 dias</option>
                   <option value="180">180 dias (6 meses)</option>
+                  <option value="inativa">Inativa (qualquer cliente sem visita recente)</option>
                 </select>
+                <div id="crm-h-inativa-info" style="display:none;font-size:10px;color:var(--tx3);margin-top:4px">Mostra todas as clientes cadastradas, mesmo as que ainda não têm nenhum atendimento registrado no sistema — útil para clientes recém-importadas. Limite de 50 por busca.</div>
               </div>
             </div>
 
@@ -1429,7 +1449,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <div id="svc-selecionado" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:10px 14px;margin-top:10px;align-items:center;justify-content:space-between;gap:10px">
         <div>
           <div style="font-size:11px;color:var(--tx2)">Serviço selecionado</div>
-          <div style="font-size:13px;font-weight:700;color:var(--pk700)" id="svc-nome-sel"></div>
+          <div style="font-size:13px;font-weight:700;color:var(--pk800)" id="svc-nome-sel"></div>
           <div style="font-size:11px;color:var(--pk600)" id="svc-preco-sel"></div>
         </div>
         <button class="btn pk" onclick="abrirAgendaServico()" style="flex-shrink:0"><i class="ti ti-calendar"></i> Agendar</button>
@@ -1488,9 +1508,9 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
 
     <div class="pane" id="pane-c-agenda">
       <div class="sec-lbl">Solicitar agendamento</div>
-      <div id="agenda-svc-info" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--pk700)"><i class="ti ti-sparkles"></i> <span id="agenda-svc-nome"></span></div>
+      <div id="agenda-svc-info" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--pk800)"><i class="ti ti-sparkles"></i> <span id="agenda-svc-nome"></span></div>
       <!-- Badge de promoção selecionada -->
-      <div id="agenda-promo-badge" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:7px 12px;margin-bottom:10px;font-size:12px;color:var(--pk700);font-weight:600;align-items:center;gap:6px">
+      <div id="agenda-promo-badge" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:7px 12px;margin-bottom:10px;font-size:12px;color:var(--pk800);font-weight:600;align-items:center;gap:6px">
         <i class="ti ti-tag"></i> <span id="agenda-promo-nome"></span>
       </div>
       <!-- Passo 0: Profissional de preferência -->
@@ -1523,7 +1543,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
         <div class="card" style="margin-bottom:10px;padding:12px 14px">
           <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Resumo</div>
           <div style="display:flex;flex-direction:column;gap:5px;font-size:13px">
-            <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Serviço</span><span style="font-weight:600;color:var(--pk700)" id="resumo-svc">—</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Serviço</span><span style="font-weight:600;color:var(--pk800)" id="resumo-svc">—</span></div>
             <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Data</span><span style="font-weight:600" id="resumo-dia">—</span></div>
             <div style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Horário</span><span style="font-weight:600" id="resumo-hora">—</span></div>
             <div id="resumo-prof-row" style="display:flex;justify-content:space-between"><span style="color:var(--tx2)">Profissional</span><span style="font-weight:600" id="resumo-prof">Sem preferência</span></div>
@@ -1668,7 +1688,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <div class="help-contact">
         <div class="av" style="background:var(--tl50);color:var(--tl800);font-size:18px"><i class="ti ti-brand-whatsapp"></i></div>
         <div style="flex:1"><div style="font-size:13px;font-weight:600">Não encontrou?</div><div style="font-size:11px;color:var(--tx2)">Fale com nosso suporte via WhatsApp</div></div>
-        <button class="btn tl" onclick="window.open('https://wa.me/5511997261900?text=Ol%C3%A1%20Studio%20Luna%2C%20preciso%20de%20ajuda%20com%20o%20app!','_blank')"><i class="ti ti-brand-whatsapp"></i> Chamar</button>
+        <button class="btn tl" onclick="window.open('https://wa.me/5511997261900?text=Ol%C3%A1%2C%20preciso%20de%20ajuda%20com%20o%20app%20MeCuidar!','_blank')"><i class="ti ti-brand-whatsapp"></i> Chamar</button>
       </div>
     </div>
   </div>
@@ -2105,6 +2125,7 @@ const faqs=[
   {cat:'clientes',q:'Como cadastrar uma nova cliente?',a:'Na aba Clientes, clique em "+ Nova". Preencha nome, WhatsApp (obrigatórios) e dados opcionais como e-mail, data de nascimento, alergias e observações internas. A cliente aparece na lista e no select de agendamentos imediatamente.'},
   {cat:'clientes',q:'Como editar os dados de uma cliente?',a:'Abra o perfil da cliente (clique no card) e clique em "Editar dados". O modal abre pré-preenchido. Após salvar, o card na lista é atualizado automaticamente.'},
   {cat:'clientes',q:'Como agendar para uma cliente pelo perfil dela?',a:'Abra o perfil da cliente e clique em "Agendar". O app fecha o perfil e abre o modal de Novo Agendamento já pronto para preencher.'},
+  {cat:'clientes',q:'Como apagar uma ou mais clientes?',a:'Na aba Clientes, clique em "Selecionar" (ao lado da ordenação). Marque as clientes desejadas tocando no nome ou na caixinha — uma barra aparece mostrando quantas estão selecionadas. Toque em "Apagar selecionadas" para confirmar. Atenção: essa ação remove o cadastro e impede a cliente de fazer login novamente, mas não pode ser desfeita.'},
   {cat:'clientes',q:'Como importar clientes do WhatsApp ou da agenda do celular?',a:'Na aba Clientes, clique em "Importar". Escolha a aba "Agenda (VCF)" para importar contatos exportados do celular (iPhone ou Android), ou "Planilha / CSV" para importar de uma planilha Excel ou Google Sheets. O app lê automaticamente os campos Nome e WhatsApp.'},
   {cat:'clientes',q:'Como exportar contatos do celular para importar no app?',a:'iPhone: Contatos → selecione os contatos → Compartilhar → salve como .vcf. Android: Contatos → Menu → Exportar → Exportar para arquivo VCF. Em seguida, abra o app, vá em Clientes → Importar → aba Agenda (VCF) e selecione o arquivo.'},
   {cat:'clientes',q:'Como exportar uma planilha do Google Sheets ou Excel para importar?',a:'Google Sheets: Arquivo → Fazer download → CSV. Excel: Arquivo → Salvar Como → CSV. A planilha precisa ter colunas com os títulos "Nome" e "WhatsApp" (ou Telefone/Celular). O app detecta automaticamente.'},
@@ -2112,7 +2133,7 @@ const faqs=[
   {cat:'clientes',q:'A importação traz todos os contatos da minha agenda?',a:'Não. O app importa apenas contatos com celular brasileiro no formato atual (DDD + 9 dígitos, ex: 11 99999-9999). Telefones fixos, números antigos sem o 9, incompletos ou estrangeiros são ignorados automaticamente, e o app mostra quantos foram ignorados.'},
   {cat:'clientes',q:'Como envio o convite do app para uma cliente importada?',a:'No preview da importação (antes de confirmar), cada contato tem um botão verde do WhatsApp. Toque nele para abrir o WhatsApp já com a mensagem de convite e o link do app preenchidos — só falta enviar. Você pode fazer isso para suas clientes mais importantes e importar o restante normalmente.'},
   {cat:'agendamentos',q:'Como funciona o novo fluxo de agendamento com Firebase?',a:'Quando a cliente envia uma solicitação pelo app, ela é gravada em tempo real no Firestore com status "Aguardando". A líder vê a solicitação aparecer automaticamente no Dashboard e na Agenda, sem precisar recarregar a página.'},
-  {cat:'agendamentos',q:'O que acontece quando a líder confirma ou recusa um agendamento?',a:'Ao confirmar, o status muda para "Confirmado" no Firestore e a cliente vê o status atualizado em "Seus agendamentos" em tempo real. Ao recusar, o status muda para "Não disponível" e a líder recebe um aviso amarelo para entrar em contato com a cliente.'},
+  {cat:'agendamentos',q:'O que acontece quando a líder confirma ou recusa um agendamento?',a:'Ao confirmar, o status muda para "Confirmado" no Firestore e a cliente vê o status atualizado em "Seus agendamentos" em tempo real. Ao recusar, o status muda para "Não disponível" e a líder recebe um aviso amarelo para entrar em contato com a cliente. Se a profissional solicitada tiver horários livres nos próximos dias, aparece também um botão "Sugerir esses horários no WhatsApp" — toque nele para abrir a conversa com a cliente já com uma mensagem pronta listando até 3 horários alternativos.'},
   {cat:'agendamentos',q:'O que a cliente deve fazer quando o agendamento é recusado?',a:'A cliente verá o status "Não disponível" na aba Agendamentos e poderá clicar em "Reagendar". O app exibirá os horários disponíveis de todas as profissionais que realizam o serviço solicitado, organizados por profissional.'},
   {cat:'agendamentos',q:'Como funciona o reagendamento após recusa?',a:'A cliente escolhe uma profissional disponível e um novo horário. Uma nova solicitação é enviada para a líder confirmar. Atenção: a líder deve revisar se a profissional escolhida é adequada para o serviço. Em casos de múltiplas recusas, é mais eficiente entrar em contato diretamente com a cliente pelo WhatsApp para resolver.'},
   {cat:'agendamentos',q:'Como o app identifica quais profissionais fazem o serviço para reagendamento?',a:'O app busca pela palavra-chave do serviço no campo de especialidades de cada profissional. Por exemplo, se o serviço é "Botox", o app mostra todas as profissionais cujas especialidades contêm "Botox". Por isso é importante preencher as especialidades de forma detalhada no cadastro da equipe.'},
@@ -2154,7 +2175,8 @@ const faqs=[
   {cat:'acesso',q:'Quem desenvolveu o MeCuidar?',a:'O MeCuidar foi elaborado pela ECS Consultoria. Mais informações em agoravap.gurudevendas.com.br'},
 
   // ── Notificações ─────────────────────────────────────────────────────────
-  {cat:'agendamentos',q:'O app avisa quando chega um novo agendamento?',a:'Sim — quando o app está aberto, a profissional recebe um som duplo, vibração no celular e um contador na aba do browser (ex: 🔔 (2) MeCuidar). O aviso ocorre tanto no desktop quanto no celular, desde que o app esteja aberto.'},
+  {cat:'agendamentos',q:'O app avisa quando chega um novo agendamento?',a:'Sim — quando o app está aberto, a profissional recebe um som duplo, vibração no celular e um contador na aba do browser (ex: 🔔 (2) MeCuidar). Isso vale tanto para solicitações de clientes quanto para agendamentos manuais criados por outra pessoa da equipe (ex: a administradora cadastra um agendamento e a profissional responsável é avisada). O aviso ocorre tanto no desktop quanto no celular, desde que o app esteja aberto.'},
+  {cat:'agendamentos',q:'Quando a administradora cria um agendamento manual, a profissional é avisada?',a:'Sim, de duas formas: a Agenda da profissional atualiza automaticamente em tempo real (o agendamento aparece na lista "Confirmados — hoje" sem precisar recarregar a tela), e — se o app dela estiver aberto no momento — toca um som e vibra o celular, avisando que algo novo foi adicionado. Se o app dela estiver fechado, ela só vai ver o agendamento na próxima vez que abrir.'},
   {cat:'agendamentos',q:'A cliente é avisada quando o agendamento é confirmado ou cancelado?',a:'Sim — se o app estiver aberto, um toast colorido aparece no topo da tela com som e vibração. Verde para confirmado, vermelho para cancelado ou recusado. O status no card de agendamentos também atualiza em tempo real sem precisar recarregar.'},
   {cat:'agendamentos',q:'A profissional recebe aviso quando a cliente cancela?',a:'Sim — o onSnapshot detecta a mudança de status e dispara som e vibração na visão da profissional, desde que o app esteja aberto.'},
   {cat:'agendamentos',q:'O app avisa sobre novas mensagens no chat?',a:'Sim — quando o app está aberto: a profissional recebe som + vibração + contador na aba do browser ao receber nova mensagem de cliente. A cliente recebe som + vibração + toast com prévia ao receber resposta da líder.'},
@@ -2175,7 +2197,9 @@ const faqs=[
   // ── CRM ──────────────────────────────────────────────────────────────────
   {cat:'crm',q:'O que são as Promoções CRM?',a:'São envios segmentados disponíveis na aba Promoções, abaixo das promoções publicadas. Diferente das promoções normais (visíveis para todas as clientes no app), as Promoções CRM são convites personalizados enviados via WhatsApp para um público filtrado pela líder.'},
   {cat:'crm',q:'Qual a diferença entre "Por Perfil" e "Por Histórico"?',a:'"Por Perfil" filtra clientes pelo cadastro — faixa etária e/ou interesses declarados. Ideal para apresentar novos serviços ou pacotes alinhados ao perfil da cliente. "Por Histórico" filtra pelo último atendimento de um serviço específico — ideal para convidar quem está na hora de repetir um procedimento.'},
-  {cat:'crm',q:'Como funciona a seleção individual de clientes?',a:'Após aplicar o filtro, o app exibe a lista de clientes que atendem aos critérios. A líder pode marcar individualmente quem vai receber o convite, ou clicar em "Selecionar todas". Para cada cliente selecionada, aparece o botão WhatsApp com a mensagem pré-preenchida.'},
+  {cat:'crm',q:'Como contatar clientes que ainda não têm histórico de atendimento no sistema (ex: clientes importadas, recém-cadastradas)?',a:'No painel "Por Histórico", no campo "Última vez há mais de", escolha a opção "Inativa (qualquer cliente sem visita recente)". Diferente das outras opções, ela não exige nenhum histórico registrado — traz todas as clientes da clínica, incluindo as que nunca tiveram um atendimento confirmado pelo app. É a forma ideal de contatar sua base de clientes antiga, recém-importada para o MeCuidar. O resultado é limitado a 50 clientes por busca; se quiser alcançar mais, crie uma nova campanha/promoção semelhante e repita o envio para o próximo grupo.'},
+  {cat:'crm',q:'Como funciona a seleção individual de clientes?',a:'Após aplicar o filtro, o app exibe a lista de clientes que atendem aos critérios (até 50 por busca). A líder pode marcar individualmente quem vai receber o convite, ou clicar em "Selecionar todas". Para cada cliente selecionada, aparece o botão WhatsApp com a mensagem pré-preenchida. Se houver mais de 50 clientes elegíveis, crie uma nova campanha/promoção semelhante para alcançar o restante.'},
+  {cat:'crm',q:'Posso anexar uma imagem ao convite do CRM?',a:'Sim — no campo "Imagem (opcional)" de cada painel (Por Perfil ou Por Histórico), carregue a imagem antes de filtrar e selecionar as clientes. Importante: o WhatsApp não permite anexar imagem automaticamente por link, então o fluxo é: carregar a imagem, tocar em "Baixar imagem" para salvá-la no celular, tocar no botão verde de enviar (texto já vem pronto) e anexar a imagem manualmente na conversa. Se o download automático não funcionar (mais comum em iPhone), toque e segure a imagem que aparece na tela e escolha "Salvar imagem".'},
   {cat:'crm',q:'Como usar vendas ampliadas e vendas cruzadas no CRM?',a:'As ações de upsell (venda de versão superior) e cross-sell (serviços complementares) podem ser destacadas nas imagens promocionais que acompanham os convites. A frequência de envio e o público são definidos pela líder com base no seu conhecimento das clientes — o app oferece os filtros, a decisão final é sua.'},
   {cat:'crm',q:'Como criar e vender Pacotes pelo CRM?',a:'Para pacotes, a líder define o preço e cria uma imagem promocional com os serviços incluídos. O convite pode ser enviado periodicamente pelo módulo "Por Histórico" — basta selecionar o serviço principal do pacote e o intervalo desejado desde a última visita. O app lista automaticamente as clientes elegíveis.'},
   {cat:'crm',q:'O MeCuidar oferece suporte sobre estratégias de vendas?',a:'Sim! Para dúvidas sobre vendas ampliadas, cruzadas, pacotes, frequência de contato e outras práticas de empreendedorismo de alta performance em estética e beleza, entre em contato com a ECS Consultoria. Uma mentoria especializada pode ser agendada sem custo adicional para clientes MeCuidar.'},
@@ -2194,7 +2218,7 @@ const faqs=[
   {cat:'clientes',q:'O "Total de Visitas" e "Total Gasto" da cliente atualizam sozinhos?',a:'Sim, parcialmente: toda vez que a profissional confirma um agendamento que a cliente fez pelo próprio app, o número de visitas e o valor gasto da cliente são somados automaticamente. Agendamentos criados manualmente pela profissional (Novo Agendamento) hoje somam só a visita, não o valor — porque esse formulário ainda usa um campo de serviço sem preço associado. Conectar isso ao módulo de Serviços está nos próximos passos.'},
   {cat:'crm',q:'Como preencher o campo Interesses no filtro Por Perfil?',a:'É um campo de texto livre — descreva com atenção os serviços que você quer filtrar, separados por vírgula ou espaço (ex: "botox, preenchimento limpeza de pele"). O app procura esses termos no histórico de interesse de cada cliente.'},
   {cat:'crm',q:'O que significam as opções do campo "Serviço realizado" no filtro Por Histórico?',a:'São categorias fixas que agrupam os serviços por tipo: Tratamento Facial, Tratamento Corporal, Tratamento Capilar, Cílios e Unhas, Cabelos e Outros. Escolha "Qualquer Serviço" para não restringir por tipo. O app reconhece automaticamente palavras-chave no nome do serviço para encaixá-lo na categoria certa.'},
-  {cat:'campanhas',q:'Posso anexar uma imagem a uma etapa da campanha?',a:'Sim — em cada etapa não enviada, há um campo "Anexar imagem (opcional)". Importante: o WhatsApp não permite anexar imagem automaticamente por link, então o fluxo é: anexar a imagem na etapa, clicar em "Baixar imagem" para salvá-la no celular, abrir o WhatsApp pelo botão normal (texto já vem pronto) e anexar a imagem manualmente na conversa.'},
+  {cat:'campanhas',q:'Posso anexar uma imagem a uma etapa da campanha?',a:'Sim — em cada etapa não enviada, há um campo "Anexar imagem (opcional)". Importante: o WhatsApp não permite anexar imagem automaticamente por link, então o fluxo é: anexar a imagem na etapa, tocar em "Baixar imagem" para salvá-la no celular, abrir o WhatsApp pelo botão normal (texto já vem pronto) e anexar a imagem manualmente na conversa. Se o botão "Baixar imagem" não salvar automaticamente (mais comum em iPhone), toque e segure a imagem que aparece na tela e escolha "Salvar imagem" — funciona como alternativa em qualquer celular.'},
   {cat:'campanhas',q:'As mensagens de campanha usam o nome real da minha clínica?',a:'Sim — o nome que aparece ao final de cada mensagem de campanha é o nome cadastrado em Personalização, capturado no momento em que você cria a campanha.'},
 ];
 
@@ -2481,7 +2505,7 @@ function atualizarPendentes(){
   const badge = document.getElementById('dash-pendentes-badge');
   if(badge){
     if(pendentes.length === 0){
-      badge.innerHTML = '<i class="ti ti-calendar-check" style="font-size:14px;color:var(--tl400)"></i><span style="font-size:12px;font-weight:700;color:var(--tl600)">Tudo confirmado!</span>';
+      badge.innerHTML = '<i class="ti ti-calendar-check" style="font-size:14px;color:var(--tl400)"></i><span style="font-size:12px;font-weight:700;color:var(--tl400)">Tudo confirmado!</span>';
     } else {
       badge.querySelector('span').textContent = pendentes.length + ' pendente' + (pendentes.length > 1 ? 's' : '');
     }
@@ -2498,31 +2522,78 @@ function adicionarConfirmado(ag){
   }
 }
 
-function abrirModalAg(){
-  // Popula select de clientes do DB real
-  const selCli = document.getElementById('ag-cliente');
-  if(selCli){
-    const lista = (window.clientesDB || clientesDB || [])
-      .slice().sort((a,b) => a.nome.localeCompare(b.nome));
-    selCli.innerHTML = '<option value="">Selecione...</option>' +
-      lista.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+// ── Autopreenchimento de Cliente no modal de Novo Agendamento ──────────────
+function _agClienteFiltrar(termo){
+  const sugDiv = document.getElementById('ag-cliente-sugestoes');
+  if(!sugDiv) return;
+  const t = (termo||'').trim().toLowerCase();
+  // Limpa o id selecionado se o texto não bate mais com o que estava selecionado
+  // (evita salvar com um id antigo se a pessoa digitar por cima do nome escolhido)
+  const nomeAtual = document.getElementById('ag-cliente-nome')?.value || '';
+  if (nomeAtual && nomeAtual.toLowerCase() !== t) {
+    document.getElementById('ag-cliente-id').value = '';
+    document.getElementById('ag-cliente-nome').value = '';
   }
+  if(!t){ sugDiv.style.display = 'none'; return; }
+  const lista = (window.clientesDB || clientesDB || [])
+    .filter(c => (c.nome||'').toLowerCase().includes(t))
+    .sort((a,b) => a.nome.localeCompare(b.nome))
+    .slice(0, 20); // limita sugestões exibidas, mesmo que a base seja grande
+  if(lista.length === 0){
+    sugDiv.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:var(--tx3)">Nenhuma cliente encontrada.</div>';
+    sugDiv.style.display = 'block';
+    return;
+  }
+  sugDiv.innerHTML = lista.map(c => `
+    <div onclick="_agClienteSelecionar('${c.uid || c.id}','${c.nome.replace(/'/g,"\\'")}')"
+      style="padding:9px 12px;font-size:13px;color:var(--tx);cursor:pointer;border-bottom:1px solid var(--br)"
+      onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
+      ${c.nome}${c.wpp ? ` <span style="font-size:11px;color:var(--tx3)">· ${c.wpp}</span>` : ''}
+    </div>`).join('');
+  sugDiv.style.display = 'block';
+}
+function _agClienteSelecionar(id, nome){
+  document.getElementById('ag-cliente-busca').value = nome;
+  document.getElementById('ag-cliente-id').value = id;
+  document.getElementById('ag-cliente-nome').value = nome;
+  document.getElementById('ag-cliente-sugestoes').style.display = 'none';
+}
+// Fecha a lista de sugestões ao clicar fora do campo
+document.addEventListener('click', function(e){
+  const wrap = document.getElementById('ag-cliente-busca');
+  const sug  = document.getElementById('ag-cliente-sugestoes');
+  if(wrap && sug && !wrap.contains(e.target) && !sug.contains(e.target)){
+    sug.style.display = 'none';
+  }
+});
+window._agClienteFiltrar = _agClienteFiltrar;
+window._agClienteSelecionar = _agClienteSelecionar;
+
+function abrirModalAg(){
+  // Limpa o campo de autopreenchimento de cliente (a lista é filtrada dinamicamente)
+  const buscaCliEl = document.getElementById('ag-cliente-busca');
+  if(buscaCliEl) buscaCliEl.value = '';
+  document.getElementById('ag-cliente-id').value = '';
+  document.getElementById('ag-cliente-nome').value = '';
+  const sugCliEl = document.getElementById('ag-cliente-sugestoes');
+  if(sugCliEl) sugCliEl.style.display = 'none';
   // Popula select de serviços das especialidades da equipe
   const selSvc = document.getElementById('ag-servico');
   if(selSvc){
     const eqDB = window.equipeDB || equipeDB || [];
-    const ativas = eqDB.filter(p => p.ativa !== false);
-    // Agrupado por profissional (optgroup) se há mais de uma
-    if(ativas.length > 1){
+    // Não filtra por "ativa hoje" — folga de hoje não impede agendar essa
+    // profissional para um dia futuro em que ela trabalha (o calendário já
+    // filtra os dias certos depois que a profissional é escolhida).
+    if(eqDB.length > 1){
       selSvc.innerHTML = '<option value="">Selecione...</option>' +
-        ativas.map(p => {
+        eqDB.map(p => {
           const servs = (p.espec||'').split(/[·,]/).map(s=>s.trim()).filter(Boolean);
           if(!servs.length) return '';
           return `<optgroup label="${p.nome}">${servs.map(s=>`<option value="${s}">${s}</option>`).join('')}</optgroup>`;
         }).join('');
     } else {
       const servs = [...new Set(
-        ativas.flatMap(p => (p.espec||'').split(/[·,]/).map(s => s.trim()).filter(Boolean))
+        eqDB.flatMap(p => (p.espec||'').split(/[·,]/).map(s => s.trim()).filter(Boolean))
       )].sort();
       selSvc.innerHTML = '<option value="">Selecione...</option>' +
         servs.map(s => `<option value="${s}">${s}</option>`).join('');
@@ -2532,12 +2603,11 @@ function abrirModalAg(){
   const selProf = document.getElementById('ag-prof');
   if(selProf){
     const eqDB = window.equipeDB || equipeDB || [];
-    const ativas = eqDB.filter(p => p.ativa !== false);
     selProf.innerHTML = '<option value="">Sem preferência</option>' +
-      ativas.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+      eqDB.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
     // Modo solo: pré-seleciona e desabilita
-    if(typeof modoSolo === 'function' && modoSolo() && ativas.length === 1){
-      selProf.value = ativas[0].id;
+    if(typeof modoSolo === 'function' && modoSolo() && eqDB.length === 1){
+      selProf.value = eqDB[0].id;
       selProf.disabled = true;
       selProf.style.opacity = '0.6';
     } else {
@@ -2545,44 +2615,133 @@ function abrirModalAg(){
       selProf.style.opacity = '';
     }
   }
-  // Popula selects de Dia / Mês / Ano
-  const hoje = new Date();
-  const diaEl  = document.getElementById('ag-dia');
-  const mesEl  = document.getElementById('ag-mes-sel');
-  const anoEl  = document.getElementById('ag-ano');
-  if(diaEl && mesEl && anoEl){
-    diaEl.innerHTML  = Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${String(i+1).padStart(2,'0')}</option>`).join('');
-    const nomMes=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-    mesEl.innerHTML  = nomMes.map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('');
-    const anoAtual   = hoje.getFullYear();
-    anoEl.innerHTML  = [anoAtual, anoAtual+1].map(a=>`<option value="${a}">${a}</option>`).join('');
-    diaEl.value      = String(hoje.getDate()).padStart(2,'0');
-    mesEl.value      = String(hoje.getMonth()+1).padStart(2,'0');
-    anoEl.value      = String(anoAtual);
-    previewDataAg();
-  }
+  // Monta calendário visual de datas (reage à profissional selecionada em ag-prof)
+  initCalendarioAg();
   // Limpa campos que persistem entre aberturas do modal
   const obsEl = document.getElementById('ag-obs');
   if(obsEl) obsEl.value = '';
-  const horaEl2 = document.getElementById('ag-hora');
-  if(horaEl2) horaEl2.selectedIndex = 0;
 
   document.getElementById('modal-novo-ag').style.display = 'flex';
 }
-function previewDataAg(){
-  const dia = document.getElementById('ag-dia')?.value;
-  const mes = document.getElementById('ag-mes-sel')?.value;
-  const ano = document.getElementById('ag-ano')?.value;
-  if(!dia||!mes||!ano) return;
-  // Atualiza hidden input legível por salvarNovoAg
-  const hidden = document.getElementById('ag-data');
-  if(hidden) hidden.value = ano+'-'+mes+'-'+dia;
-  const d = new Date(parseInt(ano), parseInt(mes)-1, parseInt(dia));
-  const semana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  const meses  = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  const preview = document.getElementById('ag-data-preview');
-  if(preview) preview.textContent = semana[d.getDay()] + ', ' + parseInt(dia) + ' de ' + meses[d.getMonth()] + ' de ' + ano;
+// Calendário visual do modal de novo agendamento (Admin/Profissional).
+// Mesma lógica do calendário da Cliente (initCalendario), com 2 diferenças:
+// inclui HOJE como primeira opção (admin pode precisar agendar encaixe no mesmo dia)
+// e reage à profissional escolhida no select ag-prof (não num select próprio).
+let selDiaAg = null;
+function initCalendarioAg(){
+  const cal = document.getElementById('ag-cal');
+  if(!cal) return;
+  cal.innerHTML = '';
+  selDiaAg = null;
+  document.getElementById('ag-data').value = '';
+  document.getElementById('ag-horarios-wrap').style.display = 'none';
+
+  const profEl = document.getElementById('ag-prof');
+  const profId = profEl ? profEl.value : '';
+  const eqDB   = window.equipeDB || equipeDB || [];
+  const prof   = profId ? eqDB.find(p => p.id === profId) : null;
+
+  const DISP_MAP = {'Dom':0,'Seg':1,'Ter':2,'Qua':3,'Qui':4,'Sex':5,'Sáb':6,'Sab':6};
+  let diasTrab = null;
+  if (prof && prof.disp && prof.disp.length > 0) {
+    diasTrab = prof.disp.map(d => typeof d === 'number' ? d : (DISP_MAP[d] ?? -1)).filter(d => d >= 0);
+  }
+
+  const diasAdicionados = [];
+  let d = new Date(); // começa HOJE (diferente do calendário da Cliente, que começa amanhã)
+  let tentativas = 0;
+  while(diasAdicionados.length < 15 && tentativas < 60){
+    tentativas++;
+    const diaSemana = d.getDay();
+    const disponivelParaProf = !diasTrab || diasTrab.includes(diaSemana);
+    if(diaSemana !== 0 && disponivelParaProf){
+      const dia = d.getDate();
+      const mes = d.getMonth() + 1;
+      const ano = d.getFullYear();
+      const label = `${String(dia).padStart(2,'0')}/${String(mes).padStart(2,'0')}`;
+      const isoData = `${ano}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+      const nomeDia = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][diaSemana];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dia-btn';
+      btn.dataset.label = label;
+      btn.innerHTML = `<span style="font-size:10px;color:var(--tx3)">${nomeDia}</span><span style="font-size:14px;font-weight:700">${dia}</span><span style="font-size:10px;color:var(--tx3)">${String(mes).padStart(2,'0')}</span>`;
+      btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:7px 4px;border-radius:var(--r);border:1px solid var(--br);background:var(--bg2);cursor:pointer;gap:2px;font-family:inherit;transition:all .15s;width:100%';
+      btn.onclick = function(){ selecionarDiaAg(this, label, isoData, nomeDia); };
+      cal.appendChild(btn);
+      diasAdicionados.push(label);
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  if(diasAdicionados.length === 0){
+    cal.innerHTML = '<div style="grid-column:1/-1;color:var(--tx3);font-size:12px;padding:8px 0;text-align:center">Nenhum dia disponível nos próximos 15 dias para esta profissional.</div>';
+  }
 }
+
+function selecionarDiaAg(btn, label, isoData, nomeDia){
+  document.querySelectorAll('#ag-cal .dia-btn').forEach(b => {
+    b.style.background = 'var(--bg2)'; b.style.borderColor = 'var(--br)'; b.style.color = 'var(--tx)';
+  });
+  btn.style.background = 'var(--pk600)'; btn.style.borderColor = 'var(--pk600)'; btn.style.color = 'white';
+  selDiaAg = label;
+  document.getElementById('ag-data').value = isoData;
+  const preview = document.getElementById('ag-data-preview');
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const [ano,mes,dia] = isoData.split('-').map(Number);
+  if(preview) preview.textContent = nomeDia + ', ' + dia + ' de ' + meses[mes-1] + ' de ' + ano;
+  renderHorariosAg(label);
+}
+
+// Grid de horários do modal Admin — marca como ocupado (disabled) os horários
+// já confirmados para a profissional/dia escolhidos, igual ao calendário da Cliente.
+function renderHorariosAg(label){
+  const wrap = document.getElementById('ag-horarios-wrap');
+  const grid = document.getElementById('ag-avail-grid');
+  const horaHidden = document.getElementById('ag-hora');
+  if(!wrap || !grid) return;
+  wrap.style.display = 'block';
+  horaHidden.value = '';
+
+  const horarios = ['08:00','09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
+  const profEl = document.getElementById('ag-prof');
+  const profId = profEl ? profEl.value : '';
+  const eqDB   = window.equipeDB || equipeDB || [];
+  const profNome = profId ? (eqDB.find(p => p.id === profId)?.nome || '') : '';
+  const ags = window.agendamentosDB || agendamentos || [];
+
+  // Se o dia escolhido é hoje, desabilita também horários já passados
+  const hojeLabel = (() => { const h=new Date(); return String(h.getDate()).padStart(2,'0')+'/'+String(h.getMonth()+1).padStart(2,'0'); })();
+  const agoraMin = new Date().getHours()*60 + new Date().getMinutes();
+
+  const ocupados = ags
+    .filter(a => {
+      if (a.status === 'cancelado' || a.status === 'recusado') return false;
+      if (a.data !== label) return false;
+      if (profNome) return (a.prof || '').toLowerCase().includes(profNome.split(' ')[0].toLowerCase());
+      return true;
+    })
+    .map(a => a.hora);
+
+  grid.innerHTML = horarios.map(h => {
+    const [hh,mm] = h.split(':').map(Number);
+    const passado = label === hojeLabel && (hh*60+mm) <= agoraMin;
+    const busy = ocupados.includes(h) || passado;
+    return `<button type="button" class="slot ${busy?'busy':''}" ${busy?'disabled':''} onclick="selecionarHorarioAg(this,'${h}')">${h}</button>`;
+  }).join('');
+}
+
+function selecionarHorarioAg(btn, horario){
+  document.querySelectorAll('#ag-avail-grid .slot:not(.busy)').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  document.getElementById('ag-hora').value = horario;
+}
+
+// Reconstrói o calendário quando a profissional do modal muda
+(function(){
+  document.addEventListener('change', function(e){
+    if(e.target && e.target.id === 'ag-prof') initCalendarioAg();
+  });
+})();
 function fecharModalAg(){
   document.getElementById('modal-novo-ag').style.display = 'none';
   document.getElementById('ag-toast').style.display = 'none';
@@ -2590,28 +2749,45 @@ function fecharModalAg(){
 let _salvandoAg = false;
 async function salvarNovoAg(){
   if(_salvandoAg) return; // trava contra duplo-clique/duplo-toque (causa de agendamento duplicado)
-  const clienteEl = document.getElementById('ag-cliente');
+  const clienteId = document.getElementById('ag-cliente-id')?.value || '';
+  const cliente   = document.getElementById('ag-cliente-nome')?.value || '';
   const servicoEl = document.getElementById('ag-servico');
   const dataEl    = document.getElementById('ag-data');
   const horaEl    = document.getElementById('ag-hora');
   const profEl    = document.getElementById('ag-prof');
   const origemEl  = document.getElementById('ag-origem');
-  const clienteId = clienteEl ? clienteEl.value : '';
-  const cliente   = clienteEl ? (clienteEl.options[clienteEl.selectedIndex]?.text || clienteEl.value) : '';
   const servico   = servicoEl ? servicoEl.value : '';
   const data      = dataEl    ? dataEl.value : '';
   const hora      = horaEl    ? horaEl.value : '';
   const profNome  = profEl    ? (profEl.options[profEl.selectedIndex]?.text || profEl.value) : '';
   const profId    = profEl    ? profEl.value : '';
   const origem    = origemEl  ? origemEl.value : '';
-  if(!cliente || cliente==='Selecione...' || !servico || !data){
-    alert('Preencha cliente, serviço e data.'); return;
+  if(!cliente || !clienteId || !servico || !data){
+    alert('Selecione uma cliente da lista de sugestões, e preencha serviço e data.'); return;
+  }
+  if(!hora){
+    alert('Escolha um horário disponível.'); return;
   }
 
   // Validação: não permitir data passada
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const d = new Date(data + 'T00:00:00');
   if(d < hoje){ alert('Não é possível criar agendamento para uma data passada.'); return; }
+
+  // Validação: profissional selecionada precisa trabalhar no dia da semana escolhido
+  // (a disponibilidade da profissional é por dia da semana, ex.: ['Seg','Qua'] — vazio = todos os dias)
+  if(profId){
+    const eqDB = window.equipeDB || equipeDB || [];
+    const profSel = eqDB.find(p => p.id === profId);
+    if(profSel && profSel.disp && profSel.disp.length > 0){
+      const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+      const diaEscolhido = diasSemana[d.getDay()];
+      if(!profSel.disp.includes(diaEscolhido)){
+        alert(profSel.nome + ' não trabalha ' + (diaEscolhido==='Sab'?'aos sábados':'às '+diaEscolhido+'s') + '. Escolha outra data ou outra profissional.');
+        return;
+      }
+    }
+  }
 
   // Validação: não permitir horário passado quando é hoje
   if(d.getTime() === hoje.getTime() && hora){
@@ -2627,7 +2803,7 @@ async function salvarNovoAg(){
   const profAbrev = partes.length >= 2 ? partes[0] + ' ' + partes[1][0] + '.' : profNome;
   const id = 'ag-' + Date.now();
   const novoAg = { id, cliente, clienteId, servico, data:dataFmt, hora, prof:profAbrev, profId, origem,
-    status:'confirmado', clinicaId:clinicaAtual(), criadoEm:new Date().toISOString() };
+    status:'confirmado', clinicaId:clinicaAtual(), criadoEm:new Date().toISOString(), criadoUid: cu?.uid || 'admin' };
 
   const btnConfirmar = document.querySelector('#modal-novo-ag button.btn.pk');
   _salvandoAg = true;
@@ -3378,6 +3554,72 @@ function _atualizarContagemClientes(mostrados, total){
 // Aplica busca (clientesFiltroBusca), ordenação (clientesOrdenacao) e
 // paginação (clientesPaginaAtual × CLIENTES_POR_PAGINA) — evita renderizar
 // centenas de cards de uma vez só quando a base crescer.
+// ── Seleção múltipla de clientes (para apagar em lote) ──────────────────────
+let modoSelecaoClientes = false;
+let clientesSelecionadas = new Set();
+
+function toggleModoSelecaoClientes(){
+  modoSelecaoClientes = !modoSelecaoClientes;
+  clientesSelecionadas.clear();
+  const btn = document.getElementById('clientes-btn-selecionar');
+  if(btn) btn.textContent = modoSelecaoClientes ? 'Cancelar seleção' : 'Selecionar';
+  _atualizarBarraLoteClientes();
+  renderClientesLista();
+}
+
+function toggleSelecaoCliente(id){
+  if(clientesSelecionadas.has(id)) clientesSelecionadas.delete(id);
+  else clientesSelecionadas.add(id);
+  _atualizarBarraLoteClientes();
+  renderClientesLista();
+}
+
+function _atualizarBarraLoteClientes(){
+  const barra = document.getElementById('clientes-acao-lote');
+  const contagem = document.getElementById('clientes-lote-contagem');
+  if(!barra || !contagem) return;
+  const n = clientesSelecionadas.size;
+  barra.style.display = (modoSelecaoClientes && n > 0) ? 'flex' : 'none';
+  contagem.textContent = n + (n === 1 ? ' selecionada' : ' selecionadas');
+}
+
+async function apagarClientesSelecionadas(){
+  const n = clientesSelecionadas.size;
+  if(n === 0) return;
+  const nomes = [...clientesSelecionadas]
+    .map(id => (window.clientesDB||clientesDB).find(c => c.id === id)?.nome)
+    .filter(Boolean);
+  const preview = nomes.slice(0,3).join(', ') + (nomes.length > 3 ? ` e mais ${nomes.length-3}` : '');
+  if(!confirm(`Apagar ${n} cliente${n===1?'':'s'} (${preview})? Esta ação não pode ser desfeita.\n\nA cliente apagada não conseguirá mais fazer login no app (mesmo que ainda exista tecnicamente uma conta no Firebase Authentication — isso requer um script administrativo separado para limpeza completa).`)) return;
+
+  let sucesso = 0, falhas = 0;
+  for(const id of clientesSelecionadas){
+    try {
+      const cli = (window.clientesDB||clientesDB).find(c => c.id === id);
+      await deleteDoc(doc(db, 'clientes', id));
+      // Remove também o vínculo de login, se existir, para impedir login futuro
+      if(cli && cli.uid){
+        try { await deleteDoc(doc(db, 'users', cli.uid)); } catch(eUser) { console.warn('[Belezza] apagar /users vinculado:', eUser); }
+      }
+      sucesso++;
+    } catch(e){
+      console.error('[Belezza] apagarClientesSelecionadas:', e);
+      falhas++;
+    }
+  }
+  clientesSelecionadas.clear();
+  modoSelecaoClientes = false;
+  const btn = document.getElementById('clientes-btn-selecionar');
+  if(btn) btn.textContent = 'Selecionar';
+  _atualizarBarraLoteClientes();
+  // onSnapshot de /clientes vai re-renderizar a lista automaticamente, mas força aqui também
+  renderClientesLista();
+  alert(falhas === 0 ? `${sucesso} cliente${sucesso===1?'':'s'} apagada${sucesso===1?'':'s'}!` : `${sucesso} apagada(s), ${falhas} falharam. Veja o console para detalhes.`);
+}
+window.toggleModoSelecaoClientes = toggleModoSelecaoClientes;
+window.toggleSelecaoCliente = toggleSelecaoCliente;
+window.apagarClientesSelecionadas = apagarClientesSelecionadas;
+
 function renderClientesLista(){
   const lista = document.getElementById('clientes-lista');
   if(!lista) return;
@@ -3427,7 +3669,8 @@ function renderClientesLista(){
       ? `https://api.dicebear.com/9.x/notionists/svg?seed=${c.id}&backgroundColor=e8f4ff`
       : `https://api.dicebear.com/9.x/lorelei/svg?seed=${c.id}&backgroundColor=fbeaf0`);
     return `
-      <div class="cli-row" style="${borderStyle}cursor:pointer" data-busca="${_escHtml((c.nome||'') + ' ' + (c.wpp||''))}" onclick="abrirPerfilCliente('${c.id}')">
+      <div class="cli-row" style="${borderStyle}cursor:pointer" data-busca="${_escHtml((c.nome||'') + ' ' + (c.wpp||''))}" onclick="${modoSelecaoClientes ? `toggleSelecaoCliente('${c.id}')` : `abrirPerfilCliente('${c.id}')`}">
+        ${modoSelecaoClientes ? `<input type="checkbox" ${clientesSelecionadas.has(c.id)?'checked':''} onclick="event.stopPropagation();toggleSelecaoCliente('${c.id}')" style="width:18px;height:18px;flex-shrink:0;accent-color:var(--pk600)">` : ''}
         <div style="position:relative;flex-shrink:0">
           <img src="${avatarSrc}" style="width:40px;height:40px;border-radius:50%">
           ${crownBadge}
@@ -3548,23 +3791,60 @@ function abrirPerfilCliente(id){
   drawer.style.display = 'flex';
 }
 
+let _perfilClienteAoEditar = null; // guarda o id da cliente cujo perfil estava aberto, para reabrir ao fechar o modal de edição
+
 function fecharPerfilCliente(){
   const d = document.getElementById('cli-perfil');
   if(d) d.style.display = 'none';
 }
 
 function abrirModalCliente(){
+  _perfilClienteAoEditar = null; // Novo cadastro — não há perfil para voltar
+  // Limpa todos os campos do formulário — sem isso, valores do cadastro/edição
+  // anterior permaneciam visíveis (ex.: WhatsApp já preenchido, permitindo
+  // cadastrar duas clientes com o mesmo número sem perceber).
+  document.getElementById('nc-nome').value      = '';
+  document.getElementById('nc-wpp').value       = '';
+  document.getElementById('nc-apelido').value   = '';
+  document.getElementById('nc-nasc').value      = '';
+  document.getElementById('nc-senha').value     = '';
+  document.getElementById('nc-interesse').value = '';
+  document.getElementById('nc-alergias').value  = '';
+  document.getElementById('nc-obs').value       = '';
+  const origemSel = document.getElementById('nc-origem');
+  if(origemSel) origemSel.selectedIndex = 0;
+  document.querySelectorAll('input[name="nc-sexo"]').forEach(r => r.checked = r.value === 'F');
+  // Garante que o modal volta para o modo "Cadastrar" (pode ter ficado em modo
+  // "Editar" se o modal foi fechado no meio de uma edição anterior)
+  const modal = document.getElementById('modal-cli');
+  const titulo = modal.querySelector('div[style*="font-size:15px"]');
+  if(titulo) titulo.textContent = 'Cadastrar Cliente';
+  const btnCad = modal.querySelector('button.btn.pk');
+  if(btnCad){ btnCad.innerHTML = '<i class="ti ti-user-plus"></i> Cadastrar'; btnCad.setAttribute('onclick','salvarCliente()'); }
+  document.getElementById('nc-error').textContent = '';
   document.getElementById('modal-cli').style.display = 'flex';
 }
 function fecharModalCliente(){
   document.getElementById('modal-cli').style.display = 'none';
   document.getElementById('nc-toast').style.display = 'none';
   document.getElementById('nc-error').textContent = '';
+  // Se o modal foi aberto a partir da edição de uma cliente (não um novo cadastro),
+  // reabre o perfil dela em vez de deixar a lista geral exposta por trás.
+  if(_perfilClienteAoEditar){
+    const idVolta = _perfilClienteAoEditar;
+    _perfilClienteAoEditar = null;
+    abrirPerfilCliente(idVolta);
+  }
 }
 async function salvarCliente(){
   const nome = document.getElementById('nc-nome').value.trim();
   const wpp  = document.getElementById('nc-wpp').value.trim();
   if(!nome||!wpp){ document.getElementById('nc-error').textContent='Nome e WhatsApp são obrigatórios.'; return; }
+  // Validação: WhatsApp já cadastrado em outra cliente desta clínica (independe de ter senha —
+  // antes só era pega indiretamente pelo erro do Firebase Auth, e só quando havia senha).
+  const wppNumNovo = wpp.replace(/\D/g,'');
+  const jaExiste = (window.clientesDB || clientesDB || []).some(c => (c.wpp||'').replace(/\D/g,'') === wppNumNovo);
+  if(jaExiste){ document.getElementById('nc-error').textContent = 'Este WhatsApp já está cadastrado para outra cliente.'; return; }
   const sexo    = document.querySelector('input[name="nc-sexo"]:checked')?.value||'F';
   const apelido = (document.getElementById('nc-apelido')?.value||'').trim().toUpperCase().slice(0,2);
   const senha   = document.getElementById('nc-senha')?.value||'';
@@ -3612,10 +3892,11 @@ async function salvarCliente(){
   }
   try { await setDoc(doc(db,'clientes',id), novo); }
   catch(e){ console.error('[Belezza] salvarCliente ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
-  clientesDB.push(novo);
-  window.clientesDB = clientesDB;
-  // Atualiza lista visual (re-renderiza respeitando a ordenação atual)
-  renderClientesLista();
+  // Não atualiza clientesDB manualmente aqui — o listener onSnapshot de clientes
+  // (iniciarListenerClientes) já está ativo e vai re-renderizar a lista assim que
+  // o Firestore confirmar a gravação. Um push manual aqui causava duplicidade
+  // visual (cliente aparecia 2x até o próximo reload) — mesmo bug já corrigido
+  // anteriormente em salvarProfissional().
   document.getElementById('nc-toast').style.display='flex';
   setTimeout(()=>fecharModalCliente(), 2000);
 }
@@ -3682,9 +3963,30 @@ function _notifAtualizarTitle(nPendentes) {
 // Estado para detectar mudanças de status nos agendamentos — visão profissional
 const _notifStatusAnteriorPro = {}; // { [agId]: status }
 
+let _notifPrimeiraCargaPro = true; // evita notificar agendamentos já existentes ao logar/recarregar
+
 function _notifVerificarNovos(agendamentosAtuais) {
+  // Primeira carga — apenas registra os ids existentes, não notifica nada
+  // (sem isso, todo pendente/confirmado já existente tocaria som ao logar)
+  if (_notifPrimeiraCargaPro) {
+    _notifPrimeiraCargaPro = false;
+    agendamentosAtuais.forEach(a => {
+      _notifStatusAnteriorPro[a.id] = a.status;
+      _notifUltimosIds.add(a.id);
+    });
+    _notifAtualizarTitle(agendamentosAtuais.filter(a => a.status === 'pendente').length);
+    return;
+  }
+
   const pendentesNovos = agendamentosAtuais.filter(a =>
     a.status === 'pendente' && !_notifUltimosIds.has(a.id)
+  );
+  // Agendamento manual confirmado criado por OUTRA pessoa da equipe (não eu) —
+  // diferente de uma transição pendente→confirmado (que já foi notificada quando
+  // virou pendente), aqui o id é totalmente novo e já nasce confirmado.
+  const confirmadosNovosDeOutrem = agendamentosAtuais.filter(a =>
+    a.status === 'confirmado' && !_notifUltimosIds.has(a.id) &&
+    a.criadoUid && a.criadoUid !== cu?.uid
   );
   // Detecta cancelamentos pela cliente (mudança para 'cancelado' com canceladoPor='cliente')
   agendamentosAtuais.forEach(a => {
@@ -3706,7 +4008,7 @@ function _notifVerificarNovos(agendamentosAtuais) {
   const totalPendentes = agendamentosAtuais.filter(a => a.status === 'pendente').length;
   _notifAtualizarTitle(totalPendentes);
 
-  if (pendentesNovos.length > 0) {
+  if (pendentesNovos.length > 0 || confirmadosNovosDeOutrem.length > 0) {
     _notifSom();
     _notifVibrar();
   }
@@ -3837,7 +4139,7 @@ function iniciarListenerAgCliente(uid) {
     lista.innerHTML = docs.map(ag => {
       const statusMap = {
         pendente:    { label: 'Aguardando', bg: '#fff3cd', color: '#856404', border: '#ffc107' },
-        confirmado:  { label: 'Confirmado ✓', bg: 'var(--tl50)', color: 'var(--tl800)', border: 'var(--tl200)' },
+        confirmado:  { label: 'Confirmado ✓', bg: 'var(--tl50)', color: 'var(--tl800)', border: 'var(--tl100)' },
         recusado:    { label: 'Não disponível', bg: '#fde8e8', color: '#c0392b', border: '#f5c6cb' },
         cancelado:   { label: 'Cancelado', bg: 'var(--bg3)', color: 'var(--tx3)', border: 'var(--br)' },
       };
@@ -3982,10 +4284,78 @@ async function confirmarFS(id) {
 }
 
 // ── Recusar agendamento no Firestore ─────────────────────────────────────────
+// Calcula os próximos N horários livres de uma profissional, respeitando os dias
+// de trabalho dela e os agendamentos já confirmados. Função pura (não toca no DOM) —
+// reaproveita a mesma lógica usada em initCalendarioAg/renderHorariosAg, usada para
+// sugerir horários alternativos no momento de recusar uma solicitação.
+function _proximosHorariosLivres(profIdOuNome, qtde){
+  const HORARIOS = ['08:00','09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
+  const DISP_MAP = {'Dom':0,'Seg':1,'Ter':2,'Qua':3,'Qui':4,'Sex':5,'Sáb':6,'Sab':6};
+  const eqDB = window.equipeDB || equipeDB || [];
+  // Aceita tanto profId (agendamento manual) quanto nome da profissional (pedido da cliente,
+  // que grava só o campo 'prof' como texto, sem profId)
+  const prof = profIdOuNome
+    ? eqDB.find(p => p.id === profIdOuNome) || eqDB.find(p => p.nome === profIdOuNome || p.nome.split(' ')[0] === profIdOuNome.split(' ')[0])
+    : null;
+  const profNome = prof ? prof.nome : (profIdOuNome || '');
+
+  let diasTrab = null;
+  if (prof && prof.disp && prof.disp.length > 0) {
+    diasTrab = prof.disp.map(d => typeof d === 'number' ? d : (DISP_MAP[d] ?? -1)).filter(d => d >= 0);
+  }
+
+  const ags = window.agendamentosDB || agendamentos || [];
+  const agoraMin = new Date().getHours()*60 + new Date().getMinutes();
+  const resultado = [];
+
+  let d = new Date();
+  let tentativasDia = 0;
+  while(resultado.length < qtde && tentativasDia < 20){
+    tentativasDia++;
+    const diaSemana = d.getDay();
+    const disponivelParaProf = !diasTrab || diasTrab.includes(diaSemana);
+    if(diaSemana !== 0 && disponivelParaProf){
+      const dia = d.getDate();
+      const mes = d.getMonth() + 1;
+      const label = `${String(dia).padStart(2,'0')}/${String(mes).padStart(2,'0')}`;
+      const nomeDia = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][diaSemana];
+      const ehHoje = (tentativasDia === 1);
+
+      const ocupados = ags
+        .filter(a => {
+          if (a.status === 'cancelado' || a.status === 'recusado') return false;
+          if (a.data !== label) return false;
+          if (profNome) return (a.prof || '').toLowerCase().includes(profNome.split(' ')[0].toLowerCase());
+          return true;
+        })
+        .map(a => a.hora);
+
+      for (const h of HORARIOS) {
+        if (resultado.length >= qtde) break;
+        if (ocupados.includes(h)) continue;
+        if (ehHoje) {
+          const [hh, mm] = h.split(':').map(Number);
+          if (hh*60+mm <= agoraMin) continue; // não sugere horário já passado hoje
+        }
+        resultado.push(`${nomeDia} ${label} às ${h}`);
+      }
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return resultado;
+}
+
 async function recusarFS(id) {
-  // Guarda nome ANTES de qualquer alteração
+  // Guarda dados ANTES de qualquer alteração
   const agAntes = agendamentos.find(a => a.id === id);
   const nomeCliente = agAntes?.cliente || 'a cliente';
+  const wppCliente = (() => {
+    const cli = (window.clientesDB || clientesDB || []).find(c => c.id === agAntes?.clienteId || c.nome === nomeCliente);
+    return cli?.wpp || '';
+  })();
+
+  // Calcula horários sugeridos da mesma profissional, antes de recusar
+  const horariosSugeridos = (agAntes?.profId || agAntes?.prof) ? _proximosHorariosLivres(agAntes.profId || agAntes.prof, 3) : [];
 
   // Atualiza Firestore
   try {
@@ -3999,10 +4369,10 @@ async function recusarFS(id) {
   }
 
   // Toast fixo no topo da tela — independente de qual pane está ativo
-  mostrarAvisoRecusa(nomeCliente);
+  mostrarAvisoRecusa(nomeCliente, wppCliente, horariosSugeridos, agAntes?.servico || '');
 }
 
-function mostrarAvisoRecusa(nomeCliente) {
+function mostrarAvisoRecusa(nomeCliente, wppCliente, horariosSugeridos, servico) {
   const anterior = document.getElementById('aviso-recusa');
   if(anterior) anterior.remove();
 
@@ -4021,8 +4391,8 @@ function mostrarAvisoRecusa(nomeCliente) {
     'font-size:13px',
     'color:#856404',
     'display:flex',
-    'align-items:center',
-    'gap:10px',
+    'flex-direction:column',
+    'gap:8px',
     'max-width:440px',
     'width:90%',
     'box-shadow:0 6px 24px rgba(0,0,0,.2)',
@@ -4030,7 +4400,19 @@ function mostrarAvisoRecusa(nomeCliente) {
     'font-weight:500',
     'opacity:1',
   ].join(';'));
-  aviso.innerHTML = '<i class="ti ti-phone" style="font-size:20px;flex-shrink:0"></i><span>Solicitação recusada. <strong>Entre em contato com ' + nomeCliente + '</strong> para informar e oferecer uma nova data.</span>';
+
+  const temHorarios = horariosSugeridos && horariosSugeridos.length > 0;
+  const textoTopo = '<i class="ti ti-phone" style="font-size:20px;flex-shrink:0"></i><span>Solicitação recusada. <strong>Entre em contato com ' + nomeCliente + '</strong> para informar e oferecer uma nova data.</span>';
+
+  let botaoWpp = '';
+  if (temHorarios && wppCliente) {
+    const listaHorarios = horariosSugeridos.map(h => '• ' + h).join('\n');
+    const msg = `Olá ${nomeCliente.split(' ')[0]}! Infelizmente não consigo confirmar seu horário para ${servico||'o serviço solicitado'}. Tenho esses horários disponíveis:\n${listaHorarios}\nAlgum deles funciona para você?`;
+    const numWpp = wppCliente.replace(/\D/g,'');
+    botaoWpp = `<button onclick="window.open('https://wa.me/55${numWpp}?text=${encodeURIComponent(msg)}','_blank')" class="btn tl sm" style="align-self:flex-start"><i class="ti ti-brand-whatsapp"></i> Sugerir esses horários no WhatsApp</button>`;
+  }
+
+  aviso.innerHTML = `<div style="display:flex;align-items:center;gap:10px">${textoTopo}</div>${botaoWpp}`;
   document.body.appendChild(aviso);
   // requestAnimationFrame garante que o elemento é pintado antes da transição de saída
   setTimeout(() => {
@@ -4039,7 +4421,7 @@ function mostrarAvisoRecusa(nomeCliente) {
       aviso.style.opacity = '0';
       setTimeout(() => { if(aviso.parentNode) aviso.remove(); }, 500);
     });
-  }, 5000);
+  }, temHorarios ? 9000 : 5000); // fica mais tempo na tela se tiver botão de ação
 }
 window.mostrarAvisoRecusa = mostrarAvisoRecusa;
 
@@ -4336,22 +4718,42 @@ window.iniciarListenerEquipe = iniciarListenerEquipe;
 window.aplicarModoSolo       = aplicarModoSolo;
 
 // ── Cancelar agendamento (profissional ou cliente) ────────────────────────────
+let _cancelando = {}; // trava de reentrância por id — evita duplo-toque/duplo-clique disparando cancelarFS() duas vezes para o mesmo agendamento
 async function cancelarFS(id, origem) {
+  if (_cancelando[id]) return;
   const ag = agendamentos.find(a => a.id === id)
            || agendamentosCliente.find(a => a.id === id);
   const nomeServico = ag?.servico || 'agendamento';
   const nomeCliente = ag?.cliente || 'a cliente';
 
+  // Detecta se o horário do agendamento já passou (possível no-show, não apenas
+  // um cancelamento normal — a cliente pode simplesmente não ter comparecido)
+  let jaPassou = false;
+  if (ag?.data && ag?.hora) {
+    const [dia, mes] = ag.data.split('/').map(Number);
+    const [hh, mm] = ag.hora.split(':').map(Number);
+    if (dia && mes && !isNaN(hh) && !isNaN(mm)) {
+      const dataHoraAg = new Date(new Date().getFullYear(), mes - 1, dia, hh, mm);
+      jaPassou = dataHoraAg < new Date();
+    }
+  }
+
   // Confirmação contextual
-  const quemCancela = origem === 'cliente' ? 'Tem certeza que deseja cancelar este agendamento?' : `Cancelar o agendamento de ${nomeCliente} (${nomeServico})?`;
+  const quemCancela = origem === 'cliente'
+    ? 'Tem certeza que deseja cancelar este agendamento?'
+    : jaPassou
+      ? `O horário de ${nomeCliente} (${nomeServico}) já passou. Marcar como cancelado/não compareceu?`
+      : `Cancelar o agendamento de ${nomeCliente} (${nomeServico})?`;
   if (!confirm(quemCancela)) return;
 
+  _cancelando[id] = true;
   try {
     await updateDoc(doc(db, 'agendamentos', id), {
       status:       'cancelado',
       canceladoEm:  new Date().toISOString(),
       canceladoPor: origem || 'lider',
-      canceladoUid: cu?.uid || 'admin'
+      canceladoUid: cu?.uid || 'admin',
+      ...(jaPassou && origem !== 'cliente' ? { canceladoMotivo: 'nao-compareceu' } : {})
     });
     // Feedback visual
     const el = document.getElementById(id) || document.querySelector(`[data-agid="${id}"]`);
@@ -4363,9 +4765,18 @@ async function cancelarFS(id, origem) {
       setTimeout(() => el.remove(), 1500);
     }
     _notifAtualizarTitle(agendamentos.filter(a => a.status === 'pendente').length);
+    // Reforço: força a view 'hoje' a re-renderizar imediatamente, sem depender
+    // só do listener onSnapshot (que é assíncrono e pode demorar a refletir).
+    if (typeof agView !== 'undefined' && agView === 'hoje') {
+      const idx = agendamentos.findIndex(a => a.id === id);
+      if (idx >= 0) agendamentos[idx].status = 'cancelado';
+      setTimeout(renderAgHoje, 1600);
+    }
   } catch(e) {
     console.error('[Belezza] cancelarFS:', e);
     alert('Erro ao cancelar. Tente novamente.');
+  } finally {
+    delete _cancelando[id];
   }
 }
 window.cancelarFS = cancelarFS;
@@ -4470,13 +4881,17 @@ function renderAgSemana(){
     const ags = agendamentos.filter(a => a.status==='confirmado' && a.data===key);
     const hoje = isHoje(d);
     return `
-      <div style="background:var(--bg);border:1px solid ${hoje?'var(--pk400)':'var(--br)'};border-radius:var(--rl);padding:8px;min-height:90px">
-        <div style="font-size:10px;font-weight:700;color:${hoje?'var(--pk600)':'var(--tx3)'};text-transform:uppercase;margin-bottom:4px">${nomeDia[i]}</div>
-        <div style="font-size:15px;font-weight:700;color:${hoje?'var(--pk600)':'var(--tx)'};margin-bottom:6px">${dd}</div>
+      <div class="ag-semana-dia" style="background:var(--bg);border:1px solid ${hoje?'var(--pk400)':'var(--br)'};border-radius:var(--rl);padding:8px;min-height:90px">
+        <div class="ag-semana-cabecalho">
+          <div style="font-size:10px;font-weight:700;color:${hoje?'var(--pk600)':'var(--tx3)'};text-transform:uppercase">${nomeDia[i]}</div>
+          <div style="font-size:15px;font-weight:700;color:${hoje?'var(--pk600)':'var(--tx)'}">${dd}</div>
+        </div>
+        <div class="ag-semana-lista">
         ${ags.length===0
           ? '<div style="font-size:10px;color:var(--tx3)">Livre</div>'
-          : ags.map(a=>`<div style="font-size:10px;background:var(--pk50);border-radius:4px;padding:2px 5px;margin-bottom:3px;color:var(--pk800);line-height:1.3;display:flex;align-items:center;justify-content:space-between;gap:2px"><span><b>${a.hora}</b> ${a.servico.split(' ')[0]}</span><span onclick="cancelarFS('${a.id}','lider')" style="cursor:pointer;color:var(--tx3);font-size:11px;line-height:1;padding:1px 3px" title="Cancelar">✕</span></div>`).join('')
+          : ags.map(a=>`<div style="font-size:10px;background:var(--pk50);border-radius:4px;padding:2px 5px;margin-bottom:3px;color:var(--pk800);line-height:1.3;display:flex;align-items:center;justify-content:space-between;gap:2px"><span><b>${a.hora}</b> <span class="ag-semana-svc-nome">${a.servico}</span></span><span onclick="cancelarFS('${a.id}','lider')" style="cursor:pointer;color:var(--tx3);font-size:11px;line-height:1;padding:1px 3px" title="Cancelar">✕</span></div>`).join('')
         }
+        </div>
         ${ags.length>0?`<div style="font-size:10px;color:var(--tx3);margin-top:3px">${ags.length} ag.</div>`:''}
       </div>`;
   }).join('');
@@ -4567,7 +4982,6 @@ function detalhesDia(key){
   alert(key + ':\n' + ags.map(a => a.hora + ' — ' + a.servico + ' · ' + a.cliente).join('\n'));
 }
 
-window.previewDataAg = previewDataAg;
 window.setAgView   = setAgView;
 window.navSemana   = navSemana;
 window.navMes      = navMes;
@@ -4960,7 +5374,8 @@ function renderCampanhas(camps) {
             </div>
             <div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               ${et.imagemBase64 ? `
-                <img src="${et.imagemBase64}" style="width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid var(--br)">
+                <img src="${et.imagemBase64}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;border:1px solid var(--br)" title="Toque e segure para salvar manualmente, se necessário">
+                <span style="font-size:10px;color:var(--tx3)">Não baixou? Toque e segure a imagem para salvar.</span>
                 <button class="btn sm" onclick="baixarImagemEtapa('${c.id}',${i})" style="font-size:11px"><i class="ti ti-download"></i> Baixar imagem</button>
                 <button class="btn sm" onclick="removerImagemEtapa('${c.id}',${i})" style="font-size:11px;color:var(--pk600)"><i class="ti ti-x"></i></button>
               ` : `
@@ -5054,6 +5469,10 @@ function baixarImagemEtapa(campId, etapaIdx) {
   a.href = img;
   a.download = `campanha-${campId}-etapa${etapaIdx+1}.jpg`;
   document.body.appendChild(a); a.click(); a.remove();
+  // Feedback explícito: o download por link <a> nem sempre é visível para a usuária
+  // (em alguns celulares a imagem vai direto para Downloads/Galeria sem aviso na tela).
+  // Reforça o próximo passo do fluxo manual de anexar no WhatsApp.
+  alert('Imagem baixada! Agora toque em "Abrir WhatsApp" (o texto já vem pronto) e anexe a imagem manualmente na conversa, usando o ícone de anexo/câmera do WhatsApp.\n\nSe a imagem não aparecer na Galeria, mantenha o dedo pressionado sobre a imagem aqui na tela e escolha "Salvar imagem".');
 }
 
 async function removerImagemEtapa(campId, etapaIdx) {
@@ -5116,7 +5535,7 @@ function initPromoForm() {
   }
   if(profSel){
     profSel.innerHTML = '<option value="">Equipe (qualquer uma)</option>' +
-      (window.equipeDB||[]).filter(p=>p.ativa).map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
+      (window.equipeDB||[]).map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
     // Modo solo: pré-seleciona a única profissional APÓS popular o select
     if(modoSolo()){
       const soloNome = nomeSolo();
@@ -5193,7 +5612,7 @@ function renderPromosCliente(promos) {
     const nomeEsc = p.nome.replace(/'/g,"\\'");
     // Badge de campanha
     const badgeCamp = p.campanha
-      ? `<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`
+      ? `<span style="font-size:10px;background:var(--pu50);color:var(--pu800);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`
       : '';
     const badgePopup = p.popup
       ? `<span style="font-size:10px;background:#fff3e0;color:#e65100;border-radius:10px;padding:2px 8px;font-weight:700;border:1px solid #ffcc80">&#x1F514; Destaque</span>`
@@ -5206,7 +5625,7 @@ function renderPromosCliente(promos) {
     if(agPromo) {
       const statusMap = {
         pendente:   { label: 'Aguardando', bg: '#fff3cd', color: '#856404', border: '#ffc107' },
-        confirmado: { label: 'Confirmado ✓', bg: 'var(--tl50)', color: 'var(--tl800)', border: 'var(--tl200)' },
+        confirmado: { label: 'Confirmado ✓', bg: 'var(--tl50)', color: 'var(--tl800)', border: 'var(--tl100)' },
         recusado:   { label: 'Não disponível', bg: '#fde8e8', color: '#c0392b', border: '#f5c6cb' },
       };
       const s = statusMap[agPromo.status] || statusMap.pendente;
@@ -5253,11 +5672,11 @@ function renderPromosPro(promos) {
     return `<div class="row-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch;cursor:pointer" onclick="togglePromoDetalhe('${p.id}')">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="flex:1;min-width:0">
-          <div class="row-name" style="font-size:13px">${p.nome}${p.popup ? ' <span style="font-size:10px;background:#fff3e0;color:#e65100;border-radius:8px;padding:1px 6px;font-weight:700">pop-up</span>' : ''}${p.campanha ? ` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>` : ''}</div>
+          <div class="row-name" style="font-size:13px">${p.nome}${p.popup ? ' <span style="font-size:10px;background:#fff3e0;color:#e65100;border-radius:8px;padding:1px 6px;font-weight:700">pop-up</span>' : ''}${p.campanha ? ` <span style="font-size:10px;color:var(--pu800);font-weight:500">· ${p.campanha}</span>` : ''}</div>
           <div class="row-sub">
             ${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}
             ${p.profissional ? ' · ' + p.profissional : ''}
-            ${confirmados > 0 ? ` · <span style="color:var(--tl700);font-weight:600">${confirmados} ✓</span>` : ''}
+            ${confirmados > 0 ? ` · <span style="color:var(--tl800);font-weight:600">${confirmados} ✓</span>` : ''}
           </div>
         </div>
         <button onclick="event.stopPropagation();apagarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--tx3);padding:4px" title="Apagar">
@@ -5528,12 +5947,17 @@ const BG_CORES = ['fbeaf0','e1f5ee','eeedfe','faece7','faeeda','e8f4ff'];
 // Para expandir para clínica, basta cadastrar uma segunda profissional — sem
 // alterar nenhum código.
 function modoSolo() {
-  const ativas = (window.equipeDB || equipeDB).filter(p => p.ativa !== false);
-  return ativas.length <= 1;
+  // Total de profissionais CADASTRADAS na equipe — não filtra por disponibilidade
+  // do dia (p.ativa indica só "trabalha hoje"). Modo Solo é uma característica
+  // estrutural da clínica (quantas profissionais ela tem), não algo que deveria
+  // ligar/desligar conforme quem está de folga num dia específico — senão uma
+  // profissional de folga hoje "some" de seletores usados para agendar dias futuros.
+  const todas = (window.equipeDB || equipeDB);
+  return todas.length <= 1;
 }
 function nomeSolo() {
-  const ativas = (window.equipeDB || equipeDB).filter(p => p.ativa !== false);
-  return ativas.length === 1 ? ativas[0].nome : '';
+  const todas = (window.equipeDB || equipeDB);
+  return todas.length === 1 ? todas[0].nome : '';
 }
 window.modoSolo = modoSolo;
 window.nomeSolo = nomeSolo;
@@ -5717,9 +6141,10 @@ async function _salvarProfissionalImpl(){
          domicilio:dom,obs,ativa:ativaHoje,
          criadoEm:new Date().toISOString()});
     } catch(e){ console.error('[Belezza] novaProf ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
-    (window.equipeDB || equipeDB).push({id, nome, wpp, sexo, espec, disp, ticket, avaliacao:aval,
-      domicilio:dom, obs, ativa:ativaHoje, agMes:0, seed, bgColor});
-    // Adiciona no select de agendamento
+    // Não atualiza equipeDB manualmente aqui — o listener onSnapshot de equipe
+    // (iniciarListenerEquipe) já está ativo e vai re-renderizar a lista assim
+    // que o Firestore confirmar a gravação. Um push manual aqui causava
+    // duplicidade visual (profissional aparecia 2x até o próximo reload).
     atualizarSelectProfissional();
     mostrarToastProf('Profissional cadastrado/a!');
   }
@@ -6056,26 +6481,10 @@ document.addEventListener('DOMContentLoaded', () => {
       slotsSel.style.display = '';
     }
   }
-  // Popula select de preferência de profissional no agendamento da cliente
-  const cliProfSel = document.getElementById('cli-prof-sel');
-  if(cliProfSel){
-    cliProfSel.innerHTML = '<option value="">Sem preferência (qualquer disponível)</option>' +
-      equipeDB.filter(p => p.ativa).map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
-    // Modo solo: esconde campo e pré-seleciona a única profissional
-    const wrapProfCli = document.getElementById('cli-prof-wrap');
-    if(modoSolo()){
-      const soloProf = equipeDB.filter(p => p.ativa)[0];
-      if(soloProf){
-        cliProfSel.value = soloProf.id;
-        // Pré-preenche o resumo
-        const resumoProf = document.getElementById('resumo-prof');
-        if(resumoProf) resumoProf.textContent = soloProf.nome;
-      }
-      if(wrapProfCli) wrapProfCli.style.display = 'none';
-    } else {
-      if(wrapProfCli) wrapProfCli.style.display = 'block';
-    }
-  }
+  // Nota: a população de cli-prof-sel (preferência de profissional da cliente) é
+  // feita por popularProfPreferencia(), chamada quando a tela de agendamento abre —
+  // não aqui no DOMContentLoaded, que rodaria antes dos dados reais do Firestore
+  // chegarem e usaria a equipe de exemplo hardcoded, causando inconsistência.
 });
 
 // ── Expor funções globalmente (necessário com type="module") ──────────────
@@ -6084,11 +6493,12 @@ window.initDashboard        = initDashboard;
 function editarCliente(id){
   const c = clientesDB.find(x => x.id === id);
   if(!c) return;
+  _perfilClienteAoEditar = id;
   fecharPerfilCliente();
   // Preenche o modal de cadastro com os dados existentes
   document.getElementById('nc-nome').value      = c.nome || '';
   document.getElementById('nc-wpp').value       = c.wpp  || '';
-  document.getElementById('nc-email').value     = c.email || '';
+  document.getElementById('nc-apelido').value   = c.apelido || '';
   document.getElementById('nc-nasc').value      = c.nasc  || '';
   document.getElementById('nc-interesse').value = c.interesse || '';
   document.getElementById('nc-alergias').value  = c.alergias || '';
@@ -6111,6 +6521,10 @@ async function salvarEdicaoCliente(id){
   const nome = document.getElementById('nc-nome').value.trim();
   const wpp  = document.getElementById('nc-wpp').value.trim();
   if(!nome || !wpp){ document.getElementById('nc-error').textContent = 'Nome e WhatsApp são obrigatórios.'; return; }
+  // Validação: WhatsApp já usado por OUTRA cliente (exclui a própria, já que editar sem trocar o número é válido)
+  const wppNumEdit = wpp.replace(/\D/g,'');
+  const jaExisteOutra = (window.clientesDB || clientesDB || []).some(c => c.id !== id && (c.wpp||'').replace(/\D/g,'') === wppNumEdit);
+  if(jaExisteOutra){ document.getElementById('nc-error').textContent = 'Este WhatsApp já está cadastrado para outra cliente.'; return; }
   const idx = clientesDB.findIndex(x => x.id === id);
   if(idx < 0) return;
   const sexo = document.querySelector('input[name="nc-sexo"]:checked')?.value || clientesDB[idx].sexo;
@@ -6670,6 +7084,9 @@ window.crmHClearImg   = crmHClearImg;
 function crmInicializar() {
   // Select de "Serviço realizado" agora usa categorias fixas (ver HTML) — nada a popular aqui.
 }
+// Limite rígido de resultados por busca no CRM (Por Perfil e Por Histórico)
+const CRM_LIMITE_RESULTADOS = 50;
+
 window.crmInicializar = crmInicializar;
 
 // ── Filtrar por Perfil ────────────────────────────────────────────────────────
@@ -6709,7 +7126,10 @@ function crmFiltrarPerfil() {
     return { ...c, _idade: semData ? null : idade, _semData: semData };
   }).filter(Boolean);
 
-  _crmRenderLista('perfil', resultado);
+  // Limite rígido de resultados exibidos por busca (mesmo limite do painel Por Histórico)
+  const resultadoLimitado = resultado.slice(0, CRM_LIMITE_RESULTADOS);
+
+  _crmRenderLista('perfil', resultadoLimitado);
 }
 window.crmFiltrarPerfil = crmFiltrarPerfil;
 
@@ -6733,14 +7153,26 @@ function _servicoCasaCategoria(servicoTexto, categoria){
   return palavras.some(p => txt.includes(p));
 }
 
+// Esconde o campo "Serviço realizado" e mostra a dica explicativa quando o modo
+// "Inativa" é selecionado, já que esse modo ignora completamente o filtro de serviço.
+function _crmToggleModoInativa(){
+  const modoInativa = document.getElementById('crm-h-dias')?.value === 'inativa';
+  const svcWrap = document.getElementById('crm-h-servico-wrap');
+  const info = document.getElementById('crm-h-inativa-info');
+  if(svcWrap) svcWrap.style.display = modoInativa ? 'none' : '';
+  if(info) info.style.display = modoInativa ? 'block' : 'none';
+}
+window._crmToggleModoInativa = _crmToggleModoInativa;
+
 // ── Filtrar por Histórico ─────────────────────────────────────────────────────
+
 function crmFiltrarHistorico() {
   const nome = (document.getElementById('crm-h-nome')?.value || '').trim();
   if (!nome) { alert('Informe o nome do convite antes de filtrar.'); return; }
 
+  const diasSelEl = document.getElementById('crm-h-dias');
+  const modoInativa = diasSelEl?.value === 'inativa';
   const svcFiltro = (document.getElementById('crm-h-servico')?.value || '').trim(); // '' = Qualquer Serviço
-
-  const diasMin = parseInt(document.getElementById('crm-h-dias')?.value) || 60;
 
   const db = window.clientesDB || [];
   const ags = window.agendamentosDB || [];
@@ -6750,7 +7182,7 @@ function crmFiltrarHistorico() {
   const ultimaDataPorCliente = {};
   ags.forEach(a => {
     if (a.status !== 'confirmado') return;
-    if (!_servicoCasaCategoria(a.servico, svcFiltro)) return;
+    if (!modoInativa && !_servicoCasaCategoria(a.servico, svcFiltro)) return;
     const dataAg = new Date(a.data?.split('/').reverse().join('-') || a.criadoEm);
     if (isNaN(dataAg)) return;
     const key = a.clienteId || a.cliente;
@@ -6761,7 +7193,7 @@ function crmFiltrarHistorico() {
 
   // Fallback: usa ultimoSvc de clientesDB
   db.forEach(c => {
-    if (!_servicoCasaCategoria(c.ultimoSvc, svcFiltro)) return;
+    if (!modoInativa && !_servicoCasaCategoria(c.ultimoSvc, svcFiltro)) return;
     const key = c.id;
     if (!ultimaDataPorCliente[key] && c.ultimaVisita && c.ultimaVisita !== '—') {
       const parts = c.ultimaVisita.split('/');
@@ -6772,18 +7204,34 @@ function crmFiltrarHistorico() {
     }
   });
 
-  const resultado = db.map(c => {
-    const ultima = ultimaDataPorCliente[c.id] || ultimaDataPorCliente[c.nome];
-    if (!ultima) return null;
-    const diasDecorridos = Math.floor((hoje - ultima) / (24 * 3600 * 1000));
-    if (diasDecorridos < diasMin) return null;
-    return { ...c, _diasDecorridos: diasDecorridos, _ultimaData: ultima };
-  }).filter(Boolean)
-    .sort((a, b) => b._diasDecorridos - a._diasDecorridos);
+  let resultado;
+  if (modoInativa) {
+    // "Inativa": traz TODAS as clientes, mesmo sem nenhum histórico registrado —
+    // não depende de serviço nem de data, conceito mais amplo de "passou tempo
+    // demais sem fazer nada". Clientes sem nenhuma visita aparecem primeiro
+    // (são as mais "inativas" de todas), depois as com visita mais antiga.
+    resultado = db.map(c => {
+      const ultima = ultimaDataPorCliente[c.id] || ultimaDataPorCliente[c.nome];
+      const diasDecorridos = ultima ? Math.floor((hoje - ultima) / (24 * 3600 * 1000)) : Infinity;
+      return { ...c, _diasDecorridos: diasDecorridos, _ultimaData: ultima || null };
+    }).sort((a, b) => b._diasDecorridos - a._diasDecorridos);
+  } else {
+    const diasMin = parseInt(diasSelEl?.value) || 60;
+    resultado = db.map(c => {
+      const ultima = ultimaDataPorCliente[c.id] || ultimaDataPorCliente[c.nome];
+      if (!ultima) return null;
+      const diasDecorridos = Math.floor((hoje - ultima) / (24 * 3600 * 1000));
+      if (diasDecorridos < diasMin) return null;
+      return { ...c, _diasDecorridos: diasDecorridos, _ultimaData: ultima };
+    }).filter(Boolean)
+      .sort((a, b) => b._diasDecorridos - a._diasDecorridos);
+  }
+
+  // Limite rígido de resultados exibidos por busca
+  resultado = resultado.slice(0, CRM_LIMITE_RESULTADOS);
 
   _crmRenderLista('historico', resultado);
 }
-window.crmFiltrarHistorico = crmFiltrarHistorico;
 
 // ── Renderiza lista de resultados ─────────────────────────────────────────────
 function _crmRenderLista(tipo, clientes) {
@@ -6813,7 +7261,9 @@ function _crmRenderLista(tipo, clientes) {
     const tagIdade = c._semData
       ? `<span style="font-size:9px;background:var(--am50);color:var(--am800);border-radius:20px;padding:1px 7px;margin-left:4px">sem data nasc.</span>`
       : (c._idade != null ? `<span style="font-size:10px;color:var(--tx3)">${c._idade} anos</span>` : '');
-    const tagHistorico = c._diasDecorridos != null
+    const tagHistorico = c._diasDecorridos === Infinity
+      ? `<span style="font-size:10px;background:var(--am50);color:var(--am800);border-radius:20px;padding:1px 7px;font-weight:600">sem visita registrada</span>`
+      : c._diasDecorridos != null
       ? `<span style="font-size:10px;color:var(--pu400);font-weight:600">${c._diasDecorridos} dias atrás</span>`
       : '';
 
@@ -6894,20 +7344,50 @@ function _crmAdicionarBotaoWpp(prefix, idx, row) {
   const wppNum = '55' + c.wpp.replace(/\D/g, '');
   const url = `https://wa.me/${wppNum}?text=${encodeURIComponent(msg)}`;
 
+  // Imagem opcional anexada no painel (Por Perfil ou Por Histórico). O link wa.me só
+  // pré-preenche TEXTO — não existe forma de anexar imagem automaticamente (limitação
+  // do próprio WhatsApp). Por isso, quando há imagem, mostra um thumbnail tocável
+  // (toque e segure para salvar) + botão "Baixar imagem", mesmo padrão usado em Campanhas.
+  const imgBase64 = isTipo === 'perfil' ? _crmPImgBase64 : _crmHImgBase64;
+  const imgHtml = imgBase64 ? `
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">
+      <img src="${imgBase64}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid var(--br)" title="Toque e segure para salvar manualmente, se necessário">
+      <span style="font-size:10px;color:var(--tx3)">Não baixou? Toque e segure a imagem para salvar.</span>
+      <button class="btn sm" onclick="_crmBaixarImagem('${prefix}','${c.nome.replace(/'/g,"\\'")}')" style="font-size:11px"><i class="ti ti-download"></i> Baixar imagem</button>
+    </div>` : '';
+
   // Insere botão logo abaixo do row
   const btnWrap = document.createElement('div');
   btnWrap.id = `${prefix}-wpp-${idx}`;
-  btnWrap.style.cssText = 'margin:-2px 0 6px 32px;display:flex;gap:6px;align-items:center';
+  btnWrap.style.cssText = 'margin:-2px 0 6px 32px;display:flex;flex-direction:column;gap:4px';
   btnWrap.innerHTML = `
-    <a href="${url}" target="_blank"
-      style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--r);
-             background:var(--tl400);color:#fff;font-size:11px;font-weight:600;text-decoration:none;
-             border:none;cursor:pointer">
-      <i class="ti ti-brand-whatsapp" style="font-size:14px"></i> Enviar para ${c.nome.split(' ')[0]}
-    </a>
-    <span style="font-size:10px;color:var(--tx3)">${c.wpp}</span>`;
+    <div style="display:flex;gap:6px;align-items:center">
+      <a href="${url}" target="_blank"
+        style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--r);
+               background:var(--tl400);color:#fff;font-size:11px;font-weight:600;text-decoration:none;
+               border:none;cursor:pointer">
+        <i class="ti ti-brand-whatsapp" style="font-size:14px"></i> Enviar para ${c.nome.split(' ')[0]}
+      </a>
+      <span style="font-size:10px;color:var(--tx3)">${c.wpp}</span>
+    </div>
+    ${imgHtml}`;
   row.after(btnWrap);
 }
+
+// Baixa a imagem anexada no painel CRM (Por Perfil ou Por Histórico) — mesmo
+// mecanismo usado em Campanhas (baixarImagemEtapa). Funciona de forma confiável
+// em Android/Chrome; em iOS/Safari pode falhar silenciosamente (limitação da
+// plataforma), por isso o fallback de "toque e segure" fica sempre visível.
+function _crmBaixarImagem(prefix, nomeCliente) {
+  const imgBase64 = prefix === 'crm-p' ? _crmPImgBase64 : _crmHImgBase64;
+  if (!imgBase64) return;
+  const a = document.createElement('a');
+  a.href = imgBase64;
+  a.download = `crm-${prefix}-${nomeCliente.replace(/\s+/g,'-').toLowerCase()}.jpg`;
+  document.body.appendChild(a); a.click(); a.remove();
+  alert('Imagem baixada! Agora toque em "Enviar para ' + nomeCliente.split(' ')[0] + '" (o texto já vem pronto) e anexe a imagem manualmente na conversa, usando o ícone de anexo/câmera do WhatsApp.\n\nSe a imagem não aparecer na Galeria, mantenha o dedo pressionado sobre a imagem aqui na tela e escolha "Salvar imagem".');
+}
+window._crmBaixarImagem = _crmBaixarImagem;
 
 // ── Selecionar todas ──────────────────────────────────────────────────────────
 function crmPSelecionarTodas() { _crmSelecionarTodas('crm-p'); }
@@ -7175,7 +7655,6 @@ function detalhesDia(k){ try{ window.detalhesDia && window.detalhesDia(k); }catc
 function confirmarFS(id){ try{ window.confirmarFS && window.confirmarFS(id); }catch(e){} }
 function recusarFS(id){ try{ window.recusarFS && window.recusarFS(id); }catch(e){} }
 function cancelarFS(id, origem){ try{ window.cancelarFS && window.cancelarFS(id, origem); }catch(e){} }
-function previewDataAg(){ try{ window.previewDataAg && window.previewDataAg(); }catch(e){} }
 function doLogout(){ try{ window.doLogout && window.doLogout(); }catch(e){ window.location.reload(); } }
 function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
 </script>
@@ -7610,7 +8089,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <div>
         <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Senha Cliente</label>
         <div style="position:relative">
-          <input id="nc-senha" type="password" placeholder="Ex: luna@2026" autocomplete="new-password" style="width:100%;padding:9px 38px 9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+          <input id="nc-senha" type="password" placeholder="Ex: mecuidar@2026" autocomplete="new-password" style="width:100%;padding:9px 38px 9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
           <span onclick="toggleNcSenha()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);font-size:15px;user-select:none">👁</span>
         </div>
         <div style="font-size:10px;color:var(--tx3);margin-top:3px">Mínimo 6 caracteres. Repasse para a cliente — ela usa WhatsApp + essa senha para entrar.</div>
@@ -7658,11 +8137,14 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <div style="font-size:15px;font-weight:700;color:var(--tx)">Novo Agendamento</div>
       <button onclick="fecharModalAg()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:20px;line-height:1">✕</button>
     </div>
-    <div style="margin-bottom:12px">
+    <div style="margin-bottom:12px;position:relative">
       <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Cliente</label>
-      <select id="ag-cliente" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
-        <option value="">Selecione...</option>
-      </select>
+      <input id="ag-cliente-busca" type="text" placeholder="Digite o nome da cliente..." autocomplete="off"
+        style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"
+        oninput="_agClienteFiltrar(this.value)" onfocus="_agClienteFiltrar(this.value)">
+      <input type="hidden" id="ag-cliente-id">
+      <input type="hidden" id="ag-cliente-nome">
+      <div id="ag-cliente-sugestoes" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:20;background:var(--bg);border:1px solid var(--br);border-radius:var(--r);max-height:200px;overflow-y:auto;margin-top:2px;box-shadow:0 4px 16px rgba(0,0,0,.12)"></div>
     </div>
     <div style="margin-bottom:12px">
       <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Serviço</label>
@@ -7687,27 +8169,16 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         <option value="">Selecione...</option>
       </select>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-      <div>
-        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Data</label>
-        <div style="display:flex;gap:5px;align-items:center">
-          <select id="ag-dia" style="flex:1;padding:9px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)" onchange="previewDataAg()"></select>
-          <select id="ag-mes-sel" style="flex:1.4;padding:9px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)" onchange="previewDataAg()"></select>
-          <select id="ag-ano" style="flex:1.2;padding:9px 8px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)" onchange="previewDataAg()"></select>
-        </div>
-        <input type="hidden" id="ag-data">
-        <div id="ag-data-preview" style="font-size:11px;color:var(--tx2);margin-top:3px;text-align:center"></div>
-      </div>
-      <div>
-        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Horário</label>
-        <select id="ag-hora" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
-          <option>09:00</option><option>09:30</option><option>10:00</option>
-          <option>10:30</option><option>11:00</option><option>11:30</option>
-          <option>14:00</option><option>14:30</option><option>15:00</option>
-          <option>15:30</option><option>16:00</option><option>16:30</option>
-          <option>17:00</option><option>17:30</option>
-        </select>
-      </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Data</label>
+      <div id="ag-cal" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:4px"></div>
+      <input type="hidden" id="ag-data">
+      <div id="ag-data-preview" style="font-size:11px;color:var(--tx2);margin-top:3px;text-align:center"></div>
+    </div>
+    <div id="ag-horarios-wrap" style="margin-bottom:16px;display:none">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Horário</label>
+      <div class="avail-grid" id="ag-avail-grid"></div>
+      <input type="hidden" id="ag-hora">
     </div>
     <div style="margin-bottom:16px">
       <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Observação (opcional)</label>
