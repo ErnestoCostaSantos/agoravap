@@ -1971,7 +1971,12 @@ async function doLogout() {
   if(e) e.value = '';
   if(p) p.value = '';
   try { await signOut(auth); } catch(err) { console.warn('signOut:', err); }
-  // Limpa cache de sessão e recarrega — garante saída no mobile
+  // Limpa cache de sessão e recarrega — garante saída no mobile.
+  // Não remove 'mecuidar_branding_cache' de propósito: é ele que evita o flash do
+  // branding padrão na tela de login que aparece logo em seguida (ver DOMContentLoaded
+  // e aplicarBranding()). Ficar com o branding da última clínica logada nesse instante
+  // é o comportamento correto — outra clínica/cliente que usar o mesmo aparelho terá
+  // o cache atualizado normalmente assim que ela logar.
   sessionStorage.clear();
   localStorage.removeItem('firebase:authUser:' + firebaseConfig.apiKey + ':[DEFAULT]');
   window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now();
@@ -6363,6 +6368,19 @@ function aplicarBranding(brand){
   window.PLANO_ESTAB = PLANO_ESTAB;
   window.WPP_ESTAB   = WPP_ESTAB;
 
+  // Cacheia o branding real (vindo de /clinicas/{clinicaId}) em localStorage — usado pelo
+  // script síncrono no carregamento da página para aplicar o branding correto ANTES do
+  // Firebase Auth resolver a sessão, evitando o flash do branding padrão no login/logout.
+  // Só cacheia quando brand.nomeEstab existe (ou seja, veio do Firestore, não é o fallback
+  // hardcoded de window.NOME_ESTAB) — assim nunca sobrescrevemos um cache bom com o padrão.
+  if (brand.nomeEstab) {
+    try {
+      localStorage.setItem('mecuidar_branding_cache', JSON.stringify({
+        nomeEstab: NOME_ESTAB, planoEstab: PLANO_ESTAB, wppEstab: WPP_ESTAB,
+      }));
+    } catch(e) { /* localStorage indisponível (modo privado restrito) — sem problema, só perde o cache */ }
+  }
+
   // Sidebar: nome e badge de plano
   const sbNome = document.querySelector('.sb-name');
   const sbPlano = document.querySelector('.sb-plan');
@@ -6580,9 +6598,17 @@ window.salvarPersonalizacao = salvarPersonalizacao;
 
 // Inicializa lista ao carregar
 document.addEventListener('DOMContentLoaded', () => {
-  // Branding inicial — usa os defaults declarados em window.NOME_ESTAB/PLANO_ESTAB/WPP_ESTAB
-  // (sobrescrito depois do login por carregarBranding(), ou no cadastro self-service por mostrarCadastro())
-  aplicarBranding({ nomeEstab: window.NOME_ESTAB, planoEstab: window.PLANO_ESTAB, wppEstab: window.WPP_ESTAB });
+  // Branding inicial — usa o branding real cacheado da última sessão (se existir), em vez do
+  // padrão hardcoded. Isso evita o flash do nome/logo genérico ("Saúde e Bem-Estar") ao
+  // recarregar a página (login, logout, refresh), já que esse cache aplica instantaneamente,
+  // sem esperar a consulta assíncrona a /clinicas/{clinicaId} (carregarBranding(), chamada
+  // depois pelo onAuthStateChanged) — que só confirma/atualiza o que já está na tela.
+  let brandingInicial = { nomeEstab: window.NOME_ESTAB, planoEstab: window.PLANO_ESTAB, wppEstab: window.WPP_ESTAB };
+  try {
+    const cache = localStorage.getItem('mecuidar_branding_cache');
+    if (cache) brandingInicial = { ...brandingInicial, ...JSON.parse(cache) };
+  } catch(e) { /* cache corrompido ou indisponível — segue com o padrão */ }
+  aplicarBranding(brandingInicial);
 
   const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
   const diaHoje = diasSemana[new Date().getDay()];
