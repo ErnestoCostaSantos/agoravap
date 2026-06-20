@@ -610,11 +610,8 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
         </div>
         <div class="card">
           <div class="card-title">Agenda hoje <span class="card-link" onclick="goTo('p-agenda',null)">ver tudo →</span></div>
-          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--pk600);min-width:36px">09h00</div><div><div class="row-name" style="font-size:12px">Limpeza de pele</div><div class="row-sub">Ana Paula F. · Carla M.</div></div><span class="badge badge-ok" style="font-size:9px">✓</span></div>
-          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--pk600);min-width:36px">10h30</div><div><div class="row-name" style="font-size:12px">Botox</div><div class="row-sub">Mariana C. · Fernanda R.</div></div><span class="badge badge-ok" style="font-size:9px">✓</span></div>
-          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--pk600);min-width:36px">14h00</div><div><div class="row-name" style="font-size:12px">Microblading</div><div class="row-sub">Renata S. · Juliana S.</div></div><span class="badge badge-pend" style="font-size:9px">●</span></div>
-          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--pk600);min-width:36px">15h30</div><div><div class="row-name" style="font-size:12px">Massagem</div><div class="row-sub">Leticia B. · Beatriz L.</div></div><span class="badge badge-ok" style="font-size:9px">✓</span></div>
-          <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--pk600);min-width:36px">17h00</div><div><div class="row-name" style="font-size:12px">Peeling químico</div><div class="row-sub">Camila D. · Carla M.</div></div><span class="badge badge-ok" style="font-size:9px">✓</span></div>
+          <div id="dash-agenda-hoje-lista">
+          </div>
         </div>
       </div>
     </div>
@@ -1952,13 +1949,23 @@ async function exportarBackup() {
     };
 
     // Coleções simples filtradas por clinicaId
-    const colecoes = ['agendamentos', 'clientes', 'equipe', 'promocoes', 'campanhas'];
+    const colecoes = ['agendamentos', 'clientes', 'promocoes', 'campanhas'];
     for (const col of colecoes) {
       const snap = await getDocs(
         query(collection(db, col), where('clinicaId', '==', clinicaAtual()))
       );
       backup.dados[col] = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
     }
+
+    // Equipe — vive em subcoleção /equipe/{clinicaId}/profissionais/{id}, não numa
+    // coleção raiz filtrada por clinicaId. Buscar do jeito errado faz o backup sair
+    // sempre vazio de profissionais reais.
+    const equipeSnap = await getDocs(collection(db, 'equipe', clinicaAtual(), 'profissionais'));
+    backup.dados.equipe = equipeSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
+
+    // Serviços — vive em subcoleção /servicos/{clinicaId}/items/{id}
+    const servicosSnap = await getDocs(collection(db, 'servicos', clinicaAtual(), 'items'));
+    backup.dados.servicos = servicosSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
 
     // Mensagens — estrutura aninhada /mensagens/{clinicaId}/threads/{uid}/msgs/{id}
     backup.dados.mensagens = [];
@@ -2048,6 +2055,7 @@ const faqs=[
   {cat:'acesso',q:'Esqueci minha senha. O que faço?',a:'Na tela de login, digite seu WhatsApp ou e-mail no campo de usuário e clique em "Esqueci minha senha". Se você é cliente (digitou WhatsApp), o app abre automaticamente o WhatsApp do estabelecimento com uma mensagem pronta pedindo a redefinição. Se você é administradora ou profissional (digitou e-mail), um link de redefinição é enviado automaticamente para esse e-mail.'},
   {cat:'acesso',q:'Por quanto tempo fico logada?',a:'A sessão é mantida enquanto o navegador estiver aberto. Ao fechar o navegador ou app, você precisará fazer login novamente. Por segurança, o app também desconecta automaticamente após 10 minutos de inatividade.'},
   {cat:'acesso',q:'Como sair do app?',a:'Clique no ícone de saída (→) no canto inferior da barra lateral esquerda, ao lado do seu nome. Você será desconectada e redirecionada para a tela de login.'},
+  {cat:'acesso',q:'Para que serve o botão "Visualizar como: Cliente" no topo da tela?',a:'É uma forma rápida de espiar como o app aparece para suas clientes — útil para conferir o nome do estabelecimento, as promoções e os serviços publicados, por exemplo. Clique em "Cliente" para ver essa tela e em "Profissional" para voltar ao seu painel normal. Atenção: essa visualização é só para conferência rápida, não foi feita para usar no dia a dia como se você fosse a cliente — para isso, use as telas normais de Agenda e Clientes do seu painel.'},
   {cat:'acesso',q:'Como a administradora cria uma nova usuária?',a:'Cadastre o usuário no Firebase Authentication (console.firebase.google.com) e defina o campo role no Firestore como "admin", "profissional" ou "cliente". O app detecta o role automaticamente no login.'},
   {cat:'acesso',q:'Os dados do MeCuidar são seguros?',a:'Sim. O app usa o Firebase (Google) com regras de segurança que garantem que cada usuária acessa apenas os dados permitidos para seu perfil. Nenhum dado fica exposto publicamente.'},
   {cat:'config',q:'O que é a Versão Solo?',a:'A Versão Solo é para profissionais autônomas ou proprietárias que operam sozinhas (ou com parceiras eventuais). Usa o mesmo app da Versão Clínica — a diferença está na configuração: NOME_ESTAB com o nome do seu espaço e, se desejar, apenas você cadastrada como profissional ativa.'},
@@ -2178,7 +2186,7 @@ const faqs=[
   {cat:'backup',q:'Como exportar o backup dos dados?',a:'No menu lateral esquerdo, role até o final e clique em "Exportar dados". O app coleta todos os dados da sua clínica (clientes, agendamentos, equipe, promoções, campanhas e mensagens) e baixa um arquivo .json com a data no nome. Guarde esse arquivo em local seguro (Google Drive, e-mail, pendrive).'},
   {cat:'backup',q:'Com que frequência devo exportar o backup?',a:'Recomendamos semanalmente para clínicas ativas. Uma boa prática é exportar sempre antes de fazer alterações grandes (importação de clientes em lote, exclusão de promoções, etc.).'},
   {cat:'backup',q:'O que o arquivo de backup contém?',a:'Todas as coleções da sua clínica no Firestore: clientes, agendamentos, equipe, promoções, campanhas e histórico de mensagens. O arquivo é um JSON legível — você pode abri-lo em qualquer editor de texto ou planilha para consulta.'},
-  {cat:'backup',q:'Como restaurar os dados a partir do backup?',a:'Ainda não existe uma função pronta no app para isso — hoje o botão "Exportar dados" só gera o arquivo .json, sem um caminho de volta automático. Restaurar dados a partir de um backup é uma melhoria já planejada; até lá, fale diretamente com quem administra o app para avaliar o caso.'},
+  {cat:'backup',q:'Como restaurar os dados a partir do backup?',a:'Não existe um botão dentro do app para isso — restauração é feita por quem administra o sistema, rodando o script restaurar-backup.js com o arquivo .json do backup. Se precisar restaurar dados, entre em contato com quem cuida do seu MeCuidar.'},
   {cat:'backup',q:'O backup automático funciona sem nenhuma ação minha?',a:'Não — hoje o botão "Exportar dados" precisa ser clicado manualmente sempre que você quiser gerar um backup. Backup automático e agendado ainda não existe nesta versão do app.'},
 
   // ── Novidades — Rodada de testes de validação ─────────────────────────────
@@ -2229,7 +2237,7 @@ function showPane(id){
   document.getElementById('pane-'+id)?.classList.add('active');
   document.getElementById('tb-t').textContent=titulos[id]||id;
   const lbl=actLbl[id];if(lbl)document.getElementById('tb-act-lbl').textContent=lbl;
-  document.getElementById('tb-act').style.display=(id.startsWith('c-')||id==='p-personalizacao')?'none':'inline-flex';
+  document.getElementById('tb-act').style.display=(id.startsWith('c-')||id==='p-personalizacao'||id==='p-agenda'||id==='p-dash')?'none':'inline-flex';
 }
 function initDashboard(){
   // Modo solo: ajusta card "Equipe hoje"
@@ -2251,7 +2259,7 @@ function initDashboard(){
       const ativa = !p.disp?.length || p.disp.includes(diaHoje);
       const dot = ativa ? 'dot-ok' : 'dot-off';
       const sub = ativa ? (p.espec?.split(/[·,]/)[0]?.trim() || '') : 'folga';
-      const right = ativa ? (p.agMes||0)+' hoje' : '';
+      const right = ativa ? (p.agMes||0)+'/mês' : '';
       return `<div class="row-item">
         <div class="dot ${dot}"></div>
         <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(p.seed||p.nome)}&backgroundColor=${p.bgColor||'fbeaf0'}" style="width:28px;height:28px;border-radius:50%" alt="${p.nome}">
@@ -2259,6 +2267,22 @@ function initDashboard(){
         <div class="row-right" style="font-size:11px;color:var(--tx${ativa?'2':'3'})">${right}</div>
       </div>`;
     }).join('');
+  }
+
+  // Substitui linhas hardcoded de "Agenda hoje" pelos agendamentos confirmados reais do dia
+  const dashAgendaHoje = document.getElementById('dash-agenda-hoje-lista');
+  if(dashAgendaHoje){
+    const hojeD = new Date();
+    const hojeStr = String(hojeD.getDate()).padStart(2,'0')+'/'+String(hojeD.getMonth()+1).padStart(2,'0');
+    const agsHoje = (window.agendamentosDB || agendamentos || [])
+      .filter(a => a.status==='confirmado' && a.data===hojeStr)
+      .sort((a,b) => (a.hora||'').localeCompare(b.hora||''));
+    if(agsHoje.length === 0){
+      dashAgendaHoje.innerHTML = '<div style="color:var(--tx3);font-size:12px;padding:8px 0">Sem agendamentos confirmados hoje.</div>';
+    } else {
+      dashAgendaHoje.innerHTML = agsHoje.slice(0,5).map(ag => `
+        <div class="row-item"><div style="font-size:11px;font-weight:600;color:var(--pk600);min-width:36px">${(ag.hora||'').replace(':','h')}</div><div><div class="row-name" style="font-size:12px">${ag.servico||'—'}</div><div class="row-sub">${ag.cliente||''}${ag.prof?' · '+ag.prof:''}</div></div><span class="badge badge-ok" style="font-size:9px">✓</span></div>`).join('');
+    }
   }
 
   // Garante que tab Dashboard está ativo
