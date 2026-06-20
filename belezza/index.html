@@ -1705,7 +1705,7 @@ import { getAuth, signInWithEmailAndPassword,
          reauthenticateWithCredential,
          createUserWithEmailAndPassword }        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, getDocs, setDoc,
-         collection, query, where, orderBy,
+         collection, collectionGroup, query, where, orderBy,
          onSnapshot, addDoc, updateDoc, deleteDoc,
          serverTimestamp }                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
@@ -1792,6 +1792,49 @@ onAuthStateChanged(auth, async user => {
             snap = await getDoc(doc(db, 'users', user.uid));
           }
         } catch(autoErr) { console.warn('[MeCuidar] auto-create /users:', autoErr); }
+      }
+
+      // Mesmo problema de permissão, agora para profissional: ao cadastrá-la, a Administradora
+      // não consegue gravar /users/{profissionalUid} (regras só permitem o próprio usuário
+      // escrever no seu UID). O registro em /equipe/{clinicaId}/profissionais/{id} foi salvo
+      // normalmente (a Admin tem permissão lá); aqui, no primeiro login da PRÓPRIA profissional
+      // (já autenticada com seu UID), localizamos esse registro via collectionGroup e
+      // auto-criamos /users/{uid} com a sessão dela mesma — mesmo padrão usado para cliente acima.
+      if (!snap.exists()) {
+        try {
+          const qProf = await getDocs(
+            query(collectionGroup(db, 'profissionais'), where('emailContato', '==', user.email))
+          );
+          // Fallback: algumas profissionais foram cadastradas por WhatsApp sem e-mail de contato —
+          // tenta de novo casando pelo número (extraído do próprio e-mail sintético @equipe.mecuidar.app).
+          // Usa wppNum (só dígitos, gravado no cadastro) para bater exatamente com o número do e-mail.
+          let profDoc = !qProf.empty ? qProf.docs[0] : null;
+          if (!profDoc && user.email.endsWith('@equipe.mecuidar.app')) {
+            const wppDoLogin = user.email.split('@')[0];
+            const qProfWpp = await getDocs(
+              query(collectionGroup(db, 'profissionais'), where('wppNum', '==', wppDoLogin))
+            );
+            if (!qProfWpp.empty) profDoc = qProfWpp.docs[0];
+          }
+          if (profDoc) {
+            const pData = profDoc.data();
+            // clinicaId vem do path da subcoleção (/equipe/{clinicaId}/profissionais/{id}) —
+            // mais confiável do que confiar só no campo clinicaId gravado no próprio documento.
+            const clinicaIdProf = profDoc.ref.parent.parent?.id || pData.clinicaId || clinicaAtual();
+            await setDoc(doc(db, 'users', user.uid), {
+              clinicaId: clinicaIdProf,
+              role:      'profissional',
+              nome:      pData.nome || user.email,
+              name:      pData.nome || user.email,
+              email:     user.email,
+              emailContato: pData.emailContato || '',
+              wpp:       pData.wpp || '',
+              profissionalId: profDoc.id,
+              criadoEm:  new Date().toISOString(),
+            });
+            snap = await getDoc(doc(db, 'users', user.uid));
+          }
+        } catch(autoErr) { console.warn('[MeCuidar] auto-create /users (profissional):', autoErr); }
       }
 
       if (!snap.exists()) {
@@ -6170,9 +6213,10 @@ async function _salvarProfissionalImpl(){
     try {
       await setDoc(
         doc(db, 'equipe', clinicaAtual(), 'profissionais', editId),
-        {clinicaId:clinicaAtual(),nome,wpp,sexo,espec,disp,
+        {clinicaId:clinicaAtual(),nome,wpp,wppNum:wpp.replace(/\D/g,''),sexo,espec,disp,
          ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
-         domicilio:dom,obs,ativa:ativaHoje},{merge:true});
+         domicilio:dom,obs,ativa:ativaHoje,
+         emailContato: emailContato || ''},{merge:true});
     } catch(e){ console.error('[Belezza] editarProf ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
     mostrarToastProf('Profissional atualizada!');
   } else {
@@ -6180,11 +6224,12 @@ async function _salvarProfissionalImpl(){
     const id = 'prof-' + Date.now();
     const seed = nome.replace(/\s/g,'') + id.slice(-4);
     const bgColor = BG_CORES[equipeDB.length % BG_CORES.length];
+    const wppNumProf = wpp.replace(/\D/g,'');
     // Persistir nova profissional no Firestore — caminho correto: /equipe/{clinicaId}/profissionais/{id}
     try {
       await setDoc(
         doc(db, 'equipe', clinicaAtual(), 'profissionais', id),
-        {clinicaId:clinicaAtual(),nome,wpp,sexo,espec,disp,
+        {clinicaId:clinicaAtual(),nome,wpp,wppNum:wppNumProf,sexo,espec,disp,
          ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
          domicilio:dom,obs,ativa:ativaHoje,
          emailContato: emailContato || '',
@@ -6200,22 +6245,19 @@ async function _salvarProfissionalImpl(){
     // Login técnico = WhatsApp dela convertida em e-mail sintético (igual cliente),
     // domínio próprio (@equipe.mecuidar.app) para diferenciar de cliente no Authentication.
     // O e-mail real (emailContato) é guardado só como dado de contato — não é usado para login.
+    //
+    // IMPORTANTE: não tentamos gravar /users/{uid} aqui — as Firestore Rules só permitem que
+    // CADA usuário escreva no PRÓPRIO documento /users/{uid}, e quem está executando este código
+    // é a sessão da Administradora, não a da profissional recém-criada (mesmo problema já
+    // documentado no self-heal de cliente, em onAuthStateChanged). A conta é criada no
+    // Authentication; o documento /users/{uid} é auto-criado no PRIMEIRO LOGIN da própria
+    // profissional, via self-heal em onAuthStateChanged (busca em /equipe/*/profissionais
+    // por emailContato ou wpp).
     if (senhaAcesso && senhaAcesso.length >= 6) {
       const wppNumProf = wpp.replace(/\D/g,'');
       const emailSinteticoProf = wppNumProf + '@equipe.mecuidar.app';
       try {
-        const userCredProf = await createUserWithEmailAndPassword(auth2, emailSinteticoProf, senhaAcesso);
-        await setDoc(doc(db,'users',userCredProf.user.uid), {
-          clinicaId:    clinicaAtual(),
-          role:         'profissional',
-          nome,
-          name:         nome,
-          email:        emailSinteticoProf,
-          emailContato: emailContato || '',
-          wpp,
-          profissionalId: id,
-          criadoEm:     new Date().toISOString(),
-        });
+        await createUserWithEmailAndPassword(auth2, emailSinteticoProf, senhaAcesso);
         mostrarToastProf('Profissional cadastrado/a e acesso liberado!');
       } catch(e){
         if (e.code === 'auth/email-already-in-use') {
