@@ -1860,6 +1860,11 @@ onAuthStateChanged(auth, async user => {
         setTimeout(() => {
           if(window.iniciarListenerAgCliente) window.iniciarListenerAgCliente(user.uid);
           if(window.iniciarListenerChat) window.iniciarListenerChat(user.uid);
+          // Equipe da clínica — necessário para o select "Profissional de preferência"
+          // (popularProfPreferencia()) mostrar os nomes reais. Sem isso, window.equipeDB
+          // nunca era atribuído na sessão de cliente, e o select ficava só com a opção
+          // "Sem preferência", mesmo a clínica tendo 2+ profissionais cadastradas.
+          if(window.iniciarListenerEquipe) window.iniciarListenerEquipe();
           const cliView = document.getElementById('cli-chat-view');
           const liderView = document.getElementById('lider-chat-view');
           if(cliView) cliView.style.display = 'block';
@@ -3346,7 +3351,7 @@ function abrirAgendaServico(){
 }
 
 // Popula o select "Profissional de preferência" com a equipe real da clínica.
-// Em Modo Solo (≤1 profissional ativa), o passo inteiro é escondido — não há o que escolher.
+// Em Modo Solo (≤1 profissional cadastrada na equipe), o passo inteiro é escondido — não há o que escolher.
 function popularProfPreferencia(){
   const profSel = document.getElementById('cli-prof-sel');
   const profWrap = document.getElementById('cli-prof-wrap');
