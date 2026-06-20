@@ -57,7 +57,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .rtoggle{display:flex;gap:3px;background:var(--bg3);border-radius:var(--r);padding:3px}
 .rbtn{padding:5px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12px;background:transparent;color:var(--tx2);transition:all .15s;font-weight:500}
 .rbtn.active{background:var(--bg);color:var(--tx);border:1px solid var(--br);font-weight:600}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--bg2);border-bottom:1px solid var(--br);flex-shrink:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--bg2);border-bottom:1px solid var(--br);flex-shrink:0;position:relative}
+.tb-agendar{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 .tb-left{display:flex;align-items:center;gap:10px}
 .tb-menu{display:none;background:none;border:none;cursor:pointer;color:var(--tx);font-size:20px;padding:2px}
 .tb-title{font-size:15px;font-weight:600}
@@ -289,6 +290,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .two-col{grid-template-columns:1fr}
   .content{padding:14px}
+  .tb-agendar{position:static;transform:none;padding:8px 10px}
+  .tb-agendar span{display:none}
+  #tb-act-lbl{display:none}
+  #tb-act{padding:8px 10px}
 }
 /* Remove ícone nativo de "mostrar senha" do navegador (evita duplicar com o ícone 👁 customizado) */
 /* Remove ícone nativo de "mostrar senha" do navegador (evita duplicar com o ícone 👁 customizado) */
@@ -419,7 +424,7 @@ input[type="password"]::-ms-clear {
   </div>
   <div class="sb-nav" id="sb-pro" style="display:block">
     <div class="sb-sec">Gestão</div>
-    <button class="nav-item active" onclick="goTo('p-dash',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+    <button class="nav-item active" onclick="goTo('p-dash',this)"><i class="ti ti-layout-dashboard"></i>Painel</button>
     <button class="nav-item" onclick="goTo('p-agenda',this)"><i class="ti ti-calendar"></i>Agenda</button>
     <button class="nav-item" onclick="goTo('p-clientes',this)"><i class="ti ti-users"></i>Clientes</button>
     <button class="nav-item" onclick="goTo('p-equipe',this)"><i class="ti ti-user-circle"></i>Equipe</button>
@@ -480,8 +485,9 @@ input[type="password"]::-ms-clear {
   <div class="topbar">
     <div class="tb-left">
       <button class="tb-menu" onclick="toggleSB()"><i class="ti ti-menu-2"></i></button>
-      <span class="tb-title" id="tb-t">Dashboard</span>
+      <span class="tb-title" id="tb-t">Painel</span>
     </div>
+    <button class="btn pk tb-agendar" onclick="abrirModalAg()"><i class="ti ti-calendar-plus"></i> <span>Agendar</span></button>
     <div class="tb-right">
       <button class="btn pk" id="tb-act" onclick="acaoTopbar()"><i class="ti ti-plus"></i> <span id="tb-act-lbl">Novo agendamento</span></button>
       <button class="btn" onclick="openHelp()"><i class="ti ti-help-circle"></i> Ajuda</button>
@@ -1577,7 +1583,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
   <!-- MOBILE NAV -->
   <div class="mob-nav" id="mob-pro">
     <div class="mob-tabs">
-      <button class="mob-tab" id="tab-p-dash" onclick="goToMob('p-dash',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+      <button class="mob-tab" id="tab-p-dash" onclick="goToMob('p-dash',this)"><i class="ti ti-layout-dashboard"></i>Painel</button>
       <button class="mob-tab" onclick="goToMob('p-agenda',this)"><i class="ti ti-calendar"></i>Agenda</button>
       <button class="mob-tab" onclick="goToMob('p-clientes',this)"><i class="ti ti-users"></i>Clientes</button>
       <button class="mob-tab" onclick="goToMob('p-camp',this)"><i class="ti ti-brand-whatsapp"></i>Campanhas</button>
@@ -2113,7 +2119,7 @@ const faqs=[
   {cat:'agendamentos',q:'O que é overbooking e como o app evita?',a:'Overbooking é quando duas clientes marcam o mesmo horário. Ao confirmar um agendamento, o app bloqueia aquele slot para todas as demais clientes, impedindo conflitos.'},
   {cat:'equipe',q:'Uma profissional pode ver dados de outra?',a:'Não. Cada profissional acessa apenas sua própria agenda e clientes. Somente a administradora tem visão completa de toda a equipe.'},
   {cat:'conta',q:'Como personalizar o app com meu nome?',a:'Acesse Personalização no menu lateral (seção Configurações) e edite o nome do estabelecimento, o WhatsApp de contato e o texto do plano. Clique em Salvar — as mudanças aparecem imediatamente em todas as telas, sem precisar editar nenhum código.'},
-  {cat:'conta',q:'O que está incluído no plano Clínica Pro?',a:'Equipe com até 10 profissionais, clientes ilimitadas, campanhas de WhatsApp ilimitadas, dashboard com métricas e agenda completa com controle de overbooking.'},
+  {cat:'conta',q:'O que está incluído no plano Clínica Pro?',a:'Equipe com até 10 profissionais, clientes ilimitadas, campanhas de WhatsApp ilimitadas, painel com métricas e agenda completa com controle de overbooking.'},
   {cat:'conta',q:'Como ficará o módulo financeiro?',a:'O módulo financeiro com checkout integrado está previsto para a versão 2.0. Ele permitirá pagamento no agendamento, relatório de receita por serviço e campanha.'},
   {cat:'conta',q:'Como fazer backup dos dados?',a:'Os dados ficam armazenados no Firebase (nuvem) e são atualizados em tempo real. Não é necessário backup manual — seus dados estão sempre seguros e acessíveis.'},
   {cat:'acesso',q:'Como fazer login no MeCuidar?',a:'Na tela inicial, digite seu WhatsApp ou e-mail e a senha cadastrada e clique em Entrar. Administradoras e profissionais usam e-mail; clientes podem usar o número de WhatsApp. O app usa o Firebase Authentication para autenticação segura.'},
@@ -2177,12 +2183,12 @@ const faqs=[
   {cat:'clientes',q:'O app detecta clientes duplicadas na importação?',a:'Sim. O app verifica o número de WhatsApp antes de importar — clientes já cadastradas com o mesmo número são ignoradas automaticamente. Ao final da importação o app mostra quantas foram importadas e quantas eram duplicatas.'},
   {cat:'clientes',q:'A importação traz todos os contatos da minha agenda?',a:'Não. O app importa apenas contatos com celular brasileiro no formato atual (DDD + 9 dígitos, ex: 11 99999-9999). Telefones fixos, números antigos sem o 9, incompletos ou estrangeiros são ignorados automaticamente, e o app mostra quantos foram ignorados.'},
   {cat:'clientes',q:'Como envio o convite do app para uma cliente importada?',a:'No preview da importação (antes de confirmar), cada contato tem um botão verde do WhatsApp. Toque nele para abrir o WhatsApp já com a mensagem de convite e o link do app preenchidos — só falta enviar. Você pode fazer isso para suas clientes mais importantes e importar o restante normalmente.'},
-  {cat:'agendamentos',q:'Como funciona o novo fluxo de agendamento com Firebase?',a:'Quando a cliente envia uma solicitação pelo app, ela é gravada em tempo real no Firestore com status "Aguardando". A líder vê a solicitação aparecer automaticamente no Dashboard e na Agenda, sem precisar recarregar a página.'},
+  {cat:'agendamentos',q:'Como funciona o novo fluxo de agendamento com Firebase?',a:'Quando a cliente envia uma solicitação pelo app, ela é gravada em tempo real no Firestore com status "Aguardando". A líder vê a solicitação aparecer automaticamente no Painel e na Agenda, sem precisar recarregar a página.'},
   {cat:'agendamentos',q:'O que acontece quando a líder confirma ou recusa um agendamento?',a:'Ao confirmar, o status muda para "Confirmado" no Firestore e a cliente vê o status atualizado em "Seus agendamentos" em tempo real. Ao recusar, o status muda para "Não disponível" e a líder recebe um aviso amarelo para entrar em contato com a cliente. Se a profissional solicitada tiver horários livres nos próximos dias, aparece também um botão "Sugerir esses horários no WhatsApp" — toque nele para abrir a conversa com a cliente já com uma mensagem pronta listando até 3 horários alternativos.'},
   {cat:'agendamentos',q:'O que a cliente deve fazer quando o agendamento é recusado?',a:'A cliente verá o status "Não disponível" na aba Agendamentos e poderá clicar em "Reagendar". O app exibirá os horários disponíveis de todas as profissionais que realizam o serviço solicitado, organizados por profissional.'},
   {cat:'agendamentos',q:'Como funciona o reagendamento após recusa?',a:'A cliente escolhe uma profissional disponível e um novo horário. Uma nova solicitação é enviada para a líder confirmar. Atenção: a líder deve revisar se a profissional escolhida é adequada para o serviço. Em casos de múltiplas recusas, é mais eficiente entrar em contato diretamente com a cliente pelo WhatsApp para resolver.'},
   {cat:'agendamentos',q:'Como o app identifica quais profissionais fazem o serviço para reagendamento?',a:'O app busca pela palavra-chave do serviço no campo de especialidades de cada profissional. Por exemplo, se o serviço é "Botox", o app mostra todas as profissionais cujas especialidades contêm "Botox". Por isso é importante preencher as especialidades de forma detalhada no cadastro da equipe.'},
-  {cat:'acesso',q:'Como funciona o login único para profissional e cliente?',a:'O app possui uma única tela de login (MeCuidar). Ao entrar com e-mail e senha, o Firebase verifica o perfil (role): se for admin ou profissional, vai direto para o Dashboard profissional; se for cliente, vai para a tela de flores do MeCuidar.'},
+  {cat:'acesso',q:'Como funciona o login único para profissional e cliente?',a:'O app possui uma única tela de login (MeCuidar). Ao entrar com e-mail e senha, o Firebase verifica o perfil (role): se for admin ou profissional, vai direto para o Painel profissional; se for cliente, vai para a tela de flores do MeCuidar.'},
   {cat:'acesso',q:'Como sair da conta na versão profissional?',a:'No menu lateral esquerdo, role até o final. Clique no botão "Sair da conta" que aparece abaixo do seu nome e perfil. Você será desconectada e redirecionada para o login.'},
   {cat:'agenda',q:'Quais as três visões da Agenda?',a:'Hoje: lista os agendamentos confirmados do dia atual com grade de horários disponíveis. Semana: grid de segunda a sábado com navegação por semana. Mês: calendário completo com dias destacados quando há agendamentos — clique no dia para ver os detalhes.'},
   {cat:'agenda',q:'Como filtrar os slots de horários por profissional?',a:'Na aba Agenda, visão Hoje, existe um select "Todas as profissionais" acima da grade de horários. Nesta versão, essa grade ("Horários Disponíveis") ainda é ilustrativa — não reflete a agenda real de cada profissional. Quem mostra disponibilidade real, dia a dia, por profissional, é a tela de agendamento da própria cliente.'},
@@ -2297,7 +2303,7 @@ function closeHelp(){
 }
 function handleOvClick(e){if(e.target===document.getElementById('help-ov'))closeHelp();}
 
-const titulos={'p-dash':'Dashboard','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-servicos':'Serviços','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','p-personalizacao':'Personalização','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
+const titulos={'p-dash':'Painel','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-servicos':'Serviços','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','p-personalizacao':'Personalização','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
 const actLbl={'p-dash':'Novo agendamento','p-agenda':'Novo agendamento','p-clientes':'Nova cliente','p-equipe':'Add profissional','p-servicos':'Novo serviço','p-camp':'Nova campanha','p-promos':'Publicar promo'};
 let role='p';
 
