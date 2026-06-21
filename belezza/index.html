@@ -1407,6 +1407,20 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
         </div>
       </div>
 
+      <div class="sec-lbl">Convidar clientes</div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--tx2);margin-bottom:10px">Use este link para convidar suas clientes mesmo antes de cadastrar ou importar a lista de contatos — pode colar no status do WhatsApp, no Instagram ou enviar direto na conversa. Quem abrir o link cai direto na tela de cadastro do seu app.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn sm" onclick="copiarLinkConviteGenerico()" style="flex:1;min-width:140px;justify-content:center">
+            <i class="ti ti-copy"></i> Copiar link
+          </button>
+          <button class="btn sm pk" onclick="compartilharLinkConviteGenerico()" style="flex:1;min-width:140px;justify-content:center">
+            <i class="ti ti-brand-whatsapp"></i> Compartilhar
+          </button>
+        </div>
+        <div id="pers-link-convite-msg" style="font-size:11px;color:var(--tl400);margin-top:8px;min-height:14px"></div>
+      </div>
+
       <div class="sec-lbl">Imagem de fundo da tela das clientes</div>
       <div class="card" style="margin-bottom:14px">
         <div style="font-size:12px;color:var(--tx2);margin-bottom:10px">Escolha uma foto sua, da equipe ou da fachada do seu espaço. Ela aparece suavemente ao fundo da tela inicial e da tela de login das suas clientes no app.</div>
@@ -1426,6 +1440,36 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
             <button id="pers-img-remover" type="button" class="btn sm" style="display:none;margin-top:8px" onclick="removerPersImg()"><i class="ti ti-trash"></i> Remover foto</button>
           </div>
         </div>
+      </div>
+
+      <div class="sec-lbl">Acesso e senha</div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--tx2);margin-bottom:12px">Seu login é o número de WhatsApp cadastrado. Se você recebeu uma senha provisória, pode trocá-la aqui a qualquer momento.</div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Senha atual</label>
+          <div style="position:relative">
+            <input id="pers-senha-atual" type="password" placeholder="Senha atual" autocomplete="current-password" style="width:100%;padding:8px 38px 8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+            <span onclick="toggleSenhaPersVis('pers-senha-atual')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);font-size:15px;user-select:none">👁</span>
+          </div>
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Nova senha</label>
+          <div style="position:relative">
+            <input id="pers-senha-nova" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" style="width:100%;padding:8px 38px 8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+            <span onclick="toggleSenhaPersVis('pers-senha-nova')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);font-size:15px;user-select:none">👁</span>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Confirmar nova senha</label>
+          <div style="position:relative">
+            <input id="pers-senha-conf" type="password" placeholder="Repita a nova senha" autocomplete="new-password" style="width:100%;padding:8px 38px 8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+            <span onclick="toggleSenhaPersVis('pers-senha-conf')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);font-size:15px;user-select:none">👁</span>
+          </div>
+        </div>
+        <div id="pers-senha-msg" style="font-size:12px;margin-bottom:8px;min-height:14px"></div>
+        <button id="pers-senha-btn" class="btn" style="width:100%;justify-content:center;padding:10px;font-size:13px" onclick="salvarNovaSenhaAdmin()">
+          <i class="ti ti-key"></i> Salvar nova senha
+        </button>
       </div>
 
       <div id="pers-erro" style="color:var(--pk600);font-size:12px;margin-bottom:8px;min-height:14px"></div>
@@ -2126,8 +2170,10 @@ const faqs=[
   {cat:'acesso',q:'Por quanto tempo fico logada?',a:'A sessão é mantida enquanto o navegador estiver aberto. Ao fechar o navegador ou app, você precisará fazer login novamente. Por segurança, o app também desconecta automaticamente após 10 minutos de inatividade.'},
   {cat:'acesso',q:'Como sair do app?',a:'Clique no ícone de saída (→) no canto inferior da barra lateral esquerda, ao lado do seu nome. Você será desconectada e redirecionada para a tela de login.'},
   {cat:'acesso',q:'Para que serve o botão "Visualizar como: Cliente" no topo da tela?',a:'É uma forma rápida de espiar como o app aparece para suas clientes — útil para conferir o nome do estabelecimento, as promoções e os serviços publicados, por exemplo. Clique em "Cliente" para ver essa tela e em "Profissional" para voltar ao seu painel normal. Atenção: essa visualização é só para conferência rápida, não foi feita para usar no dia a dia como se você fosse a cliente — para isso, use as telas normais de Agenda e Clientes do seu painel.'},
-  {cat:'acesso',q:'Como a administradora cria uma nova usuária?',a:'Cadastre o usuário no Firebase Authentication (console.firebase.google.com) e defina o campo role no Firestore como "admin", "profissional" ou "cliente". O app detecta o role automaticamente no login.'},
+  {cat:'acesso',q:'Como a administradora cria o acesso de uma nova profissional?',a:'Direto pela aba Equipe, sem precisar do Firebase Console. Ao cadastrar (ou editar) uma profissional, abra o bloco "Acesso ao app" e preencha uma senha de 6 ou mais caracteres — o login dela passa a ser o próprio número de WhatsApp já cadastrado, exatamente como uma cliente. O e-mail informado nesse bloco é só um dado de contato e não é usado para entrar no app. Se o campo de senha ficar em branco, a profissional fica cadastrada normalmente na Equipe, mas sem acesso de login — você pode voltar e adicionar a senha depois, editando o cadastro dela.'},
   {cat:'acesso',q:'Os dados do MeCuidar são seguros?',a:'Sim. O app usa o Firebase (Google) com regras de segurança que garantem que cada usuária acessa apenas os dados permitidos para seu perfil. Nenhum dado fica exposto publicamente.'},
+  {cat:'acesso',q:'Como instalar o MeCuidar na tela inicial do celular?',a:'No Android: abra mecuidar.app.br no Chrome, toque no menu de três pontinhos (⋮) e em "Adicionar à tela inicial" ou "Instalar app". No iPhone: abra mecuidar.app.br no Safari (precisa ser o Safari), toque no ícone de compartilhar e em "Adicionar à Tela de Início". O app passa a abrir como um aplicativo normal, com ícone próprio, sem precisar digitar o endereço toda vez.'},
+  {cat:'acesso',q:'Como instalar o MeCuidar no computador?',a:'Abra mecuidar.app.br no Chrome ou no Edge e clique no ícone de instalação que aparece na barra de endereço (perto da URL). Confirme em "Instalar" — o MeCuidar passa a abrir como um programa próprio, podendo ser fixado na barra de tarefas ou no dock. Instalar é opcional: o app funciona normalmente pelo navegador, sem instalar nada, sempre que preferir.'},
   {cat:'config',q:'O que é a Versão Solo?',a:'A Versão Solo é para profissionais autônomas ou proprietárias que operam sozinhas (ou com parceiras eventuais). Usa o mesmo app da Versão Clínica — a diferença está na configuração: NOME_ESTAB com o nome do seu espaço e, se desejar, apenas você cadastrada como profissional ativa.'},
   {cat:'config',q:'Como ativar a Versão Solo?',a:'Acesse Personalização no menu lateral e defina o texto do plano como "Solo Pro". Mantenha apenas 1 profissional ativa na aba Equipe — o app detecta automaticamente e ativa o Modo Solo. Não é necessário editar nenhum código.'},
   {cat:'config',q:'Posso ter parceiras cadastradas na Versão Solo?',a:'Sim. Mesmo operando como proprietária, você pode cadastrar parceiras na aba Equipe. Elas aparecem normalmente nos selects de profissional. A Versão Solo é uma configuração de identidade, não uma restrição de equipe.'},
@@ -2187,7 +2233,7 @@ const faqs=[
   {cat:'agendamentos',q:'O que a cliente deve fazer quando o agendamento é recusado?',a:'A cliente verá o status "Não disponível" na aba Agendamentos e poderá clicar em "Reagendar". O app exibirá os horários disponíveis de todas as profissionais que realizam o serviço solicitado, organizados por profissional.'},
   {cat:'agendamentos',q:'Como funciona o reagendamento após recusa?',a:'A cliente escolhe uma profissional disponível e um novo horário. Uma nova solicitação é enviada para a líder confirmar. Atenção: a líder deve revisar se a profissional escolhida é adequada para o serviço. Em casos de múltiplas recusas, é mais eficiente entrar em contato diretamente com a cliente pelo WhatsApp para resolver.'},
   {cat:'agendamentos',q:'Como o app identifica quais profissionais fazem o serviço para reagendamento?',a:'O app busca pela palavra-chave do serviço no campo de especialidades de cada profissional. Por exemplo, se o serviço é "Botox", o app mostra todas as profissionais cujas especialidades contêm "Botox". Por isso é importante preencher as especialidades de forma detalhada no cadastro da equipe.'},
-  {cat:'acesso',q:'Como funciona o login único para profissional e cliente?',a:'O app possui uma única tela de login (MeCuidar). Ao entrar com e-mail e senha, o Firebase verifica o perfil (role): se for admin ou profissional, vai direto para o Painel profissional; se for cliente, vai para a tela de flores do MeCuidar.'},
+  {cat:'acesso',q:'Como funciona o login único para profissional e cliente?',a:'O app tem uma única tela de login. Clientes e profissionais de equipe digitam o próprio número de WhatsApp (o mesmo cadastrado no app); administradoras geralmente usam e-mail e senha. O app tenta identificar automaticamente quem está entrando e direciona para a tela certa: Painel profissional (admin/profissional) ou tela de flores (cliente) — sem nenhuma escolha extra na hora de logar.'},
   {cat:'acesso',q:'Como sair da conta na versão profissional?',a:'No menu lateral esquerdo, role até o final. Clique no botão "Sair da conta" que aparece abaixo do seu nome e perfil. Você será desconectada e redirecionada para o login.'},
   {cat:'agenda',q:'Quais as três visões da Agenda?',a:'Hoje: lista os agendamentos confirmados do dia atual com grade de horários disponíveis. Semana: grid de segunda a sábado com navegação por semana. Mês: calendário completo com dias destacados quando há agendamentos — clique no dia para ver os detalhes.'},
   {cat:'agenda',q:'Como filtrar os slots de horários por profissional?',a:'Na aba Agenda, visão Hoje, existe um select "Todas as profissionais" acima da grade de horários. Nesta versão, essa grade ("Horários Disponíveis") ainda é ilustrativa — não reflete a agenda real de cada profissional. Quem mostra disponibilidade real, dia a dia, por profissional, é a tela de agendamento da própria cliente.'},
@@ -3016,14 +3062,16 @@ async function doLoginCli(){
 
   _splashPendente = true;
   // Converte WhatsApp digitado → e-mail sintético para Firebase Auth.
-  // Número pode pertencer a uma cliente (@cli.mecuidar.app) ou a uma profissional
-  // de equipe (@equipe.mecuidar.app) — tenta cliente primeiro e, se a credencial
-  // for rejeitada, tenta equipe automaticamente, sem pedir nada extra à pessoa.
+  // Número pode pertencer a uma cliente (@cli.mecuidar.app), a uma profissional
+  // de equipe (@equipe.mecuidar.app) ou a uma administradora/profissional solo
+  // (@admin.mecuidar.app) — tenta cliente, depois equipe, depois admin, em sequência,
+  // sem pedir nada extra à pessoa que está logando.
   const wppRaw = (document.getElementById('cli-email')?.value || '').trim();
   const wppNum = wppRaw.replace(/\D/g, '');
   const ehNumero = wppNum.length >= 8;
   const emailCliente = ehNumero ? wppNum + '@cli.mecuidar.app' : wppRaw;
-  const emailEquipe   = ehNumero ? wppNum + '@equipe.mecuidar.app' : null;
+  const emailEquipe  = ehNumero ? wppNum + '@equipe.mecuidar.app' : null;
+  const emailAdmin   = ehNumero ? wppNum + '@admin.mecuidar.app' : null;
   const pass  = document.getElementById('cli-pass')?.value || '';
   const errEl = document.getElementById('cli-error');
   const btn   = document.getElementById('cli-entrar-btn');
@@ -3033,11 +3081,21 @@ async function doLoginCli(){
     try {
       await signInWithEmailAndPassword(auth, emailCliente, pass);
     } catch(eCliente) {
-      // Só tenta o domínio de equipe se o login era por número e a 1ª tentativa falhou
-      // por credencial/usuário não encontrado — outros erros (ex. too-many-requests) propagam direto.
-      const tentaEquipe = ehNumero && ['auth/invalid-credential','auth/user-not-found','auth/wrong-password'].includes(eCliente.code);
-      if (tentaEquipe) {
-        await signInWithEmailAndPassword(auth, emailEquipe, pass);
+      // Só tenta os domínios de equipe/admin se o login era por número e a 1ª tentativa
+      // falhou por credencial/usuário não encontrado — outros erros (ex. too-many-requests)
+      // propagam direto, sem tentar os domínios seguintes.
+      const podeTentarOutros = ehNumero && ['auth/invalid-credential','auth/user-not-found','auth/wrong-password'].includes(eCliente.code);
+      if (podeTentarOutros) {
+        try {
+          await signInWithEmailAndPassword(auth, emailEquipe, pass);
+        } catch(eEquipe) {
+          const tentaAdmin = ['auth/invalid-credential','auth/user-not-found','auth/wrong-password'].includes(eEquipe.code);
+          if (tentaAdmin) {
+            await signInWithEmailAndPassword(auth, emailAdmin, pass);
+          } else {
+            throw eEquipe;
+          }
+        }
       } else {
         throw eCliente;
       }
@@ -3064,28 +3122,39 @@ async function doLoginCli(){
     if (btn) { btn.textContent = 'Entrar'; btn.disabled = false; }
   }
 }
-function recuperarSenhaCli(){
+function recuperarSenhaCli(tipo){
   const val   = (document.getElementById('cli-email')?.value || '').trim();
   const errEl = document.getElementById('cli-error');
+  const wppNum = val.replace(/\D/g,'');
 
-  if (val.replace(/\D/g,'').length >= 8) {
-    // Cliente (WhatsApp): abre WhatsApp do estabelecimento com mensagem automática
-    const wppEstab = (window.WPP_ESTAB || '5511997261900').replace(/\D/g,'');
-    const nome = val.replace(/\D/g,'');
-    const msg  = encodeURIComponent(
-      'Olá! Esqueci minha senha no app MeCuidar. Meu WhatsApp cadastrado é ' + nome + '. Pode me ajudar a redefinir?'
-    );
-    if(errEl){
-      errEl.textContent = 'Abrindo WhatsApp para redefinir sua senha...';
-      errEl.style.color = '#b3ffda';
+  if (wppNum.length >= 8) {
+    // Login por WhatsApp — o link clicado já diz quem é (tipo: 'cliente' ou 'equipe'),
+    // então não precisamos adivinhar nem perguntar de novo. Cada caminho abre WhatsApp
+    // com mensagem pronta para o destino certo: cliente → WhatsApp do estabelecimento
+    // (fluxo automático já existente); equipe/admin → WhatsApp do suporte MeCuidar, onde
+    // quem recebe identifica a pessoa pelo cadastro e envia uma nova senha provisória
+    // manualmente, por e-mail (evita fraude — ver Manual Técnico).
+    if (tipo === 'equipe') {
+      const wppSuporte = '5511932308150';
+      const msg = encodeURIComponent(
+        'Olá! Esqueci minha senha de acesso ao MeCuidar. Meu WhatsApp cadastrado é ' + wppNum + '. Pode me ajudar a redefinir?'
+      );
+      if(errEl){ errEl.textContent = 'Abrindo WhatsApp do suporte MeCuidar...'; errEl.style.color = '#b3ffda'; }
+      setTimeout(() => { window.open('https://wa.me/' + wppSuporte + '?text=' + msg, '_blank'); }, 600);
+    } else {
+      const wppEstab = (window.WPP_ESTAB || '5511997261900').replace(/\D/g,'');
+      const msg = encodeURIComponent(
+        'Olá! Esqueci minha senha no app MeCuidar. Meu WhatsApp cadastrado é ' + wppNum + '. Pode me ajudar a redefinir?'
+      );
+      if(errEl){ errEl.textContent = 'Abrindo WhatsApp para redefinir sua senha...'; errEl.style.color = '#b3ffda'; }
+      setTimeout(() => { window.open('https://wa.me/' + wppEstab + '?text=' + msg, '_blank'); }, 600);
     }
-    setTimeout(() => { window.open('https://wa.me/' + wppEstab + '?text=' + msg, '_blank'); }, 600);
     return;
   }
 
   if (!val) { if(errEl) errEl.textContent='Digite seu WhatsApp ou e-mail acima.'; return; }
 
-  // Fallback: e-mail direto (admin/profissional) — fluxo padrão do Firebase
+  // Fallback: e-mail direto (admin/profissional com login antigo por e-mail) — fluxo padrão do Firebase
   sendPasswordResetEmail(auth, val)
     .then(() => {
       if(errEl){ errEl.textContent = 'E-mail de recuperação enviado!'; errEl.style.color='#b3ffda'; }
@@ -3152,6 +3221,56 @@ window._abrirModalSenhaCli  = abrirModalSenhaCli;
 window._fecharModalSenhaCli = fecharModalSenhaCli;
 window._toggleSenhaCliVis   = toggleSenhaCliVis;
 window._salvarNovaSenhaCli  = salvarNovaSenhaCli;
+
+// ── Alterar senha (administradora/profissional logada, tela Personalização) ──
+// Mesma lógica de salvarNovaSenhaCli() acima (reautentica com a senha atual via
+// EmailAuthProvider e troca com updatePassword) — funciona igual independente do
+// e-mail da sessão ser real ou sintético (@admin.mecuidar.app, @equipe.mecuidar.app).
+function toggleSenhaPersVis(id){
+  const el = document.getElementById(id);
+  if(el) el.type = el.type === 'password' ? 'text' : 'password';
+}
+async function salvarNovaSenhaAdmin(){
+  const atual = document.getElementById('pers-senha-atual')?.value || '';
+  const nova  = document.getElementById('pers-senha-nova')?.value  || '';
+  const conf  = document.getElementById('pers-senha-conf')?.value  || '';
+  const msg   = document.getElementById('pers-senha-msg');
+  const btn   = document.getElementById('pers-senha-btn');
+
+  if(!atual || !nova || !conf){ if(msg){ msg.textContent='Preencha todos os campos.'; msg.style.color='#d4537e'; } return; }
+  if(nova.length < 6){ if(msg){ msg.textContent='A nova senha precisa ter no mínimo 6 caracteres.'; msg.style.color='#d4537e'; } return; }
+  if(nova !== conf){ if(msg){ msg.textContent='As senhas não coincidem.'; msg.style.color='#d4537e'; } return; }
+  if(!cu || !cu.email){ if(msg){ msg.textContent='Sessão expirada. Faça login novamente.'; msg.style.color='#d4537e'; } return; }
+
+  if(btn){ btn.textContent='Salvando...'; btn.disabled=true; }
+  if(msg){ msg.textContent=''; }
+
+  try {
+    const cred = EmailAuthProvider.credential(cu.email, atual);
+    await reauthenticateWithCredential(cu, cred);
+    await updatePassword(cu, nova);
+    if(msg){ msg.textContent='Senha alterada com sucesso! ✓'; msg.style.color='#2e7d32'; }
+    ['pers-senha-atual','pers-senha-nova','pers-senha-conf'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.value = '';
+    });
+  } catch(e) {
+    if(e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'){
+      if(msg){ msg.textContent='Senha atual incorreta.'; msg.style.color='#d4537e'; }
+    } else if(e.code === 'auth/weak-password'){
+      if(msg){ msg.textContent='Senha muito fraca. Use pelo menos 6 caracteres.'; msg.style.color='#d4537e'; }
+    } else if(e.code === 'auth/too-many-requests'){
+      if(msg){ msg.textContent='Muitas tentativas. Tente novamente mais tarde.'; msg.style.color='#d4537e'; }
+    } else {
+      if(msg){ msg.textContent='Erro ao alterar senha. Tente novamente.'; msg.style.color='#d4537e'; }
+      console.error('[AlterarSenhaAdmin]', e.message);
+    }
+  } finally {
+    if(btn){ btn.innerHTML = '<i class="ti ti-key"></i> Salvar nova senha'; btn.disabled=false; }
+  }
+}
+window.toggleSenhaPersVis  = toggleSenhaPersVis;
+window.salvarNovaSenhaAdmin = salvarNovaSenhaAdmin;
 
 function goToCliSection(id){
   // Esconde tela das flores
@@ -6992,6 +7111,37 @@ function _impConvidar(nome, numero) {
 }
 window._impConvidar = _impConvidar;
 
+// ── Link genérico de convite (tela Personalização) ─────────────────────────
+// Mesmo link de convite (?convite=1&c={clinicaId}) usado no convite individual,
+// mas pensado para divulgação ampla (status do WhatsApp, Instagram, grupos) —
+// útil logo no início, antes da administradora importar/cadastrar suas clientes.
+// A mensagem leva o nome dela (cp.name), não o de uma cliente específica.
+function _linkConviteGenerico() {
+  return (window.APP_URL || 'https://mecuidar.app.br') + '/?convite=1&c=' + clinicaAtual();
+}
+async function copiarLinkConviteGenerico() {
+  const link = _linkConviteGenerico();
+  const msgEl = document.getElementById('pers-link-convite-msg');
+  try {
+    await navigator.clipboard.writeText(link);
+    if (msgEl) { msgEl.textContent = 'Link copiado! Agora é só colar onde quiser.'; msgEl.style.color = 'var(--tl400)'; }
+  } catch (e) {
+    // Fallback para navegadores sem suporte a clipboard API (ex. alguns WebViews)
+    if (msgEl) { msgEl.textContent = link; msgEl.style.color = 'var(--tx2)'; }
+  }
+}
+function compartilharLinkConviteGenerico() {
+  const link = _linkConviteGenerico();
+  const estab = window.NOME_ESTAB || 'Saúde e Bem-Estar';
+  const nomeAdmin = (window.cp && window.cp.name) || '';
+  const msg = nomeAdmin
+    ? `Oi! Aqui é ${nomeAdmin}, do ${estab} 💕 Agora você pode agendar seus horários e ver nossas promoções direto pelo app: ${link}`
+    : `Oi! Aqui é do ${estab} 💕 Agora você pode agendar seus horários e ver nossas promoções direto pelo app: ${link}`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+window.copiarLinkConviteGenerico = copiarLinkConviteGenerico;
+window.compartilharLinkConviteGenerico = compartilharLinkConviteGenerico;
+
 function _escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -7737,7 +7887,7 @@ function mostrarCadastro(){ if(window.mostrarCadastro) window.mostrarCadastro();
 function fecharCadastro(){ if(window.fecharCadastro) window.fecharCadastro(); }
 function cadastrarCliente(){ if(window.cadastrarCliente) window.cadastrarCliente(); }
 function toggleCadSenha(){ if(window.toggleCadSenha) window.toggleCadSenha(); }
-function recuperarSenhaCli(){ if(window._recuperarSenhaCli) window._recuperarSenhaCli(); }
+function recuperarSenhaCli(tipo){ if(window._recuperarSenhaCli) window._recuperarSenhaCli(tipo); }
 function abrirModalSenhaCli(){ if(window._abrirModalSenhaCli) window._abrirModalSenhaCli(); }
 function fecharModalSenhaCli(){ if(window._fecharModalSenhaCli) window._fecharModalSenhaCli(); }
 function toggleSenhaCliVis(id){ if(window._toggleSenhaCliVis) window._toggleSenhaCliVis(id); }
@@ -7934,8 +8084,9 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <div id="cli-error" style="color:#ffb3c6;font-size:11px;text-align:center;margin-bottom:5px;min-height:14px;font-weight:600"></div>
       <button id="cli-entrar-btn" onclick="doLoginCli()" style="width:100%;padding:12px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:15px;font-weight:700;letter-spacing:.06em;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(153,53,86,.4)">Entrar</button>
       <div id="cli-firebase-status" style="text-align:center;font-size:10px;color:rgba(255,255,255,.4);margin-top:6px">Conectando...</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-        <span onclick="recuperarSenhaCli()" style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;text-decoration:underline">Esqueci minha senha</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px">
+        <span onclick="recuperarSenhaCli('cliente')" style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;text-decoration:underline">Esqueci minha senha (sou cliente)</span>
+        <span onclick="recuperarSenhaCli('equipe')" style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;text-decoration:underline">Sou profissional/administradora</span>
       </div>
       <div style="text-align:center;margin-top:8px">
         <span onclick="mostrarCadastro()" style="font-size:11px;color:rgba(255,255,255,.8);cursor:pointer;text-decoration:underline;font-weight:600">Primeira vez? Cadastre-se →</span>
@@ -8135,6 +8286,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <button id="senha-cli-btn" onclick="salvarNovaSenhaCli()" style="width:100%;padding:12px;border:none;border-radius:30px;background:linear-gradient(90deg,#D4537E,#993556);color:white;font-size:14px;font-weight:700;letter-spacing:.04em;cursor:pointer;font-family:inherit">Salvar nova senha</button>
   </div>
 </div>
+
 
 
 
