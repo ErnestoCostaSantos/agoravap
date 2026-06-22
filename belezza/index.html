@@ -4670,6 +4670,20 @@ async function enviarSolicitacaoFS() {
     const toast = document.getElementById('cli-agenda-toast');
     if (toast) toast.style.display = 'flex';
 
+    // Mensagem contextual: reagendamento tem texto diferente do agendamento normal
+    const isReag = !!reagendandoAgId;
+    const infoTxtEl  = document.getElementById('cli-ag-info-txt');
+    const toastTxtEl = document.getElementById('cli-ag-toast-txt');
+    if (isReag) {
+      const msgReag = `Caso também não dê certo esse reagendamento, a líder do ${NOME_ESTAB} entrará em contato com você.`;
+      if (infoTxtEl)  infoTxtEl.textContent  = msgReag;
+      if (toastTxtEl) toastTxtEl.textContent = msgReag;
+    } else {
+      const msgNorm = `A líder do ${NOME_ESTAB} confirmará em breve via WhatsApp.`;
+      if (infoTxtEl)  infoTxtEl.textContent  = msgNorm;
+      if (toastTxtEl) toastTxtEl.textContent = msgNorm;
+    }
+
     // Reset após 5s
     setTimeout(() => {
       if (toast) toast.style.display = 'none';
@@ -4683,6 +4697,12 @@ async function enviarSolicitacaoFS() {
         b.style.color = 'var(--tx)';
       });
       selDia = null; selHorario = null; promoSelecionada = null;
+      // Restaura texto padrão do info-box para próximo agendamento
+      const iTxt = document.getElementById('cli-ag-info-txt');
+      const tTxt = document.getElementById('cli-ag-toast-txt');
+      const msgPad = `A líder do ${NOME_ESTAB} confirmará em breve via WhatsApp.`;
+      if (iTxt)  iTxt.textContent  = msgPad;
+      if (tTxt)  tTxt.textContent  = msgPad.replace(' via WhatsApp','');
     }, 5000);
 
   } catch(e) {
