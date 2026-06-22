@@ -1919,6 +1919,9 @@ onAuthStateChanged(auth, async user => {
           if(loginScreen) { loginScreen.classList.remove('splash'); loginScreen.style.display = 'none'; }
           if(homeCliente) homeCliente.style.display = 'flex';
           setTimeout(() => { if(window.verificarEExibirPopup) window.verificarEExibirPopup(); }, 300);
+          // Mascote: inicializa e define seção home
+          if(window.mascoteInit) window.mascoteInit();
+          setTimeout(() => { if(window.mascoteSetSecao) window.mascoteSetSecao('home'); }, 500);
         };
 
         // Vai direto para as flores (sem splash intermediário)
