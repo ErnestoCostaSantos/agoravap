@@ -2178,7 +2178,7 @@ const faqs=[
   {cat:'config',q:'Como ativar a Versão Solo?',a:'Acesse Personalização no menu lateral e defina o texto do plano como "Solo Pro". Mantenha apenas 1 profissional ativa na aba Equipe — o app detecta automaticamente e ativa o Modo Solo. Não é necessário editar nenhum código.'},
   {cat:'config',q:'Posso ter parceiras cadastradas na Versão Solo?',a:'Sim. Mesmo operando como proprietária, você pode cadastrar parceiras na aba Equipe. Elas aparecem normalmente nos selects de profissional. A Versão Solo é uma configuração de identidade, não uma restrição de equipe.'},
   {cat:'config',q:'Como trocar o nome do estabelecimento no app?',a:'Acesse Personalização no menu lateral e edite o campo de nome do estabelecimento. Clique em Salvar — o novo nome aparece imediatamente em todas as telas: sidebar, login, chat, mensagens de campanha e botão de contato.'},
-  {cat:'config',q:'Como trocar o número de WhatsApp do botão Contato?',a:'Acesse Personalização no menu lateral e edite o campo de WhatsApp de contato (use DDI + DDD + número, ex: 5511999990000). Clique em Salvar — o botão Contato na tela das flores usará esse número automaticamente.'},
+  {cat:'config',q:'Como a cliente usa o chat de contato?',a:'Na tela de flores, o botão "Contato" abre o chat interno do app (aba Dúvidas), onde a cliente pode enviar mensagens diretamente para o estabelecimento. O botão "Dúvidas" abre o Módulo Ajuda (FAQ) com respostas às perguntas mais comuns.'},
   {cat:'config',q:'Como trocar a foto da tela de login?',a:'Acesse Personalização no menu lateral, clique em "Escolher foto" e selecione uma imagem do dispositivo (recomendado: foto vertical, próxima de 1080x1920px). Clique em Salvar — a foto é aplicada imediatamente, sem necessidade de GitHub ou Vercel.'},
   {cat:'config',q:'Como trocar minha senha de acesso?',a:'Acesse Personalização no menu lateral e role até a seção "Acesso e senha". Preencha a senha atual, a nova senha (mínimo 6 caracteres) e confirme. Toque em "Salvar nova senha" — a confirmação aparece logo abaixo do botão. Não é necessário tocar em "Salvar personalização" depois: são duas ações independentes.'},
   {cat:'config',q:'Como convidar clientes sem precisar importar contatos primeiro?',a:'Acesse Personalização no menu lateral e veja a seção "Convidar clientes". Toque em "Copiar link" para colar onde quiser (status do WhatsApp, Instagram, grupos) ou em "Compartilhar" para abrir o WhatsApp já com uma mensagem pronta. Quem abrir o link cai direto na tela de cadastro do seu app — não precisa que você já tenha importado ou cadastrado nenhuma cliente antes.'},
@@ -2202,7 +2202,7 @@ const faqs=[
   {cat:'versaocliente',q:'Quem confirma o agendamento da cliente?',a:'A líder do estabelecimento recebe a solicitação e faz a confirmação. A cliente recebe a confirmação via WhatsApp ou pelo próprio app em tempo real.'},
   {cat:'versaocliente',q:'Como a cliente agenda uma promoção?',a:'Na aba Promoções, cada card tem um botão "Agendar". Ao clicar, o app abre o calendário já identificando qual promoção foi selecionada. O fluxo é o mesmo do agendamento normal.'},
   {cat:'versaocliente',q:'Quem responde as dúvidas no chat?',a:'A líder do estabelecimento — identificada pelo nome e avatar no cabeçalho do chat. As mensagens são respondidas em breve após o envio.'},
-  {cat:'versaocliente',q:'Como a cliente entra em contato direto?',a:'Pelo botão "Contato" na tela de flores, que abre o WhatsApp do estabelecimento com uma mensagem pré-preenchida. Também pode ligar tocando no ícone de telefone na tela de Dúvidas.'},
+  {cat:'versaocliente',q:'Como a cliente entra em contato direto?',a:'Pelo botão "Contato" na tela de flores, que abre o chat interno do app. Ali ela pode enviar mensagens para o estabelecimento. O ícone de telefone dentro do chat também abre o WhatsApp para contato direto.'},
   {cat:'versaocliente',q:'Como a cliente volta para a tela de flores?',a:'Pelo botão "← Voltar" que aparece na barra roxa no topo da tela ao navegar pelas seções. O botão "Sair" encerra a sessão e volta para o login.'},
   {cat:'agendamentos',q:'Quais dias aparecem no calendário de agendamento?',a:'Os próximos 15 dias úteis a partir de amanhã, excluindo domingos. O app calcula automaticamente as datas disponíveis.'},
   {cat:'agendamentos',q:'O que significa horário ocupado no calendário?',a:'Horários em cinza já foram reservados por outra cliente e não podem ser selecionados. Apenas os horários em branco estão disponíveis.'},
@@ -2926,11 +2926,27 @@ async function salvarNovoAg(){
 const slots=['08:00','09:00','09:30','10:00','10:30','11:00','14:00','14:30','15:00','15:30','16:00','17:00'];
 const busy=[2,5,7];let selSlot=-1;
 function renderSlots(){
+  // Calcula horários ocupados a partir dos agendamentos reais (confirmados hoje)
+  const hoje = new Date();
+  const dd = String(hoje.getDate()).padStart(2,'0');
+  const mm = String(hoje.getMonth()+1).padStart(2,'0');
+  const hojeStr = dd+'/'+mm;
+
+  const profSel = document.getElementById('slots-prof-sel');
+  const profIdSel = profSel ? profSel.value : 'geral';
+
+  const agHoje = (agendamentos||[]).filter(a =>
+    a.status === 'confirmado' &&
+    a.data === hojeStr &&
+    (profIdSel === 'geral' || a.profId === profIdSel)
+  );
+  const horariosOcupados = new Set(agHoje.map(a => a.hora));
+
   ['avail-grid','cli-avail-grid'].forEach(gid=>{
     const g=document.getElementById(gid);if(!g)return;
     g.innerHTML=slots.map((s,i)=>{
-      const isBusy=busy.includes(i);
-      const isSel=selSlot===i;
+      const isBusy = horariosOcupados.has(s);
+      const isSel  = selSlot===i;
       let cls='slot';
       if(isBusy) cls+=' busy';
       else if(isSel) cls+=' sel';
@@ -3570,21 +3586,23 @@ function selecionarDia(btn, label, semana){
   // Horários padrão (podem vir do equipeDB futuramente)
   const horarios = ['08:00','09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
 
-  // Busca agendamentos confirmados nesse dia para marcar ocupados
+  // Busca agendamentos confirmados/pendentes nesse dia para marcar ocupados.
+  // Usa agendamentosCliente (listener Firestore da cliente logada) como fonte
+  // principal — é o array atualizado em tempo real para esse perfil de usuário.
   const profSel  = document.getElementById('cli-prof-sel');
   const profId   = profSel ? profSel.value : '';
-  const ags      = window.agendamentosDB || agendamentos || [];
+  const ags      = (typeof agendamentosCliente !== 'undefined' && agendamentosCliente.length > 0)
+                   ? agendamentosCliente
+                   : (window.agendamentosDB || agendamentos || []);
 
   const ocupados = ags
     .filter(a => {
       if (a.status === 'cancelado' || a.status === 'recusado') return false;
       if (a.data !== label) return false;
-      // Se profissional específica selecionada, só bloqueia horários dela
-      if (profId) {
-        const profNome = (window.equipeDB||[]).find(p => p.id === profId)?.nome || '';
-        return profNome && (a.prof || '').toLowerCase().includes(profNome.split(' ')[0].toLowerCase());
-      }
-      return true; // sem preferência: bloqueia qualquer ocupado
+      // Se profissional específica selecionada, bloqueia por profId (campo gravado
+      // no agendamento) — mais confiável que comparar nome abreviado
+      if (profId) return a.profId === profId;
+      return true; // sem preferência: bloqueia qualquer horário ocupado nesse dia
     })
     .map(a => a.hora);
 
@@ -7128,7 +7146,7 @@ window._impToggleTodos = _impToggleTodos;
 function _impConvidar(nome, numero) {
   const link = (window.APP_URL || 'https://mecuidar.app.br') + '/?convite=1&c=' + clinicaAtual();
   const estab = window.NOME_ESTAB || 'Saúde e Bem-Estar';
-  const msg = `Oi ${nome}! Aqui é do ${estab} 💕 Agora você pode agendar seus horários e ver nossas promoções direto pelo app: ${link}`;
+  const msg = `Oi ${nome}! Aqui é do ${estab} 💕 Agora você pode agendar seus horários e ver nossas promoções direto pelo app: ${link}\n\nDepois de se cadastrar, salve o app na tela inicial do seu celular para acessar mais fácil — em caso de dúvida, toque em "Dúvidas" dentro do app e procure por "instalar". 📲`;
   window.open('https://wa.me/55' + numero + '?text=' + encodeURIComponent(msg), '_blank');
 }
 window._impConvidar = _impConvidar;
@@ -7461,7 +7479,9 @@ function crmFiltrarPerfil() {
   }).filter(Boolean);
 
   // Limite rígido de resultados exibidos por busca (mesmo limite do painel Por Histórico)
-  const resultadoLimitado = resultado.slice(0, CRM_LIMITE_RESULTADOS);
+  const resultadoLimitado = resultado
+    .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR', { sensitivity: 'base' }))
+    .slice(0, CRM_LIMITE_RESULTADOS);
 
   _crmRenderLista('perfil', resultadoLimitado);
 }
@@ -7562,7 +7582,9 @@ function crmFiltrarHistorico() {
   }
 
   // Limite rígido de resultados exibidos por busca
-  resultado = resultado.slice(0, CRM_LIMITE_RESULTADOS);
+  resultado = resultado
+    .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR', { sensitivity: 'base' }))
+    .slice(0, CRM_LIMITE_RESULTADOS);
 
   _crmRenderLista('historico', resultado);
 }
@@ -8223,7 +8245,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         </button>
       </div>
       <div style="display:flex;justify-content:center;gap:18px">
-        <button class="rosa-btn" onclick="goToCliSection('c-chat')">
+        <button class="rosa-btn" onclick="openHelp()">
           <svg class="rosa-svg" viewBox="-40 -40 80 80">
             <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(0)"/>
             <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(60)"/>
@@ -8236,7 +8258,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
           </svg>
           <span>Dúvidas</span>
         </button>
-        <button class="rosa-btn" onclick="window.open('https://wa.me/5511997261900?text=Ol%C3%A1%20Studio%20Luna%2C%20vim%20pelo%20app!','_blank')">
+        <button class="rosa-btn" onclick="goToCliSection('c-chat')">
           <svg class="rosa-svg" viewBox="-40 -40 80 80">
             <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(0)"/>
             <ellipse cx="0" cy="-26" rx="12" ry="18" fill="#edb8d4" transform="rotate(60)"/>
