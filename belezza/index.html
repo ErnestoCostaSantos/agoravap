@@ -174,22 +174,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .p-new{font-size:16px;font-weight:800;color:#993556}
 .p-auto{font-size:13px;font-weight:600;color:#b3879a;font-style:italic}
 .btn-promo-ag{display:flex;align-items:center;gap:4px;padding:7px 14px;border-radius:30px;background:#993556;border:none;color:white;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(153,53,86,.25);font-family:inherit}
-.chat-wrap{background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);overflow:hidden}
-.chat-hd{padding:11px 15px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:9px}
-.chat-online{font-size:11px;color:var(--tl400);display:flex;align-items:center;gap:4px}
-.chat-online::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--tl400)}
-.msgs{padding:14px;min-height:180px;display:flex;flex-direction:column;gap:8px}
-.msg{max-width:78%}
+/* ── Chat cliente (redesign v1.17) ── */
+.chat-wrap{background:#f7f4f6;display:flex;flex-direction:column;overflow:hidden}
+.chat-hd{background:white;padding:10px 14px;border-bottom:1.5px solid #f0e0e8;display:flex;align-items:center;gap:10px;border-radius:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(153,53,86,.06)}
+.chat-hd-av{width:42px;height:42px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid #f0d0e0}
+.chat-hd-av img{width:100%;height:100%;object-fit:cover}
+.chat-hd-nome{font-size:13px;font-weight:700;color:#1a1a1a}
+.chat-hd-estab{font-size:10px;color:#9a7a8a}
+.chat-online{font-size:10px;color:#1D9E75;display:flex;align-items:center;gap:4px;margin-top:2px}
+.chat-online::before{content:'';width:5px;height:5px;border-radius:50%;background:#1D9E75}
+.chat-hd-phone{width:32px;height:32px;border-radius:50%;background:#f0eaf8;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6B2D8B;margin-left:auto;flex-shrink:0}
+.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding:4px 0;min-height:120px}
+.msgs::-webkit-scrollbar{width:2px}
+.msgs::-webkit-scrollbar-thumb{background:#e0c8d4;border-radius:4px}
+.msg{max-width:80%}
 .msg.r{align-self:flex-start}
 .msg.s{align-self:flex-end}
-.bbl{padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.5}
-.msg.r .bbl{background:var(--bg2);border-radius:3px 10px 10px 10px}
-.msg.s .bbl{background:var(--pk600);color:#fff;border-radius:10px 3px 10px 10px}
-.mtime{font-size:10px;color:var(--tx3);margin-top:2px;padding:0 3px}
+.bbl{padding:8px 12px;border-radius:14px;font-size:12px;line-height:1.5}
+.msg.r .bbl{background:white;color:#1a1a1a;border:1.5px solid #f0e0e8;border-bottom-left-radius:4px}
+.msg.s .bbl{background:#993556;color:white;border-bottom-right-radius:4px}
+.mtime{font-size:9px;opacity:.5;margin-top:3px;padding:0 3px}
 .msg.s .mtime{text-align:right}
-.chat-inp{padding:9px 12px;border-top:1px solid var(--br);display:flex;gap:7px;align-items:center}
-.chat-input{flex:1;padding:8px 12px;border-radius:20px;border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);outline:none}
-.chat-send{width:32px;height:32px;border-radius:50%;border:none;background:var(--pk600);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.chat-inp{padding:6px 0 2px;display:flex;gap:8px;align-items:center}
+.chat-input{flex:1;padding:9px 14px;border-radius:30px;border:1.5px solid #f0e0e8;font-size:12px;background:white;color:#1a1a1a;outline:none;font-family:inherit}
+.chat-send{width:36px;height:36px;border-radius:50%;border:none;background:#993556;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(153,53,86,.25)}
 /* ── Agendamento cliente (redesign v1.17) ── */
 /* Calendário strip */
 .cli-cal-strip{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
@@ -1577,22 +1585,30 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
     <div class="pane" id="pane-c-chat">
       <!-- Visão Cliente: envia dúvidas -->
       <div id="cli-chat-view">
-        <div class="sec-lbl">Fale com o MeCuidar</div>
+        <div class="sec-lbl">Fale com a clínica</div>
         <div class="chat-wrap">
           <div class="chat-hd">
-            <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaLuna&backgroundColor=fbeaf0" style="width:32px;height:32px;border-radius:50%">
-            <div style="flex:1"><div class="row-name" style="font-size:13px">MeCuidar · Líder</div><div class="chat-online">Online</div></div>
-            <i class="ti ti-phone" id="chat-phone-icon" style="font-size:18px;color:var(--tx2);cursor:pointer" onclick="abrirWpp('Olá! Vim pelo app MeCuidar.')"></i>
+            <div class="chat-hd-av">
+              <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=CarlaLuna&backgroundColor=fbeaf0" alt="Líder">
+            </div>
+            <div>
+              <div class="chat-hd-nome">MeCuidar · Líder</div>
+              <div class="chat-hd-estab" id="chat-estab-nome"></div>
+              <div class="chat-online">Online</div>
+            </div>
+            <button class="chat-hd-phone" id="chat-phone-icon" onclick="abrirWpp('Olá! Vim pelo app MeCuidar.')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5a2 2 0 0 1 2-2h3.28a1 1 0 0 1 .95.68l1.45 4.36a1 1 0 0 1-.23 1.03L8.91 10.6a16 16 0 0 0 6.49 6.49l1.53-1.54a1 1 0 0 1 1.03-.23l4.36 1.45a1 1 0 0 1 .68.95V19a2 2 0 0 1-2 2A18 18 0 0 1 3 5z"/></svg>
+            </button>
           </div>
-          <div class="msgs" id="chat-msgs">
-            <div style="text-align:center;color:rgba(255,255,255,.4);font-size:13px;padding:20px 0">Carregando mensagens...</div>
-          </div>
-          <div style="padding:0 12px 2px;text-align:right">
-            <span id="chat-counter" style="font-size:10px;color:rgba(255,255,255,.35)">0/100</span>
+          <div class="msgs" id="chat-msgs"></div>
+          <div style="text-align:right;padding-bottom:3px">
+            <span id="chat-counter" style="font-size:10px;color:#c9aab8">0/100</span>
           </div>
           <div class="chat-inp">
-            <input class="chat-input" id="chat-in" placeholder="Escreva sua dúvida..." maxlength="100" onkeydown="if(event.key==='Enter')sendMsg()" oninput="document.getElementById('chat-counter').textContent=this.value.length+'/100'">
-            <button class="chat-send" onclick="sendMsg()"><i class="ti ti-send"></i></button>
+            <input class="chat-input" id="chat-in" placeholder="Escreva sua mensagem..." maxlength="100" onkeydown="if(event.key==='Enter')sendMsg()" oninput="document.getElementById('chat-counter').textContent=this.value.length+'/100'">
+            <button class="chat-send" onclick="sendMsg()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -6732,12 +6748,12 @@ function aplicarBranding(brand){
   const loginSub = document.getElementById('login-estab-nome');
   if (loginSub) loginSub.textContent = NOME_ESTAB;
 
-  // Chat cliente: "Fale com o MeCuidar" e "MeCuidar · Líder"
+  // Chat cliente: atualiza nome do estabelecimento no header
+  const chatEstabNome = document.getElementById('chat-estab-nome');
+  if(chatEstabNome) chatEstabNome.textContent = NOME_ESTAB;
   document.querySelectorAll('.sec-lbl').forEach(el => {
-    if (el.textContent.includes('Fale com o')) el.textContent = `Fale com o ${NOME_ESTAB}`;
+    if(el.textContent.includes('Fale com')) el.textContent = `Fale com a ${NOME_ESTAB}`;
   });
-  const liderNome = document.querySelector('#c-chat .row-name');
-  if (liderNome && liderNome.textContent.includes('Líder')) liderNome.textContent = `${NOME_ESTAB} · Líder`;
 
   // Botão Contato (tela de flores) — WhatsApp do estabelecimento
   document.querySelectorAll(`.rosa-btn[onclick*="wa.me"]`).forEach(contaBtn => {
