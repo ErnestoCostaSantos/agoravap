@@ -127,13 +127,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .day-hdr{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3);margin:14px 0 8px}
 .add-btn{width:100%;padding:10px;border:1px dashed var(--br2);border-radius:var(--rl);background:transparent;cursor:pointer;font-size:12px;color:var(--tx2);display:flex;align-items:center;justify-content:center;gap:5px;margin-top:4px}
 .add-btn:hover{background:var(--bg2)}
-.svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
-.svc-card{background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);padding:14px;cursor:pointer;transition:border-color .15s}
-.svc-card:hover{border-color:var(--pk400)}
-.svc-icon{font-size:24px;color:var(--pk400);margin-bottom:8px}
-.svc-name{font-size:13px;font-weight:600;margin-bottom:3px}
-.svc-desc{font-size:11px;color:var(--tx2);line-height:1.4}
-.svc-price{font-size:13px;font-weight:600;color:var(--tl400);margin-top:8px}
+/* ── Serviços cliente (redesign v1.17) ── */
+.svc-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.svc-card{background:white;border:1.5px solid #f0e0e8;border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:border-color .15s,box-shadow .15s;box-shadow:0 2px 8px rgba(153,53,86,.05)}
+.svc-card:hover{border-color:#D4537E;box-shadow:0 3px 12px rgba(153,53,86,.12)}
+.svc-card.sel{border-color:#993556;background:#fdf5f8;box-shadow:0 3px 12px rgba(153,53,86,.12)}
+.svc-icon-wrap{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#fdf0f5,#f9d0df);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;color:#D4537E}
+.svc-card-body{flex:1;min-width:0}
+.svc-name{font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:2px}
+.svc-desc{font-size:11px;color:#9a7a8a;line-height:1.4}
+.svc-price{font-size:12px;font-weight:700;color:#993556;margin-top:4px}
+.svc-chev{flex-shrink:0;color:#d4c0cc}
+.svc-card.sel .svc-chev{color:#993556}
+/* Barra fixa de serviço selecionado */
+.svc-sel-bar{display:none;background:white;border-top:2px solid #f0d0e0;padding:10px 14px;align-items:center;gap:10px;flex-shrink:0}
+.svc-sel-bar.show{display:flex}
+.svc-sel-info{flex:1;min-width:0}
+.svc-sel-lbl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#b3879a}
+.svc-sel-nome{font-size:13px;font-weight:700;color:#993556;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.svc-sel-preco{font-size:11px;color:#9a7a8a}
+.btn-svc-ag{display:flex;align-items:center;gap:5px;padding:9px 16px;border-radius:30px;border:none;background:#993556;color:white;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(153,53,86,.25);white-space:nowrap;flex-shrink:0;font-family:inherit}
 /* ── Promoções cliente (redesign v1.17) ── */
 .promo-card{background:white;border:1.5px solid #f0e0e8;border-radius:14px;overflow:hidden;margin-bottom:10px;box-shadow:0 2px 10px rgba(153,53,86,.07)}
 .promo-accent{height:4px}
@@ -262,8 +275,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 }
 .rosa-btn:hover{ transform:translateY(-4px) scale(1.05); }
 .dia-btn:hover:not([disabled]){ border-color:var(--pk400) !important; }
-.svc-card{ cursor:pointer; transition:border-color .15s, background .15s; }
-.svc-card:hover{ border-color:var(--pk400) !important; background:var(--pk50) !important; }
+/* svc-card — ver regras em redesign v1.17 acima */
 .rosa-svg{ width:clamp(60px,10vw,90px);height:clamp(60px,10vw,90px);filter:drop-shadow(0 3px 8px rgba(153,53,86,.2)); }
 /* Mobile: foto ocupa a maior parte, form compacto */
 #cli-foto { flex: 1 1 0; min-height: 0; }
@@ -1502,18 +1514,20 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
     <div class="pane" id="pane-c-servicos">
       <div class="sec-lbl">Nossos serviços</div>
 
-      <div style="font-size:12px;color:var(--tx2);margin-bottom:8px">Toque no serviço para selecioná-lo</div>
       <div class="svc-grid" id="svc-grid-cli">
-        <div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0;grid-column:1/-1">Carregando serviços...</div>
+        <div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0">Carregando serviços...</div>
       </div>
-      <!-- Botão Agendar aparece após selecionar serviço -->
-      <div id="svc-selecionado" style="display:none;background:var(--pk50);border:1px solid var(--pk100);border-radius:var(--r);padding:10px 14px;margin-top:10px;align-items:center;justify-content:space-between;gap:10px">
-        <div>
-          <div style="font-size:11px;color:var(--tx2)">Serviço selecionado</div>
-          <div style="font-size:13px;font-weight:700;color:var(--pk800)" id="svc-nome-sel"></div>
-          <div style="font-size:11px;color:var(--pk600)" id="svc-preco-sel"></div>
+      <!-- Barra fixa de serviço selecionado -->
+      <div id="svc-selecionado" class="svc-sel-bar">
+        <div class="svc-sel-info">
+          <div class="svc-sel-lbl">Selecionado</div>
+          <div class="svc-sel-nome" id="svc-nome-sel"></div>
+          <div class="svc-sel-preco" id="svc-preco-sel"></div>
         </div>
-        <button class="btn pk" onclick="abrirAgendaServico()" style="flex-shrink:0"><i class="ti ti-calendar"></i> Agendar</button>
+        <button class="btn-svc-ag" onclick="abrirAgendaServico()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Agendar
+        </button>
       </div>
     </div>
 
@@ -3479,22 +3493,18 @@ let reagendandoServico = null; // serviço do reagendamento
 
 function selecionarServico(card, nome, preco){
   // Highlight card selecionado
-  document.querySelectorAll('.svc-card').forEach(c => {
-    c.style.borderColor = 'var(--br)';
-    c.style.background = 'var(--bg)';
-  });
-  card.style.borderColor = 'var(--pk600)';
-  card.style.background = 'var(--pk50)';
+  document.querySelectorAll('.svc-card').forEach(c => c.classList.remove('sel'));
+  card.classList.add('sel');
   servicoSelecionado = { nome, preco };
   window.servicoSelecionado = servicoSelecionado;
-  // Mostra badge de selecionado
+  // Mostra barra de selecionado
   const wrap = document.getElementById('svc-selecionado');
   const nomeEl = document.getElementById('svc-nome-sel');
   const precoEl = document.getElementById('svc-preco-sel');
   if(wrap && nomeEl && precoEl){
     nomeEl.textContent = nome;
-    precoEl.textContent = 'A partir de ' + preco;
-    wrap.style.display = 'flex';
+    precoEl.textContent = preco ? 'A partir de ' + preco : '';
+    wrap.classList.add('show');
   }
 }
 
@@ -7898,11 +7908,14 @@ function iniciarListenerServicosCli() {
       const s = d.data();
       const nome  = (s.nome  || 'Serviço').replace(/'/g,"\'");
       const preco = (s.preco || '').replace(/'/g,"\'");
-      return `<div class="svc-card" onclick="selecionarServico(this,'${nome}','${preco}')" style="cursor:pointer">
-        <div class="svc-icon"><i class="ti ${s.icone||'ti-sparkles'}"></i></div>
-        <div class="svc-name">${s.nome||'Serviço'}</div>
-        <div class="svc-desc">${s.desc||''}</div>
-        <div class="svc-price">${s.preco ? 'A partir de ' + s.preco : ''}</div>
+      return `<div class="svc-card" onclick="selecionarServico(this,'${nome}','${preco}')">
+        <div class="svc-icon-wrap"><i class="ti ${s.icone||'ti-sparkles'}"></i></div>
+        <div class="svc-card-body">
+          <div class="svc-name">${s.nome||'Serviço'}</div>
+          <div class="svc-desc">${s.desc||''}</div>
+          <div class="svc-price">${s.preco ? 'A partir de ' + s.preco : ''}</div>
+        </div>
+        <div class="svc-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>`;
     }).join('');
   }, err => {
