@@ -2588,7 +2588,7 @@ function toggleFaq(i){
 }
 function filterCat(c,el){curCat=c;document.querySelectorAll('.help-cat').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderFaq();}
 function filterFaq(v){curSearch=v;renderFaq();}
-function openHelp(){document.getElementById('help-ov').classList.add('open');renderFaq();}
+function openHelp(){document.getElementById('help-ov').classList.add('open');renderFaq();if(window.mascoteSetSecao) window.mascoteSetSecao('c-faq');}
 function closeHelp(){
   // Pausar áudio ativo ao fechar
   if(typeof _audioAtivo !== 'undefined' && _audioAtivo){
@@ -3637,6 +3637,8 @@ function voltarHomeCliente(){
   // Garante que home-cli-screen está visível (cliente real)
   const homeCli = document.getElementById('home-cli-screen');
   if(homeCli && cp && cp.role === 'cliente') homeCli.style.display = 'flex';
+  // Mascote: volta para seção home
+  if(window.mascoteSetSecao) window.mascoteSetSecao('home');
 
   // Restaura elementos da visão profissional para próximo uso
   const roleBar = document.querySelector('.role-bar');
@@ -9099,29 +9101,64 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
 <!-- ── MASCOTE CLIENTE ─────────────────────────────────────────────────────── -->
 <div id="mascote-wrap" style="display:none">
 
-  <!-- Botão flutuante -->
-  <button id="mascote-btn" onclick="mascoteAbrir()" aria-label="Dicas">
-    <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" width="52" height="52">
-      <!-- Pétalas -->
-      <ellipse cx="32" cy="14" rx="7" ry="11" fill="#f9a8c9" opacity=".9"/>
-      <ellipse cx="32" cy="14" rx="7" ry="11" fill="#f9a8c9" opacity=".9" transform="rotate(60 32 32)"/>
-      <ellipse cx="32" cy="14" rx="7" ry="11" fill="#f9a8c9" opacity=".9" transform="rotate(120 32 32)"/>
-      <ellipse cx="32" cy="14" rx="7" ry="11" fill="#e880b4" opacity=".85" transform="rotate(180 32 32)"/>
-      <ellipse cx="32" cy="14" rx="7" ry="11" fill="#e880b4" opacity=".85" transform="rotate(240 32 32)"/>
-      <ellipse cx="32" cy="14" rx="7" ry="11" fill="#e880b4" opacity=".85" transform="rotate(300 32 32)"/>
-      <!-- Rosto -->
-      <circle cx="32" cy="32" r="13" fill="#fff" stroke="#f472a8" stroke-width="1.5"/>
-      <!-- Olhos -->
-      <ellipse cx="27.5" cy="30" rx="2" ry="2.5" fill="#6B2D8B"/>
-      <ellipse cx="36.5" cy="30" rx="2" ry="2.5" fill="#6B2D8B"/>
-      <!-- Brilho nos olhos -->
-      <circle cx="28.5" cy="28.8" r=".8" fill="#fff"/>
-      <circle cx="37.5" cy="28.8" r=".8" fill="#fff"/>
+  <!-- Botão flutuante: Margarida v2 -->
+  <button id="mascote-btn" onclick="mascoteAbrir()" aria-label="Dicas da Margarida">
+    <!-- SVG redesenhado: inclinado 15°, pétalas gradiente, centro amarelo -->
+    <svg id="mascote-svg" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" width="62" height="62" style="transform:rotate(15deg);display:block">
+      <defs>
+        <radialGradient id="mc-yw" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#FFF9C4"/>
+          <stop offset="60%" stop-color="#FFE57F"/>
+          <stop offset="100%" stop-color="#FFD740"/>
+        </radialGradient>
+        <radialGradient id="mc-pk1" cx="50%" cy="30%" r="60%">
+          <stop offset="0%" stop-color="#fdd5e8"/>
+          <stop offset="100%" stop-color="#f472b6"/>
+        </radialGradient>
+        <radialGradient id="mc-pk2" cx="50%" cy="30%" r="60%">
+          <stop offset="0%" stop-color="#fbc8e2"/>
+          <stop offset="100%" stop-color="#e03a93"/>
+        </radialGradient>
+        <filter id="mc-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#c0408080"/>
+        </filter>
+      </defs>
+      <!-- Pétalas alternadas — 6 pétalas com dois gradientes -->
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mc-pk1)" filter="url(#mc-shadow)"/>
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mc-pk2)" filter="url(#mc-shadow)" transform="rotate(60 36 36)"/>
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mc-pk1)" filter="url(#mc-shadow)" transform="rotate(120 36 36)"/>
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mc-pk2)" filter="url(#mc-shadow)" transform="rotate(180 36 36)"/>
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mc-pk1)" filter="url(#mc-shadow)" transform="rotate(240 36 36)"/>
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mc-pk2)" filter="url(#mc-shadow)" transform="rotate(300 36 36)"/>
+      <!-- Centro amarelo -->
+      <circle cx="36" cy="36" r="14" fill="url(#mc-yw)" stroke="#F9A825" stroke-width="1.2"/>
+      <!-- Olhos normais (estado padrão) -->
+      <g id="mc-eyes-normal">
+        <ellipse cx="31" cy="33.5" rx="2.2" ry="2.8" fill="#5B2480"/>
+        <ellipse cx="41" cy="33.5" rx="2.2" ry="2.8" fill="#5B2480"/>
+        <circle cx="32" cy="32.2" r=".9" fill="#fff"/>
+        <circle cx="42" cy="32.2" r=".9" fill="#fff"/>
+      </g>
+      <!-- Olhos felizes — olhos semi-fechados (arco) — ocultos por padrão -->
+      <g id="mc-eyes-happy" style="display:none">
+        <path d="M28.8,34.5 Q31,31.5 33.2,34.5" fill="none" stroke="#5B2480" stroke-width="2" stroke-linecap="round"/>
+        <path d="M38.8,34.5 Q41,31.5 43.2,34.5" fill="none" stroke="#5B2480" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <!-- Sobrancelhas normais -->
+      <g id="mc-brows-normal">
+        <path d="M28,30 Q31,28.2 34,30" fill="none" stroke="#7B3AAB" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M38,30 Q41,28.2 44,30" fill="none" stroke="#7B3AAB" stroke-width="1.4" stroke-linecap="round"/>
+      </g>
+      <!-- Sobrancelhas surpresas — levantadas -->
+      <g id="mc-brows-surprise" style="display:none">
+        <path d="M28,28.5 Q31,26 34,28.5" fill="none" stroke="#7B3AAB" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M38,28.5 Q41,26 44,28.5" fill="none" stroke="#7B3AAB" stroke-width="1.6" stroke-linecap="round"/>
+      </g>
       <!-- Sorriso -->
-      <path d="M27 35 Q32 39.5 37 35" fill="none" stroke="#6B2D8B" stroke-width="1.5" stroke-linecap="round"/>
+      <path id="mc-smile" d="M30 39.5 Q36 44.5 42 39.5" fill="none" stroke="#5B2480" stroke-width="1.8" stroke-linecap="round"/>
       <!-- Bochechas -->
-      <ellipse cx="24" cy="34" rx="3" ry="2" fill="#f9a8c9" opacity=".6"/>
-      <ellipse cx="40" cy="34" rx="3" ry="2" fill="#f9a8c9" opacity=".6"/>
+      <ellipse cx="27" cy="38.5" rx="3.5" ry="2.2" fill="#f9a8c9" opacity=".55"/>
+      <ellipse cx="45" cy="38.5" rx="3.5" ry="2.2" fill="#f9a8c9" opacity=".55"/>
     </svg>
     <span id="mascote-badge" style="display:none">💬</span>
   </button>
@@ -9138,102 +9175,191 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         <button onclick="mascoteFechar()" id="mascote-fechar" aria-label="Fechar">✕</button>
       </div>
     </div>
-    <!-- Rabo do balão -->
     <div id="mascote-rabo"></div>
   </div>
 </div>
 
 <style>
+/* ── Margarida v2 ── */
 #mascote-btn{
-  position:fixed;bottom:80px;right:16px;z-index:9200;
-  background:none;border:none;cursor:pointer;padding:0;
-  filter:drop-shadow(0 3px 8px rgba(107,45,139,.35));
-  transition:transform .2s;
+  position:fixed;bottom:84px;right:14px;z-index:9200;
+  background:none;border:none;cursor:pointer;padding:4px;
+  filter:drop-shadow(0 3px 10px rgba(107,45,139,.4));
+  transition:filter .2s;
+  /* idle: balanço suave */
+  animation:mc-idle 3.8s ease-in-out infinite;
 }
-#mascote-btn:hover{ transform:scale(1.08) rotate(-5deg); }
+@keyframes mc-idle{
+  0%,100%{transform:translateY(0) rotate(0deg)}
+  30%{transform:translateY(-3px) rotate(1.5deg)}
+  70%{transform:translateY(-1px) rotate(-1.5deg)}
+}
+#mascote-btn:hover{
+  filter:drop-shadow(0 4px 14px rgba(107,45,139,.55));
+  animation:none;
+  transform:scale(1.08);
+}
+/* Wiggle — disparado via classe JS ao trocar tela */
+@keyframes mc-wiggle{
+  0%  {transform:rotate(0deg)  scale(1)}
+  15% {transform:rotate(-14deg) scale(1.12)}
+  30% {transform:rotate(12deg)  scale(1.08)}
+  45% {transform:rotate(-10deg) scale(1.05)}
+  60% {transform:rotate(8deg)   scale(1.03)}
+  75% {transform:rotate(-5deg)  scale(1.01)}
+  100%{transform:rotate(0deg)  scale(1)}
+}
+#mascote-btn.wiggle{
+  animation:mc-wiggle .7s cubic-bezier(.36,.07,.19,.97) forwards;
+}
 #mascote-badge{
-  position:absolute;top:-2px;right:-2px;font-size:14px;
-  animation:mascote-pulse 1.5s infinite;
+  position:absolute;top:-2px;right:-2px;font-size:15px;
+  animation:mc-pulse 1.4s infinite;
 }
-@keyframes mascote-pulse{
+@keyframes mc-pulse{
   0%,100%{transform:scale(1)}
-  50%{transform:scale(1.25)}
+  50%{transform:scale(1.3)}
 }
 #mascote-balao{
-  position:fixed;bottom:148px;right:12px;z-index:9201;
-  width:min(280px, calc(100vw - 28px));
+  position:fixed;bottom:158px;right:12px;z-index:9201;
+  width:min(285px, calc(100vw - 28px));
+  animation:mc-balao-in .22s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes mc-balao-in{
+  from{opacity:0;transform:scale(.85) translateY(8px)}
+  to  {opacity:1;transform:scale(1)   translateY(0)}
 }
 #mascote-balao-inner{
-  background:#fff;border-radius:16px;padding:14px 16px 10px;
-  box-shadow:0 4px 20px rgba(107,45,139,.22);
-  border:1.5px solid #f9a8c9;
+  background:#fff;border-radius:18px;padding:14px 16px 10px;
+  box-shadow:0 5px 24px rgba(107,45,139,.2);
+  border:1.5px solid #f4b8ce;
 }
 #mascote-dica-txt{
-  font-size:13.5px;line-height:1.55;color:#3d1a50;
-  font-family:inherit;margin-bottom:10px;
-  min-height:48px;
+  font-size:13.5px;line-height:1.58;color:#3d1a50;
+  font-family:inherit;margin-bottom:10px;min-height:48px;
 }
-#mascote-controles{
-  display:flex;align-items:center;gap:4px;
-}
+#mascote-controles{display:flex;align-items:center;gap:4px}
 #mascote-controles button{
   background:none;border:none;cursor:pointer;
-  font-size:18px;color:#b060a0;padding:2px 4px;line-height:1;
-  border-radius:6px;transition:background .15s;
+  font-size:18px;color:#b060a0;padding:2px 5px;line-height:1;
+  border-radius:8px;transition:background .15s;
 }
-#mascote-controles button:hover{ background:#fdf0f8; }
-#mascote-fechar{ margin-left:auto;font-size:14px !important;color:#ccc !important; }
-#mascote-contador{
-  font-size:11px;color:#b0a0b8;flex:1;text-align:center;
-}
-#mascote-audio-btn{ font-size:15px !important; }
+#mascote-controles button:hover{background:#fdf0f8}
+#mascote-fechar{margin-left:auto;font-size:14px!important;color:#ccc!important}
+#mascote-contador{font-size:11px;color:#b0a0b8;flex:1;text-align:center}
+#mascote-audio-btn{font-size:15px!important}
 #mascote-rabo{
-  width:18px;height:10px;
-  background:#fff;
+  width:18px;height:10px;background:#fff;
   clip-path:polygon(0 0,100% 0,50% 100%);
-  margin-left:auto;margin-right:28px;
-  border-left:1.5px solid #f9a8c9;
-  border-right:1.5px solid #f9a8c9;
-  margin-top:-1px;
+  margin-left:auto;margin-right:30px;margin-top:-1px;
+  border-left:1.5px solid #f4b8ce;border-right:1.5px solid #f4b8ce;
 }
+/* Piscar dos olhos */
+@keyframes mc-blink{
+  0%,94%,100%{transform:scaleY(1)}
+  96%,98%{transform:scaleY(0.08)}
+}
+#mc-eyes-normal{transform-origin:36px 34px;animation:mc-blink 4s ease-in-out infinite}
 </style>
 
 <script>
-// ── Dicas por seção ───────────────────────────────────────────────────────────
+// ── Margarida v2 ──────────────────────────────────────────────────────────────
 const MASCOTE_DICAS = {
   'home': [
-    'Oi! 💕 Aqui é onde tudo começa. Escolha o que quer fazer tocando em um dos botõezinhos com flores.',
-    'Quer agendar um procedimento? Toque em "Serviços" ou "Promoções" e escolha o que te interessa.',
-    'Se tiver alguma dúvida, toque em "Dúvidas" — tem resposta pra quase tudo por lá! 😊',
-    'Para falar direto com a gente, toque em "Contato" e manda sua mensagem no chat.'
+    'Olá, que bom ter você conosco! 🌸 É aqui que tudo começa. Escolha o que deseja fazer clicando em algum desses botões com flores.',
+    'Quer agendar um procedimento? ✨ Você pode clicar em "Serviços", ir direto para as "Promoções" ou fazer seus "Agendamentos".',
+    'Quer saber mais? Toque em "Dúvidas" 💕 — tem resposta para quase tudo lá!',
+    'Se quiser falar direto conosco, toque em "Contato" e mande sua mensagem no chat! 💬'
   ],
   'c-servicos': [
-    'Aqui estão todos os serviços disponíveis pra você! Toque em "Agendar" no serviço que quiser. 💅',
-    'Depois de escolher o serviço, você vai escolher o dia e o horário que prefere.',
-    'Não achou o que queria? Fala com a gente pelo "Contato" na tela inicial — a gente te ajuda!'
+    'Nesta tela estão os nossos serviços mais frequentes! ✨ Selecione um deles e depois toque em "Agendar".',
+    'Em seguida, escolha o dia e o horário que preferir. 🗓️',
+    'Tem dúvidas sobre os procedimentos ou não achou o que queria? 💕 Fale conosco clicando em "Contato" aqui embaixo.'
   ],
   'c-promos': [
-    'Aqui ficam as promoções especiais pra você! Fique de olho, elas mudam com frequência. 🌸',
-    'Toque em "Agendar" na promoção que te interessar para já garantir o seu horário.',
-    'A promoção com o ícone de destaque 🔔 é a mais especial do momento — não perde!'
+    'Neste espaço ficam as promoções especiais para você! 🌸 Fique de olho, pois elas mudam com frequência.',
+    'Toque em "Agendar" na promoção que te interessar para já solicitar o seu agendamento. ✨',
+    'As promoções com ícone de destaque estão imperdíveis — não vai ficar de fora, né? 💕',
+    'Se tiver dúvidas antes de agendar, entre em contato pelo botão "Contato" aqui embaixo. 💬'
   ],
   'c-agenda': [
-    'Aqui você vê e faz seus agendamentos. Primeiro escolha o dia no calendário, depois o horário. 🗓️',
-    'Depois de enviar sua solicitação, a gente confirma em breve pelo WhatsApp. Fique de olho!',
-    'Se precisar cancelar, toque no agendamento e use o botão "Cancelar agendamento".',
-    'Dica: sempre comece pelo botão "Serviços" ou "Promoções" na tela inicial para agendar com tudo certo! 😉'
+    'Aqui você vê as opções e faz seus agendamentos, após nossa confirmação. 🗓️ Primeiro escolha a profissional (ou qualquer uma), o dia e o horário.',
+    'Depois de enviar sua solicitação, confirmaremos assim que possível aqui mesmo no app. 💕 Se sair, volte para verificar!',
+    'Precisa cancelar? Toque no agendamento e use o botão "Cancelar agendamento". ✨',
+    'Dica: comece sempre pelo botão "Serviços" ou "Promoções" na tela inicial para agendar tudo certinho! 🌸'
   ],
   'c-chat': [
-    'Aqui você pode mandar mensagem diretamente pra gente! É só digitar e enviar. 💬',
-    'Respondemos assim que possível — normalmente bem rapidinho! 😊',
-    'Se preferir ligar, toque no ícone de telefone no topo desta tela.'
+    'Aqui você pode mandar suas mensagens diretamente para nós. 💬 É só digitar e enviar!',
+    'Responderemos assim que possível — normalmente bem rapidinho! 😊',
+    'Se preferir enviar um WhatsApp, toque no ícone no topo da tela. 📱'
+  ],
+  'c-faq': [
+    'Reunimos aqui as principais dúvidas das nossas clientes. 💕 Você pode filtrar por tipo de dúvida.',
+    'Ao clicar sobre elas, aparecem as respostas de forma simples e descomplicada. ✨',
+    'Quer mais informações? Entre em contato pelo botão "Contato" aqui embaixo. 💬'
   ]
 };
 
 let mascoteSecaoAtual = 'home';
 let mascoteDicaIdx    = 0;
-let mascoteVisto      = {};   // { secao: true } — já mostrou automaticamente
+let mascoteVisto      = {};
 let mascoteSpeaking   = false;
+let _mcWiggleTimer    = null;
+let _mcVozPtBR        = null;
+
+// Pré-carrega a melhor voz feminina pt-BR disponível
+function _mcCarregarVoz() {
+  if (_mcVozPtBR) return;
+  const vozes = window.speechSynthesis?.getVoices() || [];
+  _mcVozPtBR = vozes.find(v => v.lang==='pt-BR' && /female|feminina|f\b/i.test(v.name))
+            || vozes.find(v => v.lang==='pt-BR')
+            || vozes.find(v => v.lang.startsWith('pt'))
+            || null;
+}
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = _mcCarregarVoz;
+  _mcCarregarVoz();
+}
+
+// Remove emojis antes de falar
+function _mcTextoParaFalar(txt) {
+  return txt.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+            .replace(/\s{2,}/g,' ').trim();
+}
+
+// Expressões
+function _mcExpressao(estado) {
+  const eNorm = document.getElementById('mc-eyes-normal');
+  const eHapp = document.getElementById('mc-eyes-happy');
+  const bNorm = document.getElementById('mc-brows-normal');
+  const bSurp = document.getElementById('mc-brows-surprise');
+  if (!eNorm) return;
+  if (estado === 'happy') {
+    eNorm.style.display='none'; eHapp.style.display='';
+    bNorm.style.display='';     bSurp.style.display='none';
+  } else if (estado === 'surprise') {
+    eNorm.style.display='';     eHapp.style.display='none';
+    bNorm.style.display='none'; bSurp.style.display='';
+  } else { // normal
+    eNorm.style.display='';     eHapp.style.display='none';
+    bNorm.style.display='';     bSurp.style.display='none';
+  }
+}
+
+// Wiggle ao trocar tela
+function _mcWiggle() {
+  const btn = document.getElementById('mascote-btn');
+  if (!btn) return;
+  btn.classList.remove('wiggle');
+  void btn.offsetWidth; // reflow para reiniciar animação
+  btn.classList.add('wiggle');
+  _mcExpressao('surprise');
+  if (_mcWiggleTimer) clearTimeout(_mcWiggleTimer);
+  _mcWiggleTimer = setTimeout(() => {
+    btn.classList.remove('wiggle');
+    _mcExpressao('normal');
+  }, 750);
+}
 
 function mascoteInit() {
   const wrap = document.getElementById('mascote-wrap');
@@ -9242,20 +9368,20 @@ function mascoteInit() {
 
 function mascoteSetSecao(secao) {
   if (!MASCOTE_DICAS[secao]) return;
+  const mudou = secao !== mascoteSecaoAtual;
   mascoteSecaoAtual = secao;
   mascoteDicaIdx    = 0;
-  // Mostra badge se ainda não mostrou automaticamente nessa seção
+  // Wiggle sempre ao trocar de tela
+  if (mudou) _mcWiggle();
+  // Badge e abertura automática na primeira visita
   const badge = document.getElementById('mascote-badge');
   if (!mascoteVisto[secao]) {
     if (badge) badge.style.display = 'block';
-    // Abre automaticamente após 800ms
-    setTimeout(() => {
-      if (!mascoteVisto[secao]) mascoteAbrir();
-    }, 800);
+    setTimeout(() => { if (!mascoteVisto[secao]) mascoteAbrir(); }, 900);
   } else {
     if (badge) badge.style.display = 'none';
   }
-  // Fecha balão se estava aberto de seção diferente
+  // Se balão já aberto, atualiza conteúdo imediatamente
   const balao = document.getElementById('mascote-balao');
   if (balao && balao.style.display !== 'none') mascoteRenderDica();
 }
@@ -9264,14 +9390,16 @@ function mascoteAbrir() {
   mascoteVisto[mascoteSecaoAtual] = true;
   const badge = document.getElementById('mascote-badge');
   if (badge) badge.style.display = 'none';
+  _mcExpressao('happy');
   mascoteRenderDica();
   const balao = document.getElementById('mascote-balao');
-  if (balao) balao.style.display = 'block';
+  if (balao) { balao.style.display = 'block'; }
 }
 
 function mascoteFechar() {
   const balao = document.getElementById('mascote-balao');
   if (balao) balao.style.display = 'none';
+  _mcExpressao('normal');
   if (window.speechSynthesis) window.speechSynthesis.cancel();
 }
 
@@ -9299,26 +9427,22 @@ function mascoteAnterior() {
 function mascoteAudio() {
   if (!window.speechSynthesis) return;
   const dicas = MASCOTE_DICAS[mascoteSecaoAtual] || [];
-  const texto = dicas[mascoteDicaIdx];
+  const texto = _mcTextoParaFalar(dicas[mascoteDicaIdx] || '');
   if (!texto) return;
   window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(texto);
-  utt.lang  = 'pt-BR';
-  utt.rate  = 0.95;
-  utt.pitch = 1.1;
-  // Tenta voz feminina em pt-BR
-  const vozes = window.speechSynthesis.getVoices();
-  const voz   = vozes.find(v => v.lang === 'pt-BR' && v.name.toLowerCase().includes('female'))
-             || vozes.find(v => v.lang === 'pt-BR')
-             || vozes.find(v => v.lang.startsWith('pt'));
-  if (voz) utt.voice = voz;
+  _mcCarregarVoz();
+  const utt   = new SpeechSynthesisUtterance(texto);
+  utt.lang    = 'pt-BR';
+  utt.rate    = 0.92;
+  utt.pitch   = 1.15;
+  utt.volume  = 1;
+  if (_mcVozPtBR) utt.voice = _mcVozPtBR;
   const btn = document.getElementById('mascote-audio-btn');
   if (btn) btn.textContent = '🔈';
-  utt.onend = () => { if (btn) btn.textContent = '🔊'; };
+  utt.onend = utt.onerror = () => { if (btn) btn.textContent = '🔊'; };
   window.speechSynthesis.speak(utt);
 }
 
-// Expõe para chamada externa
 window.mascoteSetSecao = mascoteSetSecao;
 window.mascoteInit     = mascoteInit;
 window.mascoteAbrir    = mascoteAbrir;
