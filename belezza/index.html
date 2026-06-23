@@ -129,11 +129,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .add-btn:hover{background:var(--bg2)}
 /* ── Serviços cliente (redesign v1.18 — banner card + categorias) ── */
 /* Chips de categoria */
-.svc-cats{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;margin-bottom:14px;scrollbar-width:none}
+/* Categorias com imagem */
+.svc-cats{display:flex;gap:9px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px;scrollbar-width:none}
 .svc-cats::-webkit-scrollbar{display:none}
-.svc-cat{padding:6px 14px;border-radius:30px;border:1.5px solid #f0d0e0;background:white;font-size:12px;font-weight:600;color:#9a7a8a;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;font-family:inherit}
-.svc-cat:hover{border-color:#D4537E;color:#993556}
-.svc-cat.ativa{background:#993556;border-color:#993556;color:white;box-shadow:0 2px 8px rgba(153,53,86,.25)}
+.svc-cat{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;border:none;background:none;padding:0;font-family:inherit}
+.svc-cat-img{width:64px;height:64px;border-radius:14px;overflow:hidden;border:2.5px solid transparent;transition:border-color .15s,transform .12s,box-shadow .15s;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.svc-cat-img img{width:100%;height:100%;object-fit:cover;display:block}
+.svc-cat:hover .svc-cat-img{border-color:#D4537E;transform:translateY(-2px);box-shadow:0 4px 12px rgba(153,53,86,.18)}
+.svc-cat.ativa .svc-cat-img{border-color:#993556;transform:translateY(-2px);box-shadow:0 4px 14px rgba(153,53,86,.28)}
+.svc-cat-lbl{font-size:10px;font-weight:700;color:#9a7a8a;letter-spacing:.03em;transition:color .15s;white-space:nowrap}
+.svc-cat:hover .svc-cat-lbl{color:#993556}
+.svc-cat.ativa .svc-cat-lbl{color:#993556}
+/* Card selecionado — inline acima dos cards */
+.svc-sel-inline{display:none;background:white;border:2px solid #993556;border-radius:14px;padding:10px 14px;margin-bottom:12px;align-items:center;gap:10px;box-shadow:0 3px 12px rgba(153,53,86,.14)}
+.svc-sel-inline.show{display:flex}
+.svc-sel-info{flex:1;min-width:0}
+.svc-sel-lbl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#b3879a}
+.svc-sel-nome{font-size:13px;font-weight:700;color:#993556;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.svc-sel-preco{font-size:11px;color:#9a7a8a}
 /* Grid de cards */
 .svc-grid{display:flex;flex-direction:column;gap:12px;margin-bottom:8px}
 /* Card banner */
@@ -159,12 +172,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .svc-banner-fallback{width:100%;height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;overflow:hidden}
 .svc-banner-fallback-icon{font-size:36px;color:#D4537E;opacity:.7}
 /* Barra fixa de serviço selecionado */
-.svc-sel-bar{display:none;background:white;border-top:2px solid #f0d0e0;padding:10px 14px;align-items:center;gap:10px;flex-shrink:0}
-.svc-sel-bar.show{display:flex}
-.svc-sel-info{flex:1;min-width:0}
-.svc-sel-lbl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#b3879a}
-.svc-sel-nome{font-size:13px;font-weight:700;color:#993556;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.svc-sel-preco{font-size:11px;color:#9a7a8a}
+/* svc-sel-bar: mantida para compatibilidade mas oculta — seleção agora inline */
+.svc-sel-bar{display:none!important}
 .btn-svc-ag{display:flex;align-items:center;gap:5px;padding:9px 16px;border-radius:30px;border:none;background:#993556;color:white;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(153,53,86,.25);white-space:nowrap;flex-shrink:0;font-family:inherit}
 /* ── Promoções cliente (redesign v1.17) ── */
 .promo-card{background:white;border:1.5px solid #f0e0e8;border-radius:14px;overflow:hidden;margin-bottom:10px;box-shadow:0 2px 10px rgba(153,53,86,.07)}
@@ -1627,23 +1636,17 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
     <!-- ── CLIENTE ── -->
     <div class="pane" id="pane-c-servicos">
       <div class="sec-lbl">Nossos serviços</div>
-      <!-- Chips de categoria -->
+      <!-- Categorias com imagem — populadas pelo JS com SVC_CAT_IMGS -->
       <div class="svc-cats" id="svc-cats">
-        <button class="svc-cat ativa" onclick="filtrarSvcCat('Todos',this)">Todos</button>
-        <button class="svc-cat" onclick="filtrarSvcCat('Rosto',this)">Rosto</button>
-        <button class="svc-cat" onclick="filtrarSvcCat('Corpo',this)">Corpo</button>
-        <button class="svc-cat" onclick="filtrarSvcCat('Cabelo',this)">Cabelo</button>
-        <button class="svc-cat" onclick="filtrarSvcCat('Unhas',this)">Unhas</button>
-        <button class="svc-cat" onclick="filtrarSvcCat('Olhos',this)">Olhos</button>
-        <button class="svc-cat" onclick="filtrarSvcCat('Outros',this)">Outros</button>
+        <!-- gerado por renderSvcCats() -->
       </div>
-      <div class="svc-grid" id="svc-grid-cli">
-        <div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0">Carregando serviços...</div>
-      </div>
-      <!-- Barra fixa de serviço selecionado -->
-      <div id="svc-selecionado" class="svc-sel-bar">
+      <!-- Destaque do serviço selecionado — acima dos cards -->
+      <div id="svc-selecionado" class="svc-sel-inline">
+        <div style="width:36px;height:36px;border-radius:50%;background:#fdf0f5;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#993556" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
         <div class="svc-sel-info">
-          <div class="svc-sel-lbl">Selecionado</div>
+          <div class="svc-sel-lbl">Serviço selecionado</div>
           <div class="svc-sel-nome" id="svc-nome-sel"></div>
           <div class="svc-sel-preco" id="svc-preco-sel"></div>
         </div>
@@ -1651,6 +1654,9 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Agendar
         </button>
+      </div>
+      <div class="svc-grid" id="svc-grid-cli">
+        <div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0">Carregando serviços...</div>
       </div>
     </div>
 
@@ -3713,14 +3719,16 @@ function selecionarServico(card, nome, preco){
   card.classList.add('sel');
   servicoSelecionado = { nome, preco };
   window.servicoSelecionado = servicoSelecionado;
-  // Mostra barra de selecionado
+  // Mostra destaque selecionado (inline, acima dos cards)
   const wrap = document.getElementById('svc-selecionado');
   const nomeEl = document.getElementById('svc-nome-sel');
   const precoEl = document.getElementById('svc-preco-sel');
   if(wrap && nomeEl && precoEl){
     nomeEl.textContent = nome;
-    precoEl.textContent = preco ? 'A partir de ' + preco : '';
+    precoEl.textContent = preco ? 'A partir de ' + preco : 'Consulte o valor';
     wrap.classList.add('show');
+    // Scroll suave para o destaque
+    setTimeout(() => wrap.scrollIntoView({ behavior:'smooth', block:'nearest' }), 50);
   }
 }
 
@@ -8118,6 +8126,31 @@ function iniciarListenerServicos() {
 }
 
 // ── Tela cliente: listener separado ──────────────────────────────────────
+// Imagens das categorias (SVG inline, sem dependência de URL)
+const SVC_CAT_IMGS = {
+  'Todos': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZGYwZjUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmOWQwZGYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0NTM3RSIgc3Ryb2tlLXdpZHRoPSIyLjUiLz4KICAgIDxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjYiIGZpbGw9IiNENDUzN0UiLz4KICAgIDxsaW5lIHgxPSI0MCIgeTE9IjIwIiB4Mj0iNDAiIHkyPSIyNiIgc3Ryb2tlPSIjRDQ1MzdFIiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8bGluZSB4MT0iNDAiIHkxPSI1NCIgeDI9IjQwIiB5Mj0iNjAiIHN0cm9rZT0iI0Q0NTM3RSIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGxpbmUgeDE9IjIwIiB5MT0iNDAiIHgyPSIyNiIgeTI9IjQwIiBzdHJva2U9IiNENDUzN0UiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxsaW5lIHgxPSI1NCIgeTE9IjQwIiB4Mj0iNjAiIHkyPSI0MCIgc3Ryb2tlPSIjRDQ1MzdFIiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8bGluZSB4MT0iMjYiIHkxPSIyNiIgeDI9IjMwIiB5Mj0iMzAiIHN0cm9rZT0iI0Q0NTM3RSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxsaW5lIHgxPSI1MCIgeTE9IjUwIiB4Mj0iNTQiIHkyPSI1NCIgc3Ryb2tlPSIjRDQ1MzdFIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGxpbmUgeDE9IjU0IiB5MT0iMjYiIHgyPSI1MCIgeTI9IjMwIiBzdHJva2U9IiNENDUzN0UiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8bGluZSB4MT0iMzAiIHkxPSI1MCIgeDI9IjI2IiB5Mj0iNTQiIHN0cm9rZT0iI0Q0NTM3RSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=',
+  'Rosto': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmYwZjMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZmQ2ZTAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjQwIiBjeT0iNDIiIHJ4PSIxNiIgcnk9IjIwIiBmaWxsPSJub25lIiBzdHJva2U9IiNENDUzN0UiIHN0cm9rZS13aWR0aD0iMi4yIi8+CiAgICA8ZWxsaXBzZSBjeD0iMzQiIGN5PSIzOCIgcng9IjIuNSIgcnk9IjIuNSIgZmlsbD0iI0Q0NTM3RSIvPgogICAgPGVsbGlwc2UgY3g9IjQ2IiBjeT0iMzgiIHJ4PSIyLjUiIHJ5PSIyLjUiIGZpbGw9IiNENDUzN0UiLz4KICAgIDxwYXRoIGQ9Ik0zNCw0NyBRNDAsNTMgNDYsNDciIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0NTM3RSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxwYXRoIGQ9Ik0zMSwzMyBRMzQsMzEgMzcsMzMiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5MzU1NiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPHBhdGggZD0iTTQzLDMzIFE0NiwzMSA0OSwzMyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTkzNTU2IiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8cGF0aCBkPSJNNTcsMTggTDU4LDIzIEw2MywyNCBMNTgsMjUgTDU3LDMwIEw1NiwyNSBMNTEsMjQgTDU2LDIzWiIgZmlsbD0iI2Y0YjhjZSIvPjwvc3ZnPg==',
+  'Corpo': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmMGY0ZmYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNkY2U4ZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjQwIiBjeT0iMjIiIHJ4PSI3IiByeT0iNyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN0I5RkUwIiBzdHJva2Utd2lkdGg9IjIuMiIvPgogICAgPHBhdGggZD0iTTMwLDMyIFEyOCw0NCAyOSw1NiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN0I5RkUwIiBzdHJva2Utd2lkdGg9IjIuMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8cGF0aCBkPSJNNTAsMzIgUTUyLDQ0IDUxLDU2IiBmaWxsPSJub25lIiBzdHJva2U9IiM3QjlGRTAiIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxwYXRoIGQ9Ik0yOSwzNCBRNDAsNDAgNTEsMzQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzdCOUZFMCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPHBhdGggZD0iTTMyLDU2IFE0MCw2NSA0OCw1NiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN0I5RkUwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPHBhdGggZD0iTTU3LDE0IEw1OCwxOCBMNjIsMTkgTDU4LDIwIEw1NywyNCBMNTYsMjAgTDUyLDE5IEw1NiwxOFoiIGZpbGw9IiNhOGM0ZjAiLz48L3N2Zz4=',
+  'Cabelo': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmY4ZTgiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZmU5YjAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjQwIiBjeT0iMzAiIHJ4PSIxNCIgcnk9IjEzIiBmaWxsPSJub25lIiBzdHJva2U9IiNENEEwMTciIHN0cm9rZS13aWR0aD0iMi4yIi8+CiAgICA8cGF0aCBkPSJNMjYsMzAgUTIyLDQ2IDI4LDU4IiBmaWxsPSJub25lIiBzdHJva2U9IiNENEEwMTciIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxwYXRoIGQ9Ik01NCwzMCBRNTgsNDYgNTIsNTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0QTAxNyIgc3Ryb2tlLXdpZHRoPSIyLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPHBhdGggZD0iTTMyLDQzIFEzOCw2MiA0Niw1NSBRNTAsNDggNTQsNTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0QTAxNyIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxsaW5lIHgxPSI1MiIgeTE9IjE0IiB4Mj0iNjIiIHkyPSIyMiIgc3Ryb2tlPSIjZTZiODIyIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGxpbmUgeDE9IjYyIiB5MT0iMTQiIHgyPSI1MiIgeTI9IjIyIiBzdHJva2U9IiNlNmI4MjIiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8Y2lyY2xlIGN4PSI1NyIgY3k9IjE4IiByPSI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNlNmI4MjIiIHN0cm9rZS13aWR0aD0iMS41Ii8+PC9zdmc+',
+  'Unhas': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmOGYwZmYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlOGQwZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PHJlY3QgeD0iMjkiIHk9IjM4IiB3aWR0aD0iNyIgaGVpZ2h0PSIxNiIgcng9IjMuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOUI1OUI2IiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxyZWN0IHg9IjM3IiB5PSIzNCIgd2lkdGg9IjciIGhlaWdodD0iMjAiIHJ4PSIzLjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzlCNTlCNiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8cmVjdCB4PSI0NSIgeT0iMzYiIHdpZHRoPSI3IiBoZWlnaHQ9IjE4IiByeD0iMy41IiBmaWxsPSJub25lIiBzdHJva2U9IiM5QjU5QjYiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPHBhdGggZD0iTTMxLDQxIFEzMi41LDM4IDM1LDQxIiBmaWxsPSIjQzM5QkQzIiBzdHJva2U9Im5vbmUiLz4KICAgIDxwYXRoIGQ9Ik0zOSwzNyBRNDAuNSwzNCA0MywzNyIgZmlsbD0iI0MzOUJEMyIgc3Ryb2tlPSJub25lIi8+CiAgICA8cGF0aCBkPSJNNDcsMzkgUTQ4LjUsMzYgNTEsMzkiIGZpbGw9IiNDMzlCRDMiIHN0cm9rZT0ibm9uZSIvPgogICAgPHBhdGggZD0iTTU3LDE2IEw1OCwyMCBMNjIsMjEgTDU4LDIyIEw1NywyNiBMNTYsMjIgTDUyLDIxIEw1NiwyMFoiIGZpbGw9IiNDMzlCRDMiLz48L3N2Zz4=',
+  'Olhos': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNlOGZmZjQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNiOGYwZDgiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PHBhdGggZD0iTTE2LDQwIFEyOCwyNCA0MCwyNCBRNTIsMjQgNjQsNDAgUTUyLDU2IDQwLDU2IFEyOCw1NiAxNiw0MFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzI3QUU3QSIgc3Ryb2tlLXdpZHRoPSIyLjIiLz4KICAgIDxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzI3QUU3QSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSI0IiBmaWxsPSIjMjdBRTdBIi8+CiAgICA8bGluZSB4MT0iMjYiIHkxPSIyOCIgeDI9IjI4IiB5Mj0iMzMiIHN0cm9rZT0iIzI3QUU3QSIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGxpbmUgeDE9IjM0IiB5MT0iMjQiIHgyPSIzNSIgeTI9IjI5IiBzdHJva2U9IiMyN0FFN0EiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxsaW5lIHgxPSI0MCIgeTE9IjIzIiB4Mj0iNDAiIHkyPSIyOCIgc3Ryb2tlPSIjMjdBRTdBIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8bGluZSB4MT0iNDYiIHkxPSIyNCIgeDI9IjQ1IiB5Mj0iMjkiIHN0cm9rZT0iIzI3QUU3QSIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGxpbmUgeDE9IjU0IiB5MT0iMjgiIHgyPSI1MiIgeTI9IjMzIiBzdHJva2U9IiMyN0FFN0EiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxjaXJjbGUgY3g9IjQ0IiBjeT0iMzciIHI9IjIuNSIgZmlsbD0id2hpdGUiIG9wYWNpdHk9Ii43Ii8+PC9zdmc+',
+  'Outros': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmY1ZjAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZmQ4YzgiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PGxpbmUgeDE9IjI0IiB5MT0iNTYiIHgyPSI0OCIgeTI9IjMyIiBzdHJva2U9IiNFODcwM0EiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxwYXRoIGQ9Ik00NCwyOCBMNDYsMzQgTDUyLDM2IEw0NiwzOCBMNDQsNDQgTDQyLDM4IEwzNiwzNiBMNDIsMzRaIiBmaWxsPSIjRjBBMDcwIiBzdHJva2U9IiNFODcwM0EiIHN0cm9rZS13aWR0aD0iMS4yIi8+CiAgICA8cGF0aCBkPSJNMjQsMjggTDI1LDMxIEwyOCwzMiBMMjUsMzMgTDI0LDM2IEwyMywzMyBMMjAsMzIgTDIzLDMxWiIgZmlsbD0iI0YwQTA3MCIvPgogICAgPHBhdGggZD0iTTU0LDQ2IEw1NSw0OC41IEw1Ny41LDQ5LjUgTDU1LDUwLjUgTDU0LDUzIEw1Myw1MC41IEw1MC41LDQ5LjUgTDUzLDQ4LjVaIiBmaWxsPSIjRjBBMDcwIi8+CiAgICA8Y2lyY2xlIGN4PSIzMCIgY3k9IjIwIiByPSIzIiBmaWxsPSIjRjBBMDcwIiBvcGFjaXR5PSIuNiIvPgogICAgPGNpcmNsZSBjeD0iNTgiIGN5PSIyNCIgcj0iMiIgZmlsbD0iI0U4NzAzQSIgb3BhY2l0eT0iLjUiLz48L3N2Zz4=',
+};
+
+function renderSvcCats() {
+  const wrap = document.getElementById('svc-cats');
+  if (!wrap) return;
+  const cats = ['Todos','Rosto','Corpo','Cabelo','Unhas','Olhos','Outros'];
+  wrap.innerHTML = cats.map((c, i) => `
+    <button class="svc-cat${i===0?' ativa':''}" onclick="filtrarSvcCat('${c}',this)">
+      <div class="svc-cat-img">
+        <img src="${SVC_CAT_IMGS['${c}'] || SVC_CAT_IMGS['Outros']}" alt="${c}">
+      </div>
+      <span class="svc-cat-lbl">${c}</span>
+    </button>`).join('');
+}
+window.renderSvcCats = renderSvcCats;
+
 const SVC_FALLBACK_IMG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODAgMjAwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRmMGY1Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2Y5ZDBkZiIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIyMDAiIGZpbGw9InVybCgjZykiLz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNDAsMTAwKSI+CiAgICA8ZWxsaXBzZSBjeD0iMCIgY3k9Ii0zMiIgcng9IjE0IiByeT0iMjIiIGZpbGw9IiNmNGI4Y2UiIHRyYW5zZm9ybT0icm90YXRlKDApIi8+CiAgICA8ZWxsaXBzZSBjeD0iMCIgY3k9Ii0zMiIgcng9IjE0IiByeT0iMjIiIGZpbGw9IiNmNGI4Y2UiIHRyYW5zZm9ybT0icm90YXRlKDYwKSIvPgogICAgPGVsbGlwc2UgY3g9IjAiIGN5PSItMzIiIHJ4PSIxNCIgcnk9IjIyIiBmaWxsPSIjZWZhZmM4IiB0cmFuc2Zvcm09InJvdGF0ZSgxMjApIi8+CiAgICA8ZWxsaXBzZSBjeD0iMCIgY3k9Ii0zMiIgcng9IjE0IiByeT0iMjIiIGZpbGw9IiNlZmFmYzgiIHRyYW5zZm9ybT0icm90YXRlKDE4MCkiLz4KICAgIDxlbGxpcHNlIGN4PSIwIiBjeT0iLTMyIiByeD0iMTQiIHJ5PSIyMiIgZmlsbD0iI2VhYThjMCIgdHJhbnNmb3JtPSJyb3RhdGUoMjQwKSIvPgogICAgPGVsbGlwc2UgY3g9IjAiIGN5PSItMzIiIHJ4PSIxNCIgcnk9IjIyIiBmaWxsPSIjZWFhOGMwIiB0cmFuc2Zvcm09InJvdGF0ZSgzMDApIi8+CiAgICA8Y2lyY2xlIGN4PSIwIiBjeT0iMCIgcj0iMjIiIGZpbGw9IndoaXRlIiBzdHJva2U9IiNmMGEwYzAiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8cGF0aCBkPSJNMCwtMTMgUS01LC04IC01LDAgUS01LDggMCwxMiBRNSw4IDUsMCBRNSwtOCAwLC0xM1oiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5MzU1NiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICAgIDxwYXRoIGQ9Ik0tMTEsLTUgUS0xNCwwIC0xMiw2IFEtOSwxMCAtNCw4IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTM1NTYiIHN0cm9rZS13aWR0aD0iMS4yIiBvcGFjaXR5PSIuNyIvPgogICAgPHBhdGggZD0iTTExLC01IFExNCwwIDEyLDYgUTksMTAgNCw4IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTM1NTYiIHN0cm9rZS13aWR0aD0iMS4yIiBvcGFjaXR5PSIuNyIvPgogIDwvZz4KICA8Y2lyY2xlIGN4PSI2MCIgY3k9IjQwIiByPSI0IiBmaWxsPSIjZjRiOGNlIiBvcGFjaXR5PSIuNSIvPgogIDxjaXJjbGUgY3g9IjQyMCIgY3k9IjE2MCIgcj0iNiIgZmlsbD0iI2VhYThjMCIgb3BhY2l0eT0iLjQiLz4KICA8Y2lyY2xlIGN4PSIzODAiIGN5PSIzNSIgcj0iMyIgZmlsbD0iI2Y0YjhjZSIgb3BhY2l0eT0iLjYiLz4KICA8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNzAiIHI9IjUiIGZpbGw9IiNlZmFmYzgiIG9wYWNpdHk9Ii40Ii8+Cjwvc3ZnPg==';
 let _svcTodos = []; // cache para filtro de categoria
 
@@ -8165,6 +8198,8 @@ window.filtrarSvcCat = filtrarSvcCat;
 
 function iniciarListenerServicosCli() {
   if (_unsubServicosCli) return;
+  // Renderiza as categorias com imagem
+  renderSvcCats();
   const cid = clinicaAtual();
   const ref = collection(db, 'servicos', cid, 'items');
   _unsubServicosCli = onSnapshot(ref, snap => {
