@@ -190,13 +190,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .chat-inp{padding:9px 12px;border-top:1px solid var(--br);display:flex;gap:7px;align-items:center}
 .chat-input{flex:1;padding:8px 12px;border-radius:20px;border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);outline:none}
 .chat-send{width:32px;height:32px;border-radius:50%;border:none;background:var(--pk600);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.sched-card{background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.scd-left{display:flex;gap:11px;align-items:center}
-.scd-dt{text-align:center;background:var(--pk50);border-radius:var(--r);padding:6px 10px;min-width:42px}
-.scd-day{font-size:18px;font-weight:700;color:var(--pk800);line-height:1}
-.scd-mo{font-size:10px;color:var(--pk600);text-transform:uppercase;letter-spacing:.04em}
-.scd-svc{font-size:13px;font-weight:600}
-.scd-sub{font-size:11px;color:var(--tx2);margin-top:2px;display:flex;align-items:center;gap:4px}
+/* ── Agendamento cliente (redesign v1.17) ── */
+/* Calendário strip */
+.cli-cal-strip{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+.cli-cal-strip::-webkit-scrollbar{display:none}
+.dia-btn{flex-shrink:0;width:46px;border-radius:12px;background:white;border:1.5px solid #ede0e8;padding:7px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;transition:all .15s}
+.dia-btn:hover:not([disabled]){border-color:#D4537E}
+.dia-btn.sel{background:#993556;border-color:#993556;box-shadow:0 3px 10px rgba(153,53,86,.25)}
+.dia-btn .wd{font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#9a7a8a}
+.dia-btn .dd{font-size:16px;font-weight:700;color:#3a1220;line-height:1}
+.dia-btn .mm{font-size:8.5px;color:#9a7a8a}
+.dia-btn.sel .wd,.dia-btn.sel .mm{color:rgba(255,255,255,.7)}
+.dia-btn.sel .dd{color:white}
+/* Chips de profissional */
+.prof-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+.prof-chips::-webkit-scrollbar{display:none}
+.prof-chip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:7px 10px;border-radius:14px;border:1.5px solid #f0e0e8;background:white;transition:all .15s;min-width:54px}
+.prof-chip.sel{border-color:#993556;background:#fdf0f5;box-shadow:0 2px 8px rgba(153,53,86,.15)}
+.prof-chip-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#993556;border:2px solid transparent;overflow:hidden;background:linear-gradient(135deg,#f9d0df,#e090b8)}
+.prof-chip.sel .prof-chip-av{border-color:#993556}
+.prof-chip-av img{width:100%;height:100%;object-fit:cover}
+.prof-chip-nome{font-size:10px;font-weight:600;color:#3a1220;white-space:nowrap}
+.prof-chip.sel .prof-chip-nome{color:#993556}
+/* Horários */
+.periodo-lbl-ag{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#b3879a;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.periodo-lbl-ag::after{content:'';flex:1;height:1px;background:#f0e0e8}
+.slot{padding:7px 3px;border-radius:8px;border:1.5px solid #ede0e8;background:white;text-align:center;cursor:pointer;font-size:12px;font-weight:600;color:#3a1220;transition:all .15s;font-family:inherit}
+.slot:hover:not(.busy){border-color:#D4537E;color:#993556}
+.slot.busy{background:#f5f0f2;border-color:#ede4e8;color:#ccc;cursor:default;text-decoration:line-through}
+.slot.sel{background:#993556;border-color:#993556;color:white;box-shadow:0 2px 8px rgba(153,53,86,.22)}
+.slot.confirm{background:var(--tl50);border-color:var(--tl400);color:var(--tl800)}
+/* Cards "Seus agendamentos" */
+.sched-card{background:white;border:1.5px solid #f0e0e8;border-radius:14px;overflow:hidden;margin-bottom:8px;box-shadow:0 2px 8px rgba(153,53,86,.06)}
+.scd-left{display:flex;gap:11px;align-items:center;flex:1;min-width:0}
+.scd-dt{text-align:center;background:#fdf0f5;border-radius:10px;padding:6px 8px;min-width:40px;flex-shrink:0;border:1px solid #f4c0d1}
+.scd-day{font-size:18px;font-weight:800;color:#993556;line-height:1}
+.scd-mo{font-size:9px;color:#D4537E;text-transform:uppercase;letter-spacing:.04em}
+.scd-svc{font-size:13px;font-weight:700;color:#1a1a1a}
+.scd-sub{font-size:11px;color:#9a7a8a;margin-top:2px;display:flex;align-items:center;gap:4px}
+/* Botões dos cards */
+.btn-reag-cli{flex:1;padding:8px;border:none;border-radius:30px;background:#993556;color:white;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 2px 8px rgba(153,53,86,.2);font-family:inherit}
+.btn-cancel-cli,.btn-del-cli{flex:1;padding:8px;border:1.5px solid #ede0e8;border-radius:30px;background:white;color:#9a7a8a;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit}
 .future-banner{background:var(--pu50);border:1px solid var(--pu400);border-radius:var(--rl);padding:13px 15px;margin-top:14px;display:flex;gap:9px}
 .fb-icon{color:var(--pu400);font-size:18px;flex-shrink:0;margin-top:1px}
 .fb-title{font-size:12px;font-weight:600;color:var(--pu800);margin-bottom:2px}
@@ -230,11 +264,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .req-name{font-size:13px;font-weight:600}
 .req-detail{font-size:11px;color:var(--tx2);margin-top:1px}
 .avail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-bottom:10px}
-.slot{padding:8px 4px;border-radius:var(--r);border:1px solid var(--br);text-align:center;cursor:pointer;font-size:12px;font-weight:500;color:var(--tx2);background:var(--bg);transition:all .15s}
-.slot:hover{border-color:var(--pk600);color:var(--pk600)}
-.slot.busy{background:var(--bg2);color:var(--tx3);cursor:default;text-decoration:line-through}
-.slot.sel{background:var(--pk50);border-color:var(--pk600);color:var(--pk600)}
-.slot.confirm{background:var(--tl50);border-color:var(--tl400);color:var(--tl800)}
+/* slot e dia-btn — ver redesign v1.17 acima */
 /* HELP */
 .help-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9100;align-items:flex-start;justify-content:center}
 .audio-card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg2);border-radius:12px;margin-bottom:8px;border:1px solid var(--br)}
@@ -1590,28 +1620,21 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       </div>
       <!-- Passo 0: Profissional de preferência -->
       <div class="card" style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">1. Profissional de preferência</div>
-        <div id="cli-prof-wrap">
-        <select id="cli-prof-sel" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);font-family:inherit">
-          <option value="">Sem preferência (qualquer disponível)</option>
-        </select>
+        <!-- Passo 0: Profissional de preferência -->
+        <div style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#b3879a;margin-bottom:6px">1. Profissional de preferência</div>
+        <div id="cli-prof-wrap" class="prof-chips" style="margin-bottom:14px">
+          <!-- populado por popularProfPreferencia() -->
         </div>
-      </div>
-      <!-- Passo 1: Escolha o dia -->
-      <div class="card" style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">2. Escolha o dia</div>
-        <div id="cli-cal" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px"></div>
-      </div>
-      <!-- Passo 2: Escolha o horário -->
-      <div class="card" id="cli-horarios-card" style="display:none;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px" id="cli-horarios-label">3. Escolha o horário</div>
-        <div class="avail-grid" id="cli-avail-grid"></div>
-        <div style="display:flex;gap:10px;margin-top:10px;font-size:11px;color:var(--tx3);align-items:center">
-          <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:var(--bg3);border:1px solid var(--br);display:inline-block"></span>Disponível</span>
-          <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#e8e8e8;display:inline-block"></span>Ocupado</span>
-          <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:var(--pk600);display:inline-block"></span>Selecionado</span>
+        <!-- Passo 1: Escolha o dia -->
+        <div style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#b3879a;margin-bottom:6px">2. Escolha o dia</div>
+        <div id="cli-cal" class="cli-cal-strip" style="margin-bottom:14px"></div>
+        <!-- Passo 2: Escolha o horário -->
+        <div id="cli-horarios-card" style="display:none;margin-bottom:14px">
+          <div class="periodo-lbl-ag" id="cli-horarios-label-manha">Manhã</div>
+          <div class="avail-grid" id="cli-avail-grid-manha" style="margin-bottom:12px"></div>
+          <div class="periodo-lbl-ag" id="cli-horarios-label-tarde">Tarde</div>
+          <div class="avail-grid" id="cli-avail-grid-tarde"></div>
         </div>
-      </div>
       <!-- Passo 3: Enviar -->
       <div id="cli-enviar-wrap" style="display:none">
         <!-- Resumo do agendamento -->
@@ -3529,23 +3552,45 @@ function abrirAgendaServico(){
 // Popula o select "Profissional de preferência" com a equipe real da clínica.
 // Em Modo Solo (≤1 profissional cadastrada na equipe), o passo inteiro é escondido — não há o que escolher.
 function popularProfPreferencia(){
-  const profSel = document.getElementById('cli-prof-sel');
   const profWrap = document.getElementById('cli-prof-wrap');
-  const profCard = profSel ? profSel.closest('.card') : null;
-  if(!profSel) return;
-  // Lista TODA a equipe (não filtra por "ativa hoje" — a folga de hoje não impede
-  // a cliente de escolher essa profissional para um dia futuro em que ela trabalha)
+  if(!profWrap) return;
   const eqDB = window.equipeDB || [];
+  // Em modo solo esconde o seletor
   if(typeof modoSolo === 'function' && modoSolo()){
-    if(profCard) profCard.style.display = 'none';
-    profSel.innerHTML = '<option value="">Sem preferência (qualquer disponível)</option>';
+    profWrap.style.display = 'none';
+    profWrap.innerHTML = '';
+    window._profSelecionadaCli = '';
     return;
   }
-  if(profCard) profCard.style.display = '';
-  profSel.innerHTML = '<option value="">Sem preferência (qualquer disponível)</option>' +
-    eqDB.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+  profWrap.style.display = 'flex';
+  // Chip "Qualquer"
+  let html = `<div class="prof-chip sel" data-profid="" onclick="selecionarProfChip(this,'')">
+    <div class="prof-chip-av" style="background:#f0eaf3;color:#c9aac8;font-size:16px">✦</div>
+    <span class="prof-chip-nome" style="color:#9a7a8a">Qualquer</span>
+  </div>`;
+  // Chips por profissional
+  eqDB.forEach(p => {
+    const initials = p.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    const avHtml = p.fotoUrl
+      ? `<img src="${p.fotoUrl}" alt="${p.nome}">`
+      : initials;
+    html += `<div class="prof-chip" data-profid="${p.id}" onclick="selecionarProfChip(this,'${p.id}')">
+      <div class="prof-chip-av">${avHtml}</div>
+      <span class="prof-chip-nome">${p.apelido || p.nome.split(' ')[0]}</span>
+    </div>`;
+  });
+  profWrap.innerHTML = html;
+  window._profSelecionadaCli = '';
 }
 window.popularProfPreferencia = popularProfPreferencia;
+
+function selecionarProfChip(el, profId){
+  document.querySelectorAll('#cli-prof-wrap .prof-chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  window._profSelecionadaCli = profId;
+  initCalendario();
+}
+window.selecionarProfChip = selecionarProfChip;
 
 function initCalendario(){
   const cal = document.getElementById('cli-cal');
@@ -3554,38 +3599,33 @@ function initCalendario(){
   selDia = null; selHorario = null;
   const hoje = new Date();
 
-  // Pega profissional selecionada
-  const profSel = document.getElementById('cli-prof-sel');
-  const profId  = profSel ? profSel.value : '';
-  const prof    = profId ? (window.equipeDB||[]).find(p => p.id === profId) : null;
+  // Pega profissional selecionada via chips
+  const profId = window._profSelecionadaCli || '';
+  const prof   = profId ? (window.equipeDB||[]).find(p => p.id === profId) : null;
 
-  // Dias de trabalho da profissional: array de strings ['Seg','Ter',...] ou índices
-  // equipeDB.disp pode ser array de 'Seg','Ter','Qua','Qui','Sex','Sáb' ou [1,2,3,4,5,6]
   const DISP_MAP = {'Dom':0,'Seg':1,'Ter':2,'Qua':3,'Qui':4,'Sex':5,'Sáb':6,'Sab':6};
   let diasTrab = null;
-  if (prof && prof.disp && prof.disp.length > 0) {
+  if(prof && prof.disp && prof.disp.length > 0){
     diasTrab = prof.disp.map(d => typeof d === 'number' ? d : (DISP_MAP[d] ?? -1)).filter(d => d >= 0);
   }
 
   const diasAdicionados = [];
   let d = new Date(hoje);
-  d.setDate(d.getDate() + 1); // começa amanhã
+  d.setDate(d.getDate() + 1);
   let tentativas = 0;
   while(diasAdicionados.length < 15 && tentativas < 60){
     tentativas++;
-    const diaSemana = d.getDay(); // 0=Dom
-    // Pula domingo sempre; pula dias fora da disponibilidade da profissional (se definida)
+    const diaSemana = d.getDay();
     const disponivelParaProf = !diasTrab || diasTrab.includes(diaSemana);
     if(diaSemana !== 0 && disponivelParaProf){
-      const dia   = d.getDate();
-      const mes   = d.getMonth() + 1;
-      const label = `${String(dia).padStart(2,'0')}/${String(mes).padStart(2,'0')}`;
+      const dia    = d.getDate();
+      const mes    = d.getMonth() + 1;
+      const label  = `${String(dia).padStart(2,'0')}/${String(mes).padStart(2,'0')}`;
       const nomeDia = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][diaSemana];
-      const btn   = document.createElement('button');
+      const btn = document.createElement('button');
       btn.className = 'dia-btn';
       btn.dataset.label = label;
-      btn.innerHTML = `<span style="font-size:10px;color:var(--tx3)">${nomeDia}</span><span style="font-size:14px;font-weight:700">${dia}</span><span style="font-size:10px;color:var(--tx3)">${String(mes).padStart(2,'0')}</span>`;
-      btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:7px 4px;border-radius:var(--r);border:1px solid var(--br);background:var(--bg2);cursor:pointer;gap:2px;font-family:inherit;transition:all .15s;width:100%';
+      btn.innerHTML = `<span class="wd">${nomeDia}</span><span class="dd">${dia}</span><span class="mm">${String(mes).padStart(2,'0')}</span>`;
       btn.onclick = function(){ selecionarDia(this, label, nomeDia); };
       cal.appendChild(btn);
       diasAdicionados.push(label);
@@ -3594,61 +3634,50 @@ function initCalendario(){
   }
 }
 
-// Reconstrói calendário quando muda a profissional
-(function(){
-  document.addEventListener('change', function(e){
-    if(e.target && e.target.id === 'cli-prof-sel') initCalendario();
-  });
-})();
+// Profissional agora via chips — selecionarProfChip() chama initCalendario() diretamente
 
 function selecionarDia(btn, label, semana){
-  document.querySelectorAll('.dia-btn').forEach(b => {
-    b.style.background = 'var(--bg2)';
-    b.style.borderColor = 'var(--br)';
-    b.style.color = 'var(--tx)';
-  });
-  btn.style.background = 'var(--pk600)';
-  btn.style.borderColor = 'var(--pk600)';
-  btn.style.color = 'white';
+  document.querySelectorAll('.dia-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
   selDia = label;
-  window._selDia = label;   // expõe para selecionarHorario via window (fix bug resumo)
+  window._selDia = label;
   selHorario = null;
   window._selHorario = null;
 
-  const card   = document.getElementById('cli-horarios-card');
-  const label2 = document.getElementById('cli-horarios-label');
-  const grid   = document.getElementById('cli-avail-grid');
-  if(!card || !grid) return;
+  const card = document.getElementById('cli-horarios-card');
+  if(!card) return;
   card.style.display = 'block';
-  if(label2) label2.textContent = `Horários disponíveis — ${semana} ${label}`;
 
-  // Horários padrão (podem vir do equipeDB futuramente)
+  // Profissional selecionada via chips
+  const profId = window._profSelecionadaCli || '';
+
+  // Horários padrão
   const horarios = ['08:00','09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
+  const manha = horarios.filter(h => parseInt(h) < 12);
+  const tarde = horarios.filter(h => parseInt(h) >= 12);
 
-  // Busca agendamentos confirmados/pendentes nesse dia para marcar ocupados.
-  // Usa agendamentosCliente (listener Firestore da cliente logada) como fonte
-  // principal — é o array atualizado em tempo real para esse perfil de usuário.
-  const profSel  = document.getElementById('cli-prof-sel');
-  const profId   = profSel ? profSel.value : '';
-  const ags      = (typeof agendamentosCliente !== 'undefined' && agendamentosCliente.length > 0)
-                   ? agendamentosCliente
-                   : (window.agendamentosDB || agendamentos || []);
+  const ags = (typeof agendamentosCliente !== 'undefined' && agendamentosCliente.length > 0)
+    ? agendamentosCliente
+    : (window.agendamentosDB || agendamentos || []);
 
-  const ocupados = ags
-    .filter(a => {
-      if (a.status === 'cancelado' || a.status === 'recusado') return false;
-      if (a.data !== label) return false;
-      // Se profissional específica selecionada, bloqueia por profId (campo gravado
-      // no agendamento) — mais confiável que comparar nome abreviado
-      if (profId) return a.profId === profId;
-      return true; // sem preferência: bloqueia qualquer horário ocupado nesse dia
-    })
-    .map(a => a.hora);
+  const ocupados = ags.filter(a => {
+    if(a.status === 'cancelado' || a.status === 'recusado') return false;
+    if(a.data !== label) return false;
+    if(profId) return a.profId === profId;
+    return true;
+  }).map(a => a.hora);
 
-  grid.innerHTML = horarios.map(h => {
-    const busy = ocupados.includes(h);
-    return `<button class="slot ${busy?'busy':''}" ${busy?'disabled':''} onclick="selecionarHorario(this,'${h}')">${h}</button>`;
-  }).join('');
+  function renderPeriodo(gridId, slots){
+    const grid = document.getElementById(gridId);
+    if(!grid) return;
+    grid.innerHTML = slots.map(h => {
+      const busy = ocupados.includes(h);
+      return `<button class="slot ${busy?'busy':''}" ${busy?'disabled':''} onclick="selecionarHorario(this,'${h}')">${h}</button>`;
+    }).join('');
+  }
+
+  renderPeriodo('cli-avail-grid-manha', manha);
+  renderPeriodo('cli-avail-grid-tarde', tarde);
 
   const enviarWrap = document.getElementById('cli-enviar-wrap');
   if(enviarWrap) enviarWrap.style.display = 'none';
@@ -3666,10 +3695,10 @@ function selecionarHorario(btn, horario){
   if(resumoSvc)  resumoSvc.textContent  = svcNome;
   if(resumoDia)  resumoDia.textContent  = selDia || window._selDia || '—';
   if(resumoHora) resumoHora.textContent = horario;
-  // Profissional preferida
-  const profSelEl2 = document.getElementById('cli-prof-sel');
-  const profNome2 = profSelEl2 && profSelEl2.value
-    ? (profSelEl2.options[profSelEl2.selectedIndex]?.text || 'Sem preferência')
+  // Profissional preferida — via chips
+  const profId3 = window._profSelecionadaCli || '';
+  const profNome2 = profId3
+    ? ((window.equipeDB||[]).find(p => p.id === profId3)?.nome || 'Sem preferência')
     : 'Sem preferência';
   const resumoProf = document.getElementById('resumo-prof');
   if(resumoProf) resumoProf.textContent = profNome2;
@@ -4424,34 +4453,32 @@ function iniciarListenerAgCliente(uid) {
         }
       }
       const btnCancelar = podeCancel
-        ? `<button class="btn-cancel-cli" data-id="${ag.id}" style="margin-top:6px;width:100%;padding:7px;border:none;border-radius:var(--r);background:var(--bg2);color:var(--tx3);font-size:11px;cursor:pointer;font-family:inherit;border:1px solid var(--br)"><i class="ti ti-x" style="font-size:12px"></i> Cancelar agendamento</button>`
+        ? `<button class="btn-cancel-cli" data-id="${ag.id}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Cancelar</button>`
         : (ag.status === 'confirmado' || ag.status === 'pendente'
-            ? `<div style="margin-top:6px;font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">Cancelamento disponível até 24h antes. Para reagendar entre em contato.</div>`
+            ? `<div style="font-size:10px;color:#b3879a;text-align:center;padding:4px 0;flex:1">Cancelamento até 24h antes.</div>`
             : '');
       const btnReagendar = ag.status === 'recusado'
-        ? `<button class="btn-reag-cli" data-id="${ag.id}" data-svc="${(ag.servico||'').replace(/"/g,'&quot;')}" data-prof="${(ag.prof||'').replace(/"/g,'&quot;')}" style="margin-top:6px;width:60%;padding:7px;border:none;border-radius:var(--r);background:var(--pk600);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit"><i class="ti ti-calendar-plus" style="font-size:12px"></i> Reagendar</button>`
+        ? `<button class="btn-reag-cli" data-id="${ag.id}" data-svc="${(ag.servico||'').replace(/"/g,'&quot;')}" data-prof="${(ag.prof||'').replace(/"/g,'&quot;')}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Reagendar</button>`
         : '';
       const btnApagar = (ag.status === 'recusado' || ag.status === 'cancelado')
-        ? `<button class="btn-del-cli" data-id="${ag.id}" style="margin-top:6px;${ag.status==='recusado'?'width:38%;margin-left:2%;':'width:100%;'}padding:7px;border:none;border-radius:var(--r);background:var(--bg2);color:var(--tx3);font-size:11px;cursor:pointer;font-family:inherit;border:1px solid var(--br)"><i class="ti ti-trash" style="font-size:12px"></i> Apagar</button>`
+        ? `<button class="btn-del-cli" data-id="${ag.id}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> Apagar</button>`
         : '';
       return `
-        <div class="sched-card" style="margin-bottom:8px;flex-direction:column;align-items:stretch" data-agid="${ag.id}">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="scd-left" style="flex:1">
+        <div class="sched-card" data-agid="${ag.id}">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px 8px">
+            <div class="scd-left">
               <div class="scd-dt">
                 <div class="scd-day">${dd || '—'}</div>
                 <div class="scd-mo">${meses[parseInt(mm)] || ''}</div>
               </div>
-              <div>
+              <div style="min-width:0">
                 <div class="scd-svc">${ag.servico || '—'}</div>
-                <div class="scd-sub"><i class="ti ti-clock" style="font-size:11px"></i>${ag.hora || ''} · ${ag.prof || ''}</div>
+                <div class="scd-sub"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ag.hora || ''} · ${ag.prof || ''}</div>
               </div>
             </div>
-            <span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;border:1px solid ${s.border};background:${s.bg};color:${s.color};white-space:nowrap">${s.label}</span>
+            <span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;border:1px solid ${s.border};background:${s.bg};color:${s.color};white-space:nowrap;flex-shrink:0">${s.label}</span>
           </div>
-          <div style="display:flex;flex-wrap:wrap;gap:0">
-            ${btnCancelar}${btnReagendar}${btnApagar}
-          </div>
+          ${(btnReagendar || btnApagar || btnCancelar) ? `<div style="display:flex;gap:6px;padding:0 12px 10px">${btnCancelar}${btnReagendar}${btnApagar}</div>` : ''}
         </div>`;
     }).join('');
   }, err => {
@@ -4710,9 +4737,9 @@ async function enviarSolicitacaoFS() {
       data:       dataFmt,
       hora:       selHorario,
       prof: (()=>{
-        const sel = document.getElementById('cli-prof-sel');
-        if(!sel || !sel.value) return '';
-        const p = (window.equipeDB||[]).find(x=>x.id===sel.value);
+        const profId = window._profSelecionadaCli || '';
+        if(!profId) return '';
+        const p = (window.equipeDB||[]).find(x=>x.id===profId);
         return p ? p.nome : '';
       })(),
       origem:     reagendandoAgId ? 'Reagendamento'
