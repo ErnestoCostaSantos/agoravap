@@ -2714,6 +2714,8 @@ function goTo(id,el){
   if(id==='c-promos')  setTimeout(() => { if(window.iniciarListenerPromos && !unsubPromos) window.iniciarListenerPromos(); }, 50);
   if(el){const n=el.closest('.sb-nav');n.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
   showPane(id);closeSB();
+  // Mascote: atualiza dica para seções cliente
+  if(window.mascoteSetSecao) window.mascoteSetSecao(id);
 }
 function goToMob(id,el){
   // Remove active de todos os tabs do mesmo grupo
@@ -2724,6 +2726,8 @@ function goToMob(id,el){
   if(id==='c-servicos') setTimeout(()=>{ if(window.iniciarListenerServicosCli) window.iniciarListenerServicosCli(); }, 50);
   if(id==='c-promos')  setTimeout(()=>{ if(window.iniciarListenerPromos && !unsubPromos) window.iniciarListenerPromos(); }, 50);
   showPane(id);
+  // Mascote: atualiza dica para a seção navegada
+  if(window.mascoteSetSecao) window.mascoteSetSecao(id);
 }
 function setRole(r,el){
   role=r;
