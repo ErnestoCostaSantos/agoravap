@@ -2662,6 +2662,8 @@ function goToMob(id,el){
   el.classList.add('active');
   if(id==='p-dash') setTimeout(initDashboard, 50);
   if(id==='c-agenda') setTimeout(initCalendario, 50);
+  if(id==='c-servicos') setTimeout(()=>{ if(window.iniciarListenerServicosCli) window.iniciarListenerServicosCli(); }, 50);
+  if(id==='c-promos')  setTimeout(()=>{ if(window.iniciarListenerPromos && !unsubPromos) window.iniciarListenerPromos(); }, 50);
   showPane(id);
 }
 function setRole(r,el){
