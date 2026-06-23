@@ -285,15 +285,41 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .audio-time{font-size:10px;color:var(--tx3);min-width:36px;text-align:right}
 .help-overlay.open{display:flex}
 @media(min-width:600px){.help-overlay{align-items:center}}
-.help-panel{background:var(--bg);border-radius:0 0 16px 16px;width:100%;max-width:580px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
-@media(min-width:600px){.help-panel{border-radius:16px;max-height:82vh}}
-.help-hd{padding:16px 18px;border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.help-title{font-size:15px;font-weight:600}
-.help-search{padding:12px 18px;border-bottom:1px solid var(--br);flex-shrink:0}
-.help-body{overflow-y:auto;flex:1;padding:14px 18px}
-.help-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
-.help-cat{padding:5px 13px;border-radius:20px;border:1px solid var(--br);font-size:12px;cursor:pointer;background:transparent;color:var(--tx2);transition:all .15s}
-.help-cat.active{background:var(--pk600);border-color:var(--pk600);color:#fff}
+/* ── FAQ panel (redesign v1.17) ── */
+.help-panel{background:#f7f4f6;border-radius:0 0 18px 18px;width:100%;max-width:580px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+@media(min-width:600px){.help-panel{border-radius:18px;max-height:82vh}}
+.help-hd{background:#6B2D8B;padding:16px 18px 13px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.help-hd-left{display:flex;align-items:center;gap:9px}
+.help-hd-icon{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.help-title{font-size:14px;font-weight:700;color:white}
+.help-title-sub{font-size:10px;color:rgba(255,255,255,.65);margin-top:1px}
+.help-close{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.18);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700}
+.help-search{padding:10px 14px 0;flex-shrink:0}
+.help-search-inner{display:flex;align-items:center;gap:8px;background:white;border-radius:12px;padding:9px 13px;border:1.5px solid #f0e0e8}
+.help-search-inner svg{flex-shrink:0;opacity:.45}
+.help-search-inner input{border:none;outline:none;flex:1;font-size:12px;color:#1a1a1a;background:transparent;font-family:inherit}
+.help-search-inner input::placeholder{color:#b3879a}
+.help-cats-wrap{padding:8px 14px 0;flex-shrink:0;border-bottom:1px solid #f0e8f0}
+.help-cats{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.help-cats::-webkit-scrollbar{display:none}
+.help-cat{flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid #ede0e8;font-size:10px;font-weight:500;cursor:pointer;background:white;color:#7a5870;white-space:nowrap;transition:all .15s;font-family:inherit}
+.help-cat.active{background:#993556;border-color:#993556;color:white;font-weight:600}
+.help-body{overflow-y:auto;flex:1;padding:8px 14px}
+.help-body::-webkit-scrollbar{width:3px}
+.help-body::-webkit-scrollbar-thumb{background:#f0d0e0;border-radius:4px}
+/* Items FAQ */
+.faq-item{background:white;border-radius:12px;border:1.5px solid #f0e0e8;overflow:hidden;margin-bottom:6px;cursor:pointer;transition:border-color .15s}
+.faq-item:hover{border-color:#D4537E}
+.faq-item.open{border-color:#993556}
+.faq-q{padding:11px 12px;display:flex;align-items:center;gap:9px}
+.faq-dot{width:5px;height:5px;border-radius:50%;background:#f0c0d4;flex-shrink:0;transition:background .15s}
+.faq-item.open .faq-dot{background:#993556}
+.faq-q-text{font-size:12px;font-weight:600;color:#2a1a22;flex:1;line-height:1.4}
+.faq-item.open .faq-q-text{color:#993556}
+.faq-chev{width:20px;height:20px;border-radius:50%;background:#f0e0e8;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.faq-item.open .faq-chev{background:#993556;transform:rotate(180deg)}
+.faq-a{display:none;padding:0 12px 11px 26px;font-size:12px;color:#6a4a5a;line-height:1.65}
+.faq-item.open .faq-a{display:block}
 .faq-item{border-bottom:1px solid var(--br);padding:12px 0}
 /* Fidelidade */
 .fidel-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--r);border:1px solid var(--br)}
@@ -1784,9 +1810,25 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
 <!-- HELP OVERLAY -->
 <div class="help-overlay" id="help-ov" onclick="handleOvClick(event)">
   <div class="help-panel">
-    <div class="help-hd"><span class="help-title"><i class="ti ti-help-circle" style="font-size:18px;vertical-align:-3px;margin-right:6px;color:var(--pk600)"></i>Central de ajuda</span><button style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--tx2);padding:2px" onclick="closeHelp()"><i class="ti ti-x"></i></button></div>
-    <div class="help-search"><div class="search-bar" style="margin-bottom:0"><i class="ti ti-search"></i><input placeholder="Pesquisar dúvidas..." id="help-in" oninput="filterFaq(this.value)"></div></div>
-    <div class="help-body">
+    <div class="help-hd">
+      <div class="help-hd-left">
+        <div class="help-hd-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <div class="help-title">Central de ajuda</div>
+          <div class="help-title-sub">Como podemos ajudar?</div>
+        </div>
+      </div>
+      <button class="help-close" onclick="closeHelp()">✕</button>
+    </div>
+    <div class="help-search">
+      <div class="help-search-inner">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#993556" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input placeholder="Pesquisar dúvidas..." id="help-in" oninput="filterFaq(this.value)">
+      </div>
+    </div>
+    <div class="help-cats-wrap">
       <div class="help-cats">
         <button class="help-cat active" onclick="filterCat('todos',this)">Todos</button>
         <button class="help-cat" onclick="filterCat('acesso',this)">Acesso</button>
@@ -1808,6 +1850,8 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
         <button class="help-cat" onclick="filterCat('backup',this)">💾 Backup</button>
         <button class="help-cat" onclick="mostrarTutoriais(this)" id="cat-tutoriais">🎧 Tutoriais</button>
       </div>
+    </div>
+    <div class="help-body">
       <div id="faq-list"></div>
       <!-- Seção tutoriais em áudio -->
       <div id="tutoriais-section" style="display:none;padding:4px 0 8px">
@@ -2473,10 +2517,16 @@ function renderFaq(){
     const ms=x.q.toLowerCase().includes(curSearch.toLowerCase())||x.a.toLowerCase().includes(curSearch.toLowerCase());
     return mc&&ms;
   });
-  if(!f.length){list.innerHTML='<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 0">Nenhuma dúvida encontrada.</div>';return;}
-  list.innerHTML=f.map((x,i)=>`<div class="faq-item"><div class="faq-q" onclick="toggleFaq(${i})"><span>${x.q}</span><i class="ti ti-chevron-down faq-icon" id="fi-${i}"></i></div><div class="faq-a" id="fa-${i}">${x.a}</div></div>`).join('');
+  if(!f.length){list.innerHTML='<div style="text-align:center;color:#b3879a;font-size:13px;padding:24px 0">Nenhuma dúvida encontrada.</div>';return;}
+  list.innerHTML=f.map((x,i)=>`<div class="faq-item" onclick="toggleFaq(${i})"><div class="faq-q"><div class="faq-dot"></div><span class="faq-q-text">${x.q}</span><div class="faq-chev"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#993556" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a" id="fa-${i}">${x.a}</div></div>`).join('');
 }
-function toggleFaq(i){document.getElementById('fa-'+i)?.classList.toggle('open');document.getElementById('fi-'+i)?.classList.toggle('open');}
+function toggleFaq(i){
+  const item=document.querySelector(`#faq-list .faq-item:nth-child(${i+1})`);
+  if(!item) return;
+  const isOpen=item.classList.contains('open');
+  document.querySelectorAll('#faq-list .faq-item.open').forEach(el=>el.classList.remove('open'));
+  if(!isOpen) item.classList.add('open');
+}
 function filterCat(c,el){curCat=c;document.querySelectorAll('.help-cat').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderFaq();}
 function filterFaq(v){curSearch=v;renderFaq();}
 function openHelp(){document.getElementById('help-ov').classList.add('open');renderFaq();}
