@@ -1620,21 +1620,23 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       </div>
       <!-- Passo 0: Profissional de preferência -->
       <div class="card" style="margin-bottom:10px">
-        <!-- Passo 0: Profissional de preferência -->
         <div style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#b3879a;margin-bottom:6px">1. Profissional de preferência</div>
-        <div id="cli-prof-wrap" class="prof-chips" style="margin-bottom:14px">
+        <div id="cli-prof-wrap" class="prof-chips">
           <!-- populado por popularProfPreferencia() -->
         </div>
-        <!-- Passo 1: Escolha o dia -->
+      </div>
+      <!-- Passo 1: Escolha o dia -->
+      <div class="card" style="margin-bottom:10px">
         <div style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#b3879a;margin-bottom:6px">2. Escolha o dia</div>
-        <div id="cli-cal" class="cli-cal-strip" style="margin-bottom:14px"></div>
-        <!-- Passo 2: Escolha o horário -->
-        <div id="cli-horarios-card" style="display:none;margin-bottom:14px">
-          <div class="periodo-lbl-ag" id="cli-horarios-label-manha">Manhã</div>
-          <div class="avail-grid" id="cli-avail-grid-manha" style="margin-bottom:12px"></div>
-          <div class="periodo-lbl-ag" id="cli-horarios-label-tarde">Tarde</div>
-          <div class="avail-grid" id="cli-avail-grid-tarde"></div>
-        </div>
+        <div id="cli-cal" class="cli-cal-strip"></div>
+      </div>
+      <!-- Passo 2: Escolha o horário -->
+      <div class="card" id="cli-horarios-card" style="display:none;margin-bottom:10px">
+        <div class="periodo-lbl-ag">Manhã</div>
+        <div class="avail-grid" id="cli-avail-grid-manha" style="margin-bottom:12px"></div>
+        <div class="periodo-lbl-ag">Tarde</div>
+        <div class="avail-grid" id="cli-avail-grid-tarde"></div>
+      </div>
       <!-- Passo 3: Enviar -->
       <div id="cli-enviar-wrap" style="display:none">
         <!-- Resumo do agendamento -->
