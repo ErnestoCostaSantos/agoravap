@@ -2168,6 +2168,9 @@ onAuthStateChanged(auth, async user => {
           // Mascote: inicializa e define seção home
           if(window.mascoteInit) window.mascoteInit();
           setTimeout(() => { if(window.mascoteSetSecao) window.mascoteSetSecao('home'); }, 500);
+          // Mascote Pro: ocultar ao entrar na versão cliente
+          const mpw = document.getElementById('mascote-pro-wrap');
+          if(mpw) mpw.style.display = 'none';
         };
 
         // Vai direto para as flores (sem splash intermediário)
@@ -2717,6 +2720,8 @@ function goTo(id,el){
   showPane(id);closeSB();
   // Mascote: atualiza dica para seções cliente
   if(window.mascoteSetSecao) window.mascoteSetSecao(id);
+  // Mascote Pro: atualiza dica para seções profissionais
+  if(id.startsWith('p-') && window.mascoteProSetSecao) window.mascoteProSetSecao(id);
 }
 function goToMob(id,el){
   // Remove active de todos os tabs do mesmo grupo
@@ -2729,6 +2734,8 @@ function goToMob(id,el){
   showPane(id);
   // Mascote: atualiza dica para a seção navegada
   if(window.mascoteSetSecao) window.mascoteSetSecao(id);
+  // Mascote Pro: atualiza dica para seções profissionais
+  if(id.startsWith('p-') && window.mascoteProSetSecao) window.mascoteProSetSecao(id);
 }
 function setRole(r,el){
   role=r;
@@ -2756,6 +2763,10 @@ function setRole(r,el){
     // Mascote: seção home (tela de flores)
     if(window.mascoteInit) window.mascoteInit();
     if(window.mascoteSetSecao) window.mascoteSetSecao('home');
+    // Mascote Pro: ocultar ao entrar na visão cliente
+    const mpw2 = document.getElementById('mascote-pro-wrap');
+    if(mpw2) mpw2.style.display = 'none';
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
   } else {
     // Volta para app profissional
     const homeCliente = document.getElementById('home-cli-screen');
@@ -2767,6 +2778,15 @@ function setRole(r,el){
     document.getElementById('u-role').textContent = cp ? (cp.role==='admin'?'Administradora':'Profissional') : 'Administradora';
     showPane('p-dash');
     setTimeout(initDashboard, 50);
+    // Mascote Pro: inicializa ao entrar no painel profissional
+    setTimeout(() => {
+      if(window.mascoteProInit) window.mascoteProInit();
+      if(window.mascoteProSetSecao) window.mascoteProSetSecao('p-dash');
+    }, 600);
+    // Mascote Cliente: ocultar ao voltar para o painel pro
+    const mcw = document.getElementById('mascote-wrap');
+    if(mcw) mcw.style.display = 'none';
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
   }
 }
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-bd').classList.toggle('open');}
@@ -3603,6 +3623,11 @@ function goToCliSection(id){
   }, 50);
   // Mascote: troca seção contextual
   if(window.mascoteSetSecao) window.mascoteSetSecao(id);
+  // Mascote Pro: ocultar ao navegar para seção cliente
+  const mpw3 = document.getElementById('mascote-pro-wrap');
+  if(mpw3) mpw3.style.display = 'none';
+  // Mascote Cliente: garantir visível
+  if(window.mascoteInit) window.mascoteInit();
 }
 function voltarParaProfissional(){
   // Esconde botão voltar
@@ -3635,6 +3660,15 @@ function voltarParaProfissional(){
   // Vai para o Dashboard
   showPane('p-dash');
   setTimeout(initDashboard, 50);
+  // Mascote Pro: reexibir e atualizar seção
+  setTimeout(() => {
+    if(window.mascoteProInit) window.mascoteProInit();
+    if(window.mascoteProSetSecao) window.mascoteProSetSecao('p-dash');
+  }, 600);
+  // Mascote Cliente: ocultar
+  const mcw2 = document.getElementById('mascote-wrap');
+  if(mcw2) mcw2.style.display = 'none';
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
 }
 function voltarHomeCliente(){
   const appDiv = document.querySelector('.app');
@@ -9456,6 +9490,369 @@ window.mascoteFechar   = mascoteFechar;
 window.mascoteProximo  = mascoteProximo;
 window.mascoteAnterior = mascoteAnterior;
 window.mascoteAudio    = mascoteAudio;
+<!-- ── MASCOTE PRO ──────────────────────────────────────────────────────────── -->
+<div id="mascote-pro-wrap" style="display:none">
+
+  <!-- Botão flutuante Margarida Pro -->
+  <button id="mascote-pro-btn" onclick="mascoteProAbrir()" aria-label="Dicas da Margarida">
+    <svg id="mascote-pro-svg" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" width="58" height="58" style="transform:rotate(-15deg);display:block">
+      <defs>
+        <radialGradient id="mcp-yw" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#FFF9C4"/>
+          <stop offset="60%"  stop-color="#FFE57F"/>
+          <stop offset="100%" stop-color="#FFD740"/>
+        </radialGradient>
+        <radialGradient id="mcp-vx1" cx="50%" cy="30%" r="60%">
+          <stop offset="0%"   stop-color="#e0c8f0"/>
+          <stop offset="100%" stop-color="#9b3fc8"/>
+        </radialGradient>
+        <radialGradient id="mcp-vx2" cx="50%" cy="30%" r="60%">
+          <stop offset="0%"   stop-color="#d4b8e8"/>
+          <stop offset="100%" stop-color="#6b1f9a"/>
+        </radialGradient>
+        <filter id="mcp-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#5B2480" flood-opacity=".45"/>
+        </filter>
+      </defs>
+      <!-- Pétalas roxo/lilás alternadas -->
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mcp-vx1)" filter="url(#mcp-shadow)"/>
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mcp-vx2)" filter="url(#mcp-shadow)" transform="rotate(60 36 36)"/>
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mcp-vx1)" filter="url(#mcp-shadow)" transform="rotate(120 36 36)"/>
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mcp-vx2)" filter="url(#mcp-shadow)" transform="rotate(180 36 36)"/>
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mcp-vx1)" filter="url(#mcp-shadow)" transform="rotate(240 36 36)"/>
+      <ellipse cx="36" cy="13" rx="7.5" ry="12" fill="url(#mcp-vx2)" filter="url(#mcp-shadow)" transform="rotate(300 36 36)"/>
+      <!-- Centro amarelo -->
+      <circle cx="36" cy="36" r="14" fill="url(#mcp-yw)" stroke="#F9A825" stroke-width="1.2"/>
+      <!-- Olhos normais -->
+      <g id="mcp-eyes-normal">
+        <ellipse cx="31" cy="33.5" rx="2.2" ry="2.8" fill="#5B2480"/>
+        <ellipse cx="41" cy="33.5" rx="2.2" ry="2.8" fill="#5B2480"/>
+        <circle cx="32" cy="32.2" r=".9" fill="#fff"/>
+        <circle cx="42" cy="32.2" r=".9" fill="#fff"/>
+      </g>
+      <!-- Olhos felizes -->
+      <g id="mcp-eyes-happy" style="display:none">
+        <path d="M28.8,34.5 Q31,31.5 33.2,34.5" fill="none" stroke="#5B2480" stroke-width="2" stroke-linecap="round"/>
+        <path d="M38.8,34.5 Q41,31.5 43.2,34.5" fill="none" stroke="#5B2480" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <!-- Sobrancelhas normais -->
+      <g id="mcp-brows-normal">
+        <path d="M28,30 Q31,28.2 34,30" fill="none" stroke="#7B3AAB" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M38,30 Q41,28.2 44,30" fill="none" stroke="#7B3AAB" stroke-width="1.4" stroke-linecap="round"/>
+      </g>
+      <!-- Sobrancelhas surpresas -->
+      <g id="mcp-brows-surprise" style="display:none">
+        <path d="M28,28.5 Q31,26 34,28.5" fill="none" stroke="#7B3AAB" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M38,28.5 Q41,26 44,28.5" fill="none" stroke="#7B3AAB" stroke-width="1.6" stroke-linecap="round"/>
+      </g>
+      <!-- Sorriso -->
+      <path d="M30 39.5 Q36 44.5 42 39.5" fill="none" stroke="#5B2480" stroke-width="1.8" stroke-linecap="round"/>
+      <!-- Bochechas -->
+      <ellipse cx="27" cy="38.5" rx="3.5" ry="2.2" fill="#c9a8e8" opacity=".55"/>
+      <ellipse cx="45" cy="38.5" rx="3.5" ry="2.2" fill="#c9a8e8" opacity=".55"/>
+    </svg>
+    <span id="mascote-pro-badge" style="display:none">💬</span>
+  </button>
+
+  <!-- Balão de dicas Pro -->
+  <div id="mascote-pro-balao" style="display:none">
+    <div id="mascote-pro-balao-inner">
+      <div id="mascote-pro-dica-txt"></div>
+      <div id="mascote-pro-controles">
+        <button onclick="mascoteProAnterior()" id="mascote-pro-prev" aria-label="Dica anterior">‹</button>
+        <span id="mascote-pro-contador"></span>
+        <button onclick="mascoteProximo2()" id="mascote-pro-next" aria-label="Próxima dica">›</button>
+        <button onclick="mascoteProAudio()" id="mascote-pro-audio-btn" aria-label="Ouvir dica" title="Ouvir">🔊</button>
+        <button onclick="mascoteProFechar()" id="mascote-pro-fechar" aria-label="Fechar">✕</button>
+      </div>
+    </div>
+    <div id="mascote-pro-rabo"></div>
+  </div>
+</div>
+
+<style>
+/* ── Margarida Pro ── */
+#mascote-pro-btn{
+  position:fixed;bottom:80px;right:14px;z-index:4100;
+  background:none;border:none;cursor:pointer;padding:4px;
+  filter:drop-shadow(0 3px 10px rgba(91,36,128,.45));
+  transition:filter .2s;
+  animation:mcp-idle 3.8s ease-in-out infinite;
+}
+/* Esconde no modo cliente */
+#home-cli-screen ~ * #mascote-pro-wrap,
+.app[style*="none"] #mascote-pro-wrap { display:none!important; }
+@keyframes mcp-idle{
+  0%,100%{transform:translateY(0) rotate(0deg)}
+  30%{transform:translateY(-3px) rotate(-1.5deg)}
+  70%{transform:translateY(-1px) rotate(1.5deg)}
+}
+#mascote-pro-btn:hover{
+  filter:drop-shadow(0 4px 14px rgba(91,36,128,.6));
+  animation:none;transform:scale(1.08);
+}
+@keyframes mcp-wiggle{
+  0%  {transform:rotate(0deg)  scale(1)}
+  15% {transform:rotate(14deg)  scale(1.12)}
+  30% {transform:rotate(-12deg) scale(1.08)}
+  45% {transform:rotate(10deg)  scale(1.05)}
+  60% {transform:rotate(-8deg)  scale(1.03)}
+  75% {transform:rotate(5deg)   scale(1.01)}
+  100%{transform:rotate(0deg)  scale(1)}
+}
+#mascote-pro-btn.wiggle{
+  animation:mcp-wiggle .7s cubic-bezier(.36,.07,.19,.97) forwards;
+}
+#mascote-pro-badge{
+  position:absolute;top:-2px;right:-2px;font-size:15px;
+  animation:mcp-pulse 1.4s infinite;
+}
+@keyframes mcp-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+#mascote-pro-balao{
+  position:fixed;bottom:150px;right:12px;z-index:4101;
+  width:min(285px, calc(100vw - 28px));
+  animation:mcp-balao-in .22s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes mcp-balao-in{
+  from{opacity:0;transform:scale(.85) translateY(8px)}
+  to  {opacity:1;transform:scale(1)   translateY(0)}
+}
+#mascote-pro-balao-inner{
+  background:#fff;border-radius:18px;padding:14px 16px 10px;
+  box-shadow:0 5px 24px rgba(91,36,128,.22);
+  border:1.5px solid #c9a8e8;
+}
+#mascote-pro-dica-txt{
+  font-size:13.5px;line-height:1.58;color:#3d1a50;
+  font-family:inherit;margin-bottom:10px;min-height:48px;
+}
+#mascote-pro-controles{display:flex;align-items:center;gap:4px}
+#mascote-pro-controles button{
+  background:none;border:none;cursor:pointer;
+  font-size:18px;color:#7B3AAB;padding:2px 5px;line-height:1;
+  border-radius:8px;transition:background .15s;
+}
+#mascote-pro-controles button:hover{background:#f3ecf9}
+#mascote-pro-fechar{margin-left:auto;font-size:14px!important;color:#ccc!important}
+#mascote-pro-contador{font-size:11px;color:#b0a0b8;flex:1;text-align:center}
+#mascote-pro-audio-btn{font-size:15px!important}
+#mascote-pro-rabo{
+  width:18px;height:10px;background:#fff;
+  clip-path:polygon(0 0,100% 0,50% 100%);
+  margin-left:auto;margin-right:30px;margin-top:-1px;
+  border-left:1.5px solid #c9a8e8;border-right:1.5px solid #c9a8e8;
+}
+@keyframes mcp-blink{
+  0%,94%,100%{transform:scaleY(1)}
+  96%,98%{transform:scaleY(0.08)}
+}
+#mcp-eyes-normal{transform-origin:36px 34px;animation:mcp-blink 4.5s ease-in-out infinite}
+</style>
+
+<script>
+// ── Margarida Pro ─────────────────────────────────────────────────────────────
+const MASCOTE_PRO_DICAS = {
+  'p-dash': [
+    'Bem-vinda ao Painel! 🌸 Aqui você tem uma visão geral do dia: solicitações pendentes, agenda de hoje e estatísticas do mês.',
+    'As solicitações pendentes aparecem logo no topo — confirme ou recuse direto por aqui para não deixar sua cliente esperando. ✨',
+    'O gráfico mostra os últimos 6 meses comparando agendamentos confirmados e cancelados. Ótimo para enxergar tendências! 📊',
+    'Use o botão "Agendar" no canto superior direito para criar um agendamento manual a qualquer momento. 💕'
+  ],
+  'p-agenda': [
+    'Na Agenda você tem três visões: Hoje, Semana e Mês. ✨ Alterne pelo seletor no topo.',
+    'Em Modo Clínica, use o filtro de profissional para ver a agenda individual de cada uma ou a visão consolidada de toda a equipe. 👥',
+    'Para confirmar ou recusar uma solicitação, localize o card pendente e clique em Confirmar ou no X. A cliente recebe a atualização em tempo real! 💕',
+    'Precisa encaixar alguém? Clique em "Agendar" — o calendário já marca os horários ocupados para você não ter surpresas. 🗓️'
+  ],
+  'p-clientes': [
+    'Aqui ficam todas as suas clientes! 🌸 Use a busca e os filtros de ordenação para encontrar quem precisa rapidinho.',
+    'Clique no nome de uma cliente para ver o perfil completo: histórico de atendimentos, total de visitas e valor gasto. ✨',
+    'Para convidar clientes novas, use o botão verde do WhatsApp ao lado do nome — o app monta a mensagem pronta com o link do app. 💕',
+    'Os painéis CRM (Por Perfil e Por Histórico) estão logo abaixo da lista — ideais para disparar campanhas segmentadas pelo WhatsApp. 📲'
+  ],
+  'p-equipe': [
+    'Na aba Equipe você cadastra e gerencia as profissionais. O dot verde no card indica quem trabalha hoje. 🌸',
+    'Para liberar o acesso de login de uma profissional, preencha uma senha no bloco "Acesso ao app" — ela entra com o próprio WhatsApp! ✨',
+    'O campo Especialidades é importante: é com ele que o app sugere as profissionais certas no reagendamento da cliente. 💕',
+    'Dica: marque "Faz Domicílio" nas profissionais que atendem na casa da cliente — aparece como badge no card. 🏠'
+  ],
+  'p-servicos': [
+    'Cadastre aqui todos os serviços que você oferece. ✨ Sem serviços cadastrados, a tela da cliente fica vazia!',
+    'Cada serviço tem nome, descrição, preço e ícone — preencha tudo para a tela da cliente ficar bem apresentável. 🌸',
+    'Os serviços aparecem exclusivamente para as clientes da sua clínica — nenhuma outra clínica vê os seus. 💕'
+  ],
+  'p-camp': [
+    'As Campanhas WhatsApp têm três tipos: Simples (3 etapas), VIP (oferta exclusiva) e Flash (curtíssimo prazo). 🌸',
+    'Em cada etapa, clique em "Abrir WhatsApp" para enviar a mensagem pronta ao grupo, depois volte e clique em "Marcar enviado". ✨',
+    'A seção Fidelidade no final da tela é para premiar as clientes do Top 10 — recompense quem mais frequenta! 💕'
+  ],
+  'p-promos': [
+    'Aqui você publica promoções que aparecem direto na tela das suas clientes no app. 🌸',
+    'Ative o toggle "Pop-up de boas-vindas" para que a promoção apareça automaticamente quando a cliente fizer login. ✨',
+    'Os painéis CRM (Por Perfil e Por Histórico) logo abaixo permitem enviar promoções segmentadas pelo WhatsApp para públicos específicos. 💕'
+  ],
+  'p-personalizacao': [
+    'Na Personalização você ajusta o nome, WhatsApp e a foto de fundo da tela de login das suas clientes — tudo sem precisar de suporte técnico! 🌸',
+    'Use os botões "Copiar link" ou "Compartilhar" para divulgar o link de convite das clientes no status do WhatsApp ou no Instagram. ✨',
+    'A seção "Acesso e senha" permite trocar sua própria senha a qualquer momento — é independente do botão Salvar personalização. 💕'
+  ]
+};
+
+let mascoteProSecaoAtual = 'p-dash';
+let mascoteProDicaIdx    = 0;
+let mascoteProVisto      = {};
+let _mcpWiggleTimer      = null;
+let _mcpVozPtBR          = null;
+
+function _mcpCarregarVoz() {
+  if (_mcpVozPtBR) return;
+  const vozes = window.speechSynthesis?.getVoices() || [];
+  _mcpVozPtBR = vozes.find(v => v.lang==='pt-BR' && /female|feminina|f\b/i.test(v.name))
+             || vozes.find(v => v.lang==='pt-BR')
+             || vozes.find(v => v.lang.startsWith('pt'))
+             || null;
+}
+if (window.speechSynthesis) {
+  const _origOnVC = window.speechSynthesis.onvoiceschanged;
+  window.speechSynthesis.onvoiceschanged = () => { if(_origOnVC) _origOnVC(); _mcpCarregarVoz(); };
+  _mcpCarregarVoz();
+}
+
+function _mcpTextoParaFalar(txt) {
+  return txt.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+            .replace(/\s{2,}/g,' ').trim();
+}
+
+function _mcpExpressao(estado) {
+  const eNorm = document.getElementById('mcp-eyes-normal');
+  const eHapp = document.getElementById('mcp-eyes-happy');
+  const bNorm = document.getElementById('mcp-brows-normal');
+  const bSurp = document.getElementById('mcp-brows-surprise');
+  if (!eNorm) return;
+  if (estado === 'happy') {
+    eNorm.style.display='none'; eHapp.style.display='';
+    bNorm.style.display='';     bSurp.style.display='none';
+  } else if (estado === 'surprise') {
+    eNorm.style.display='';     eHapp.style.display='none';
+    bNorm.style.display='none'; bSurp.style.display='';
+  } else {
+    eNorm.style.display='';     eHapp.style.display='none';
+    bNorm.style.display='';     bSurp.style.display='none';
+  }
+}
+
+function _mcpWiggle() {
+  const btn = document.getElementById('mascote-pro-btn');
+  if (!btn) return;
+  btn.classList.remove('wiggle');
+  void btn.offsetWidth;
+  btn.classList.add('wiggle');
+  _mcpExpressao('surprise');
+  if (_mcpWiggleTimer) clearTimeout(_mcpWiggleTimer);
+  _mcpWiggleTimer = setTimeout(() => {
+    btn.classList.remove('wiggle');
+    _mcpExpressao('normal');
+  }, 750);
+}
+
+function mascoteProInit() {
+  const wrap = document.getElementById('mascote-pro-wrap');
+  if (wrap) wrap.style.display = 'block';
+}
+
+function mascoteProSetSecao(secao) {
+  if (!MASCOTE_PRO_DICAS[secao]) return;
+  const mudou = secao !== mascoteProSecaoAtual;
+  mascoteProSecaoAtual = secao;
+  mascoteProDicaIdx    = 0;
+  if (mudou) _mcpWiggle();
+  const badge = document.getElementById('mascote-pro-badge');
+  if (!mascoteProVisto[secao]) {
+    if (badge) badge.style.display = 'block';
+    setTimeout(() => { if (!mascoteProVisto[secao]) mascoteProAbrir(); }, 900);
+  } else {
+    if (badge) badge.style.display = 'none';
+  }
+  const balao = document.getElementById('mascote-pro-balao');
+  if (balao && balao.style.display !== 'none') mascoteProRenderDica();
+}
+
+function mascoteProAbrir() {
+  mascoteProVisto[mascoteProSecaoAtual] = true;
+  const badge = document.getElementById('mascote-pro-badge');
+  if (badge) badge.style.display = 'none';
+  _mcpExpressao('happy');
+  mascoteProRenderDica();
+  const balao = document.getElementById('mascote-pro-balao');
+  if (balao) balao.style.display = 'block';
+}
+
+function mascoteProFechar() {
+  const balao = document.getElementById('mascote-pro-balao');
+  if (balao) balao.style.display = 'none';
+  _mcpExpressao('normal');
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
+function mascoteProRenderDica() {
+  const dicas = MASCOTE_PRO_DICAS[mascoteProSecaoAtual] || [];
+  const txt   = document.getElementById('mascote-pro-dica-txt');
+  const cnt   = document.getElementById('mascote-pro-contador');
+  const prev  = document.getElementById('mascote-pro-prev');
+  const next  = document.getElementById('mascote-pro-next');
+  if (txt)  txt.textContent  = dicas[mascoteProDicaIdx] || '';
+  if (cnt)  cnt.textContent  = (mascoteProDicaIdx + 1) + ' / ' + dicas.length;
+  if (prev) prev.style.opacity = mascoteProDicaIdx === 0 ? '.3' : '1';
+  if (next) next.style.opacity = mascoteProDicaIdx === dicas.length - 1 ? '.3' : '1';
+}
+
+function mascoteProximo2() {
+  const dicas = MASCOTE_PRO_DICAS[mascoteProSecaoAtual] || [];
+  if (mascoteProDicaIdx < dicas.length - 1) { mascoteProDicaIdx++; mascoteProRenderDica(); }
+}
+
+function mascoteProAnterior() {
+  if (mascoteProDicaIdx > 0) { mascoteProDicaIdx--; mascoteProRenderDica(); }
+}
+
+function mascoteProAudio() {
+  if (!window.speechSynthesis) return;
+  const dicas = MASCOTE_PRO_DICAS[mascoteProSecaoAtual] || [];
+  const texto = _mcpTextoParaFalar(dicas[mascoteProDicaIdx] || '');
+  if (!texto) return;
+  window.speechSynthesis.cancel();
+  _mcpCarregarVoz();
+  const utt   = new SpeechSynthesisUtterance(texto);
+  utt.lang    = 'pt-BR';
+  utt.rate    = 0.92;
+  utt.pitch   = 1.15;
+  utt.volume  = 1;
+  if (_mcpVozPtBR) utt.voice = _mcpVozPtBR;
+  const btn = document.getElementById('mascote-pro-audio-btn');
+  if (btn) btn.textContent = '🔈';
+  utt.onend = utt.onerror = () => { if (btn) btn.textContent = '🔊'; };
+  window.speechSynthesis.speak(utt);
+}
+
+// Esconde mascote pro ao entrar na versão cliente e vice-versa
+const _origAbrirFlores = window.abrirFlores;
+function _mcpOcultarNoCli() {
+  const wrap = document.getElementById('mascote-pro-wrap');
+  if (wrap) wrap.style.display = 'none';
+}
+// Hook no sairCli para reexibir o pro quando volta ao painel
+const _origSairCli2 = window._sairCli;
+window._sairCli = function() {
+  if (_origSairCli2) _origSairCli2();
+};
+
+window.mascoteProInit      = mascoteProInit;
+window.mascoteProSetSecao  = mascoteProSetSecao;
+window.mascoteProAbrir     = mascoteProAbrir;
+window.mascoteProFechar    = mascoteProFechar;
+window.mascoteProximo2     = mascoteProximo2;
+window.mascoteProAnterior  = mascoteProAnterior;
+window.mascoteProAudio     = mascoteProAudio;
 </script>
 </body>
 </html>
