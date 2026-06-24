@@ -2204,10 +2204,17 @@ onAuthStateChanged(auth, async user => {
           if(liderView) liderView.style.display = 'block';
         }, 500);
         // Mascote Pro: inicializa após login direto como admin/profissional
-        setTimeout(() => {
-          if(window.mascoteProInit) window.mascoteProInit();
-          if(window.mascoteProSetSecao) window.mascoteProSetSecao('p-dash');
-        }, 800);
+        // Usa retry porque o <script> do mascote pode não ter sido parseado ainda
+        // quando o onAuthStateChanged dispara com sessão em cache
+        const _mcpTryInit = (tentativa) => {
+          if (window.mascoteProInit) {
+            window.mascoteProInit();
+            window.mascoteProSetSecao('p-dash');
+          } else if (tentativa < 10) {
+            setTimeout(() => _mcpTryInit(tentativa + 1), 200);
+          }
+        };
+        setTimeout(() => _mcpTryInit(0), 500);
       }
 
       resetInactivityTimer();
@@ -9584,9 +9591,7 @@ window.mascoteAudio    = mascoteAudio;
   transition:filter .2s;
   animation:mcp-idle 3.8s ease-in-out infinite;
 }
-/* Esconde no modo cliente */
-#home-cli-screen ~ * #mascote-pro-wrap,
-.app[style*="none"] #mascote-pro-wrap { display:none!important; }
+/* Mascote Pro — visibilidade controlada por JS */
 @keyframes mcp-idle{
   0%,100%{transform:translateY(0) rotate(0deg)}
   30%{transform:translateY(-3px) rotate(-1.5deg)}
@@ -9838,18 +9843,6 @@ function mascoteProAudio() {
   utt.onend = utt.onerror = () => { if (btn) btn.textContent = '🔊'; };
   window.speechSynthesis.speak(utt);
 }
-
-// Esconde mascote pro ao entrar na versão cliente e vice-versa
-const _origAbrirFlores = window.abrirFlores;
-function _mcpOcultarNoCli() {
-  const wrap = document.getElementById('mascote-pro-wrap');
-  if (wrap) wrap.style.display = 'none';
-}
-// Hook no sairCli para reexibir o pro quando volta ao painel
-const _origSairCli2 = window._sairCli;
-window._sairCli = function() {
-  if (_origSairCli2) _origSairCli2();
-};
 
 window.mascoteProInit      = mascoteProInit;
 window.mascoteProSetSecao  = mascoteProSetSecao;
