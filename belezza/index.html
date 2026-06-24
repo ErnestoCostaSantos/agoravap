@@ -4336,6 +4336,11 @@ function abrirModalCliente(){
   document.getElementById('nc-interesse').value = '';
   document.getElementById('nc-alergias').value  = '';
   document.getElementById('nc-obs').value       = '';
+  // Reset avatar
+  const cliAvIdx = document.getElementById('cli-avatar-idx');
+  const cliAvPrev = document.getElementById('cli-avatar-preview');
+  if(cliAvIdx) cliAvIdx.value = '1';
+  if(cliAvPrev && window._avUrl) cliAvPrev.src = window._avUrl(1);
   const origemSel = document.getElementById('nc-origem');
   if(origemSel) origemSel.selectedIndex = 0;
   document.querySelectorAll('input[name="nc-sexo"]').forEach(r => r.checked = r.value === 'F');
@@ -4378,9 +4383,11 @@ async function salvarCliente(){
   const senha   = document.getElementById('nc-senha')?.value||'';
   const id      = 'cli-'+Date.now();
   const seed    = nome.replace(/[^a-zA-Z0-9]/g,'')+id.slice(-4);
-  const avatar  = sexo==='F'
-    ? `https://api.dicebear.com/9.x/lorelei/svg?seed=${seed}&backgroundColor=fbeaf0`
-    : `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&backgroundColor=e8f4ff`;
+  const avatarIdx = parseInt(document.getElementById('cli-avatar-idx')?.value || '1');
+  const avatar  = window._avUrl ? window._avUrl(avatarIdx)
+    : (sexo==='F'
+        ? `https://api.dicebear.com/9.x/lorelei/svg?seed=${seed}&backgroundColor=fbeaf0`
+        : `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&backgroundColor=e8f4ff`);
   // Gera e-mail sintético a partir do WhatsApp
   const wppNum  = wpp.replace(/\D/g,'');
   const emailSintetico = wppNum + '@cli.mecuidar.app';
@@ -4393,7 +4400,7 @@ async function salvarCliente(){
     alergias:  document.getElementById('nc-alergias').value||'',
     obs:       document.getElementById('nc-obs').value||'',
     visitas:0, valor:0, ultimaVisita:'—', ultimoSvc:'—', prof:'—',
-    top:false, score:0, avatar, criadoEm: new Date().toISOString()
+    top:false, score:0, avatar, avatarIdx, criadoEm: new Date().toISOString()
   };
   // Cria conta Firebase Auth para a cliente (se senha informada)
   if(senha && senha.length >= 6){
@@ -5105,6 +5112,8 @@ function iniciarListenerEquipe() {
         agMes:     data.agMes      || 0,
         seed,
         bgColor:   data.bgColor    || BG_CORES_FS[i % BG_CORES_FS.length],
+        avatarIdx: data.avatarIdx  || 0,
+        fotoUrl:   data.fotoUrl    || '',
       };
     });
 
@@ -6591,9 +6600,11 @@ function renderEquipe(lista){
   }
   el.innerHTML = lista.map(p => {
     const dispTxt = p.disp && p.disp.length ? p.disp.join(' · ') : 'Não definida';
-    const avatarUrl = p.sexo === 'M'
-      ? `https://api.dicebear.com/9.x/notionists/svg?seed=${p.seed}&backgroundColor=${p.bgColor}`
-      : `https://api.dicebear.com/9.x/lorelei/svg?seed=${p.seed}&backgroundColor=${p.bgColor}`;
+    const avatarUrl = p.fotoUrl ||
+      (p.avatarIdx && window._avUrl ? window._avUrl(p.avatarIdx) :
+        (p.sexo === 'M'
+          ? `https://api.dicebear.com/9.x/notionists/svg?seed=${p.seed}&backgroundColor=${p.bgColor}`
+          : `https://api.dicebear.com/9.x/lorelei/svg?seed=${p.seed}&backgroundColor=${p.bgColor}`));
     return `
     <div class="pro-card" data-busca="${p.nome.toLowerCase()} ${p.espec.toLowerCase()}">
       <img src="${avatarUrl}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="${p.nome}">
@@ -6642,6 +6653,11 @@ function abrirModalProfissional(id){
   document.getElementById('prof-domicilio').checked = false;
   document.getElementById('prof-error').textContent = '';
   document.getElementById('prof-toast').style.display = 'none';
+  // Reset avatar
+  const profAvIdx = document.getElementById('prof-avatar-idx');
+  const profAvPrev = document.getElementById('prof-avatar-preview');
+  if(profAvIdx) profAvIdx.value = '1';
+  if(profAvPrev && window._avUrl) profAvPrev.src = window._avUrl(1);
 
   const blocoAcesso = document.getElementById('prof-acesso-bloco');
   const campoSenha  = document.getElementById('prof-senha-wrap');
@@ -6664,6 +6680,13 @@ function abrirModalProfissional(id){
     document.querySelectorAll('input[name="prof-disp"]').forEach(c => {
       c.checked = (p.disp||[]).includes(c.value);
     });
+    // Carrega avatar salvo (se existir)
+    const profAvIdx2  = document.getElementById('prof-avatar-idx');
+    const profAvPrev2 = document.getElementById('prof-avatar-preview');
+    if(p.avatarIdx && profAvIdx2 && profAvPrev2 && window._avUrl) {
+      profAvIdx2.value = p.avatarIdx;
+      profAvPrev2.src  = window._avUrl(p.avatarIdx);
+    }
     // Na edição, não oferece criar senha por aqui (evita sobrescrever acesso já existente
     // ou confundir com criação duplicada). Gerenciamento de acesso fica para uma tela futura.
     if (campoSenha) campoSenha.style.display = 'none';
@@ -6701,6 +6724,8 @@ async function salvarProfissional(){
 async function _salvarProfissionalImpl(){
   const nome = document.getElementById('prof-nome').value.trim();
   const wpp  = document.getElementById('prof-wpp').value.trim();
+  const avatarIdx = parseInt(document.getElementById('prof-avatar-idx')?.value || '1');
+  const avatarUrl = window._avUrl ? window._avUrl(avatarIdx) : '';
   const espec= document.getElementById('prof-espec').value.trim();
   const errEl= document.getElementById('prof-error');
   if(!nome || !wpp || !espec){
@@ -6743,7 +6768,8 @@ async function _salvarProfissionalImpl(){
         {clinicaId:clinicaAtual(),nome,wpp,wppNum:wpp.replace(/\D/g,''),sexo,espec,disp,
          ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
          domicilio:dom,obs,ativa:ativaHoje,
-         emailContato: emailContato || ''},{merge:true});
+         emailContato: emailContato || '',
+         avatarIdx, fotoUrl: avatarUrl},{merge:true});
     } catch(e){ console.error('[Belezza] editarProf ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
     mostrarToastProf('Profissional atualizada!');
   } else {
@@ -6759,6 +6785,7 @@ async function _salvarProfissionalImpl(){
          ticket:Number(ticket)||0,avaliacao:Number(aval)||0,
          domicilio:dom,obs,ativa:ativaHoje,
          emailContato: emailContato || '',
+         avatarIdx, fotoUrl: avatarUrl,
          criadoEm:new Date().toISOString()});
     } catch(e){ console.error('[Belezza] novaProf ERRO:',e.message); alert('Erro ao salvar: '+e.message); }
     // Não atualiza equipeDB manualmente aqui — o listener onSnapshot de equipe
@@ -8827,6 +8854,15 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <button onclick="fecharModalProfissional()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">&#x2715;</button>
     </div>
     <input type="hidden" id="prof-edit-id" value="">
+    <input type="hidden" id="prof-avatar-idx" value="1">
+    <!-- Avatar picker -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:10px 12px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--br)">
+      <img id="prof-avatar-preview" src="https://cdn.jsdelivr.net/gh/ErnestoCostaSantos/agoravap@main/belezza/avatar_01.png" alt="Avatar" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--pk100)">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:4px">Avatar da profissional</div>
+        <button type="button" onclick="abrirPickerAvatar('prof')" style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--pk200);background:var(--pk50);color:var(--pk700);cursor:pointer;font-family:inherit">Trocar avatar</button>
+      </div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
       <div style="grid-column:1/-1">
         <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Nome completo *</label>
@@ -8913,6 +8949,15 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div style="font-size:15px;font-weight:700;color:var(--tx)">Cadastrar Cliente</div>
       <button onclick="fecharModalCliente()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">✕</button>
+    </div>
+    <input type="hidden" id="cli-avatar-idx" value="1">
+    <!-- Avatar picker -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:10px 12px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--br)">
+      <img id="cli-avatar-preview" src="https://cdn.jsdelivr.net/gh/ErnestoCostaSantos/agoravap@main/belezza/avatar_01.png" alt="Avatar" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--pk100)">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:4px">Avatar da cliente</div>
+        <button type="button" onclick="abrirPickerAvatar('cli')" style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--pk200);background:var(--pk50);color:var(--pk700);cursor:pointer;font-family:inherit">Trocar avatar</button>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
       <div style="grid-column:1/-1">
@@ -9879,6 +9924,108 @@ window.mascoteProAudio     = mascoteProAudio;
   // Inicia após 1s — tempo suficiente para o Firebase resolver a sessão
   setTimeout(_autoInitPro, 1000);
 })();
+</script>
+<!-- ── PICKER DE AVATAR ───────────────────────────────────────────────────── -->
+<style>
+#avatar-picker-overlay{
+  display:none;position:fixed;inset:0;z-index:9500;
+  background:rgba(0,0,0,.55);align-items:center;justify-content:center;
+}
+#avatar-picker-box{
+  background:var(--bg);border-radius:18px;padding:18px 16px 20px;
+  width:min(360px,94vw);max-height:80vh;overflow-y:auto;
+  box-shadow:0 8px 40px rgba(0,0,0,.25);
+}
+#avatar-picker-grid{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px;
+}
+.av-pick-item{
+  width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;
+  border:2.5px solid transparent;box-sizing:border-box;
+  transition:border-color .15s,transform .15s;overflow:hidden;
+}
+.av-pick-item:hover{transform:scale(1.12);}
+.av-pick-item.selected{border-color:var(--pk600);}
+.av-pick-item img{width:100%;height:100%;display:block;border-radius:50%;}
+</style>
+
+<div id="avatar-picker-overlay">
+  <div id="avatar-picker-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-size:14px;font-weight:700;color:var(--tx)">Escolher avatar</div>
+      <button onclick="fecharPickerAvatar()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">&#x2715;</button>
+    </div>
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:4px">Toque no avatar desejado</div>
+    <div id="avatar-picker-grid"></div>
+  </div>
+</div>
+
+<script>
+// ── Picker de Avatar ──────────────────────────────────────────────────────────
+const _AV_BASE = 'https://cdn.jsdelivr.net/gh/ErnestoCostaSantos/agoravap@main/belezza/avatar_';
+const _AV_TOTAL = 33;
+
+function _avUrl(idx) {
+  return _AV_BASE + String(idx).padStart(2,'0') + '.png';
+}
+
+let _avPickerTipo = ''; // 'prof' ou 'cli'
+let _avPickerSel  = 1;
+
+function abrirPickerAvatar(tipo) {
+  _avPickerTipo = tipo;
+  const idxAtual = parseInt(document.getElementById(tipo === 'prof' ? 'prof-avatar-idx' : 'cli-avatar-idx')?.value || '1');
+  _avPickerSel = idxAtual;
+
+  // Monta grid só na primeira vez ou sempre (leve, 33 imgs)
+  const grid = document.getElementById('avatar-picker-grid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= _AV_TOTAL; i++) {
+    const div = document.createElement('div');
+    div.className = 'av-pick-item' + (i === idxAtual ? ' selected' : '');
+    div.dataset.idx = i;
+    div.onclick = () => selecionarAvatar(tipo, i);
+    const img = document.createElement('img');
+    img.src = _avUrl(i);
+    img.alt = 'Avatar ' + i;
+    img.loading = 'lazy';
+    div.appendChild(img);
+    grid.appendChild(div);
+  }
+
+  document.getElementById('avatar-picker-overlay').style.display = 'flex';
+}
+
+function selecionarAvatar(tipo, idx) {
+  _avPickerSel = idx;
+  // Atualiza seleção visual no grid
+  document.querySelectorAll('.av-pick-item').forEach(el => {
+    el.classList.toggle('selected', parseInt(el.dataset.idx) === idx);
+  });
+  // Atualiza preview e campo hidden no modal
+  const previewId = tipo === 'prof' ? 'prof-avatar-preview' : 'cli-avatar-preview';
+  const hiddenId  = tipo === 'prof' ? 'prof-avatar-idx'     : 'cli-avatar-idx';
+  const preview = document.getElementById(previewId);
+  const hidden  = document.getElementById(hiddenId);
+  if (preview) preview.src = _avUrl(idx);
+  if (hidden)  hidden.value = idx;
+  // Fecha picker após pequeno delay (feedback visual)
+  setTimeout(fecharPickerAvatar, 180);
+}
+
+function fecharPickerAvatar() {
+  document.getElementById('avatar-picker-overlay').style.display = 'none';
+}
+
+// Fecha ao clicar fora da caixa
+document.getElementById('avatar-picker-overlay').addEventListener('click', function(e) {
+  if (e.target === this) fecharPickerAvatar();
+});
+
+window.abrirPickerAvatar  = abrirPickerAvatar;
+window.selecionarAvatar   = selecionarAvatar;
+window.fecharPickerAvatar = fecharPickerAvatar;
+window._avUrl             = _avUrl;
 </script>
 </body>
 </html>
