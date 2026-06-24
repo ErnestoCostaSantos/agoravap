@@ -2203,6 +2203,11 @@ onAuthStateChanged(auth, async user => {
           if(cliView) cliView.style.display = 'none';
           if(liderView) liderView.style.display = 'block';
         }, 500);
+        // Mascote Pro: inicializa após login direto como admin/profissional
+        setTimeout(() => {
+          if(window.mascoteProInit) window.mascoteProInit();
+          if(window.mascoteProSetSecao) window.mascoteProSetSecao('p-dash');
+        }, 800);
       }
 
       resetInactivityTimer();
