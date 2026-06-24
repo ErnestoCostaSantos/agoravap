@@ -9852,6 +9852,33 @@ window.mascoteProFechar    = mascoteProFechar;
 window.mascoteProximo2     = mascoteProximo2;
 window.mascoteProAnterior  = mascoteProAnterior;
 window.mascoteProAudio     = mascoteProAudio;
+
+// Auto-init: aguarda sessão Firebase estar resolvida e painel visível
+(function() {
+  let _tentativas = 0;
+  function _autoInitPro() {
+    _tentativas++;
+    const app = document.querySelector('.app');
+    const wrap = document.getElementById('mascote-pro-wrap');
+    if (!wrap) return;
+    // Só mostra se o painel profissional está visível
+    // No desktop o display é via CSS (style.display = ''), no mobile pode ser 'flex' inline
+    const appVisivel = app && app.style.display !== 'none';
+    // cp é a variável global do perfil logado
+    const ehPro = window.cp && window.cp.role !== 'cliente';
+    const homeCliOculto = !document.getElementById('home-cli-screen') ||
+                          document.getElementById('home-cli-screen').style.display === 'none' ||
+                          document.getElementById('home-cli-screen').style.display === '';
+    if (appVisivel && ehPro && homeCliOculto) {
+      wrap.style.display = 'block';
+      mascoteProSetSecao('p-dash');
+    } else if (_tentativas < 20) {
+      setTimeout(_autoInitPro, 300);
+    }
+  }
+  // Inicia após 1s — tempo suficiente para o Firebase resolver a sessão
+  setTimeout(_autoInitPro, 1000);
+})();
 </script>
 </body>
 </html>
