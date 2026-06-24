@@ -9898,31 +9898,24 @@ window.mascoteProximo2     = mascoteProximo2;
 window.mascoteProAnterior  = mascoteProAnterior;
 window.mascoteProAudio     = mascoteProAudio;
 
-// Auto-init: aguarda sessão Firebase estar resolvida e painel visível
+// Auto-init: aguarda painel profissional visível
 (function() {
   let _tentativas = 0;
   function _autoInitPro() {
     _tentativas++;
-    const app = document.querySelector('.app');
-    const wrap = document.getElementById('mascote-pro-wrap');
+    const wrap    = document.getElementById('mascote-pro-wrap');
+    const homeCli = document.getElementById('home-cli-screen');
     if (!wrap) return;
-    // Só mostra se o painel profissional está visível
-    // No desktop o display é via CSS (style.display = ''), no mobile pode ser 'flex' inline
-    const appVisivel = app && app.style.display !== 'none';
-    // cp é a variável global do perfil logado
-    const ehPro = window.cp && window.cp.role !== 'cliente';
-    const homeCliOculto = !document.getElementById('home-cli-screen') ||
-                          document.getElementById('home-cli-screen').style.display === 'none' ||
-                          document.getElementById('home-cli-screen').style.display === '';
-    if (appVisivel && ehPro && homeCliOculto) {
+    // Mostra só se a tela de flores NÃO está visível
+    const cliAberto = homeCli && homeCli.style.display === 'flex';
+    if (!cliAberto && wrap.style.display === 'none') {
       wrap.style.display = 'block';
       mascoteProSetSecao('p-dash');
-    } else if (_tentativas < 20) {
+    } else if (cliAberto && _tentativas < 20) {
       setTimeout(_autoInitPro, 300);
     }
   }
-  // Inicia após 1s — tempo suficiente para o Firebase resolver a sessão
-  setTimeout(_autoInitPro, 1000);
+  setTimeout(_autoInitPro, 1200);
 })();
 </script>
 <!-- ── PICKER DE AVATAR ───────────────────────────────────────────────────── -->
@@ -10018,9 +10011,12 @@ function fecharPickerAvatar() {
 }
 
 // Fecha ao clicar fora da caixa
-document.getElementById('avatar-picker-overlay').addEventListener('click', function(e) {
-  if (e.target === this) fecharPickerAvatar();
-});
+const _avOverlay = document.getElementById('avatar-picker-overlay');
+if (_avOverlay) {
+  _avOverlay.addEventListener('click', function(e) {
+    if (e.target === this) fecharPickerAvatar();
+  });
+}
 
 window.abrirPickerAvatar  = abrirPickerAvatar;
 window.selecionarAvatar   = selecionarAvatar;
