@@ -127,6 +127,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .day-hdr{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3);margin:14px 0 8px}
 .add-btn{width:100%;padding:10px;border:1px dashed var(--br2);border-radius:var(--rl);background:transparent;cursor:pointer;font-size:12px;color:var(--tx2);display:flex;align-items:center;justify-content:center;gap:5px;margin-top:4px}
 .add-btn:hover{background:var(--bg2)}
+/* ── Picker de imagem de serviço (admin) ── */
+.svc-img-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:8px;max-height:220px;overflow-y:auto;padding:2px}
+.svc-img-picker-item{position:relative;border-radius:10px;overflow:hidden;cursor:pointer;border:2.5px solid transparent;transition:border-color .15s,transform .12s;aspect-ratio:16/9}
+.svc-img-picker-item img{width:100%;height:100%;object-fit:cover;display:block}
+.svc-img-picker-item:hover{border-color:var(--pk400);transform:scale(1.03)}
+.svc-img-picker-item.sel{border-color:var(--pk600);box-shadow:0 0 0 2px rgba(153,53,86,.25)}
+.svc-img-picker-item.sel::after{content:'✓';position:absolute;top:4px;right:5px;font-size:11px;font-weight:700;color:white;background:var(--pk600);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;line-height:18px;text-align:center}
+/* Chips de categoria do admin */
+.admin-cat-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.admin-cat-chip{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:20px;border:1.5px solid var(--br2);background:var(--bg2);cursor:pointer;font-size:12px;font-weight:600;color:var(--tx2);transition:all .15s;font-family:inherit}
+.admin-cat-chip img{width:22px;height:22px;border-radius:6px;object-fit:cover;flex-shrink:0}
+.admin-cat-chip:hover{border-color:var(--pk400);color:var(--pk600);background:var(--pk50)}
+.admin-cat-chip.sel{border-color:var(--pk600);background:var(--pk50);color:var(--pk600)}
 /* ── Serviços cliente (redesign v1.18 — banner card + categorias) ── */
 /* Chips de categoria */
 /* Categorias com imagem */
@@ -937,19 +950,16 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
           <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Preço</label>
           <input id="svc-preco-inp" type="text" placeholder="Ex: R$ 180" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
         </div>
-        <div style="margin-bottom:8px">
+        <!-- Categoria — chips visuais pré-fixados -->
+        <div style="margin-bottom:12px">
           <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Categoria</label>
-          <select id="svc-cat-inp" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
-            <option value="Rosto">Rosto</option>
-            <option value="Corpo">Corpo</option>
-            <option value="Cabelo">Cabelo</option>
-            <option value="Unhas">Unhas</option>
-            <option value="Olhos">Olhos</option>
-            <option value="Outros">Outros</option>
-          </select>
+          <input type="hidden" id="svc-cat-inp" value="Rosto">
+          <div class="admin-cat-chips" id="admin-cat-chips">
+            <!-- gerado por renderAdminCatChips() -->
+          </div>
         </div>
         <div style="margin-bottom:12px">
-          <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Ícone</label>
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Ícone (fallback sem imagem)</label>
           <select id="svc-icone-inp" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
             <option value="ti-sparkles">✨ Brilho (sparkles)</option>
             <option value="ti-droplet">💧 Gota (droplet)</option>
@@ -963,19 +973,33 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
             <option value="ti-wand">🪄 Varinha (wand)</option>
           </select>
         </div>
-        <!-- Upload imagem do serviço -->
+        <!-- Imagem do serviço — picker pré-definido + upload próprio -->
         <div style="margin-bottom:12px">
           <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Imagem do serviço</label>
-          <label id="svc-img-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;margin-top:6px;height:100px;border:1.5px dashed var(--br2);border-radius:var(--rl);cursor:pointer;background:var(--bg2);color:var(--tx3);transition:background .15s;position:relative;overflow:hidden" onmouseover="this.style.background='var(--pk50)'" onmouseout="this.style.background='var(--bg2)'">
-            <i class="ti ti-photo-plus" style="font-size:28px;color:var(--pk400)"></i>
-            <div style="font-size:11px;font-weight:600;color:var(--tx2)">Adicionar imagem</div>
-            <div style="font-size:10px;color:var(--tx3)">JPG ou PNG · recomendado 800×500px</div>
-            <input type="file" accept="image/*" style="display:none" onchange="previewSvcImg(this)">
-            <!-- preview sobreposto -->
-            <img id="svc-img-preview" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="this.parentElement.querySelector('input').click()" title="Clique para trocar">
-            <div id="svc-img-badge" style="display:none;position:absolute;bottom:6px;right:8px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 8px;border-radius:20px;pointer-events:none">Trocar</div>
-          </label>
-          <button id="svc-img-remove" onclick="removerSvcImg()" style="display:none;margin-top:5px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--tx3);font-family:inherit"><i class="ti ti-x" style="font-size:11px"></i> Remover imagem</button>
+          <!-- Tabs: picker / upload -->
+          <div style="display:flex;gap:0;margin-top:6px;border-radius:var(--r);overflow:hidden;border:1px solid var(--br);width:fit-content">
+            <button id="svc-tab-picker" onclick="trocarTabSvcImg('picker')" style="padding:5px 14px;font-size:11px;font-weight:600;background:var(--pk600);color:white;border:none;cursor:pointer;font-family:inherit">Banco de imagens</button>
+            <button id="svc-tab-upload" onclick="trocarTabSvcImg('upload')" style="padding:5px 14px;font-size:11px;font-weight:600;background:var(--bg2);color:var(--tx2);border:none;cursor:pointer;font-family:inherit">Minha foto</button>
+          </div>
+          <!-- Picker -->
+          <div id="svc-img-picker-wrap" style="margin-top:8px">
+            <div class="svc-img-picker-grid" id="svc-img-picker-grid">
+              <!-- gerado por renderSvcImgPicker() -->
+            </div>
+            <div style="font-size:10px;color:var(--tx3);margin-top:5px">Clique para selecionar · clique novamente para desmarcar</div>
+          </div>
+          <!-- Upload próprio (oculto inicialmente) -->
+          <div id="svc-img-upload-wrap" style="display:none;margin-top:8px">
+            <label id="svc-img-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:100px;border:1.5px dashed var(--br2);border-radius:var(--rl);cursor:pointer;background:var(--bg2);color:var(--tx3);transition:background .15s;position:relative;overflow:hidden" onmouseover="this.style.background='var(--pk50)'" onmouseout="this.style.background='var(--bg2)'">
+              <i class="ti ti-photo-plus" style="font-size:28px;color:var(--pk400)"></i>
+              <div style="font-size:11px;font-weight:600;color:var(--tx2)">Adicionar imagem</div>
+              <div style="font-size:10px;color:var(--tx3)">JPG ou PNG · recomendado 840×180px</div>
+              <input type="file" accept="image/*" style="display:none" onchange="previewSvcImg(this)">
+              <img id="svc-img-preview" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="this.parentElement.querySelector('input').click()" title="Clique para trocar">
+              <div id="svc-img-badge" style="display:none;position:absolute;bottom:6px;right:8px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 8px;border-radius:20px;pointer-events:none">Trocar</div>
+            </label>
+            <button id="svc-img-remove" onclick="removerSvcImg()" style="display:none;margin-top:5px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--tx3);font-family:inherit"><i class="ti ti-x" style="font-size:11px"></i> Remover imagem</button>
+          </div>
         </div>
         <div id="svc-form-erro" style="color:var(--pk600);font-size:11px;margin-bottom:8px;min-height:14px"></div>
         <div style="display:flex;gap:8px">
@@ -1637,7 +1661,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
     <!-- ── CLIENTE ── -->
     <div class="pane" id="pane-c-servicos">
       <div class="sec-lbl">Nossos serviços</div>
-      <!-- Categorias com imagem — populadas pelo JS com SVC_CAT_IMGS -->
+      <!-- Categorias com imagem — populadas pelo JS com SVC_CATS_DEF -->
       <div class="svc-cats" id="svc-cats">
         <!-- gerado por renderSvcCats() -->
       </div>
@@ -8206,31 +8230,161 @@ function iniciarListenerServicos() {
 }
 
 // ── Tela cliente: listener separado ──────────────────────────────────────
-// Imagens das categorias (SVG inline, sem dependência de URL)
-const SVC_CAT_IMGS = {
-  'Todos': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZGYwZjUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmOWQwZGYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0NTM3RSIgc3Ryb2tlLXdpZHRoPSIyLjUiLz4KICAgIDxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjYiIGZpbGw9IiNENDUzN0UiLz4KICAgIDxsaW5lIHgxPSI0MCIgeTE9IjIwIiB4Mj0iNDAiIHkyPSIyNiIgc3Ryb2tlPSIjRDQ1MzdFIiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8bGluZSB4MT0iNDAiIHkxPSI1NCIgeDI9IjQwIiB5Mj0iNjAiIHN0cm9rZT0iI0Q0NTM3RSIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGxpbmUgeDE9IjIwIiB5MT0iNDAiIHgyPSIyNiIgeTI9IjQwIiBzdHJva2U9IiNENDUzN0UiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxsaW5lIHgxPSI1NCIgeTE9IjQwIiB4Mj0iNjAiIHkyPSI0MCIgc3Ryb2tlPSIjRDQ1MzdFIiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8bGluZSB4MT0iMjYiIHkxPSIyNiIgeDI9IjMwIiB5Mj0iMzAiIHN0cm9rZT0iI0Q0NTM3RSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxsaW5lIHgxPSI1MCIgeTE9IjUwIiB4Mj0iNTQiIHkyPSI1NCIgc3Ryb2tlPSIjRDQ1MzdFIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGxpbmUgeDE9IjU0IiB5MT0iMjYiIHgyPSI1MCIgeTI9IjMwIiBzdHJva2U9IiNENDUzN0UiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8bGluZSB4MT0iMzAiIHkxPSI1MCIgeDI9IjI2IiB5Mj0iNTQiIHN0cm9rZT0iI0Q0NTM3RSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=',
-  'Rosto': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmYwZjMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZmQ2ZTAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjQwIiBjeT0iNDIiIHJ4PSIxNiIgcnk9IjIwIiBmaWxsPSJub25lIiBzdHJva2U9IiNENDUzN0UiIHN0cm9rZS13aWR0aD0iMi4yIi8+CiAgICA8ZWxsaXBzZSBjeD0iMzQiIGN5PSIzOCIgcng9IjIuNSIgcnk9IjIuNSIgZmlsbD0iI0Q0NTM3RSIvPgogICAgPGVsbGlwc2UgY3g9IjQ2IiBjeT0iMzgiIHJ4PSIyLjUiIHJ5PSIyLjUiIGZpbGw9IiNENDUzN0UiLz4KICAgIDxwYXRoIGQ9Ik0zNCw0NyBRNDAsNTMgNDYsNDciIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0NTM3RSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxwYXRoIGQ9Ik0zMSwzMyBRMzQsMzEgMzcsMzMiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5MzU1NiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPHBhdGggZD0iTTQzLDMzIFE0NiwzMSA0OSwzMyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTkzNTU2IiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8cGF0aCBkPSJNNTcsMTggTDU4LDIzIEw2MywyNCBMNTgsMjUgTDU3LDMwIEw1NiwyNSBMNTEsMjQgTDU2LDIzWiIgZmlsbD0iI2Y0YjhjZSIvPjwvc3ZnPg==',
-  'Corpo': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmMGY0ZmYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNkY2U4ZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjQwIiBjeT0iMjIiIHJ4PSI3IiByeT0iNyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN0I5RkUwIiBzdHJva2Utd2lkdGg9IjIuMiIvPgogICAgPHBhdGggZD0iTTMwLDMyIFEyOCw0NCAyOSw1NiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN0I5RkUwIiBzdHJva2Utd2lkdGg9IjIuMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8cGF0aCBkPSJNNTAsMzIgUTUyLDQ0IDUxLDU2IiBmaWxsPSJub25lIiBzdHJva2U9IiM3QjlGRTAiIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxwYXRoIGQ9Ik0yOSwzNCBRNDAsNDAgNTEsMzQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzdCOUZFMCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPHBhdGggZD0iTTMyLDU2IFE0MCw2NSA0OCw1NiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN0I5RkUwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPHBhdGggZD0iTTU3LDE0IEw1OCwxOCBMNjIsMTkgTDU4LDIwIEw1NywyNCBMNTYsMjAgTDUyLDE5IEw1NiwxOFoiIGZpbGw9IiNhOGM0ZjAiLz48L3N2Zz4=',
-  'Cabelo': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmY4ZTgiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZmU5YjAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjQwIiBjeT0iMzAiIHJ4PSIxNCIgcnk9IjEzIiBmaWxsPSJub25lIiBzdHJva2U9IiNENEEwMTciIHN0cm9rZS13aWR0aD0iMi4yIi8+CiAgICA8cGF0aCBkPSJNMjYsMzAgUTIyLDQ2IDI4LDU4IiBmaWxsPSJub25lIiBzdHJva2U9IiNENEEwMTciIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxwYXRoIGQ9Ik01NCwzMCBRNTgsNDYgNTIsNTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0QTAxNyIgc3Ryb2tlLXdpZHRoPSIyLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPHBhdGggZD0iTTMyLDQzIFEzOCw2MiA0Niw1NSBRNTAsNDggNTQsNTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0QTAxNyIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxsaW5lIHgxPSI1MiIgeTE9IjE0IiB4Mj0iNjIiIHkyPSIyMiIgc3Ryb2tlPSIjZTZiODIyIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGxpbmUgeDE9IjYyIiB5MT0iMTQiIHgyPSI1MiIgeTI9IjIyIiBzdHJva2U9IiNlNmI4MjIiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8Y2lyY2xlIGN4PSI1NyIgY3k9IjE4IiByPSI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNlNmI4MjIiIHN0cm9rZS13aWR0aD0iMS41Ii8+PC9zdmc+',
-  'Unhas': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmOGYwZmYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlOGQwZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PHJlY3QgeD0iMjkiIHk9IjM4IiB3aWR0aD0iNyIgaGVpZ2h0PSIxNiIgcng9IjMuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOUI1OUI2IiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxyZWN0IHg9IjM3IiB5PSIzNCIgd2lkdGg9IjciIGhlaWdodD0iMjAiIHJ4PSIzLjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzlCNTlCNiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8cmVjdCB4PSI0NSIgeT0iMzYiIHdpZHRoPSI3IiBoZWlnaHQ9IjE4IiByeD0iMy41IiBmaWxsPSJub25lIiBzdHJva2U9IiM5QjU5QjYiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPHBhdGggZD0iTTMxLDQxIFEzMi41LDM4IDM1LDQxIiBmaWxsPSIjQzM5QkQzIiBzdHJva2U9Im5vbmUiLz4KICAgIDxwYXRoIGQ9Ik0zOSwzNyBRNDAuNSwzNCA0MywzNyIgZmlsbD0iI0MzOUJEMyIgc3Ryb2tlPSJub25lIi8+CiAgICA8cGF0aCBkPSJNNDcsMzkgUTQ4LjUsMzYgNTEsMzkiIGZpbGw9IiNDMzlCRDMiIHN0cm9rZT0ibm9uZSIvPgogICAgPHBhdGggZD0iTTU3LDE2IEw1OCwyMCBMNjIsMjEgTDU4LDIyIEw1NywyNiBMNTYsMjIgTDUyLDIxIEw1NiwyMFoiIGZpbGw9IiNDMzlCRDMiLz48L3N2Zz4=',
-  'Olhos': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNlOGZmZjQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNiOGYwZDgiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PHBhdGggZD0iTTE2LDQwIFEyOCwyNCA0MCwyNCBRNTIsMjQgNjQsNDAgUTUyLDU2IDQwLDU2IFEyOCw1NiAxNiw0MFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzI3QUU3QSIgc3Ryb2tlLXdpZHRoPSIyLjIiLz4KICAgIDxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzI3QUU3QSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSI0IiBmaWxsPSIjMjdBRTdBIi8+CiAgICA8bGluZSB4MT0iMjYiIHkxPSIyOCIgeDI9IjI4IiB5Mj0iMzMiIHN0cm9rZT0iIzI3QUU3QSIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGxpbmUgeDE9IjM0IiB5MT0iMjQiIHgyPSIzNSIgeTI9IjI5IiBzdHJva2U9IiMyN0FFN0EiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxsaW5lIHgxPSI0MCIgeTE9IjIzIiB4Mj0iNDAiIHkyPSIyOCIgc3Ryb2tlPSIjMjdBRTdBIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICA8bGluZSB4MT0iNDYiIHkxPSIyNCIgeDI9IjQ1IiB5Mj0iMjkiIHN0cm9rZT0iIzI3QUU3QSIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGxpbmUgeDE9IjU0IiB5MT0iMjgiIHgyPSI1MiIgeTI9IjMzIiBzdHJva2U9IiMyN0FFN0EiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxjaXJjbGUgY3g9IjQ0IiBjeT0iMzciIHI9IjIuNSIgZmlsbD0id2hpdGUiIG9wYWNpdHk9Ii43Ii8+PC9zdmc+',
-  'Outros': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmY1ZjAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZmQ4YzgiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9InVybCgjYmcpIi8+PGxpbmUgeDE9IjI0IiB5MT0iNTYiIHgyPSI0OCIgeTI9IjMyIiBzdHJva2U9IiNFODcwM0EiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxwYXRoIGQ9Ik00NCwyOCBMNDYsMzQgTDUyLDM2IEw0NiwzOCBMNDQsNDQgTDQyLDM4IEwzNiwzNiBMNDIsMzRaIiBmaWxsPSIjRjBBMDcwIiBzdHJva2U9IiNFODcwM0EiIHN0cm9rZS13aWR0aD0iMS4yIi8+CiAgICA8cGF0aCBkPSJNMjQsMjggTDI1LDMxIEwyOCwzMiBMMjUsMzMgTDI0LDM2IEwyMywzMyBMMjAsMzIgTDIzLDMxWiIgZmlsbD0iI0YwQTA3MCIvPgogICAgPHBhdGggZD0iTTU0LDQ2IEw1NSw0OC41IEw1Ny41LDQ5LjUgTDU1LDUwLjUgTDU0LDUzIEw1Myw1MC41IEw1MC41LDQ5LjUgTDUzLDQ4LjVaIiBmaWxsPSIjRjBBMDcwIi8+CiAgICA8Y2lyY2xlIGN4PSIzMCIgY3k9IjIwIiByPSIzIiBmaWxsPSIjRjBBMDcwIiBvcGFjaXR5PSIuNiIvPgogICAgPGNpcmNsZSBjeD0iNTgiIGN5PSIyNCIgcj0iMiIgZmlsbD0iI0U4NzAzQSIgb3BhY2l0eT0iLjUiLz48L3N2Zz4=',
-};
 
+// ─────────────────────────────────────────────────────────────────────────
+// BANCO DE CATEGORIAS — 10 fixas
+// imgUrl: foto real no jsDelivr (belezza/cat_<slug>.jpg)
+// fallback: SVG gerado inline para quando a foto ainda não existir no repo
+// ─────────────────────────────────────────────────────────────────────────
+const BASE_CDN = 'https://cdn.jsdelivr.net/gh/ErnestoCostaSantos/agoravap@main/belezza/';
+const SVC_CATS_DEF = [
+  { id:'Todos',       emoji:'🌸', cor:'#fdf0f5', img: BASE_CDN + 'cat_todos.jpg'       },
+  { id:'Rosto',       emoji:'✨', cor:'#fff0f3', img: BASE_CDN + 'cat_rosto.jpg'       },
+  { id:'Corpo',       emoji:'💆', cor:'#f0f4ff', img: BASE_CDN + 'cat_corpo.jpg'       },
+  { id:'Cabelo',      emoji:'💇', cor:'#fff8e8', img: BASE_CDN + 'cat_cabelo.jpg'      },
+  { id:'Unhas',       emoji:'💅', cor:'#f8f0ff', img: BASE_CDN + 'cat_unhas.jpg'       },
+  { id:'Olhos',       emoji:'👁',  cor:'#e8fff4', img: BASE_CDN + 'cat_olhos.jpg'       },
+  { id:'Sobrancelha', emoji:'🪄', cor:'#fff5e8', img: BASE_CDN + 'cat_sobrancelha.jpg' },
+  { id:'Massagem',    emoji:'🌿', cor:'#e8f8ee', img: BASE_CDN + 'cat_massagem.jpg'    },
+  { id:'Depilação',   emoji:'🌙', cor:'#f0eaff', img: BASE_CDN + 'cat_depilacao.jpg'   },
+  { id:'Outros',      emoji:'💫', cor:'#fff5f0', img: BASE_CDN + 'cat_outros.jpg'      },
+];
+
+// Mapa rápido id → def
+const SVC_CAT_MAP = Object.fromEntries(SVC_CATS_DEF.map(c => [c.id, c]));
+
+// Fallback SVG colorido com emoji quando a foto não carrega
+function _catFallbackSvg(def) {
+  const bg  = def.cor || '#fdf0f5';
+  const em  = def.emoji || '✨';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${bg}"/><text x="32" y="40" font-size="26" text-anchor="middle" dominant-baseline="middle">${em}</text></svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+// Chip de categoria para a tela cliente (64px, foto real com fallback)
 function renderSvcCats() {
   const wrap = document.getElementById('svc-cats');
   if (!wrap) return;
-  const cats = ['Todos','Rosto','Corpo','Cabelo','Unhas','Olhos','Outros'];
-  // Nota: imgSrc calculado FORA do template literal para evitar interpolação aninhada
-  wrap.innerHTML = cats.map((c, i) => {
-    const imgSrc = SVC_CAT_IMGS[c] || SVC_CAT_IMGS['Outros'];
-    return `<button class="svc-cat${i===0?' ativa':''}" onclick="filtrarSvcCat('${c}',this)">
-      <div class="svc-cat-img"><img src="${imgSrc}" alt="${c}"></div>
-      <span class="svc-cat-lbl">${c}</span>
+  wrap.innerHTML = SVC_CATS_DEF.map((c, i) => {
+    const fb = _catFallbackSvg(c);
+    return `<button class="svc-cat${i===0?' ativa':''}" onclick="filtrarSvcCat('${c.id}',this)">
+      <div class="svc-cat-img"><img src="${c.img}" alt="${c.id}" loading="lazy" onerror="this.src='${fb}'"></div>
+      <span class="svc-cat-lbl">${c.id}</span>
     </button>`;
   }).join('');
 }
 window.renderSvcCats = renderSvcCats;
+
+// ─────────────────────────────────────────────────────────────────────────
+// BANCO DE IMAGENS DE SERVIÇO — banco pré-definido para o picker do admin
+// Adicione novas entradas aqui conforme subir as fotos no repo.
+// slug: nome do arquivo em belezza/ sem extensão
+// label: legenda exibida no picker
+// ─────────────────────────────────────────────────────────────────────────
+const SVC_IMG_BANCO = [
+  { slug:'svc_facial_01',      label:'Tratamento Facial'    },
+  { slug:'svc_facial_02',      label:'Procedimento Facial'  },
+  { slug:'svc_corporal_01',    label:'Tratamento Corporal'  },
+  { slug:'svc_corporal_02',    label:'Corporal / Drenagem'  },
+  { slug:'svc_cilios_01',      label:'Design de Cílios'     },
+  { slug:'svc_unhas_01',       label:'Nail Art / Unhas'     },
+  { slug:'svc_cabelo_01',      label:'Tratamento Capilar'   },
+  { slug:'svc_massagem_01',    label:'Massagem'             },
+  { slug:'svc_sobrancelha_01', label:'Sobrancelha'          },
+  { slug:'svc_depilacao_01',   label:'Depilação'            },
+];
+
+let _svcPickerSel = ''; // URL selecionada no picker
+
+function renderSvcImgPicker() {
+  const grid = document.getElementById('svc-img-picker-grid');
+  if (!grid) return;
+  if (!SVC_IMG_BANCO.length) {
+    grid.innerHTML = '<div style="font-size:12px;color:var(--tx3);padding:8px 0">Nenhuma imagem no banco ainda. Use a aba "Minha foto".</div>';
+    return;
+  }
+  grid.innerHTML = SVC_IMG_BANCO.map(item => {
+    const url = BASE_CDN + item.slug + '.jpg';
+    const fb  = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90"><rect width="160" height="90" fill="#fdf0f5"/><text x="80" y="50" font-size="11" text-anchor="middle" fill="#b3879a">${item.label}</text></svg>`
+    );
+    return `<div class="svc-img-picker-item" onclick="selecionarSvcImgPicker(this,'${url}')" data-url="${url}" title="${item.label}">
+      <img src="${url}" alt="${item.label}" loading="lazy" onerror="this.src='${fb}'">
+    </div>`;
+  }).join('');
+}
+window.renderSvcImgPicker = renderSvcImgPicker;
+
+function selecionarSvcImgPicker(el, url) {
+  const grid = document.getElementById('svc-img-picker-grid');
+  if (!grid) return;
+  if (_svcPickerSel === url) {
+    // deseleciona
+    _svcPickerSel = '';
+    _svcImgBase64 = '';
+    el.classList.remove('sel');
+  } else {
+    grid.querySelectorAll('.svc-img-picker-item').forEach(i => i.classList.remove('sel'));
+    el.classList.add('sel');
+    _svcPickerSel = url;
+    _svcImgBase64 = url; // salva como URL (não base64 — sem compressão necessária)
+  }
+}
+window.selecionarSvcImgPicker = selecionarSvcImgPicker;
+
+function trocarTabSvcImg(tab) {
+  const tabPicker = document.getElementById('svc-tab-picker');
+  const tabUpload = document.getElementById('svc-tab-upload');
+  const wrapPicker = document.getElementById('svc-img-picker-wrap');
+  const wrapUpload = document.getElementById('svc-img-upload-wrap');
+  if (!tabPicker) return;
+  if (tab === 'picker') {
+    tabPicker.style.background = 'var(--pk600)'; tabPicker.style.color = 'white';
+    tabUpload.style.background = 'var(--bg2)';   tabUpload.style.color = 'var(--tx2)';
+    wrapPicker.style.display = 'block';
+    wrapUpload.style.display = 'none';
+    // Limpa upload ao trocar de aba
+    removerSvcImg();
+  } else {
+    tabUpload.style.background = 'var(--pk600)'; tabUpload.style.color = 'white';
+    tabPicker.style.background = 'var(--bg2)';   tabPicker.style.color = 'var(--tx2)';
+    wrapUpload.style.display = 'block';
+    wrapPicker.style.display = 'none';
+    // Limpa picker ao trocar de aba
+    _svcPickerSel = '';
+    document.querySelectorAll('.svc-img-picker-item').forEach(i => i.classList.remove('sel'));
+    _svcImgBase64 = '';
+  }
+}
+window.trocarTabSvcImg = trocarTabSvcImg;
+
+// ─────────────────────────────────────────────────────────────────────────
+// CHIPS DE CATEGORIA — painel admin (form de cadastro de serviço)
+// ─────────────────────────────────────────────────────────────────────────
+function renderAdminCatChips() {
+  const wrap = document.getElementById('admin-cat-chips');
+  if (!wrap) return;
+  const cats = SVC_CATS_DEF.filter(c => c.id !== 'Todos');
+  wrap.innerHTML = cats.map((c, i) => {
+    const fb = _catFallbackSvg(c);
+    return `<button type="button" class="admin-cat-chip${i===0?' sel':''}" onclick="selecionarAdminCat('${c.id}',this)">
+      <img src="${c.img}" alt="${c.id}" onerror="this.src='${fb}'">
+      ${c.id}
+    </button>`;
+  }).join('');
+  // Seta valor inicial no hidden input
+  const inp = document.getElementById('svc-cat-inp');
+  if (inp) inp.value = cats[0]?.id || 'Rosto';
+}
+window.renderAdminCatChips = renderAdminCatChips;
+
+function selecionarAdminCat(cat, btn) {
+  document.querySelectorAll('.admin-cat-chip').forEach(b => b.classList.remove('sel'));
+  if (btn) btn.classList.add('sel');
+  const inp = document.getElementById('svc-cat-inp');
+  if (inp) inp.value = cat;
+}
+window.selecionarAdminCat = selecionarAdminCat;
 
 const SVC_FALLBACK_IMG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODAgMjAwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRmMGY1Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2Y5ZDBkZiIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIyMDAiIGZpbGw9InVybCgjZykiLz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNDAsMTAwKSI+CiAgICA8ZWxsaXBzZSBjeD0iMCIgY3k9Ii0zMiIgcng9IjE0IiByeT0iMjIiIGZpbGw9IiNmNGI4Y2UiIHRyYW5zZm9ybT0icm90YXRlKDApIi8+CiAgICA8ZWxsaXBzZSBjeD0iMCIgY3k9Ii0zMiIgcng9IjE0IiByeT0iMjIiIGZpbGw9IiNmNGI4Y2UiIHRyYW5zZm9ybT0icm90YXRlKDYwKSIvPgogICAgPGVsbGlwc2UgY3g9IjAiIGN5PSItMzIiIHJ4PSIxNCIgcnk9IjIyIiBmaWxsPSIjZWZhZmM4IiB0cmFuc2Zvcm09InJvdGF0ZSgxMjApIi8+CiAgICA8ZWxsaXBzZSBjeD0iMCIgY3k9Ii0zMiIgcng9IjE0IiByeT0iMjIiIGZpbGw9IiNlZmFmYzgiIHRyYW5zZm9ybT0icm90YXRlKDE4MCkiLz4KICAgIDxlbGxpcHNlIGN4PSIwIiBjeT0iLTMyIiByeD0iMTQiIHJ5PSIyMiIgZmlsbD0iI2VhYThjMCIgdHJhbnNmb3JtPSJyb3RhdGUoMjQwKSIvPgogICAgPGVsbGlwc2UgY3g9IjAiIGN5PSItMzIiIHJ4PSIxNCIgcnk9IjIyIiBmaWxsPSIjZWFhOGMwIiB0cmFuc2Zvcm09InJvdGF0ZSgzMDApIi8+CiAgICA8Y2lyY2xlIGN4PSIwIiBjeT0iMCIgcj0iMjIiIGZpbGw9IndoaXRlIiBzdHJva2U9IiNmMGEwYzAiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8cGF0aCBkPSJNMCwtMTMgUS01LC04IC01LDAgUS01LDggMCwxMiBRNSw4IDUsMCBRNSwtOCAwLC0xM1oiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5MzU1NiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICAgIDxwYXRoIGQ9Ik0tMTEsLTUgUS0xNCwwIC0xMiw2IFEtOSwxMCAtNCw4IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTM1NTYiIHN0cm9rZS13aWR0aD0iMS4yIiBvcGFjaXR5PSIuNyIvPgogICAgPHBhdGggZD0iTTExLC01IFExNCwwIDEyLDYgUTksMTAgNCw4IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTM1NTYiIHN0cm9rZS13aWR0aD0iMS4yIiBvcGFjaXR5PSIuNyIvPgogIDwvZz4KICA8Y2lyY2xlIGN4PSI2MCIgY3k9IjQwIiByPSI0IiBmaWxsPSIjZjRiOGNlIiBvcGFjaXR5PSIuNSIvPgogIDxjaXJjbGUgY3g9IjQyMCIgY3k9IjE2MCIgcj0iNiIgZmlsbD0iI2VhYThjMCIgb3BhY2l0eT0iLjQiLz4KICA8Y2lyY2xlIGN4PSIzODAiIGN5PSIzNSIgcj0iMyIgZmlsbD0iI2Y0YjhjZSIgb3BhY2l0eT0iLjYiLz4KICA8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNzAiIHI9IjUiIGZpbGw9IiNlZmFmYzgiIG9wYWNpdHk9Ii40Ii8+Cjwvc3ZnPg==';
 let _svcTodos = []; // cache para filtro de categoria
@@ -8392,12 +8546,16 @@ function abrirFormSvc() {
   });
   const sel = document.getElementById('svc-icone-inp');
   if(sel) sel.value = 'ti-sparkles';
-  const cat = document.getElementById('svc-cat-inp');
-  if(cat) cat.value = 'Rosto';
   const erro = document.getElementById('svc-form-erro');
   if(erro) erro.textContent = '';
-  // Limpa imagem
+  // Limpa imagem e picker
+  _svcPickerSel = '';
   removerSvcImg();
+  // Renderiza chips de categoria e picker de imagem
+  renderAdminCatChips();
+  renderSvcImgPicker();
+  // Garante tab picker ativa
+  trocarTabSvcImg('picker');
   wrap.style.display = 'block';
   wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -8413,6 +8571,9 @@ window.salvarSvc    = salvarSvc;
 window.removerSvc   = removerSvc;
 window.abrirFormSvc = abrirFormSvc;
 window.fecharFormSvc= fecharFormSvc;
+window.renderAdminCatChips = renderAdminCatChips;
+window.renderSvcImgPicker  = renderSvcImgPicker;
+window.trocarTabSvcImg     = trocarTabSvcImg;
 
 </script>
 <script>
