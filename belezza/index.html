@@ -943,8 +943,8 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
           <input id="svc-nome-inp" type="text" placeholder="Ex: Limpeza de pele" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
         </div>
         <div style="margin-bottom:8px">
-          <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Descrição</label>
-          <input id="svc-desc-inp" type="text" placeholder="Ex: Extração profunda e hidratação" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Descrição <span id="svc-desc-count" style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0">100</span></label>
+          <input id="svc-desc-inp" type="text" maxlength="100" placeholder="Ex: Extração profunda e hidratação" oninput="document.getElementById('svc-desc-count').textContent=100-this.value.length" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
         </div>
         <div style="margin-bottom:8px">
           <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Preço</label>
@@ -8544,6 +8544,8 @@ function abrirFormSvc() {
   ['svc-nome-inp','svc-desc-inp','svc-preco-inp'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value = '';
   });
+  const cnt = document.getElementById('svc-desc-count');
+  if(cnt) cnt.textContent = '100';
   const sel = document.getElementById('svc-icone-inp');
   if(sel) sel.value = 'ti-sparkles';
   const erro = document.getElementById('svc-form-erro');
