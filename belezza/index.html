@@ -8269,7 +8269,7 @@ function renderSvcCats() {
   wrap.innerHTML = SVC_CATS_DEF.map((c, i) => {
     const fb = _catFallbackSvg(c);
     return `<button class="svc-cat${i===0?' ativa':''}" onclick="filtrarSvcCat('${c.id}',this)">
-      <div class="svc-cat-img"><img src="${c.img}" alt="${c.id}" loading="lazy" onerror="this.src='${fb}'"></div>
+      <div class="svc-cat-img"><img src="${c.img}" alt="${c.id}" loading="eager" onerror="this.src='${fb}'"></div>
       <span class="svc-cat-lbl">${c.id}</span>
     </button>`;
   }).join('');
@@ -8288,7 +8288,7 @@ const SVC_IMG_BANCO = [
   { slug:'svc_cabelo_01',    label:'Cabelo'            },
   { slug:'svc_unhas_01',     label:'Unhas'             },
   { slug:'svc_make_01',      label:'Make'              },
-  { slug:'svc_depilacao_01', label:'Depilação'         },
+  { slug:'svc_avancada_01',  label:'Avançada'          },
   { slug:'svc_masculino_01', label:'Masculino'         },
   { slug:'svc_pele_negra_01',label:'Pele Negra'        },
   { slug:'svc_noiva_01',     label:'Dia da Noiva'      },
@@ -8309,7 +8309,7 @@ function renderSvcImgPicker() {
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90"><rect width="160" height="90" fill="#fdf0f5"/><text x="80" y="50" font-size="11" text-anchor="middle" fill="#b3879a">${item.label}</text></svg>`
     );
     return `<div class="svc-img-picker-item" onclick="selecionarSvcImgPicker(this,'${url}')" data-url="${url}" title="${item.label}">
-      <img src="${url}" alt="${item.label}" loading="lazy" onerror="this.src='${fb}'">
+      <img src="${url}" alt="${item.label}" loading="eager" onerror="this.src='${fb}'">
     </div>`;
   }).join('');
 }
@@ -8414,7 +8414,7 @@ function renderSvcGrid(docs, catFiltro) {
       : `<span class="svc-price-empty">Consulte o valor</span>`;
     return `<div class="svc-card" onclick="selecionarServico(this,'${nomeEsc}','${precoEsc}')">
       <div class="svc-banner">
-        <img src="${imgSrc}" alt="${s.nome||'Serviço'}" loading="lazy">
+        <img src="${imgSrc}" alt="${s.nome||'Serviço'}" loading="eager">
         <div class="svc-banner-overlay"></div>
         <div class="svc-banner-txt">
           <div class="svc-name">${s.nome||'Serviço'}</div>
@@ -10153,7 +10153,7 @@ function abrirPickerAvatar(tipo) {
     const img = document.createElement('img');
     img.src = _avUrl(i);
     img.alt = 'Avatar ' + i;
-    img.loading = 'lazy';
+    img.loading = 'eager';
     div.appendChild(img);
     grid.appendChild(div);
   }
