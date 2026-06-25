@@ -8292,6 +8292,7 @@ const SVC_IMG_BANCO = [
   { slug:'svc_masculino_01', label:'Masculino'         },
   { slug:'svc_pele_negra_01',label:'Pele Negra'        },
   { slug:'svc_noiva_01',     label:'Dia da Noiva'      },
+  { slug:'svc_outros_01',    label:'Outros'            },
 ];
 
 let _svcPickerSel = ''; // URL selecionada no picker
@@ -8433,6 +8434,11 @@ function filtrarSvcCat(cat, btn) {
   // Atualiza chip ativo
   document.querySelectorAll('.svc-cat').forEach(b => b.classList.remove('ativa'));
   if (btn) btn.classList.add('ativa');
+  // Reseta serviço selecionado
+  servicoSelecionado = null;
+  window.servicoSelecionado = null;
+  const wrap = document.getElementById('svc-selecionado');
+  if (wrap) wrap.classList.remove('show');
   renderSvcGrid(_svcTodos, cat);
 }
 window.filtrarSvcCat = filtrarSvcCat;
