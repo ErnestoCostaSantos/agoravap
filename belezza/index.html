@@ -8239,7 +8239,7 @@ function iniciarListenerServicos() {
 const BASE_CDN = 'https://cdn.jsdelivr.net/gh/ErnestoCostaSantos/agoravap@main/belezza/';
 const SVC_CATS_DEF = [
   { id:'Todos',        emoji:'🌸', cor:'#fdf0f5', img: BASE_CDN + 'cat_todos.jpg'       },
-  { id:'Rosto',        emoji:'✨', cor:'#fff0f3', img: BASE_CDN + 'cat_rosto.jpg'       },
+  { id:'Face',         emoji:'✨', cor:'#fff0f3', img: BASE_CDN + 'cat_face.jpg'        },
   { id:'Corpo',        emoji:'💆', cor:'#f0f4ff', img: BASE_CDN + 'cat_corpo.jpg'       },
   { id:'Cabelo',       emoji:'💇', cor:'#fff8e8', img: BASE_CDN + 'cat_cabelo.jpg'      },
   { id:'Unhas',        emoji:'💅', cor:'#f8f0ff', img: BASE_CDN + 'cat_unhas.jpg'       },
@@ -8284,8 +8284,8 @@ window.renderSvcCats = renderSvcCats;
 // label: legenda exibida no picker
 // ─────────────────────────────────────────────────────────────────────────
 const SVC_IMG_BANCO = [
-  { slug:'svc_facial_01',    label:'Rosto / Facial'    },
-  { slug:'svc_corporal_01',  label:'Corpo / Corporal'  },
+  { slug:'svc_face_01',      label:'Face / Facial'     },
+  { slug:'svc_corpo_01',     label:'Corpo / Corporal'  },
   { slug:'svc_cabelo_01',    label:'Cabelo'            },
   { slug:'svc_unhas_01',     label:'Unhas'             },
   { slug:'svc_make_01',      label:'Make'              },
@@ -8390,11 +8390,17 @@ window.selecionarAdminCat = selecionarAdminCat;
 const SVC_FALLBACK_IMG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODAgMjAwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRmMGY1Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2Y5ZDBkZiIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIyMDAiIGZpbGw9InVybCgjZykiLz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNDAsMTAwKSI+CiAgICA8ZWxsaXBzZSBjeD0iMCIgY3k9Ii0zMiIgcng9IjE0IiByeT0iMjIiIGZpbGw9IiNmNGI4Y2UiIHRyYW5zZm9ybT0icm90YXRlKDApIi8+CiAgICA8ZWxsaXBzZSBjeD0iMCIgY3k9Ii0zMiIgcng9IjE0IiByeT0iMjIiIGZpbGw9IiNmNGI4Y2UiIHRyYW5zZm9ybT0icm90YXRlKDYwKSIvPgogICAgPGVsbGlwc2UgY3g9IjAiIGN5PSItMzIiIHJ4PSIxNCIgcnk9IjIyIiBmaWxsPSIjZWZhZmM4IiB0cmFuc2Zvcm09InJvdGF0ZSgxMjApIi8+CiAgICA8ZWxsaXBzZSBjeD0iMCIgY3k9Ii0zMiIgcng9IjE0IiByeT0iMjIiIGZpbGw9IiNlZmFmYzgiIHRyYW5zZm9ybT0icm90YXRlKDE4MCkiLz4KICAgIDxlbGxpcHNlIGN4PSIwIiBjeT0iLTMyIiByeD0iMTQiIHJ5PSIyMiIgZmlsbD0iI2VhYThjMCIgdHJhbnNmb3JtPSJyb3RhdGUoMjQwKSIvPgogICAgPGVsbGlwc2UgY3g9IjAiIGN5PSItMzIiIHJ4PSIxNCIgcnk9IjIyIiBmaWxsPSIjZWFhOGMwIiB0cmFuc2Zvcm09InJvdGF0ZSgzMDApIi8+CiAgICA8Y2lyY2xlIGN4PSIwIiBjeT0iMCIgcj0iMjIiIGZpbGw9IndoaXRlIiBzdHJva2U9IiNmMGEwYzAiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8cGF0aCBkPSJNMCwtMTMgUS01LC04IC01LDAgUS01LDggMCwxMiBRNSw4IDUsMCBRNSwtOCAwLC0xM1oiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5MzU1NiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICAgIDxwYXRoIGQ9Ik0tMTEsLTUgUS0xNCwwIC0xMiw2IFEtOSwxMCAtNCw4IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTM1NTYiIHN0cm9rZS13aWR0aD0iMS4yIiBvcGFjaXR5PSIuNyIvPgogICAgPHBhdGggZD0iTTExLC01IFExNCwwIDEyLDYgUTksMTAgNCw4IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTM1NTYiIHN0cm9rZS13aWR0aD0iMS4yIiBvcGFjaXR5PSIuNyIvPgogIDwvZz4KICA8Y2lyY2xlIGN4PSI2MCIgY3k9IjQwIiByPSI0IiBmaWxsPSIjZjRiOGNlIiBvcGFjaXR5PSIuNSIvPgogIDxjaXJjbGUgY3g9IjQyMCIgY3k9IjE2MCIgcj0iNiIgZmlsbD0iI2VhYThjMCIgb3BhY2l0eT0iLjQiLz4KICA8Y2lyY2xlIGN4PSIzODAiIGN5PSIzNSIgcj0iMyIgZmlsbD0iI2Y0YjhjZSIgb3BhY2l0eT0iLjYiLz4KICA8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNzAiIHI9IjUiIGZpbGw9IiNlZmFmYzgiIG9wYWNpdHk9Ii40Ii8+Cjwvc3ZnPg==';
 let _svcTodos = []; // cache para filtro de categoria
 
+// Normaliza nome de categoria para comparação (sem acento, minúsculo)
+function _normCat(s) {
+  return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+
 function renderSvcGrid(docs, catFiltro) {
   const grid = document.getElementById('svc-grid-cli');
   if (!grid) return;
+  const normFiltro = _normCat(catFiltro);
   const lista = catFiltro && catFiltro !== 'Todos'
-    ? docs.filter(d => d.cat === catFiltro)
+    ? docs.filter(d => _normCat(d.cat) === normFiltro)
     : docs;
   if (!lista.length) {
     grid.innerHTML = '<div style="color:var(--tx3);font-size:13px;text-align:center;padding:32px 0">Nenhum serviço nessa categoria. 💕</div>';
