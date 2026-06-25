@@ -8238,16 +8238,18 @@ function iniciarListenerServicos() {
 // ─────────────────────────────────────────────────────────────────────────
 const BASE_CDN = 'https://cdn.jsdelivr.net/gh/ErnestoCostaSantos/agoravap@main/belezza/';
 const SVC_CATS_DEF = [
-  { id:'Todos',       emoji:'🌸', cor:'#fdf0f5', img: BASE_CDN + 'cat_todos.jpg'       },
-  { id:'Rosto',       emoji:'✨', cor:'#fff0f3', img: BASE_CDN + 'cat_rosto.jpg'       },
-  { id:'Corpo',       emoji:'💆', cor:'#f0f4ff', img: BASE_CDN + 'cat_corpo.jpg'       },
-  { id:'Cabelo',      emoji:'💇', cor:'#fff8e8', img: BASE_CDN + 'cat_cabelo.jpg'      },
-  { id:'Unhas',       emoji:'💅', cor:'#f8f0ff', img: BASE_CDN + 'cat_unhas.jpg'       },
-  { id:'Olhos',       emoji:'👁',  cor:'#e8fff4', img: BASE_CDN + 'cat_olhos.jpg'       },
-  { id:'Sobrancelha', emoji:'🪄', cor:'#fff5e8', img: BASE_CDN + 'cat_sobrancelha.jpg' },
-  { id:'Massagem',    emoji:'🌿', cor:'#e8f8ee', img: BASE_CDN + 'cat_massagem.jpg'    },
-  { id:'Depilação',   emoji:'🌙', cor:'#f0eaff', img: BASE_CDN + 'cat_depilacao.jpg'   },
-  { id:'Outros',      emoji:'💫', cor:'#fff5f0', img: BASE_CDN + 'cat_outros.jpg'      },
+  { id:'Todos',        emoji:'🌸', cor:'#fdf0f5', img: BASE_CDN + 'cat_todos.jpg'       },
+  { id:'Rosto',        emoji:'✨', cor:'#fff0f3', img: BASE_CDN + 'cat_rosto.jpg'       },
+  { id:'Corpo',        emoji:'💆', cor:'#f0f4ff', img: BASE_CDN + 'cat_corpo.jpg'       },
+  { id:'Cabelo',       emoji:'💇', cor:'#fff8e8', img: BASE_CDN + 'cat_cabelo.jpg'      },
+  { id:'Unhas',        emoji:'💅', cor:'#f8f0ff', img: BASE_CDN + 'cat_unhas.jpg'       },
+  { id:'Make',         emoji:'💄', cor:'#fff0f5', img: BASE_CDN + 'cat_make.jpg'        },
+  { id:'Depilação',    emoji:'🌙', cor:'#f0eaff', img: BASE_CDN + 'cat_depilacao.jpg'   },
+  { id:'Masculino',    emoji:'🧔', cor:'#e8f4ff', img: BASE_CDN + 'cat_masculino.jpg'   },
+  { id:'Pele Negra',   emoji:'🤎', cor:'#fdf5ee', img: BASE_CDN + 'cat_pele_negra.jpg'  },
+  { id:'Dia da Noiva', emoji:'👰', cor:'#fff8f8', img: BASE_CDN + 'cat_noiva.jpg'       },
+  { id:'Avançada',     emoji:'⚡', cor:'#f0f0ff', img: BASE_CDN + 'cat_avancada.jpg'    },
+  { id:'Outros',       emoji:'💫', cor:'#fff5f0', img: BASE_CDN + 'cat_outros.jpg'      },
 ];
 
 // Mapa rápido id → def
@@ -8282,16 +8284,15 @@ window.renderSvcCats = renderSvcCats;
 // label: legenda exibida no picker
 // ─────────────────────────────────────────────────────────────────────────
 const SVC_IMG_BANCO = [
-  { slug:'svc_facial_01',      label:'Tratamento Facial'    },
-  { slug:'svc_facial_02',      label:'Procedimento Facial'  },
-  { slug:'svc_corporal_01',    label:'Tratamento Corporal'  },
-  { slug:'svc_corporal_02',    label:'Corporal / Drenagem'  },
-  { slug:'svc_cilios_01',      label:'Design de Cílios'     },
-  { slug:'svc_unhas_01',       label:'Nail Art / Unhas'     },
-  { slug:'svc_cabelo_01',      label:'Tratamento Capilar'   },
-  { slug:'svc_massagem_01',    label:'Massagem'             },
-  { slug:'svc_sobrancelha_01', label:'Sobrancelha'          },
-  { slug:'svc_depilacao_01',   label:'Depilação'            },
+  { slug:'svc_facial_01',    label:'Rosto / Facial'    },
+  { slug:'svc_corporal_01',  label:'Corpo / Corporal'  },
+  { slug:'svc_cabelo_01',    label:'Cabelo'            },
+  { slug:'svc_unhas_01',     label:'Unhas'             },
+  { slug:'svc_make_01',      label:'Make'              },
+  { slug:'svc_depilacao_01', label:'Depilação'         },
+  { slug:'svc_masculino_01', label:'Masculino'         },
+  { slug:'svc_pele_negra_01',label:'Pele Negra'        },
+  { slug:'svc_noiva_01',     label:'Dia da Noiva'      },
 ];
 
 let _svcPickerSel = ''; // URL selecionada no picker
