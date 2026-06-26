@@ -887,7 +887,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <!-- Top 10 legenda -->
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:6px 10px;background:linear-gradient(90deg,#fffbea,#fef9e0);border-radius:var(--r);border:1px solid #f5d84a">
         <i class="ti ti-crown" style="font-size:14px;color:#c49b00"></i>
-        <span style="font-size:11px;color:#7a5f00;font-weight:600">Top 10 — score = visitas (60%) + valor gasto (40%)</span>
+        <span style="font-size:11px;color:#7a5f00;font-weight:600">Top 10 — score = visitas × 0,4 + valor gasto × 0,6</span>
       </div>
       <!-- Contagem + ordenação + seleção múltipla -->
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap">
@@ -1128,32 +1128,12 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
         <!-- Top 10 do período -->
         <div class="card" style="padding:12px 14px;margin-bottom:12px">
           <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">
-            Top 10 — Maio 2026
-            <span style="font-size:10px;font-weight:400;color:var(--tx3);text-transform:none;margin-left:6px">score = visitas (60%) + valor gasto (40%)</span>
+            Campanha Top 10
+            <span style="font-size:10px;font-weight:400;color:var(--tx3);text-transform:none;margin-left:6px">score = visitas × 0,4 + valor gasto × 0,6</span>
           </div>
-          <!-- ranking rows -->
+          <!-- ranking rows — renderizado por renderTop10() -->
           <div style="display:flex;flex-direction:column;gap:6px" id="fidelidade-lista">
-            <div class="fidel-row" style="background:linear-gradient(90deg,#fffdf0,transparent)">
-              <div class="fidel-pos" style="background:#f5d84a;color:#7a5f00">1</div>
-              <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaRosa&backgroundColor=e1f5ee" class="fidel-av">
-              <div class="fidel-info"><div class="fidel-name">Mariana Costa</div><div class="fidel-sub">5 visitas · R$ 820</div></div>
-              <div class="fidel-score">4.8</div>
-              <button class="btn tl sm" onclick="abrirWppFidel('(11) 91234-5678','Mariana')"><i class="ti ti-brand-whatsapp"></i></button>
-            </div>
-            <div class="fidel-row" style="background:linear-gradient(90deg,#fffdf0,transparent)">
-              <div class="fidel-pos" style="background:#e8e0c8;color:#5a4f2a">2</div>
-              <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=AnaFlor&backgroundColor=fbeaf0" class="fidel-av">
-              <div class="fidel-info"><div class="fidel-name">Ana Paula Ferreira</div><div class="fidel-sub">3 visitas · R$ 540</div></div>
-              <div class="fidel-score">3.2</div>
-              <button class="btn tl sm" onclick="abrirWppFidel('(11) 98765-4321','Ana Paula')"><i class="ti ti-brand-whatsapp"></i></button>
-            </div>
-            <div class="fidel-row">
-              <div class="fidel-pos" style="background:#e8e0c8;color:#5a4f2a">3</div>
-              <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe" class="fidel-av">
-              <div class="fidel-info"><div class="fidel-name">Leticia Barros</div><div class="fidel-sub">2 visitas · R$ 280</div></div>
-              <div class="fidel-score">1.9</div>
-              <button class="btn tl sm" onclick="abrirWppFidel('(11) 97890-1234','Leticia')"><i class="ti ti-brand-whatsapp"></i></button>
-            </div>
+            <div style="color:var(--tx3);font-size:13px;text-align:center;padding:16px 0">Carregando ranking...</div>
           </div>
         </div>
 
@@ -2742,6 +2722,7 @@ function goTo(id,el){
   if(id==='c-promos') setTimeout(()=>{ if(window.iniciarListenerPromos && !unsubPromos) window.iniciarListenerPromos(); }, 50);
   if(id==='p-camp'){
     setTimeout(()=>{ if(window.initCampForm) window.initCampForm(); }, 50);
+    setTimeout(()=>{ if(window.renderTop10) window.renderTop10(); }, 100);
     document.getElementById('tb-act').style.display = 'none';
   }
   if(id==='p-personalizacao'){
@@ -3324,6 +3305,82 @@ function enviarFidelidade(){
   toast.style.display='flex';
   setTimeout(()=>{ toast.style.display='none'; }, 4000);
 }
+
+// ── Extrai valor numérico do campo preço do serviço ───────────────────────
+function _extrairValorServico(precoStr) {
+  if (!precoStr) return 200;
+  const s = String(precoStr).trim().toLowerCase();
+  if (!s || s.includes('a/c') || s.includes('combinar') || s.includes('consulte')) return 200;
+  const num = parseFloat(s.replace(/[^0-9,]/g, '').replace(',', '.'));
+  return isNaN(num) || num === 0 ? 200 : num;
+}
+
+// ── Calcula score mensal: visitas*0.4 + valorGasto*0.6 ───────────────────
+function _calcScore(visitas, valor) {
+  return Math.round(((visitas || 0) * 0.4 + (valor || 0) * 0.6) * 10) / 10;
+}
+
+// ── Mês atual no formato "YYYY-MM" ────────────────────────────────────────
+function _mesAtual() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+// ── Renderiza o Top 10 real a partir de clientesDB ───────────────────────
+function renderTop10() {
+  const lista = document.getElementById('fidelidade-lista');
+  if (!lista) return;
+  const mes = _mesAtual();
+  const db2 = window.clientesDB || clientesDB || [];
+  if (!db2.length) {
+    lista.innerHTML = '<div style="color:var(--tx3);font-size:13px;text-align:center;padding:16px 0">Nenhuma cliente cadastrada ainda.</div>';
+    return;
+  }
+  // Filtra clientes com score mensal no mês atual; zera quem está em outro mês
+  const ranked = db2
+    .map(c => {
+      const scoreMes = c.scoreMes || {};
+      const visitas  = scoreMes[mes]?.visitas || 0;
+      const valor    = scoreMes[mes]?.valor    || 0;
+      const score    = _calcScore(visitas, valor);
+      return { ...c, _scoreMes: score, _visitasMes: visitas, _valorMes: valor };
+    })
+    .filter(c => c._scoreMes > 0)
+    .sort((a, b) => b._scoreMes - a._scoreMes)
+    .slice(0, 10);
+
+  if (!ranked.length) {
+    lista.innerHTML = '<div style="color:var(--tx3);font-size:13px;text-align:center;padding:16px 0">Nenhum score registrado este mês ainda.</div>';
+    return;
+  }
+
+  const medalhas = [
+    { bg: '#f5d84a', cor: '#7a5f00' },
+    { bg: '#e8e0c8', cor: '#5a4f2a' },
+    { bg: '#d4a57a', cor: '#5a3a1a' },
+  ];
+
+  lista.innerHTML = ranked.map((c, i) => {
+    const pos    = i + 1;
+    const medal  = medalhas[i] || { bg: 'var(--bg2)', cor: 'var(--tx2)' };
+    const avatar = c.fotoUrl || c.avatar ||
+      'https://api.dicebear.com/9.x/lorelei/svg?seed=' + encodeURIComponent(c.nome || 'C') + '&backgroundColor=fbeaf0';
+    const wpp    = (c.wpp || c.whatsapp || '').replace(/\D/g, '');
+    const sub    = c._visitasMes + ' visita' + (c._visitasMes === 1 ? '' : 's') + ' · R$ ' + c._valorMes.toFixed(0);
+    const rowStyle = i < 3 ? ' style="background:linear-gradient(90deg,#fffdf0,transparent)"' : '';
+    const wppBtn = wpp
+      ? '<button class="btn tl sm" onclick="abrirWppFidel(\'' + wpp + '\',\'' + (c.nome||'').split(' ')[0] + '\')"><i class="ti ti-brand-whatsapp"></i></button>'
+      : '<div style="width:32px"></div>';
+    return '<div class="fidel-row"' + rowStyle + '>' +
+      '<div class="fidel-pos" style="background:' + medal.bg + ';color:' + medal.cor + '">' + pos + '</div>' +
+      '<img src="' + avatar + '" class="fidel-av" onerror="this.src=&apos;https://api.dicebear.com/9.x/lorelei/svg?seed=X&amp;backgroundColor=fbeaf0&apos;">' +
+      '<div class="fidel-info"><div class="fidel-name">' + (c.nome || '—') + '</div><div class="fidel-sub">' + sub + '</div></div>' +
+      '<div class="fidel-score">' + c._scoreMes.toFixed(1) + '</div>' +
+      wppBtn +
+      '</div>';
+  }).join('');
+}
+window.renderTop10 = renderTop10;
 // doLogin handled by Firebase Auth above
 let _promoImgBase64 = '';
 
@@ -4833,18 +4890,34 @@ async function confirmarFS(id) {
         if (cliLocal) {
           const novoValor = (cliLocal.valor || 0) + (ag.valorServico || 0);
           const novasVisitas = (cliLocal.visitas || 0) + 1;
+          // Score mensal — acumula visitas e valor no mês atual; zera automaticamente em mês novo
+          const mes = (typeof _mesAtual === 'function') ? _mesAtual() : (() => {
+            const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+          })();
+          const scoreMesAtual = (cliLocal.scoreMes && cliLocal.scoreMes[mes]) || { visitas: 0, valor: 0 };
+          const novoValorServico = ag.valorServico || (typeof _extrairValorServico === 'function'
+            ? _extrairValorServico(ag.servico) : 200);
+          const novoScoreMes = {
+            ...(cliLocal.scoreMes || {}),
+            [mes]: {
+              visitas: (scoreMesAtual.visitas || 0) + 1,
+              valor:   (scoreMesAtual.valor   || 0) + novoValorServico,
+            }
+          };
           await updateDoc(doc(db, 'clientes', cliLocal.id), {
             visitas: novasVisitas,
             valor: novoValor,
             ultimaVisita: ag.data,
             ultimoSvc: ag.servico,
             prof: ag.prof || cliLocal.prof || '—',
+            scoreMes: novoScoreMes,
           });
           // Reflete na memória local para a UI atualizar sem precisar recarregar
           cliLocal.visitas = novasVisitas;
           cliLocal.valor = novoValor;
           cliLocal.ultimaVisita = ag.data;
           cliLocal.ultimoSvc = ag.servico;
+          cliLocal.scoreMes = novoScoreMes;
         }
       } catch(eCli) { console.warn('[Belezza] acumular visitas/valor:', eCli); }
     }
