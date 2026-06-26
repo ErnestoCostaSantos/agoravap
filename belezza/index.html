@@ -2995,28 +2995,27 @@ function abrirModalAg(){
   document.getElementById('ag-cliente-nome').value = '';
   const sugCliEl = document.getElementById('ag-cliente-sugestoes');
   if(sugCliEl) sugCliEl.style.display = 'none';
-  // Popula select de serviços a partir do catálogo de serviços (Firestore)
+  // Popula select de serviços a partir do catálogo real (Firestore)
   const selSvc = document.getElementById('ag-servico');
   if(selSvc){
-    const svcDB = window._svcTodosAdmin || [];
-    if(svcDB.length){
-      selSvc.innerHTML = '<option value="">Selecione...</option>' +
-        svcDB.map(s => `<option value="${s.nome}" data-preco="${s.preco||''}">${s.nome}${s.preco ? ' — ' + s.preco : ''}</option>`).join('');
-    } else {
-      // Fallback: busca do Firestore se _svcTodosAdmin não estiver em memória
-      const cid = clinicaAtual ? clinicaAtual() : (window.clinicaAtual ? window.clinicaAtual() : '');
-      if(cid && window.db){
-        import('https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js').then(({collection, getDocs}) => {
-          getDocs(collection(window.db, 'servicos', cid, 'items')).then(snap => {
-            const opts = snap.docs.map(d => d.data()).filter(s => s.nome);
-            selSvc.innerHTML = '<option value="">Selecione...</option>' +
-              opts.map(s => `<option value="${s.nome}" data-preco="${s.preco||''}">${s.nome}${s.preco ? ' — ' + s.preco : ''}</option>`).join('');
-          });
-        });
-      } else {
-        selSvc.innerHTML = '<option value="">Selecione...</option>';
+    selSvc.innerHTML = '<option value="">Carregando...</option>';
+    const _popularSvcSelect = async () => {
+      let svcDB = window._svcTodosAdmin || [];
+      if(!svcDB.length){
+        try {
+          const snap = await getDocs(collection(db, 'servicos', clinicaAtual(), 'items'));
+          svcDB = snap.docs.map(d => d.data()).filter(s => s.nome);
+          window._svcTodosAdmin = svcDB;
+        } catch(e){ console.warn('[Belezza] busca serviços modal:', e); }
       }
-    }
+      selSvc.innerHTML = '<option value="">Selecione...</option>' +
+        svcDB.sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')).map(s => {
+          const preco = s.preco || '';
+          const label = s.nome + (preco ? ' — ' + preco : '');
+          return `<option value="${s.nome}" data-preco="${preco}">${label}</option>`;
+        }).join('');
+    };
+    _popularSvcSelect();
   }
   // Popula select de profissionais
   const selProf = document.getElementById('ag-prof');
@@ -8278,7 +8277,7 @@ function renderSvcCats() {
   if (!wrap) return;
   wrap.innerHTML = SVC_CATS_DEF.map((c, i) => {
     const fb = _catFallbackSvg(c);
-    return `<button class="svc-cat${i===0?' ativa':''}" data-cat="${c.id}" onclick="filtrarSvcCat('${c.id}',this)">
+    return `<button class="svc-cat${i===0?' ativa':''}" onclick="filtrarSvcCat('${c.id}',this)">
       <div class="svc-cat-img"><img src="${c.img}" alt="${c.id}" loading="eager" onerror="this.src='${fb}'"></div>
       <span class="svc-cat-lbl">${c.id}</span>
     </button>`;
@@ -8457,13 +8456,6 @@ function iniciarListenerServicosCli() {
   if (_unsubServicosCli) return;
   // Renderiza as categorias com imagem
   renderSvcCats();
-  // Garante que "Todos" está ativo ao entrar na tela
-  setTimeout(() => {
-    const chips = document.querySelectorAll('.svc-cat');
-    if (chips.length && !document.querySelector('.svc-cat.ativa')) {
-      chips[0].classList.add('ativa');
-    }
-  }, 50);
   const cid = clinicaAtual();
   const ref = collection(db, 'servicos', cid, 'items');
   _unsubServicosCli = onSnapshot(ref, snap => {
@@ -8475,8 +8467,8 @@ function iniciarListenerServicosCli() {
       return;
     }
     _svcTodos = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
-    // Mantém categoria ativa, padrão "Todos"
-    const catAtiva = document.querySelector('.svc-cat.ativa')?.dataset?.cat || 'Todos';
+    // Mantém categoria ativa
+    const catAtiva = document.querySelector('.svc-cat.ativa')?.textContent || 'Todos';
     renderSvcGrid(_svcTodos, catAtiva);
   }, err => {
     console.warn('[Belezza] serviços cli listener:', err);
@@ -9666,7 +9658,7 @@ function mascoteSetSecao(secao) {
   const badge = document.getElementById('mascote-badge');
   if (!mascoteVisto[secao]) {
     if (badge) badge.style.display = 'block';
-    // Não abre automaticamente — só mostra badge; cliente abre ao clicar
+    // Não abre automaticamente — só mostra badge; abre ao clicar
   } else {
     if (badge) badge.style.display = 'none';
   }
@@ -10020,7 +10012,7 @@ function mascoteProSetSecao(secao) {
   const badge = document.getElementById('mascote-pro-badge');
   if (!mascoteProVisto[secao]) {
     if (badge) badge.style.display = 'block';
-    // Não abre automaticamente — só mostra badge; usuário abre ao clicar
+    // Não abre automaticamente — só mostra badge; abre ao clicar
   } else {
     if (badge) badge.style.display = 'none';
   }
