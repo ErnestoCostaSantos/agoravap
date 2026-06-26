@@ -2995,26 +2995,27 @@ function abrirModalAg(){
   document.getElementById('ag-cliente-nome').value = '';
   const sugCliEl = document.getElementById('ag-cliente-sugestoes');
   if(sugCliEl) sugCliEl.style.display = 'none';
-  // Popula select de serviços das especialidades da equipe
+  // Popula select de serviços a partir do catálogo de serviços (Firestore)
   const selSvc = document.getElementById('ag-servico');
   if(selSvc){
-    const eqDB = window.equipeDB || equipeDB || [];
-    // Não filtra por "ativa hoje" — folga de hoje não impede agendar essa
-    // profissional para um dia futuro em que ela trabalha (o calendário já
-    // filtra os dias certos depois que a profissional é escolhida).
-    if(eqDB.length > 1){
+    const svcDB = window._svcTodosAdmin || [];
+    if(svcDB.length){
       selSvc.innerHTML = '<option value="">Selecione...</option>' +
-        eqDB.map(p => {
-          const servs = (p.espec||'').split(/[·,]/).map(s=>s.trim()).filter(Boolean);
-          if(!servs.length) return '';
-          return `<optgroup label="${p.nome}">${servs.map(s=>`<option value="${s}">${s}</option>`).join('')}</optgroup>`;
-        }).join('');
+        svcDB.map(s => `<option value="${s.nome}" data-preco="${s.preco||''}">${s.nome}${s.preco ? ' — ' + s.preco : ''}</option>`).join('');
     } else {
-      const servs = [...new Set(
-        eqDB.flatMap(p => (p.espec||'').split(/[·,]/).map(s => s.trim()).filter(Boolean))
-      )].sort();
-      selSvc.innerHTML = '<option value="">Selecione...</option>' +
-        servs.map(s => `<option value="${s}">${s}</option>`).join('');
+      // Fallback: busca do Firestore se _svcTodosAdmin não estiver em memória
+      const cid = clinicaAtual ? clinicaAtual() : (window.clinicaAtual ? window.clinicaAtual() : '');
+      if(cid && window.db){
+        import('https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js').then(({collection, getDocs}) => {
+          getDocs(collection(window.db, 'servicos', cid, 'items')).then(snap => {
+            const opts = snap.docs.map(d => d.data()).filter(s => s.nome);
+            selSvc.innerHTML = '<option value="">Selecione...</option>' +
+              opts.map(s => `<option value="${s.nome}" data-preco="${s.preco||''}">${s.nome}${s.preco ? ' — ' + s.preco : ''}</option>`).join('');
+          });
+        });
+      } else {
+        selSvc.innerHTML = '<option value="">Selecione...</option>';
+      }
     }
   }
   // Popula select de profissionais
@@ -3175,6 +3176,13 @@ async function salvarNovoAg(){
   const profEl    = document.getElementById('ag-prof');
   const origemEl  = document.getElementById('ag-origem');
   const servico   = servicoEl ? servicoEl.value : '';
+  const valorServico = (() => {
+    if (!servicoEl) return 0;
+    const opt = servicoEl.options[servicoEl.selectedIndex];
+    const raw = opt?.dataset?.preco || '';
+    const num = parseFloat(raw.replace(/[^0-9,.-]/g,'').replace(',','.'));
+    return isNaN(num) ? 0 : num;
+  })();
   const data      = dataEl    ? dataEl.value : '';
   const hora      = horaEl    ? horaEl.value : '';
   const profNome  = profEl    ? (profEl.options[profEl.selectedIndex]?.text || profEl.value) : '';
@@ -3220,7 +3228,7 @@ async function salvarNovoAg(){
   const partes = profNome.trim().split(' ');
   const profAbrev = partes.length >= 2 ? partes[0] + ' ' + partes[1][0] + '.' : profNome;
   const id = 'ag-' + Date.now();
-  const novoAg = { id, cliente, clienteId, servico, data:dataFmt, hora, prof:profAbrev, profId, origem,
+  const novoAg = { id, cliente, clienteId, servico, valorServico, data:dataFmt, hora, prof:profAbrev, profId, origem,
     status:'confirmado', clinicaId:clinicaAtual(), criadoEm:new Date().toISOString(), criadoUid: cu?.uid || 'admin' };
 
   const btnConfirmar = document.querySelector('#modal-novo-ag button.btn.pk');
@@ -8198,6 +8206,8 @@ function iniciarListenerServicos() {
   const cid = clinicaAtual();
   const ref = collection(db, 'servicos', cid, 'items');
   _unsubServicos = onSnapshot(ref, snap => {
+    // Salva em memória para o modal de novo agendamento
+    window._svcTodosAdmin = snap.empty ? [] : snap.docs.map(d => ({ ...d.data(), _id: d.id }));
     const lista = document.getElementById('p-svc-lista');
     if (!lista) return;
     if (snap.empty) {
@@ -8268,7 +8278,7 @@ function renderSvcCats() {
   if (!wrap) return;
   wrap.innerHTML = SVC_CATS_DEF.map((c, i) => {
     const fb = _catFallbackSvg(c);
-    return `<button class="svc-cat${i===0?' ativa':''}" onclick="filtrarSvcCat('${c.id}',this)">
+    return `<button class="svc-cat${i===0?' ativa':''}" data-cat="${c.id}" onclick="filtrarSvcCat('${c.id}',this)">
       <div class="svc-cat-img"><img src="${c.img}" alt="${c.id}" loading="eager" onerror="this.src='${fb}'"></div>
       <span class="svc-cat-lbl">${c.id}</span>
     </button>`;
@@ -8447,6 +8457,13 @@ function iniciarListenerServicosCli() {
   if (_unsubServicosCli) return;
   // Renderiza as categorias com imagem
   renderSvcCats();
+  // Garante que "Todos" está ativo ao entrar na tela
+  setTimeout(() => {
+    const chips = document.querySelectorAll('.svc-cat');
+    if (chips.length && !document.querySelector('.svc-cat.ativa')) {
+      chips[0].classList.add('ativa');
+    }
+  }, 50);
   const cid = clinicaAtual();
   const ref = collection(db, 'servicos', cid, 'items');
   _unsubServicosCli = onSnapshot(ref, snap => {
@@ -8458,8 +8475,8 @@ function iniciarListenerServicosCli() {
       return;
     }
     _svcTodos = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
-    // Mantém categoria ativa
-    const catAtiva = document.querySelector('.svc-cat.ativa')?.textContent || 'Todos';
+    // Mantém categoria ativa, padrão "Todos"
+    const catAtiva = document.querySelector('.svc-cat.ativa')?.dataset?.cat || 'Todos';
     renderSvcGrid(_svcTodos, catAtiva);
   }, err => {
     console.warn('[Belezza] serviços cli listener:', err);
@@ -9649,7 +9666,7 @@ function mascoteSetSecao(secao) {
   const badge = document.getElementById('mascote-badge');
   if (!mascoteVisto[secao]) {
     if (badge) badge.style.display = 'block';
-    setTimeout(() => { if (!mascoteVisto[secao]) mascoteAbrir(); }, 900);
+    // Não abre automaticamente — só mostra badge; cliente abre ao clicar
   } else {
     if (badge) badge.style.display = 'none';
   }
@@ -10003,7 +10020,7 @@ function mascoteProSetSecao(secao) {
   const badge = document.getElementById('mascote-pro-badge');
   if (!mascoteProVisto[secao]) {
     if (badge) badge.style.display = 'block';
-    setTimeout(() => { if (!mascoteProVisto[secao]) mascoteProAbrir(); }, 900);
+    // Não abre automaticamente — só mostra badge; usuário abre ao clicar
   } else {
     if (badge) badge.style.display = 'none';
   }
