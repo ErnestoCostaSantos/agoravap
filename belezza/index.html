@@ -2273,8 +2273,9 @@ setPersistence(auth, browserSessionPersistence).catch(e => {
 // TOKEN definido aqui — troque por um valor secreto longo antes do deploy.
 // ══════════════════════════════════════════════════════════════════════════
 const _SA_TOKEN = 'ECSAgoravapMeCuidar2026';  // ← ALTERE antes de publicar
+window._SA_TOKEN = _SA_TOKEN; // expõe para debug
 
-(async function _initSuperAdmin() {
+async function _initSuperAdmin() {
   const saParam = new URLSearchParams(window.location.search).get('sa');
   if (!saParam || saParam !== _SA_TOKEN) return;
 
@@ -2336,7 +2337,14 @@ const _SA_TOKEN = 'ECSAgoravapMeCuidar2026';  // ← ALTERE antes de publicar
     document.getElementById('sa-status').textContent = '⚠️ Erro ao carregar: ' + e.message;
     console.error('[SA]', e);
   }
-})();
+}
+
+// Chama SuperAdmin após DOM pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _initSuperAdmin);
+} else {
+  _initSuperAdmin();
+}
 
 window.saFiltrar = function(filtro) {
   const cli = window._saClinicas || [];
