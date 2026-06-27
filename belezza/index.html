@@ -2266,13 +2266,14 @@ onAuthStateChanged(auth, async user => {
 // setPersistence em paralelo — não bloqueia o listener
 setPersistence(auth, browserSessionPersistence).catch(e => {
   console.warn('[Belezza] setPersistence:', e);
+});
 
 // ══════════════════════════════════════════════════════════════════════════
 // SUPERADMIN — Painel ECS de controle de clínicas
 // Acesso via: mecuidar.app.br?sa=<TOKEN>
 // TOKEN definido aqui — troque por um valor secreto longo antes do deploy.
 // ══════════════════════════════════════════════════════════════════════════
-const _SA_TOKEN = 'ECSAgoravapMeCuidar2026';  // ← ALTERE antes de publicar
+const _SA_TOKEN = 'MeCuidarECSAgoravap2026';  // ← ALTERE antes de publicar
 
 (async function _initSuperAdmin() {
   const saParam = new URLSearchParams(window.location.search).get('sa');
@@ -2410,7 +2411,6 @@ window.saCopiarId = function(id) {
     if (t) t.textContent = '✅ ID copiado: ' + id;
   });
 };
-});
 
 // ── Auth: login ───────────────────────────────────────────────────────────
 async function doLogin() {
