@@ -553,8 +553,8 @@ input[type="password"]::-ms-clear {
 
 <div class="app" style="display:none">
 <!-- ── Banner Trial ─────────────────────────────────────────────────────── -->
-<div id="trial-banner" style="display:none;position:sticky;top:0;z-index:9200;background:#f59e0b;color:#1c1917;font-size:12px;font-weight:600;text-align:center;padding:6px 12px;letter-spacing:.02em;flex-shrink:0">
-  ⏳ Versão <strong>Trial</strong> — expira em <span id="trial-banner-data">—</span>. Para continuar, fale com a ECS.
+<div id="trial-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9200;background:#f59e0b;color:#1c1917;font-size:12px;font-weight:600;text-align:center;padding:5px 12px;letter-spacing:.02em">
+  ⏳ Versão <strong>Trial</strong> — expira em <span id="trial-banner-data">—</span>. Fale com a ECS para continuar.
 </div>
 <nav class="sidebar" id="sidebar">
   <div class="sb-brand">
@@ -2266,14 +2266,13 @@ onAuthStateChanged(auth, async user => {
 // setPersistence em paralelo — não bloqueia o listener
 setPersistence(auth, browserSessionPersistence).catch(e => {
   console.warn('[Belezza] setPersistence:', e);
-});
 
 // ══════════════════════════════════════════════════════════════════════════
 // SUPERADMIN — Painel ECS de controle de clínicas
 // Acesso via: mecuidar.app.br?sa=<TOKEN>
 // TOKEN definido aqui — troque por um valor secreto longo antes do deploy.
 // ══════════════════════════════════════════════════════════════════════════
-const _SA_TOKEN = 'MeCuidarECSAgoravap2026';  // ← ALTERE antes de publicar
+const _SA_TOKEN = 'ECSAgoravapMeCuidar2026';  // ← ALTERE antes de publicar
 
 (async function _initSuperAdmin() {
   const saParam = new URLSearchParams(window.location.search).get('sa');
@@ -2411,6 +2410,7 @@ window.saCopiarId = function(id) {
     if (t) t.textContent = '✅ ID copiado: ' + id;
   });
 };
+});
 
 // ── Auth: login ───────────────────────────────────────────────────────────
 async function doLogin() {
@@ -7297,9 +7297,12 @@ function _aplicarRestricoesTrial(dataExpira) {
   // 1. Atualiza texto do banner (profissional)
   const banner = document.getElementById('trial-banner');
   if (banner) {
-    banner.style.display = 'flex';
+    banner.style.display = 'block';
     const spanData = document.getElementById('trial-banner-data');
     if (spanData) spanData.textContent = dataExpira || '—';
+    // Empurra conteúdo do app para baixo (banner é fixed ~27px)
+    const appDiv = document.querySelector('.app');
+    if (appDiv) appDiv.style.paddingTop = '27px';
   }
   // 2. Banner versão cliente
   const bannerCli = document.getElementById('trial-banner-cli');
@@ -9203,7 +9206,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
 <!-- HOME CLIENTE (após login) -->
 <div id="home-cli-screen" style="position:fixed;inset:0;z-index:9050;display:none;flex-direction:column;overflow:hidden;">
   <!-- Banner Trial cliente -->
-  <div id="trial-banner-cli" style="display:none;position:relative;z-index:9300;background:#f59e0b;color:#1c1917;font-size:11px;font-weight:600;text-align:center;padding:5px 10px;flex-shrink:0">
+  <div id="trial-banner-cli" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9400;background:#f59e0b;color:#1c1917;font-size:11px;font-weight:600;text-align:center;padding:5px 10px;line-height:1.4">
     ⏳ Versão <strong>Trial</strong> — expira em <span class="trial-banner-data-cli">—</span>
   </div>
   <!-- Fundo marca dagua -->
