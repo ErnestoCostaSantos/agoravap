@@ -2441,6 +2441,19 @@ window.saFecharNovaClinica = function() {
   if(m) m.style.display = 'none';
 };
 
+window.saMascaraData = function(el) {
+  var v = el.value.replace(/\D/g,'');
+  if(v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+  if(v.length > 5) v = v.slice(0,5) + '/' + v.slice(5,9);
+  el.value = v;
+};
+
+window.saPreviewEmail = function(el) {
+  var num = el.value.replace(/\D/g,'');
+  var prev = document.getElementById('sa-f-preview-email');
+  if(prev) prev.textContent = num ? num + '@cli.mecuidar.app' : '\u2014';
+};
+
 window.saCriarClinica = async function() {
   const btn = document.getElementById('sa-btn-criar');
   const erroEl = document.getElementById('sa-nova-erro');
@@ -10700,7 +10713,7 @@ window._avUrl             = _avUrl;
     </div>
     <div style="margin-bottom:12px">
       <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px">Expira em <span style="color:#f59e0b">*</span> <span style="color:#6b7280">(DD/MM/AAAA)</span></label>
-      <input id="sa-f-expira" placeholder="30/09/2026" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'').replace(/(\d{2})(\d)/,'$1/$2').replace(/(\d{2}\/\d{2})(\d)/,'$1/$2').slice(0,10)" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
+      <input id="sa-f-expira" placeholder="30/09/2026" maxlength="10" oninput="saMascaraData(this)" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
     </div>
     <!-- Seção Empresária -->
     <div style="font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:.08em;margin:20px 0 10px">DADOS DA EMPRESÁRIA</div>
@@ -10710,7 +10723,7 @@ window._avUrl             = _avUrl;
     </div>
     <div style="margin-bottom:12px">
       <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px">WhatsApp <span style="color:#f59e0b">*</span> <span style="color:#6b7280">(DDD+número, ex: 11999990000)</span></label>
-      <input id="sa-f-wpp" placeholder="11999990000" inputmode="numeric" oninput="document.getElementById('sa-f-preview-email').textContent=this.value.replace(/\D/g,'')?this.value.replace(/\D/g,'')+'@cli.mecuidar.app':'—'" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
+      <input id="sa-f-wpp" placeholder="11999990000" inputmode="numeric" oninput="saPreviewEmail(this)" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
     </div>
     <div style="margin-bottom:20px">
       <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px">Senha provisória <span style="color:#f59e0b">*</span> <span style="color:#6b7280">(mín. 6 caracteres)</span></label>
