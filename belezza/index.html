@@ -2290,6 +2290,7 @@ const _SA_TOKEN = 'ECSAgoravapMeCuidar2026';  // ← ALTERE antes de publicar
       </div>
       <div style="display:flex;gap:10px;align-items:center">
         <span id="sa-status" style="font-size:12px;color:#6b7280">Carregando...</span>
+        <button onclick="saAbrirNovaClinica()" style="background:#f59e0b;color:#1c1917;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">+ Nova Clínica</button>
         <button onclick="document.getElementById('sa-overlay').remove();history.replaceState({},'',location.pathname)" style="background:#333;border:none;color:#f0f0f0;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px">✕ Fechar</button>
       </div>
     </div>
@@ -2409,6 +2410,200 @@ window.saCopiarId = function(id) {
     const t = document.getElementById('toast-trial');
     if (t) t.textContent = '✅ ID copiado: ' + id;
   });
+};
+
+// ── SuperAdmin: Nova Clínica ───────────────────────────────────────────────
+window.saAbrirNovaClinica = function() {
+  // Remove modal anterior se existir
+  const old = document.getElementById('sa-nova-modal');
+  if (old) old.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'sa-nova-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML = `
+    <div style="background:#1a1a1a;border-radius:12px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:24px;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div>
+          <div style="font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:.1em">ECS · SUPERADMIN</div>
+          <div style="font-size:18px;font-weight:700;margin-top:2px">Nova Clínica</div>
+        </div>
+        <button onclick="document.getElementById('sa-nova-modal').remove()" style="background:#333;border:none;color:#f0f0f0;width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:16px">✕</button>
+      </div>
+
+      <div id="sa-nova-erro" style="display:none;background:#7f1d1d;color:#fca5a5;padding:10px 14px;border-radius:6px;margin-bottom:16px;font-size:13px"></div>
+      <div id="sa-nova-ok" style="display:none;background:#14532d;color:#86efac;padding:10px 14px;border-radius:6px;margin-bottom:16px;font-size:13px"></div>
+
+      <!-- Dados da clínica -->
+      <div style="font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:.08em;margin-bottom:10px">DADOS DA CLÍNICA</div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px">Clínica ID <span style="color:#f59e0b">*</span> <span style="color:#6b7280">(sem espaços, ex: salao-da-rose)</span></label>
+        <input id="sa-f-id" placeholder="salao-da-rose" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px">Nome do estabelecimento <span style="color:#f59e0b">*</span></label>
+        <input id="sa-f-nome" placeholder="Salão da Rose" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <div style="flex:1">
+          <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px">Plano <span style="color:#f59e0b">*</span></label>
+          <select id="sa-f-plano" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
+            <option value="Solo Pro">Solo Pro</option>
+            <option value="Clinica Pro">Clínica Pro</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px">Vendedor</label>
+          <input id="sa-f-vendedor" placeholder="Ernesto" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px">Expira em <span style="color:#f59e0b">*</span> <span style="color:#6b7280">(DD/MM/AAAA)</span></label>
+        <input id="sa-f-expira" placeholder="30/09/2026" maxlength="10" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+
+      <!-- Dados da empresária -->
+      <div style="font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:.08em;margin:20px 0 10px">DADOS DA EMPRESÁRIA</div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px">Nome da empresária <span style="color:#f59e0b">*</span></label>
+        <input id="sa-f-nomepro" placeholder="Rose Silva" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px">WhatsApp <span style="color:#f59e0b">*</span> <span style="color:#6b7280">(DDD+número, ex: 11999990000)</span></label>
+        <input id="sa-f-wpp" placeholder="11999990000" inputmode="numeric" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px">Senha provisória <span style="color:#f59e0b">*</span> <span style="color:#6b7280">(mín. 6 caracteres)</span></label>
+        <input id="sa-f-senha" type="text" placeholder="Rose@2026" style="width:100%;background:#0f0f0f;border:1px solid #333;color:#f0f0f0;padding:8px 12px;border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+
+      <!-- Preview do login -->
+      <div id="sa-f-preview" style="background:#0f0f0f;border:1px solid #333;border-radius:6px;padding:12px;margin-bottom:20px;font-size:12px;color:#6b7280">
+        <div style="margin-bottom:4px">Login gerado:</div>
+        <div id="sa-f-preview-email" style="color:#60a5fa;font-family:monospace">—</div>
+      </div>
+
+      <button onclick="saCriarClinica()" id="sa-btn-criar" style="width:100%;background:#f59e0b;color:#1c1917;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">
+        Criar Clínica
+      </button>
+    </div>`;
+  document.body.appendChild(modal);
+
+  // Preview em tempo real do email gerado
+  const wppInput = document.getElementById('sa-f-wpp');
+  const previewEl = document.getElementById('sa-f-preview-email');
+  wppInput.addEventListener('input', () => {
+    const num = wppInput.value.replace(/\D/g,'');
+    previewEl.textContent = num ? num + '@cli.mecuidar.app' : '—';
+  });
+
+  // Máscara de data DD/MM/AAAA
+  const expiraInput = document.getElementById('sa-f-expira');
+  expiraInput.addEventListener('input', () => {
+    let v = expiraInput.value.replace(/\D/g,'');
+    if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+    if (v.length > 5) v = v.slice(0,5) + '/' + v.slice(5,9);
+    expiraInput.value = v;
+  });
+};
+
+window.saCriarClinica = async function() {
+  const btn = document.getElementById('sa-btn-criar');
+  const erroEl = document.getElementById('sa-nova-erro');
+  const okEl = document.getElementById('sa-nova-ok');
+  const mostrarErro = msg => { erroEl.textContent = msg; erroEl.style.display='block'; okEl.style.display='none'; };
+  const mostrarOk = msg => { okEl.textContent = msg; okEl.style.display='block'; erroEl.style.display='none'; };
+
+  // Coleta campos
+  const clinicaId  = document.getElementById('sa-f-id').value.trim().toLowerCase().replace(/\s+/g,'-');
+  const nomeEstab  = document.getElementById('sa-f-nome').value.trim();
+  const planoEstab = document.getElementById('sa-f-plano').value;
+  const vendedor   = document.getElementById('sa-f-vendedor').value.trim();
+  const trialExpira = document.getElementById('sa-f-expira').value.trim();
+  const nomePro    = document.getElementById('sa-f-nomepro').value.trim();
+  const wpp        = document.getElementById('sa-f-wpp').value.replace(/\D/g,'');
+  const senha      = document.getElementById('sa-f-senha').value;
+
+  // Validações
+  if (!clinicaId)   return mostrarErro('Informe o ID da clínica.');
+  if (!/^[a-z0-9-]+$/.test(clinicaId)) return mostrarErro('ID só pode ter letras minúsculas, números e hífen.');
+  if (!nomeEstab)   return mostrarErro('Informe o nome do estabelecimento.');
+  if (!trialExpira || !/^\d{2}\/\d{2}\/\d{4}$/.test(trialExpira)) return mostrarErro('Data de expiração inválida. Use DD/MM/AAAA.');
+  if (!nomePro)     return mostrarErro('Informe o nome da empresária.');
+  if (wpp.length < 10) return mostrarErro('WhatsApp inválido. Use DDD+número (mín. 10 dígitos).');
+  if (senha.length < 6) return mostrarErro('Senha deve ter no mínimo 6 caracteres.');
+
+  const emailLogin = wpp + '@cli.mecuidar.app';
+  const hoje = new Date();
+  const dataInicio = hoje.toLocaleDateString('pt-BR');
+  const criadoEm = hoje.toISOString();
+
+  btn.disabled = true;
+  btn.textContent = 'Criando...';
+  erroEl.style.display = 'none';
+
+  try {
+    // 1. Criar conta no Firebase Auth (via auth2 para não deslogar sessão atual)
+    const userCred = await createUserWithEmailAndPassword(auth2, emailLogin, senha);
+    const uid = userCred.user.uid;
+
+    // 2. Criar documento /clinicas/{clinicaId}
+    await setDoc(doc(db, 'clinicas', clinicaId), {
+      nomeEstab,
+      planoEstab,
+      wppEstab:    wpp,
+      trial:       true,
+      trialExpira,
+      vendedor:    vendedor || 'ECS',
+      dataInicio,
+      ativo:       true,
+      criadoEm,
+    });
+
+    // 3. Criar documento /users/{uid}
+    await setDoc(doc(db, 'users', uid), {
+      clinicaId,
+      role:     'admin',
+      nome:     nomePro,
+      name:     nomePro,
+      email:    emailLogin,
+      wpp,
+      criadoEm,
+    });
+
+    // 4. Recarrega lista do SuperAdmin
+    const snap = await getDocs(collection(db, 'clinicas'));
+    window._saClinicas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    saRenderTabela(window._saClinicas);
+    document.getElementById('sa-status').textContent = `${window._saClinicas.length} clínica(s) carregadas`;
+
+    mostrarOk(`✅ Clínica "${nomeEstab}" criada com sucesso!\nLogin: ${emailLogin}`);
+    btn.textContent = '✓ Criado!';
+    btn.style.background = '#16a34a';
+    btn.style.color = '#fff';
+
+    // Mostra link de convite
+    const link = `https://mecuidar.app.br?convite=1&c=${clinicaId}`;
+    okEl.innerHTML = `✅ <strong>${nomeEstab}</strong> criada!<br>
+      Login: <span style="font-family:monospace;color:#86efac">${emailLogin}</span><br>
+      Senha: <span style="font-family:monospace;color:#86efac">${senha}</span><br>
+      Link de convite: <span style="font-family:monospace;color:#86efac">${link}</span>`;
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Criar Clínica';
+    btn.style.background = '';
+    btn.style.color = '';
+    const msgs = {
+      'auth/email-already-in-use': 'Esse WhatsApp já tem conta cadastrada.',
+      'auth/weak-password': 'Senha muito fraca. Use pelo menos 6 caracteres.',
+      'auth/invalid-email': 'Email inválido — verifique o WhatsApp digitado.',
+    };
+    mostrarErro(msgs[e.code] || ('Erro: ' + e.message));
+    console.error('[SA Nova Clínica]', e);
+  }
 };
 });
 
