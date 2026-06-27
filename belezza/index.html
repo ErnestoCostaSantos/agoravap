@@ -2213,7 +2213,7 @@ onAuthStateChanged(auth, async user => {
           if(liderView) liderView.style.display = 'block';
         }, 500);
         // Mascote Pro: inicializa após login direto como admin/profissional
-        // Usa retry porque o <script> do mascote pode não ter sido parseado ainda
+        // Usa retry porque o bloco do mascote pode não ter sido parseado ainda
         // quando o onAuthStateChanged dispara com sessão em cache
         const _mcpTryInit = (tentativa) => {
           if (window.mascoteProInit) {
