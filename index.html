@@ -3976,9 +3976,9 @@ function _vapGetCompanyId(){const id=window._vapCompanyId;if(!id)console.warn('[
 const VAP_MESES=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 let _vapUnsubCamp=null,_vapUnsubPromo=null,_vapCampanhasDB=[];
 const VAP_CAMP_TIPOS={
-  simples:{label:'Campanha simples',etapas:['Lançamento','Aquecimento','Finalização'],msgs:['Olá! Temos uma novidade para você. Confira nossa oferta especial e garanta o seu. — AgoraVAP!','Olá! Nossa campanha está chegando ao fim. Aproveite enquanto há tempo. — AgoraVAP!','Último dia! Não perca esta oportunidade. — AgoraVAP!']},
-  vip:{label:'Campanha VIP',etapas:['Lançamento VIP','Oferta Exclusiva','Encerramento VIP'],msgs:['Você foi selecionado(a) para uma oferta exclusiva VIP. Confira o que preparamos para você. 👑 — AgoraVAP!','Sua oferta VIP exclusiva está esperando por você. Aproveite antes que encerre. 💎 — AgoraVAP!','Último dia da sua oferta VIP! — AgoraVAP!']},
-  flash:{label:'Flash',etapas:['Lançamento Flash','Encerramento Flash'],msgs:['⚡ FLASH! Oferta especial por tempo limitado. Corra! — AgoraVAP!','⚡ Últimas horas da nossa Flash! — AgoraVAP!']}
+  simples:{label:'Campanha simples',etapas:['Lançamento','Aquecimento','Finalização'],msgs:['Olá! Temos uma novidade para você. Confira nossa oferta especial e garanta o seu. — Pneus Douglas & Dealer Distribuidora','Olá! Nossa campanha está chegando ao fim. Aproveite enquanto há tempo. — Pneus Douglas & Dealer Distribuidora','Último dia! Não perca esta oportunidade. — Pneus Douglas & Dealer Distribuidora']},
+  vip:{label:'Campanha VIP',etapas:['Lançamento VIP','Oferta Exclusiva','Encerramento VIP'],msgs:['Você foi selecionado(a) para uma oferta exclusiva VIP. Confira o que preparamos para você. 👑 — Pneus Douglas & Dealer Distribuidora','Sua oferta VIP exclusiva está esperando por você. Aproveite antes que encerre. 💎 — Pneus Douglas & Dealer Distribuidora','Último dia da sua oferta VIP! — Pneus Douglas & Dealer Distribuidora']},
+  flash:{label:'Flash',etapas:['Lançamento Flash','Encerramento Flash'],msgs:['⚡ FLASH! Oferta especial por tempo limitado. Corra! — Pneus Douglas & Dealer Distribuidora','⚡ Últimas horas da nossa Flash! — Pneus Douglas & Dealer Distribuidora']}
 };
 function _vapFmtData(d,m){return String(d).padStart(2,'0')+'/'+String(m).padStart(2,'0');}
 function _vapCalcEtapas(iniDia,iniMes,fimDia,fimMes,nEtapas){
