@@ -2522,6 +2522,8 @@ $('btn-salvar-cotacoes').onclick = async () => {
 // ── Top 10 Clientes ───────────────────────────────────────
 const TOP10_ROWS = 10;
 let _top10Data = Array.from({length:TOP10_ROWS}, () => ({cliente:'', pedidos:0, vendas:0}));
+let _top10Dirty = new Set(); // índices das linhas que o usuário editou nesta sessão
+let _top10Input = Array.from({length:TOP10_ROWS}, () => ({cliente:'', pedidos:0, vendas:0})); // o que o usuário digitou (incremento)
 
 function renderTop10Table(data) {
   const tbody = document.getElementById('top10-body');
@@ -2539,13 +2541,13 @@ function renderTop10Table(data) {
           oninput="window.top10InputChange(this)"/>
       </td>
       <td style="padding:6px 10px;text-align:center">
-        <input type="number" min="0" value="${row.pedidos||''}" placeholder="0"
+        <input type="number" min="0" value="" placeholder="0"
           data-top10-i="${i}" data-top10-field="pedidos"
           style="border:none;outline:none;width:70px;text-align:center;font-family:inherit;font-size:.85rem;background:transparent;color:var(--dark)"
           oninput="window.top10InputChange(this)"/>
       </td>
       <td style="padding:6px 10px;text-align:right">
-        <input type="text" inputmode="decimal" value="${row.vendas ? row.vendas.toFixed(2).replace('.',',') : ''}" placeholder="0,00"
+        <input type="text" inputmode="decimal" value="" placeholder="0,00"
           data-top10-i="${i}" data-top10-field="vendas"
           style="border:none;outline:none;width:100px;text-align:right;font-family:inherit;font-size:.85rem;background:transparent;color:var(--dark)"
           oninput="window.top10InputChange(this)"/>
@@ -2557,17 +2559,20 @@ function renderTop10Table(data) {
 window.top10InputChange = function(el) {
   const i = parseInt(el.dataset.top10I);
   const field = el.dataset.top10Field;
+  _top10Dirty.add(i);
   if(field === 'cliente') {
-    _top10Data[i].cliente = el.value;
+    _top10Input[i].cliente = el.value;
   } else if(field === 'pedidos') {
-    _top10Data[i].pedidos = parseInt(el.value)||0;
+    _top10Input[i].pedidos = parseInt(el.value)||0;
   } else if(field === 'vendas') {
     const raw = (el.value||'0').replace(/[^0-9.,]/g,'').replace(',','.');
-    _top10Data[i].vendas = parseFloat(raw)||0;
+    _top10Input[i].vendas = parseFloat(raw)||0;
   }
 };
 
 async function carregarTop10() {
+  _top10Dirty = new Set();
+  _top10Input = Array.from({length:TOP10_ROWS}, () => ({cliente:'', pedidos:0, vendas:0}));
   try {
     const cid = cp?.companyId || _companyId || 'default';
     const docRef = doc(db, 'top10_clientes', `${cid}_${cu.uid}`);
@@ -2584,6 +2589,7 @@ async function carregarTop10() {
 }
 
 window.salvarTop10 = async function() {
+  if(_top10Dirty.size === 0) { toast('Nenhuma alteração para salvar.'); return; }
   const btn = document.getElementById('btn-salvar-top10');
   if(btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
   try {
@@ -2591,17 +2597,20 @@ window.salvarTop10 = async function() {
     const docRef = doc(db, 'top10_clientes', `${cid}_${cu.uid}`);
     const snap = await getDoc(docRef);
 
-    // Acumula pedidos e vendas com os dados já salvos, mas respeita nome novo
+    // Base: o que está salvo no Firestore (todas as 10 linhas)
     let base = Array.from({length:TOP10_ROWS}, () => ({cliente:'', pedidos:0, vendas:0}));
     if(snap.exists() && snap.data().linhas) base = snap.data().linhas;
 
-    const linhasAtualizadas = _top10Data.map((row, i) => {
-      const baseRow = base[i] || {cliente:'', pedidos:0, vendas:0};
-      const clienteMudou = row.cliente && row.cliente !== baseRow.cliente;
+    // Aplica incremento APENAS nas linhas editadas; as demais ficam intactas
+    const linhasAtualizadas = base.map((baseRow, i) => {
+      if(!_top10Dirty.has(i)) return baseRow; // linha não tocada — preserva
+      const input = _top10Input[i];
+      const novoNome = input.cliente.trim() || baseRow.cliente;
+      const clienteMudou = input.cliente.trim() && input.cliente.trim() !== baseRow.cliente;
       return {
-        cliente: row.cliente || baseRow.cliente,
-        pedidos: (clienteMudou ? 0 : (baseRow.pedidos||0)) + (row.pedidos||0),
-        vendas:  (clienteMudou ? 0 : (baseRow.vendas||0))  + (row.vendas||0),
+        cliente: novoNome,
+        pedidos: (clienteMudou ? 0 : (baseRow.pedidos||0)) + (input.pedidos||0),
+        vendas:  (clienteMudou ? 0 : (baseRow.vendas||0))  + (input.vendas||0),
       };
     });
 
@@ -2614,6 +2623,8 @@ window.salvarTop10 = async function() {
     });
 
     _top10Data = linhasAtualizadas;
+    _top10Dirty = new Set();
+    _top10Input = Array.from({length:TOP10_ROWS}, () => ({cliente:'', pedidos:0, vendas:0}));
     renderTop10Table(_top10Data);
     toast('Top 10 Clientes salvo com sucesso!');
   } catch(err) {
