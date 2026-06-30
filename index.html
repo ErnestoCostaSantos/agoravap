@@ -600,13 +600,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       <div class="fcard" id="card-top10-clientes">
         <div class="fcard-title"><span class="bar" style="background:#805AD5"></span>Top 10 Clientes</div>
         <div style="overflow-x:auto">
-          <table id="top10-table" style="width:100%;border-collapse:collapse;font-size:.85rem">
+          <table id="top10-table" style="width:100%;border-collapse:collapse;font-size:.82rem">
             <thead>
               <tr style="background:#F0EBF8">
-                <th style="padding:8px 10px;text-align:left;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:36px">#</th>
-                <th style="padding:8px 10px;text-align:left;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA">Cliente</th>
-                <th style="padding:8px 10px;text-align:center;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:100px">Pedidos</th>
-                <th style="padding:8px 10px;text-align:right;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:130px">Vendas (R$)</th>
+                <th style="padding:7px 6px;text-align:left;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:28px">#</th>
+                <th style="padding:7px 6px;text-align:left;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA">Cliente</th>
+                <th style="padding:7px 6px;text-align:center;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:72px">Ped. Ant</th>
+                <th style="padding:7px 6px;text-align:center;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:72px">Ped. Atu</th>
+                <th style="padding:7px 6px;text-align:right;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:90px">Vendas Ant</th>
+                <th style="padding:7px 6px;text-align:right;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:90px">Vendas Atu</th>
               </tr>
             </thead>
             <tbody id="top10-body">
@@ -2521,72 +2523,87 @@ $('btn-salvar-cotacoes').onclick = async () => {
 
 // ── Top 10 Clientes ───────────────────────────────────────
 const TOP10_ROWS = 10;
-// Cada linha tem id fixo (0-9) que não muda com reordenação
-let _top10Data = Array.from({length:TOP10_ROWS}, (_,i) => ({id:i, cliente:'', pedidos:0, vendas:0}));
 
-function renderTop10Table(data) {
+let _top10Base = Array.from({length:TOP10_ROWS}, (_,i) => ({id:i, cliente:'', pedAnt:0, venAnt:0}));
+let _top10Atu = {};
+
+function _top10Empty() {
+  return Array.from({length:TOP10_ROWS}, (_,i) => ({id:i, cliente:'', pedAnt:0, venAnt:0}));
+}
+
+function renderTop10Table(base) {
   const tbody = document.getElementById('top10-body');
   if(!tbody) return;
+  const sorted = [...base].sort((a,b) => (b.venAnt||0) - (a.venAnt||0));
   tbody.innerHTML = '';
-  data.forEach((row, pos) => {
+  sorted.forEach((row, pos) => {
     const tr = document.createElement('tr');
     tr.style.cssText = 'border-bottom:1px solid #EDE9F6';
+    const venAntFmt = row.venAnt ? row.venAnt.toFixed(2).replace('.',',') : '0,00';
     tr.innerHTML = `
-      <td style="padding:6px 10px;color:#805AD5;font-weight:700;font-size:.8rem">${pos+1}</td>
-      <td style="padding:6px 10px">
+      <td style="padding:6px 6px;color:#805AD5;font-weight:700;font-size:.8rem">${pos+1}</td>
+      <td style="padding:6px 6px">
         <input type="text" value="${row.cliente||''}" placeholder="Nome do cliente"
-          data-top10-id="${row.id}" data-top10-field="cliente"
-          style="border:none;outline:none;width:100%;font-family:inherit;font-size:.85rem;background:transparent;color:var(--dark)"
-          oninput="window.top10InputChange(this)"/>
+          data-t10id="${row.id}" data-t10f="cliente"
+          style="border:none;outline:none;width:100%;font-family:inherit;font-size:.82rem;background:transparent;color:var(--dark)"
+          oninput="window.t10change(this)"/>
       </td>
-      <td style="padding:6px 10px;text-align:center">
-        <input type="number" min="0" value="${row.pedidos||''}" placeholder="0"
-          data-top10-id="${row.id}" data-top10-field="pedidos"
-          style="border:none;outline:none;width:70px;text-align:center;font-family:inherit;font-size:.85rem;background:transparent;color:var(--dark)"
-          oninput="window.top10InputChange(this)"/>
+      <td style="padding:6px 6px;text-align:center;color:#888;font-size:.8rem">${row.pedAnt||0}</td>
+      <td style="padding:6px 6px;text-align:center">
+        <input type="number" min="0" value="" placeholder="0"
+          data-t10id="${row.id}" data-t10f="pedAtu"
+          style="border:none;outline:none;width:56px;text-align:center;font-family:inherit;font-size:.82rem;background:transparent;color:var(--dark)"
+          oninput="window.t10change(this)"/>
       </td>
-      <td style="padding:6px 10px;text-align:right">
-        <input type="text" inputmode="decimal" value="${row.vendas ? row.vendas.toFixed(2).replace('.',',') : ''}" placeholder="0,00"
-          data-top10-id="${row.id}" data-top10-field="vendas"
-          style="border:none;outline:none;width:100px;text-align:right;font-family:inherit;font-size:.85rem;background:transparent;color:var(--dark)"
-          oninput="window.top10InputChange(this)"/>
+      <td style="padding:6px 6px;text-align:right;color:#888;font-size:.8rem">${venAntFmt}</td>
+      <td style="padding:6px 6px;text-align:right">
+        <input type="text" inputmode="decimal" value="" placeholder="0,00"
+          data-t10id="${row.id}" data-t10f="venAtu"
+          style="border:none;outline:none;width:74px;text-align:right;font-family:inherit;font-size:.82rem;background:transparent;color:var(--dark)"
+          oninput="window.t10change(this)"/>
       </td>`;
     tbody.appendChild(tr);
   });
 }
 
-window.top10InputChange = function(el) {
-  const id = parseInt(el.dataset.top10Id); // id fixo da linha
-  const field = el.dataset.top10Field;
-  const row = _top10Data.find(r => r.id === id);
-  if(!row) return;
+// Renderiza imediatamente com linhas em branco (antes do Firestore carregar)
+renderTop10Table(_top10Base);
+
+window.t10change = function(el) {
+  const id = parseInt(el.dataset.t10id);
+  const field = el.dataset.t10f;
+  if(!_top10Atu[id]) _top10Atu[id] = {cliente:'', pedAtu:0, venAtu:0};
   if(field === 'cliente') {
-    row.cliente = el.value;
-  } else if(field === 'pedidos') {
-    row.pedidos = parseInt(el.value)||0;
-  } else if(field === 'vendas') {
+    _top10Atu[id].cliente = el.value;
+  } else if(field === 'pedAtu') {
+    _top10Atu[id].pedAtu = parseInt(el.value)||0;
+  } else if(field === 'venAtu') {
     const raw = (el.value||'0').replace(/[^0-9.,]/g,'').replace(',','.');
-    row.vendas = parseFloat(raw)||0;
+    _top10Atu[id].venAtu = parseFloat(raw)||0;
   }
 };
 
 async function carregarTop10() {
+  _top10Atu = {};
   try {
     const cid = cp?.companyId || _companyId || 'default';
+    if(!cid || cid === 'default') { renderTop10Table(_top10Base); return; }
     const docRef = doc(db, 'top10_clientes', `${cid}_${cu.uid}`);
     const snap = await getDoc(docRef);
-    if(snap.exists() && snap.data().linhas) {
-      // Garante que cada linha tenha id fixo
-      _top10Data = snap.data().linhas.map((r, i) => ({id: r.id ?? i, cliente: r.cliente||'', pedidos: r.pedidos||0, vendas: r.vendas||0}));
+    if(snap.exists() && snap.data().linhas && snap.data().linhas.length > 0) {
+      const linhas = snap.data().linhas;
+      // Garante sempre 10 linhas, preenchendo as que faltam
+      _top10Base = Array.from({length:TOP10_ROWS}, (_,i) => {
+        const r = linhas[i] || {};
+        return {id: r.id ?? i, cliente: r.cliente||'', pedAnt: r.pedAnt||0, venAnt: r.venAnt||0};
+      });
     } else {
-      _top10Data = Array.from({length:TOP10_ROWS}, (_,i) => ({id:i, cliente:'', pedidos:0, vendas:0}));
+      _top10Base = _top10Empty();
     }
   } catch(e) {
-    _top10Data = Array.from({length:TOP10_ROWS}, (_,i) => ({id:i, cliente:'', pedidos:0, vendas:0}));
+    _top10Base = _top10Empty();
   }
-  // Exibe ordenado por vendas desc
-  const exibir = [..._top10Data].sort((a,b) => (b.vendas||0) - (a.vendas||0));
-  renderTop10Table(exibir);
+  renderTop10Table(_top10Base);
 }
 
 window.salvarTop10 = async function() {
@@ -2595,18 +2612,29 @@ window.salvarTop10 = async function() {
   try {
     const cid = cp?.companyId || _companyId || 'default';
     const docRef = doc(db, 'top10_clientes', `${cid}_${cu.uid}`);
-    // Salva _top10Data com os valores atuais (o que está na tela = o total real, sem acumulação)
-    const linhasParaSalvar = _top10Data.map(r => ({id:r.id, cliente:r.cliente||'', pedidos:r.pedidos||0, vendas:r.vendas||0}));
+
+    // Para cada linha: Ant = Ant + Atu; Atu zera após salvar
+    const linhasAtualizadas = _top10Base.map(row => {
+      const atu = _top10Atu[row.id] || {};
+      return {
+        id: row.id,
+        cliente: (atu.cliente !== undefined && atu.cliente !== '') ? atu.cliente : row.cliente,
+        pedAnt: (row.pedAnt || 0) + (atu.pedAtu || 0),
+        venAnt: (row.venAnt || 0) + (atu.venAtu || 0),
+      };
+    });
+
     await setDoc(docRef, {
       uid: cu.uid,
       seller: cp.name,
       companyId: cid,
-      linhas: linhasParaSalvar,
+      linhas: linhasAtualizadas,
       atualizadoEm: new Date().toISOString()
     });
-    // Reordena por vendas desc para exibição
-    const exibir = [..._top10Data].sort((a,b) => (b.vendas||0) - (a.vendas||0));
-    renderTop10Table(exibir);
+
+    _top10Base = linhasAtualizadas;
+    _top10Atu = {};
+    renderTop10Table(_top10Base);
     toast('Top 10 Clientes salvo com sucesso!');
   } catch(err) {
     toast('Erro ao salvar Top 10: ' + (err.message||err.code));
@@ -2622,7 +2650,7 @@ window.zerarTop10 = async function() {
   try {
     const cid = cp?.companyId || _companyId || 'default';
     const docRef = doc(db, 'top10_clientes', `${cid}_${cu.uid}`);
-    const linhasZeradas = Array.from({length:TOP10_ROWS}, () => ({cliente:'', pedidos:0, vendas:0}));
+    const linhasZeradas = _top10Empty();
     await setDoc(docRef, {
       uid: cu.uid,
       seller: cp.name,
@@ -2630,8 +2658,9 @@ window.zerarTop10 = async function() {
       linhas: linhasZeradas,
       atualizadoEm: new Date().toISOString()
     });
-    _top10Data = linhasZeradas;
-    renderTop10Table(_top10Data);
+    _top10Base = linhasZeradas;
+    _top10Atu = {};
+    renderTop10Table(_top10Base);
     toast('Lista Top 10 Clientes zerada.');
   } catch(err) {
     toast('Erro ao zerar: ' + (err.message||err.code));
