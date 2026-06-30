@@ -208,6 +208,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 .btn-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--gray);line-height:1}
 .btn-close:hover{color:var(--dark)}
 
+/* ── LIGHTBOX IMAGEM PROMOÇÃO ── */
+.vap-lb-ov{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;align-items:center;justify-content:center;padding:1.25rem;cursor:zoom-out}
+.vap-lb-ov.open{display:flex}
+.vap-lb-img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.5);cursor:default;animation:fi .15s ease}
+.vap-lb-close{position:fixed;top:16px;right:20px;font-size:2.2rem;line-height:1;color:#fff;background:none;border:none;cursor:pointer;opacity:.85;z-index:501}
+.vap-lb-close:hover{opacity:1}
+.vap-lb-cap{position:fixed;bottom:18px;left:0;right:0;text-align:center;color:#fff;font-size:.85rem;opacity:.85;padding:0 1rem}
+
 /* ── HELP ── */
 .help-section{margin-bottom:2rem}
 .help-section h2{font-size:1rem;font-weight:700;color:#C53030;margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid #FED7D7}
@@ -1593,6 +1601,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     <input type="hidden" id="mu-uid"/>
     <div class="ffooter"><button class="btn-sec" id="mu-cancel">Cancelar</button><button class="btn-save" id="mu-save">Salvar</button></div>
   </div>
+</div>
+
+<!-- LIGHTBOX imagem da promoção (vendedor) -->
+<div class="vap-lb-ov" id="vap-lb-ov" onclick="if(event.target===this)vapFecharImagemPromo()">
+  <button class="vap-lb-close" onclick="vapFecharImagemPromo()" title="Fechar">×</button>
+  <img class="vap-lb-img" id="vap-lb-img" src="" alt="">
+  <div class="vap-lb-cap" id="vap-lb-cap"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -4583,11 +4598,11 @@ function _vapRenderPromosPro(promos){
   if(promos.length===0){lista.innerHTML='<div style="color:#95A5A6;font-size:13px;padding:10px 0">Nenhuma promoção publicada ainda.</div>';return;}
   lista.innerHTML=promos.map(p=>{
     const det=[p.campanha?`Campanha: ${p.campanha}`:'',p.responsavel?`Responsável: ${p.responsavel}`:'',p.canal?`Canal: ${p.canal}`:'',p.servicos?`Itens: ${p.servicos.replace(/\n/g,', ')}`:'',((p.validadeIni||p.validadeFim)?`Validade: ${p.validadeIni||''} → ${p.validadeFim||'—'}`:''),p.precoDe?`De R$ ${p.precoDe} por R$ ${p.precoPor}`:(p.precoPor?`R$ ${p.precoPor}`:'')].filter(Boolean).join(' · ');
-    const imgDetalhe=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px">`:'';
+    const imgDetalhe=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:'';
     return `
       <div class="rec-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch">
         <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="vapTogglePromoDetalhe('${p.id}')">
-          ${p.imagemUrl?`<img src="${p.imagemUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0">`:''}
+          ${p.imagemUrl?`<img src="${p.imagemUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:''}
           <div style="flex:1;min-width:0">
             <div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}</div>
             <div class="rec-meta">${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}${p.responsavel?' · '+p.responsavel:''}</div>
@@ -4631,6 +4646,26 @@ let _vapVendasHoje = {};
 let _vapVendasAcum = {}; // promoId → valor acumulado do vendedor no período
 let _vapUnsubVendas = null;
 
+// Lightbox de imagem da promoção (vendedor)
+function vapAbrirImagemPromo(url, nome){
+  if(!url) return;
+  const ov = document.getElementById('vap-lb-ov');
+  const img = document.getElementById('vap-lb-img');
+  const cap = document.getElementById('vap-lb-cap');
+  if(!ov || !img) return;
+  img.src = url;
+  img.alt = nome || '';
+  if(cap) cap.textContent = nome || '';
+  ov.classList.add('open');
+}
+window.vapAbrirImagemPromo = vapAbrirImagemPromo;
+function vapFecharImagemPromo(){
+  const ov = document.getElementById('vap-lb-ov');
+  if(ov) ov.classList.remove('open');
+}
+window.vapFecharImagemPromo = vapFecharImagemPromo;
+document.addEventListener('keydown', e => { if(e.key === 'Escape') vapFecharImagemPromo(); });
+
 function _vapRenderPromosVendedor(promos){
   const lista=document.getElementById('vap-promo-lista-vendedor');if(!lista)return;
   const hoje=new Date();hoje.setHours(0,0,0,0);
@@ -4644,7 +4679,7 @@ function _vapRenderPromosVendedor(promos){
     const pills=(p.servicos||'').split('\n').filter(s=>s.trim()).map(s=>`<span class="pill">${s.trim()}</span>`).join('');
     const preco=p.precoDe?`<span class="p-old">R$ ${p.precoDe}</span><span class="p-new">R$ ${p.precoPor||'—'}</span>`:`<span class="p-new">R$ ${p.precoPor||'—'}</span>`;
     const bc=p.campanha?`<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`:'';
-    const img=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px">`:'';
+    const img=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;cursor:zoom-in" onclick="vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:'';
     const vendaHoje=_vapVendasHoje[p.id]||{valor:0};
     const acum=_vapVendasAcum[p.id]||0;
     return `
