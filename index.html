@@ -1259,6 +1259,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
               </ol>
               A ordem entre baixar a imagem e abrir o WhatsApp não é obrigatória — pode inverter, contanto que a imagem já esteja salva no aparelho na hora de anexar.
             </li>
+            <li><b>Trocar imagem só nesta etapa</b> — Cada etapa tem a opção de receber uma imagem própria, diferente da imagem da Promoção vinculada. Ao anexar, essa etapa passa a mostrar a imagem personalizada; as demais etapas da campanha continuam com a imagem da Promoção normalmente, e a Promoção em si não é alterada. Para voltar a usar a imagem da Promoção nessa etapa, clique em "Usar imagem da promoção"</li>
             <li><b>Marcar enviado</b> — Registra a etapa como concluída com data e hora</li>
             <li><b>Contadores</b> — Participantes e negócios gerados ajustados com + e −</li>
           </ul>
@@ -4272,7 +4273,10 @@ function _vapRenderCampanhas(camps){
     const etHtml=(c.etapas||[]).map((et,i)=>{
       const hj=hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
       const isH=et.data&&et.data===hj;
-      const imgRow=(!et.enviado&&ativa&&promoImgUrl)?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><img src="${promoImgUrl}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;border:1px solid var(--border)" title="Toque e segure para salvar manualmente, se necessário"><span style="font-size:10px;color:#95A5A6">Imagem de "${(promoVinc.nome||'').replace(/"/g,'')}" · não baixou? Toque e segure a imagem para salvar.</span><button class="btn-vap-tl btn-vap-sm" onclick="vapBaixarImagemEtapa('${c.id}',${i})" style="font-size:11px"><i class="ti ti-download"></i> Baixar imagem</button></div>`:'';
+      const imgEfetiva=et.imagemOverride||promoImgUrl;
+      const isOverride=!!et.imagemOverride;
+      const origemLabel=isOverride?'Imagem personalizada desta etapa':`Imagem de "${(promoVinc?.nome||'').replace(/"/g,'')}" vinculada`;
+      const imgRow=(!et.enviado&&ativa)?(imgEfetiva?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><img src="${imgEfetiva}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;border:1px solid var(--border)" title="Toque e segure para salvar manualmente, se necessário"><span style="font-size:10px;color:#95A5A6">${origemLabel} · não baixou? Toque e segure a imagem para salvar.</span><button class="btn-vap-tl btn-vap-sm" onclick="vapBaixarImagemEtapa('${c.id}',${i})" style="font-size:11px"><i class="ti ti-download"></i> Baixar imagem</button>${isOverride?`<button class="btn-vap-tl btn-vap-sm" onclick="vapRemoverImagemEtapa('${c.id}',${i})" style="font-size:11px"><i class="ti ti-arrow-back-up"></i> Usar imagem da promoção</button>`:`<label style="font-size:11px;color:#95A5A6;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-replace" style="font-size:13px"></i> Trocar imagem só nesta etapa<input type="file" accept="image/*" style="display:none" onchange="vapUploadImagemEtapa('${c.id}',${i},this.files[0])"></label>`}</div>`:`<div style="margin-top:6px"><label style="font-size:11px;color:#95A5A6;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-paperclip" style="font-size:13px"></i> Anexar imagem nesta etapa (opcional)<input type="file" accept="image/*" style="display:none" onchange="vapUploadImagemEtapa('${c.id}',${i},this.files[0])"></label></div>`):'';
       return `<div class="step"><div class="step-circle ${et.enviado?'done':isH?'active':''}">${et.enviado?'<i class="ti ti-check"></i>':et.numero}</div><div class="step-body"><div class="step-title">${et.numero}. ${et.label} ${et.enviado?'<span class="badge badge-done" style="margin-left:4px">Concluído</span>':isH?'<span class="badge badge-pend" style="margin-left:4px">Hoje</span>':`<span style="font-size:10px;color:#95A5A6;margin-left:4px">${et.data||''}</span>`}</div><div class="step-sub">${et.msg}</div>${!et.enviado&&ativa?`<div class="step-actions"><button class="btn-vap-tl btn-vap-sm" onclick="vapAbrirWpp('${et.msg.replace(/'/g,"\\'")}')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button><button class="btn btn-save btn-vap-sm" onclick="vapMarcarEtapaEnviada('${c.id}',${i})"><i class="ti ti-check"></i> Marcar enviado</button></div>${imgRow}`:et.enviado?`<div style="font-size:11px;color:#95A5A6">Enviado${et.enviadoEm?' em '+new Date(et.enviadoEm).toLocaleDateString('pt-BR'):''}</div>`:''}</div></div>`;
     }).join('');
     return `<div class="vap-card" style="margin-bottom:10px${!ativa?';opacity:.7':''}"><div class="camp-hd"><div class="camp-name">${c.nome}</div>${sb}</div><div class="camp-meta"><span><i class="ti ti-calendar" style="font-size:13px"></i>${c.inicio} → ${c.fim}</span><span><i class="ti ti-tag" style="font-size:13px"></i>${c.tipoLabel||c.tipo}</span>${promoBadge?`<span>${promoBadge}</span>`:''}</div>${ativa?`<div class="counter-row"><span class="counter-lbl"><i class="ti ti-users" style="font-size:13px"></i>Participantes</span><div class="cnt-btns"><button class="cnt-b" onclick="vapAdjCamp('${c.id}','participantes',-1)">−</button><div class="cnt-v">${c.participantes||0}</div><button class="cnt-b" onclick="vapAdjCamp('${c.id}','participantes',1)">+</button></div></div><div class="counter-row" style="margin-bottom:14px"><span class="counter-lbl"><i class="ti ti-calendar-check" style="font-size:13px"></i>Negócios gerados</span><div class="cnt-btns"><button class="cnt-b" onclick="vapAdjCamp('${c.id}','agendamentos',-1)">−</button><div class="cnt-v">${c.agendamentos||0}</div><button class="cnt-b" onclick="vapAdjCamp('${c.id}','agendamentos',1)">+</button></div></div>`:''}<div style="font-size:11px;font-weight:600;color:#95A5A6;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Etapas</div><div class="steps">${etHtml}</div>${ativa?`<button onclick="vapEncerrarCampanha('${c.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;font-size:11px;margin-top:8px;text-decoration:underline">Encerrar campanha</button>`:''}</div>`;
@@ -4288,23 +4292,48 @@ async function vapEncerrarCampanha(campId){if(!confirm('Encerrar esta campanha?'
 window.vapEncerrarCampanha=vapEncerrarCampanha;
 function vapAbrirWpp(msg){window.open('https://wa.me/?text='+encodeURIComponent(msg).replace(/%20/g,'+'),'_blank');}
 
-// Imagem da promoção vinculada à campanha — baixa e orienta o Líder a anexar manualmente no WhatsApp.
+// Imagem efetiva de cada etapa — baixa e orienta o Líder a anexar manualmente no WhatsApp.
+// Prioridade: imagem personalizada da etapa (et.imagemOverride) > imagem da Promoção vinculada à campanha.
 // O link wa.me do WhatsApp só aceita texto — não existe forma de anexar imagem por URL (limitação do
 // próprio WhatsApp, não do app). Fluxo: baixar a imagem → abrir o WhatsApp pelo botão normal (texto
 // pronto) → anexar a imagem manualmente na conversa. Mesmo padrão usado no app Belezza/MeCuidar.
 function vapBaixarImagemEtapa(campId, idx){
   const c=_vapCampanhasDB.find(x=>x.id===campId);if(!c)return;
+  const et=(c.etapas||[])[idx];if(!et)return;
   const promo=(window._vapPromosAtuais||[]).find(p=>p.campanha===c.nome&&p.imagemUrl);
-  if(!promo||!promo.imagemUrl)return;
-  const nomeArq=(promo.nome||'promocao').replace(/[^a-z0-9]+/gi,'_').toLowerCase()+'.jpg';
+  const img=et.imagemOverride||promo?.imagemUrl;
+  if(!img)return;
+  const nomeArq=et.imagemOverride?`etapa${idx+1}_${(c.nome||'campanha').replace(/[^a-z0-9]+/gi,'_').toLowerCase()}.jpg`:(promo.nome||'promocao').replace(/[^a-z0-9]+/gi,'_').toLowerCase()+'.jpg';
   try{
     const a=document.createElement('a');
-    a.href=promo.imagemUrl;a.download=nomeArq;
+    a.href=img;a.download=nomeArq;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
   }catch(e){console.warn('[VAP] baixarImagemEtapa:',e);}
   alert('Imagem baixada! Agora toque em "WhatsApp" (o texto já vem pronto) e anexe a imagem manualmente na conversa, usando o ícone de anexo/câmera do WhatsApp.\n\nSe a imagem não aparecer na Galeria, mantenha o dedo pressionado sobre a imagem aqui na tela e escolha "Salvar imagem".');
 }
 window.vapBaixarImagemEtapa=vapBaixarImagemEtapa;
+
+// Anexa uma imagem personalizada só nesta etapa (não altera a Promoção nem outras etapas da mesma campanha).
+async function vapUploadImagemEtapa(campId, idx, file){
+  if(!file)return;
+  const c=_vapCampanhasDB.find(x=>x.id===campId);if(!c)return;
+  try{
+    const b64=await _vapImgParaBase64(file);
+    const etapas=[...(c.etapas||[])];
+    etapas[idx]={...etapas[idx],imagemOverride:b64};
+    await updateDoc(doc(db,'campanhas',campId),{etapas});
+  }catch(e){console.error('[VAP] uploadImagemEtapa:',e);alert('Erro ao anexar imagem: '+(e.message||'tente novamente.'));}
+}
+window.vapUploadImagemEtapa=vapUploadImagemEtapa;
+
+// Remove a imagem personalizada da etapa — volta a usar automaticamente a imagem da Promoção vinculada.
+async function vapRemoverImagemEtapa(campId, idx){
+  const c=_vapCampanhasDB.find(x=>x.id===campId);if(!c)return;
+  const etapas=[...(c.etapas||[])];
+  etapas[idx]={...etapas[idx],imagemOverride:null};
+  try{await updateDoc(doc(db,'campanhas',campId),{etapas});}catch(e){console.error('[VAP] removerImagemEtapa:',e);}
+}
+window.vapRemoverImagemEtapa=vapRemoverImagemEtapa;
 window.vapAbrirWpp=vapAbrirWpp;
 // ── Ranking de Clientes ───────────────────────────────────────────────────
 const VAP_RC_MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
