@@ -629,6 +629,41 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <button class="btn-save" id="btn-salvar-top10" onclick="window.salvarTop10()">Salvar Top 10 Clientes</button>
         </div>
       </div>
+
+      <!-- Relatório das 2 Principais Vendas Perdidas por Dia -->
+      <div class="fcard" id="card-perdas-dia">
+        <div class="fcard-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <span><span class="bar" style="background:#E53E3E"></span>Relatório das 2 Principais Vendas Perdidas por Dia</span>
+          <span style="font-size:.85rem;font-weight:700;color:#C53030">Total Perdido: <span id="perdas-total">R$ 0,00</span></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="perdas-table" style="width:100%;border-collapse:collapse;font-size:.82rem">
+            <thead>
+              <tr style="background:#FFF5F5">
+                <th style="padding:7px 6px;text-align:left;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2;width:128px">Data</th>
+                <th style="padding:7px 6px;text-align:left;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2">Nome do Cliente</th>
+                <th style="padding:7px 6px;text-align:left;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2">Produtos</th>
+                <th style="padding:7px 6px;text-align:right;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2;width:100px">Venda Perdida (R$)</th>
+                <th style="padding:7px 6px;border-bottom:2px solid #FEB2B2;width:28px"></th>
+              </tr>
+            </thead>
+            <tbody id="perdas-body">
+              <!-- linhas geradas pelo JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="ffooter" style="margin-top:1rem;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <button type="button" id="btn-add-perda" onclick="window.addPerdaRow()"
+              style="border:1px dashed #C53030;color:#C53030;background:transparent;border-radius:8px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer">+ Adicionar Linha</button>
+            <span id="perdas-count" style="font-size:.75rem;color:var(--gray)"></span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-danger" id="btn-zerar-perdas" onclick="window.zerarPerdas()">🗑 Zerar Lista</button>
+            <button class="btn-save" id="btn-salvar-perdas" onclick="window.salvarPerdas()">Salvar Vendas Perdidas</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ════ HISTÓRICO ═════════════════════════════════════════ -->
@@ -2419,6 +2454,7 @@ async function preencherCamposLancar(){
   const recCt  = await getRecDia('contatos');
   const recCot = await getRecDia('cotacoes');
   carregarTop10();
+  carregarPerdas();
 
   // Campos de Contatos
   const ctCampos = ['carteira','prospint','ativos','inativos','prospext','outras','invalidos'];
@@ -2695,6 +2731,177 @@ window.zerarTop10 = async function() {
     toast('Erro ao zerar: ' + (err.message||err.code));
   } finally {
     if(btn) { btn.disabled = false; }
+  }
+};
+
+// ── Relatório das 2 Principais Vendas Perdidas por Dia ─────
+const PERDAS_MAX_ROWS = 42;
+const PERDAS_COLLECTION = 'vendas_perdidas_dia';
+
+let _perdasRows = [];
+let _perdasSeq = 0;
+
+function _perdaNovoId(){ _perdasSeq += 1; return 'p' + Date.now() + '_' + _perdasSeq; }
+
+function _perdasTotal(){
+  return _perdasRows.reduce((sum,r) => sum + (Number(r.valor)||0), 0);
+}
+
+function _perdasParseMoney(v){
+  const raw = (v||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.');
+  return parseFloat(raw)||0;
+}
+
+function _perdasAtualizarResumo(){
+  const totalEl = document.getElementById('perdas-total');
+  if(totalEl) totalEl.textContent = fC(_perdasTotal());
+  const countEl = document.getElementById('perdas-count');
+  if(countEl) countEl.textContent = `${_perdasRows.length}/${PERDAS_MAX_ROWS} linhas`;
+  const addBtn = document.getElementById('btn-add-perda');
+  if(addBtn) addBtn.disabled = _perdasRows.length >= PERDAS_MAX_ROWS;
+}
+
+function renderPerdasTable(){
+  const tbody = document.getElementById('perdas-body');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  _perdasRows.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.style.cssText = 'border-bottom:1px solid #FED7D7';
+    const valorFmt = row.valor ? String(row.valor).replace('.',',') : '';
+    tr.innerHTML = `
+      <td style="padding:6px 4px">
+        <input type="date" value="${row.data||''}" max="${tod()}"
+          data-pid="${row.id}" data-pf="data"
+          style="border:none;outline:none;width:100%;font-family:inherit;font-size:.8rem;background:transparent;color:var(--dark)"
+          onchange="window.perdaChange(this)"/>
+      </td>
+      <td style="padding:6px 4px">
+        <input type="text" value="${row.cliente||''}" placeholder="Nome do cliente"
+          data-pid="${row.id}" data-pf="cliente"
+          style="border:none;outline:none;width:100%;font-family:inherit;font-size:.82rem;background:transparent;color:var(--dark)"
+          oninput="window.perdaChange(this)"/>
+      </td>
+      <td style="padding:6px 4px">
+        <input type="text" value="${row.produtos||''}" placeholder="Produtos"
+          data-pid="${row.id}" data-pf="produtos"
+          style="border:none;outline:none;width:100%;font-family:inherit;font-size:.82rem;background:transparent;color:var(--dark)"
+          oninput="window.perdaChange(this)"/>
+      </td>
+      <td style="padding:6px 4px;text-align:right">
+        <input type="text" inputmode="decimal" value="${valorFmt}" placeholder="0,00"
+          data-pid="${row.id}" data-pf="valor"
+          style="border:none;outline:none;width:84px;text-align:right;font-family:inherit;font-size:.82rem;background:transparent;color:var(--dark)"
+          oninput="window.perdaChange(this)"/>
+      </td>
+      <td style="padding:6px 4px;text-align:center">
+        <button type="button" onclick="window.removePerdaRow('${row.id}')" title="Remover linha"
+          style="border:none;background:transparent;color:#C53030;cursor:pointer;font-size:.9rem;line-height:1">✕</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  _perdasAtualizarResumo();
+}
+
+// Renderiza imediatamente vazio (antes do Firestore carregar)
+renderPerdasTable();
+
+window.perdaChange = function(el){
+  const id = el.dataset.pid;
+  const field = el.dataset.pf;
+  const row = _perdasRows.find(r => r.id === id);
+  if(!row) return;
+  if(field === 'valor'){
+    row.valor = _perdasParseMoney(el.value);
+    _perdasAtualizarResumo();
+  } else {
+    row[field] = el.value;
+  }
+};
+
+window.addPerdaRow = function(){
+  if(_perdasRows.length >= PERDAS_MAX_ROWS){
+    toast(`Limite de ${PERDAS_MAX_ROWS} linhas atingido.`);
+    return;
+  }
+  _perdasRows.push({id:_perdaNovoId(), data: tod(), cliente:'', produtos:'', valor:0});
+  renderPerdasTable();
+};
+
+window.removePerdaRow = function(id){
+  _perdasRows = _perdasRows.filter(r => r.id !== id);
+  renderPerdasTable();
+};
+
+async function carregarPerdas(){
+  try {
+    const cid = cp?.companyId || _companyId || 'default';
+    if(!cid || cid === 'default' || !cu?.uid){ _perdasRows = []; renderPerdasTable(); return; }
+    const docRef = doc(db, PERDAS_COLLECTION, `${cid}_${cu.uid}`);
+    const snap = await getDoc(docRef);
+    if(snap.exists() && Array.isArray(snap.data().linhas)){
+      _perdasRows = snap.data().linhas.map(r => ({
+        id: r.id || _perdaNovoId(),
+        data: r.data || '',
+        cliente: r.cliente || '',
+        produtos: r.produtos || '',
+        valor: Number(r.valor) || 0
+      }));
+    } else {
+      _perdasRows = [];
+    }
+  } catch(e){
+    _perdasRows = [];
+  }
+  // Ordena por data decrescente sempre que a lista é carregada (novo dia / login)
+  _perdasRows.sort((a,b) => (b.data||'').localeCompare(a.data||''));
+  renderPerdasTable();
+}
+
+window.salvarPerdas = async function(){
+  const btn = document.getElementById('btn-salvar-perdas');
+  if(btn){ btn.disabled = true; btn.textContent = 'Salvando…'; }
+  try {
+    const cid = cp?.companyId || _companyId || 'default';
+    const docRef = doc(db, PERDAS_COLLECTION, `${cid}_${cu.uid}`);
+    _perdasRows.sort((a,b) => (b.data||'').localeCompare(a.data||''));
+    await setDoc(docRef, {
+      uid: cu.uid,
+      seller: cp.name,
+      companyId: cid,
+      linhas: _perdasRows,
+      atualizadoEm: new Date().toISOString()
+    });
+    renderPerdasTable();
+    toast('Vendas Perdidas salvas com sucesso!');
+  } catch(err){
+    toast('Erro ao salvar Vendas Perdidas: ' + (err.message||err.code));
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = 'Salvar Vendas Perdidas'; }
+  }
+};
+
+window.zerarPerdas = async function(){
+  if(!confirm('Tem certeza que deseja zerar toda a lista de Vendas Perdidas do mês? Esta ação não pode ser desfeita.')) return;
+  const btn = document.getElementById('btn-zerar-perdas');
+  if(btn) btn.disabled = true;
+  try {
+    const cid = cp?.companyId || _companyId || 'default';
+    const docRef = doc(db, PERDAS_COLLECTION, `${cid}_${cu.uid}`);
+    _perdasRows = [];
+    await setDoc(docRef, {
+      uid: cu.uid,
+      seller: cp.name,
+      companyId: cid,
+      linhas: [],
+      atualizadoEm: new Date().toISOString()
+    });
+    renderPerdasTable();
+    toast('Lista de Vendas Perdidas zerada.');
+  } catch(err){
+    toast('Erro ao zerar: ' + (err.message||err.code));
+  } finally {
+    if(btn) btn.disabled = false;
   }
 };
 
