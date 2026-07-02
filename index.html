@@ -4973,7 +4973,7 @@ function _vapRenderPromosVendedor(promos){
     // Mensagem de WhatsApp montada a partir dos dados da promoção (mesmo padrão usado nas etapas de Campanhas)
     const itensTxt=(p.servicos||'').split('\n').map(s=>s.trim()).filter(Boolean).map(s=>'• '+s).join('\n');
     const precoTxt=p.precoDe?`\n\nDe R$ ${p.precoDe} por *R$ ${p.precoPor||'—'}*`:(p.precoPor?`\n\n*R$ ${p.precoPor}*`:'');
-    const msgWpp=`Olá! 👋 Tenho uma oferta especial pra você:\n\n🏷️ *${(p.nome||'').replace(/\*/g,'')}*${itensTxt?'\n'+itensTxt:''}${precoTxt}${p.validadeFim?`\n\nVálido até ${p.validadeFim}.`:''}`;
+    const msgWpp=`Olá! Tenho uma oferta especial pra você:\n\n*${(p.nome||'').replace(/\*/g,'')}*${itensTxt?'\n'+itensTxt:''}${precoTxt}${p.validadeFim?`\n\nVálido até ${p.validadeFim}.`:''}`;
     const msgWppEsc=msgWpp.replace(/'/g,"\\'").replace(/\n/g,'\\n');
     // WhatsApp só aceita texto por link — se houver imagem, orienta baixar e anexar manualmente (mesma limitação/fluxo de Campanhas)
     const wppImgRow=p.imagemUrl?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><img src="${p.imagemUrl}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid var(--border)" title="Toque e segure para salvar manualmente, se necessário"><span style="font-size:10px;color:#95A5A6;flex:1;min-width:120px">Imagem da promoção · não baixou? Toque e segure a imagem para salvar.</span><button class="btn-vap-tl btn-vap-sm" onclick="vapBaixarImagemPromoVendedor('${p.id}')" style="font-size:11px"><i class="ti ti-download"></i> Baixar imagem</button></div>`:'';
