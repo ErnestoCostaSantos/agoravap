@@ -1250,6 +1250,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Cotações Perdidas</b> — Perdas por Preço (R$) · Estoque (R$) · Outras Causas (R$)</li>
             <li><b>Meta Mensal (R$)</b> — Campo somente leitura, exibe a meta do mês cadastrada no módulo Administrativo</li>
             <li><b>Top 10 Clientes</b> — Tabela de 10 linhas com acumulado de pedidos e vendas por cliente. Colunas: Cliente · Ped. Ant · Ped. Atu · Vendas Ant (R$) · Vendas Atu (R$). Ao salvar, os valores "Atu" são somados aos "Ant" e a lista é reordenada por Vendas decrescente. O botão "Zerar Lista" reinicia todos os acumulados.</li>
+            <li><b>Relatório das 2 Principais Vendas Perdidas por Dia</b> — Logo abaixo do Top 10 Clientes. O vendedor registra manualmente até 42 linhas com Data · Cliente · Produtos · Venda Perdida (R$), usando o botão "+ Adicionar Linha". Ao salvar, a lista é reordenada automaticamente por data (mais recente primeiro) — o mesmo acontece a cada novo login ou troca de dia. O total acumulado em R$ aparece no canto superior direito, atualizado em tempo real. Cada linha pode ser removida individualmente pelo ✕. No fim do mês, use "Zerar Lista" para reiniciar o relatório.</li>
           </ul>
           <div class="help-tip">Quatro boxes no topo exibem os dados do dia selecionado. Atualizados automaticamente após cada lançamento.</div>
 
@@ -1306,7 +1307,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Líder</b> — Vê total vendido por promoção e breakdown por vendedor ao expandir o card</li>
             <li><b>Vendedor</b> — Campo "Hoje (DD/MM/AAAA)" editável em cada card de promoção ativa</li>
             <li><b>Vendedor</b> — Acumulado do período: soma de todos os seus dias desde o início da promoção</li>
-            <li><b>Edição</b> — O vendedor pode corrigir o valor do dia quantas vezes quiser — não duplica</li>
+            <li><b>Vendedor</b> — Edição — O vendedor pode corrigir o valor do dia quantas vezes quiser — não duplica</li>
+            <li><b>Vendedor</b> — <b>Enviar por WhatsApp</b> — Cada card de promoção tem um botão que abre o WhatsApp com uma mensagem já pronta, montada automaticamente a partir do nome, itens, preço e validade da promoção. Se houver imagem, aparece também um botão "Baixar imagem" para anexá-la manualmente na conversa.
+              <ul style="margin-top:6px">
+                <li>O WhatsApp pode perguntar se você deseja abrir o WhatsApp Desktop ou Web ao clicar em "Enviar por WhatsApp" — é um comportamento do próprio link "clique para conversar" do WhatsApp, não um erro do AgoraVAP!. Para não ser mais perguntado, marque a opção "sempre permitir" que o navegador exibir.</li>
+                <li>Não é possível anexar a imagem da promoção automaticamente na mensagem — nenhum link de WhatsApp (wa.me, web.whatsapp.com etc.) suporta isso. Por isso o fluxo continua sendo baixar a imagem e anexá-la manualmente na conversa, como já acontece no módulo Campanhas.</li>
+              </ul>
+            </li>
           </ul>
           <div class="help-tip">A imagem da promoção é automaticamente redimensionada e salva. Qualquer formato é aceito: post, reels, banner.</div>
 
