@@ -4542,6 +4542,22 @@ async function vapRemoverImagemEtapa(campId, idx){
 }
 window.vapRemoverImagemEtapa=vapRemoverImagemEtapa;
 window.vapAbrirWpp=vapAbrirWpp;
+
+// Baixa a imagem da promoção para o vendedor anexar manualmente no WhatsApp (card de Promoções do vendedor).
+// Mesma limitação/fluxo do módulo Campanhas: o link wa.me só aceita texto, então a imagem é baixada
+// separadamente e anexada à mão na conversa.
+function vapBaixarImagemPromoVendedor(promoId){
+  const p=(window._vapPromosAtuais||[]).find(x=>x.id===promoId);
+  if(!p||!p.imagemUrl)return;
+  const nomeArq=(p.nome||'promocao').replace(/[^a-z0-9]+/gi,'_').toLowerCase()+'.jpg';
+  try{
+    const a=document.createElement('a');
+    a.href=p.imagemUrl;a.download=nomeArq;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }catch(e){console.warn('[VAP] baixarImagemPromoVendedor:',e);}
+  alert('Imagem baixada! Agora toque em "Enviar por WhatsApp" (o texto já vem pronto) e anexe a imagem manualmente na conversa, usando o ícone de anexo/câmera do WhatsApp.\n\nSe a imagem não aparecer na Galeria, mantenha o dedo pressionado sobre a imagem aqui na tela e escolha "Salvar imagem".');
+}
+window.vapBaixarImagemPromoVendedor=vapBaixarImagemPromoVendedor;
 // ── Ranking de Clientes ───────────────────────────────────────────────────
 const VAP_RC_MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
@@ -4954,6 +4970,13 @@ function _vapRenderPromosVendedor(promos){
     const img=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;cursor:zoom-in" onclick="vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:'';
     const vendaHoje=_vapVendasHoje[p.id]||{valor:0};
     const acum=_vapVendasAcum[p.id]||0;
+    // Mensagem de WhatsApp montada a partir dos dados da promoção (mesmo padrão usado nas etapas de Campanhas)
+    const itensTxt=(p.servicos||'').split('\n').map(s=>s.trim()).filter(Boolean).map(s=>'• '+s).join('\n');
+    const precoTxt=p.precoDe?`\n\nDe R$ ${p.precoDe} por *R$ ${p.precoPor||'—'}*`:(p.precoPor?`\n\n*R$ ${p.precoPor}*`:'');
+    const msgWpp=`Olá! 👋 Tenho uma oferta especial pra você:\n\n🏷️ *${(p.nome||'').replace(/\*/g,'')}*${itensTxt?'\n'+itensTxt:''}${precoTxt}${p.validadeFim?`\n\nVálido até ${p.validadeFim}.`:''}`;
+    const msgWppEsc=msgWpp.replace(/'/g,"\\'").replace(/\n/g,'\\n');
+    // WhatsApp só aceita texto por link — se houver imagem, orienta baixar e anexar manualmente (mesma limitação/fluxo de Campanhas)
+    const wppImgRow=p.imagemUrl?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><img src="${p.imagemUrl}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid var(--border)" title="Toque e segure para salvar manualmente, se necessário"><span style="font-size:10px;color:#95A5A6;flex:1;min-width:120px">Imagem da promoção · não baixou? Toque e segure a imagem para salvar.</span><button class="btn-vap-tl btn-vap-sm" onclick="vapBaixarImagemPromoVendedor('${p.id}')" style="font-size:11px"><i class="ti ti-download"></i> Baixar imagem</button></div>`:'';
     return `
       <div class="promo-card">
         <div class="promo-top">
@@ -4967,6 +4990,12 @@ function _vapRenderPromosVendedor(promos){
           ${p.validadeFim?`<div style="font-size:11px;color:#566573;margin-bottom:6px">Válido até ${p.validadeFim}</div>`:''}
           <div class="pills">${pills}</div>
           <div class="promo-ft"><div>${preco}</div></div>
+
+          <!-- Enviar promoção por WhatsApp -->
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <button class="btn-vap-tl btn-vap-sm" onclick="vapAbrirWpp('${msgWppEsc}')" style="width:100%;justify-content:center"><i class="ti ti-brand-whatsapp"></i> Enviar por WhatsApp</button>
+            ${wppImgRow}
+          </div>
 
           <!-- Registro de venda do dia -->
           <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
