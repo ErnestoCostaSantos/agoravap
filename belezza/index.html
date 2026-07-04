@@ -6541,6 +6541,12 @@ function iniciarListenerPromos() {
   }, err => { console.warn('[Belezza] promos:', err); });
 }
 
+// Guarda quais promoções (por id) estão com o detalhe expandido no momento —
+// necessário porque o onSnapshot do Firestore redesenha a lista inteira mais de
+// uma vez (cache local + confirmação do servidor), o que resetava o detalhe pra
+// "fechado" instantes depois do clique (efeito de "pisca e fecha").
+const _promosDetAbertos = new Set();
+
 function renderPromosCliente(promos) {
   const lista = document.getElementById('cli-promos-lista');
   if(!lista) return;
@@ -6636,7 +6642,7 @@ function renderPromosCliente(promos) {
         <div class="promo-title">${p.nome}</div>
         ${profHtml}
         <div class="pills">${pills}</div>
-        <div id="promo-det-${p.id}" style="display:none;margin:8px 0;padding:8px 10px;background:var(--bg);border-radius:var(--r);border:1px solid var(--br);font-size:12px;color:var(--tx2);line-height:1.6">
+        <div id="promo-det-${p.id}" style="display:${_promosDetAbertos.has(p.id) ? 'block' : 'none'};margin:8px 0;padding:8px 10px;background:var(--bg);border-radius:var(--r);border:1px solid var(--br);font-size:12px;color:var(--tx2);line-height:1.6">
           ${detalhesCli || 'Sem detalhes adicionais para esta promoção.'}
         </div>
         <div style="font-size:11px;color:var(--tx3);text-align:center;margin-bottom:2px">Toque no card para ver mais detalhes</div>
@@ -6685,7 +6691,7 @@ function renderPromosPro(promos) {
           <i class="ti ti-trash" style="font-size:16px"></i>
         </button>
       </div>
-      <div id="promo-det-${p.id}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:var(--r);border:1px solid var(--br);font-size:12px;color:var(--tx2);line-height:1.7">
+      <div id="promo-det-${p.id}" style="display:${_promosDetAbertos.has(p.id) ? 'block' : 'none'};margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:var(--r);border:1px solid var(--br);font-size:12px;color:var(--tx2);line-height:1.7">
         ${detalhes}
       </div>
     </div>`;
@@ -6750,7 +6756,10 @@ async function apagarPromo(id) {
 
 function togglePromoDetalhe(id) {
   const el = document.getElementById('promo-det-' + id);
-  if(el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  if(!el) return;
+  const vaiAbrir = el.style.display === 'none';
+  el.style.display = vaiAbrir ? 'block' : 'none';
+  if(vaiAbrir) _promosDetAbertos.add(id); else _promosDetAbertos.delete(id);
 }
 window.togglePromoDetalhe    = togglePromoDetalhe;
 // Referência para re-renderizar promoções quando agendamentos da cliente atualizam
