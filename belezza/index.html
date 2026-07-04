@@ -7419,8 +7419,9 @@ window.carregarBranding = carregarBranding;
 
 // ══════════════════════════════════════════════════════════════════════════
 // MÓDULO TRIAL — bloqueia módulos restritos e exibe banner âmbar
-// Módulos bloqueados: Campanhas WhatsApp, Personalização/Branding,
-//   Upload em massa de clientes, Pop-up de promoções, Mascote Margarida.
+// Módulos bloqueados: Campanhas WhatsApp, Upload em massa de clientes,
+//   Pop-up de promoções, Mascote Margarida.
+// Personalização liberada no Trial (permite convidar clientes via link).
 // ══════════════════════════════════════════════════════════════════════════
 function _aplicarRestricoesTrial(dataExpira) {
   // 1. Atualiza texto do banner (profissional)
@@ -7449,12 +7450,7 @@ function _aplicarRestricoesTrial(dataExpira) {
       btn.title = 'Disponível na versão completa';
     });
   });
-  // 4. Bloqueia Personalização — sidebar
-  document.querySelectorAll('[onclick*="p-personalizacao"]').forEach(btn => {
-    btn.style.opacity = '.4';
-    btn.style.pointerEvents = 'none';
-    btn.title = 'Disponível na versão completa';
-  });
+  // 4. Personalização liberada no Trial (facilita convite de clientes) — sem bloqueio
   // 5. Bloqueia Upload em massa de clientes — botão Importar
   const btnImportar = document.querySelector('[onclick*="toggleImportarClientes"]');
   if (btnImportar) {
@@ -7482,7 +7478,7 @@ function _aplicarRestricoesTrial(dataExpira) {
   // 9. Pop-up de promoções: sobreescreve verificarEExibirPopup
   window.verificarEExibirPopup = function() {};
   // 10. Intercepta goTo/goToMob para bloquear panes restritos
-  const _panesBloqueados = new Set(['p-camp','p-personalizacao']);
+  const _panesBloqueados = new Set(['p-camp']);
   const _goToOrig = window.goTo;
   window.goTo = function(id, el) {
     if (_panesBloqueados.has(id)) {
