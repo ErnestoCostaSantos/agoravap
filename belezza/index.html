@@ -6638,9 +6638,10 @@ function renderPromosCliente(promos) {
       p.campanha ? `Parte da campanha: ${p.campanha}` : '',
     ].filter(Boolean).join(' · ');
 
-    // Imagem promocional (se a Proprietária subiu uma ao publicar)
+    // Imagem promocional (se a Proprietária subiu uma ao publicar) — banner cortado,
+    // igual ao padrão de lista do AgoraVAP; imagem completa some só ao clicar (modal)
     const imgHtml = p.imagemBase64
-      ? `<img src="${p.imagemBase64}" alt="${p.nome}" style="width:100%;display:block;cursor:pointer;border-radius:var(--r) var(--r) 0 0" onclick="abrirImagemPromo('${p.id}')">`
+      ? `<img src="${p.imagemBase64}" alt="${p.nome}" style="width:100%;height:160px;display:block;object-fit:cover;cursor:pointer;border-radius:var(--r) var(--r) 0 0" onclick="abrirImagemPromo('${p.id}')">`
       : '';
 
     return `<div class="promo-card">
@@ -9640,7 +9641,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
 <!-- MODAL IMAGEM DA PROMOÇÃO (tela cheia) -->
 <div id="modal-img-promo" style="display:none;position:fixed;inset:0;z-index:8200;background:rgba(0,0,0,.85);align-items:center;justify-content:center" onclick="fecharImagemPromo()">
   <button onclick="event.stopPropagation();fecharImagemPromo()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;line-height:1;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
-  <img id="modal-img-promo-src" src="" alt="" style="max-width:92vw;max-height:88vh;border-radius:8px;object-fit:contain" onclick="event.stopPropagation()">
+  <img id="modal-img-promo-src" src="" alt="" style="width:92vw;height:auto;max-height:88vh;border-radius:8px;object-fit:contain" onclick="event.stopPropagation()">
 </div>
 
 <!-- MODAL CADASTRO CLIENTE -->
