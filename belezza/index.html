@@ -4674,7 +4674,7 @@ function abrirPerfilCliente(id){
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:8px">
-      <button class="btn tl" style="flex:1" onclick="window.open('https://wa.me/55${c.wpp.replace(/\D/g,'')}','_blank')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+      <button class="btn tl" style="flex:1" onclick="window.open('https://wa.me/55${c.wpp.replace(/\D/g,'')}?text='+encodeURIComponent('Olá, ${c.nome.split(' ')[0]}! Aqui é do ${window.NOME_ESTAB || 'estabelecimento'}.'),'_blank')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
       <button class="btn pk" style="flex:1" onclick="fecharPerfilCliente();abrirModalAg()"><i class="ti ti-calendar-plus"></i> Agendar</button>
     </div>
     <button class="btn" style="width:100%" onclick="editarCliente('${c.id}')"><i class="ti ti-pencil"></i> Editar dados</button>`;
