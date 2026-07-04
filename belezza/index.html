@@ -6276,11 +6276,10 @@ async function criarCampanha() {
 // ── Listener de campanhas ─────────────────────────────────────────────────
 function iniciarListenerCampanhas() {
   if(unsubCampanhas) unsubCampanhas();
-  const q = collection(db, 'campanhas');
+  const q = query(collection(db, 'campanhas'), where('clinicaId', '==', clinicaAtual()));
   unsubCampanhas = onSnapshot(q, snap => {
     campanhasDB = snap.docs
       .map(d => ({id:d.id,...d.data()}))
-      .filter(c => c.clinicaId === clinicaAtual())
       .sort((a,b) => a.criadoEm > b.criadoEm ? -1 : 1);
     window.campanhasDB = campanhasDB; // mantém referência global atualizada
     renderCampanhas(campanhasDB);
@@ -6529,10 +6528,9 @@ function initPromoForm() {
 
 function iniciarListenerPromos() {
   if(unsubPromos) unsubPromos();
-  const q = collection(db, 'promocoes');
+  const q = query(collection(db, 'promocoes'), where('clinicaId', '==', clinicaAtual()));
   unsubPromos = onSnapshot(q, snap => {
     const promos = snap.docs.map(d => ({id:d.id,...d.data()}))
-      .filter(p => p.clinicaId === clinicaAtual())
       .sort((a,b) => a.criadoEm > b.criadoEm ? -1 : 1);
     renderPromosCliente(promos);
     renderPromosPro(promos);
