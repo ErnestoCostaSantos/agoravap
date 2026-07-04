@@ -6619,7 +6619,14 @@ function renderPromosCliente(promos) {
         ? `<span class="p-new">R$ ${p.precoPor}</span>`
         : `<span class="p-auto">Desconto automático</span>`;
 
-    return `<div class="promo-card">
+    // Detalhes extras exibidos ao expandir o card
+    const detalhesCli = [
+      (p.validadeIni||p.validadeFim) ? `Válido de ${p.validadeIni||'—'} até ${p.validadeFim||'—'}` : '',
+      p.canal ? `Divulgada via: ${p.canal}` : '',
+      p.campanha ? `Parte da campanha: ${p.campanha}` : '',
+    ].filter(Boolean).join(' · ');
+
+    return `<div class="promo-card" style="cursor:pointer" onclick="togglePromoDetalhe('${p.id}')">
       <div class="promo-accent ${accentClass}"></div>
       <div class="promo-top">
         <span class="promo-badge ${badgeClass}">${canalLabel}</span>
@@ -6629,9 +6636,13 @@ function renderPromosCliente(promos) {
         <div class="promo-title">${p.nome}</div>
         ${profHtml}
         <div class="pills">${pills}</div>
+        <div id="promo-det-${p.id}" style="display:none;margin:8px 0;padding:8px 10px;background:var(--bg);border-radius:var(--r);border:1px solid var(--br);font-size:12px;color:var(--tx2);line-height:1.6">
+          ${detalhesCli || 'Sem detalhes adicionais para esta promoção.'}
+        </div>
+        <div style="font-size:11px;color:var(--tx3);text-align:center;margin-bottom:2px">Toque no card para ver mais detalhes</div>
         <div class="promo-ft">
           ${precoHtml}
-          <button class="btn-promo-ag" onclick="abrirAgendaPromo('${nomeEsc}')">
+          <button class="btn-promo-ag" onclick="event.stopPropagation();abrirAgendaPromo('${nomeEsc}')">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             Agendar
           </button>
