@@ -551,6 +551,17 @@ input[type="password"]::-ms-clear {
   </div>
 </div>
 
+<!-- ── Bloqueio Total (trial expirado / conta inadimplente) ────────────────── -->
+<div id="bloqueio-total" style="display:none;position:fixed;inset:0;z-index:9500;background:#1c1420;color:#fff;align-items:center;justify-content:center;text-align:center;padding:24px">
+  <div style="max-width:360px">
+    <div style="font-size:40px;margin-bottom:12px">🔒</div>
+    <div id="bloqueio-total-titulo" style="font-size:19px;font-weight:700;margin-bottom:8px">Acesso bloqueado</div>
+    <div id="bloqueio-total-msg" style="font-size:14px;color:#d8c5d0;line-height:1.5;margin-bottom:20px">Fale com a ECS para reativar o acesso.</div>
+    <button onclick="window.open(&apos;https://wa.me/5511932308150?text=&apos;+encodeURIComponent(&apos;Ol\u00e1! Meu acesso ao MeCuidar est\u00e1 bloqueado. Podem me ajudar?&apos;),&apos;_blank&apos;)" style="background:#f59e0b;color:#1c1917;border:none;padding:10px 22px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer">💬 Falar com a ECS</button>
+    <div style="margin-top:16px"><span onclick="_sairBloqueio()" style="font-size:12px;color:#c9a8ba;cursor:pointer;text-decoration:underline">Sair e tentar outro login</span></div>
+  </div>
+</div>
+
 <div class="app" style="display:none">
 <!-- ── Banner Trial ─────────────────────────────────────────────────────── -->
 <div id="trial-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9200;background:#f59e0b;color:#1c1917;font-size:12px;font-weight:600;text-align:center;padding:5px 12px;letter-spacing:.02em">
@@ -2404,7 +2415,13 @@ window.saRenderTabela = function(lista) {
       + '<td style="padding:10px 10px;color:#9ca3af">' + (c.dataInicio || '—') + '</td>'
       + '<td style="padding:10px 10px">' + (c.trialExpira || '—') + (diasRestantes ? ' <span style="color:#f59e0b;font-size:11px">('+diasRestantes+')</span>' : '') + '</td>'
       + '<td style="padding:10px 10px">' + statusBadge + '</td>'
-      + '<td style="padding:10px 10px"><button onclick="saCopiarId(\''+c.id+'\')" style="background:#374151;border:none;color:#f0f0f0;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px">Copiar ID</button></td>'
+      + '<td style="padding:10px 10px;white-space:nowrap">'
+      + '<button onclick="saCopiarId(\''+c.id+'\')" style="background:#374151;border:none;color:#f0f0f0;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px">Copiar ID</button>'
+      + (c.trial === true ? ' <button onclick="saConverterPago(\''+c.id+'\')" style="background:#16a34a;border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:6px">✓ Converter p/ pago</button>' : '')
+      + (c.ativo === false
+          ? ' <button onclick="saToggleAtivo(\''+c.id+'\', true)" style="background:#16a34a;border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:6px">↺ Reativar</button>'
+          : ' <button onclick="saToggleAtivo(\''+c.id+'\', false)" style="background:#dc2626;border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:6px">⛔ Bloquear</button>')
+      + '</td>'
       + '</tr>';
   }).join('');
 };
@@ -2415,6 +2432,54 @@ window.saCopiarId = function(id) {
     const t = document.getElementById('toast-trial');
     if (t) t.textContent = '✅ ID copiado: ' + id;
   });
+};
+
+// ── SuperAdmin: Converter clínica trial em cliente pago ─────────────────────
+// Muda trial:true → false direto no Firestore (via db2, autenticado por auth2,
+// mesmo padrão de escrita usado em saCriarClinica). A proprietária precisa dar
+// F5 ou relogar para o banner sumir e os recursos bloqueados serem liberados,
+// pois carregarBranding() só roda getDoc() no carregamento — não é listener.
+window.saConverterPago = async function(id) {
+  if (!confirm('Converter "' + id + '" para cliente pago?\n\nIsso remove o modo Trial e libera todos os recursos (Campanhas WhatsApp, importação em massa, pop-up de promoções, mascote Margarida).\n\nA proprietária precisa dar F5 ou relogar para o banner sumir.')) return;
+  const statusEl = document.getElementById('sa-status');
+  try {
+    await updateDoc(doc(db2, 'clinicas', id), { trial: false });
+    const item = (window._saClinicas || []).find(c => c.id === id);
+    if (item) item.trial = false;
+    saRenderTabela(window._saClinicas || []);
+    if (statusEl) statusEl.textContent = '✅ "' + id + '" convertida para cliente pago.';
+  } catch(e) {
+    alert('Erro ao converter: ' + e.message);
+    console.error('[SA Converter Pago]', e);
+    if (statusEl) statusEl.textContent = '⚠️ Erro ao converter "' + id + '": ' + e.message;
+  }
+};
+
+// ── SuperAdmin: Bloquear / Reativar clínica (inadimplência) ─────────────────
+// Muda ativo:true ⇄ false direto no Firestore (via db2). Quando ativo:false,
+// carregarBranding() mostra a tela de bloqueio total no próximo login/reload
+// da clínica — antes, o único jeito de cortar acesso era desabilitar a conta
+// manualmente no Firebase Console → Authentication.
+window.saToggleAtivo = async function(id, novoValor) {
+  const acao = novoValor ? 'reativar' : 'bloquear';
+  const aviso = novoValor
+    ? 'Reativar "' + id + '"?\n\nO acesso volta a funcionar no próximo login/reload da clínica.'
+    : 'Bloquear "' + id + '"?\n\nA proprietária e a equipe verão uma tela de bloqueio total no próximo login/reload — nenhum recurso ficará acessível até reativar.';
+  if (!confirm(aviso)) return;
+  const statusEl = document.getElementById('sa-status');
+  try {
+    await updateDoc(doc(db2, 'clinicas', id), { ativo: novoValor });
+    const item = (window._saClinicas || []).find(c => c.id === id);
+    if (item) item.ativo = novoValor;
+    saRenderTabela(window._saClinicas || []);
+    if (statusEl) statusEl.textContent = novoValor
+      ? '✅ "' + id + '" reativada.'
+      : '⛔ "' + id + '" bloqueada.';
+  } catch(e) {
+    alert('Erro ao ' + acao + ': ' + e.message);
+    console.error('[SA Toggle Ativo]', e);
+    if (statusEl) statusEl.textContent = '⚠️ Erro ao ' + acao + ' "' + id + '": ' + e.message;
+  }
 };
 
 
@@ -7452,7 +7517,22 @@ async function carregarBranding(clinicaId){
       window._trialAtivo    = data.trial === true;
       window._trialExpira   = data.trialExpira || '';   // "DD/MM/AAAA"
       window._clinicaAtivo  = data.ativo !== false;     // false = inadimplente
-      if (window._trialAtivo) {
+
+      // ── Bloqueio total: conta inadimplente (ativo:false) OU trial expirado
+      // sem conversão para pago. Substitui o painel inteiro por tela de bloqueio
+      // (antes só ofuscava os 4 recursos restritos do trial, indefinidamente).
+      let trialExpirado = false;
+      if (window._trialAtivo && window._trialExpira) {
+        const partes = window._trialExpira.split('/');
+        const exp = new Date(+partes[2], +partes[1] - 1, +partes[0]);
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+        trialExpirado = exp < hoje;
+      }
+      if (!window._clinicaAtivo) {
+        _bloquearAcessoTotal('inadimplente');
+      } else if (trialExpirado) {
+        _bloquearAcessoTotal('trial_expirado');
+      } else if (window._trialAtivo) {
         _aplicarRestricoesTrial(window._trialExpira);
       }
     }
@@ -7543,6 +7623,33 @@ function _aplicarRestricoesTrial(dataExpira) {
   console.info('[MeCuidar] Modo Trial ativo — expira em', dataExpira);
 }
 window._aplicarRestricoesTrial = _aplicarRestricoesTrial;
+
+// ══════════════════════════════════════════════════════════════════════════
+// BLOQUEIO TOTAL — conta inadimplente (ativo:false) ou trial expirado sem
+// conversão para pago. Cobre a tela inteira; nenhum recurso fica acessível.
+// ══════════════════════════════════════════════════════════════════════════
+function _bloquearAcessoTotal(motivo) {
+  const el = document.getElementById('bloqueio-total');
+  if (!el) return;
+  const titulo = document.getElementById('bloqueio-total-titulo');
+  const msg    = document.getElementById('bloqueio-total-msg');
+  if (motivo === 'inadimplente') {
+    if (titulo) titulo.textContent = 'Conta bloqueada';
+    if (msg) msg.textContent = 'Sua conta foi temporariamente bloqueada. Fale com a ECS para regularizar e voltar a usar o MeCuidar.';
+  } else {
+    if (titulo) titulo.textContent = 'Trial expirado';
+    if (msg) msg.textContent = 'Seu período de teste terminou. Fale com a ECS para continuar usando o MeCuidar.';
+  }
+  el.style.display = 'flex';
+  console.info('[MeCuidar] Acesso bloqueado —', motivo);
+}
+window._bloquearAcessoTotal = _bloquearAcessoTotal;
+
+window._sairBloqueio = function() {
+  const el = document.getElementById('bloqueio-total');
+  if (el) el.style.display = 'none';
+  signOut(auth).catch(() => {}).finally(() => { window.location.reload(); });
+};
 
 function _toastTrial() {
   let t = document.getElementById('toast-trial');
