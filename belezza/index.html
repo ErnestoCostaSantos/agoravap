@@ -2695,7 +2695,6 @@ const faqs=[
   {cat:'agenda',q:'Como criar um novo agendamento?',a:'Clique em "Novo agendamento" no canto superior direito ou acesse a aba Agenda. Selecione a cliente, o serviço, a profissional, a data e o horário disponível. Salve para registrar.'},
   {cat:'agenda',q:'Como cancelar ou reagendar?',a:'Na aba Agenda, clique no agendamento desejado e escolha "Reagendar" ou "Cancelar". O horário volta a ficar disponível automaticamente.'},
   {cat:'agenda',q:'Como ver a agenda por profissional?',a:'Na tela de Agenda, use o filtro de profissional no topo. Você pode ver a agenda individual ou a visão consolidada de toda a equipe.'},
-  {cat:'clientes',q:'Como cadastrar uma nova cliente?',a:'Acesse Clientes e clique em "+ Cadastrar nova cliente". Preencha nome, WhatsApp e salve. Os atendimentos ficam registrados automaticamente no perfil dela.'},
   {cat:'clientes',q:'Como ver o histórico de uma cliente?',a:'Clique no nome da cliente para abrir o perfil completo com histórico de atendimentos, procedimentos, profissional responsável, total de visitas e total gasto.'},
   {cat:'clientes',q:'Como buscar clientes por procedimento?',a:'Use a barra de busca na tela de Clientes. Digite o nome do procedimento (ex: botox) ou da profissional para filtrar.'},
   {cat:'campanhas',q:'Como criar uma campanha de WhatsApp?',a:'Acesse Campanhas e clique em "+ Criar nova campanha". Dê um nome, escolha o tipo (simples, VIP ou flash) e defina as datas. O app calcula automaticamente as datas de cada etapa.'},
@@ -2902,7 +2901,7 @@ function closeHelp(){
 function handleOvClick(e){if(e.target===document.getElementById('help-ov'))closeHelp();}
 
 const titulos={'p-dash':'Painel','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-servicos':'Serviços','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','p-personalizacao':'Personalização','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
-const actLbl={'p-dash':'Agendar','p-agenda':'Agendar','p-clientes':'Nova cliente','p-equipe':'Add profissional','p-servicos':'Novo serviço','p-camp':'Nova campanha','p-promos':'Publicar promo'};
+const actLbl={'p-dash':'Agendar','p-agenda':'Agendar','p-clientes':'Nova(o) cliente','p-equipe':'Add profissional','p-servicos':'Novo serviço','p-camp':'Nova campanha','p-promos':'Publicar promo'};
 let role='p';
 
 function showPane(id){
@@ -7737,6 +7736,12 @@ function editarCliente(id){
   const origemSel = document.getElementById('nc-origem');
   if(origemSel) origemSel.value = c.origem || '';
   document.querySelectorAll('input[name="nc-sexo"]').forEach(r => r.checked = r.value === c.sexo);
+  // Carrega o avatar salvo do cliente no seletor (mesmo padrão usado para profissionais)
+  const cliAvIdxEl = document.getElementById('cli-avatar-idx');
+  const cliAvPrevEl = document.getElementById('cli-avatar-preview');
+  const avIdxSalvo = c.avatarIdx || 1;
+  if(cliAvIdxEl) cliAvIdxEl.value = avIdxSalvo;
+  if(cliAvPrevEl && window._avUrl) cliAvPrevEl.src = window._avUrl(avIdxSalvo);
   // Marca que é edição, não novo cadastro
   const modal = document.getElementById('modal-cli');
   const titulo = modal.querySelector('div[style*="font-size:15px"]');
@@ -7762,8 +7767,12 @@ async function salvarEdicaoCliente(id){
   const idx = clientesDB.findIndex(x => x.id === id);
   if(idx < 0) return;
   const sexo = document.querySelector('input[name="nc-sexo"]:checked')?.value || clientesDB[idx].sexo;
+  const avatarIdxEdit = parseInt(document.getElementById('cli-avatar-idx')?.value || clientesDB[idx].avatarIdx || '1');
+  const avatarEdit = window._avUrl ? window._avUrl(avatarIdxEdit) : clientesDB[idx].avatar;
   const alteracoes = {
     nome, wpp, sexo,
+    avatar:     avatarEdit,
+    avatarIdx:  avatarIdxEdit,
     apelido:    (document.getElementById('nc-apelido')?.value||'').toUpperCase().slice(0,2),
     nasc:       document.getElementById('nc-nasc').value,
     origem:     document.getElementById('nc-origem').value,
@@ -9654,7 +9663,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:10px 12px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--br)">
       <img id="cli-avatar-preview" src="https://cdn.jsdelivr.net/gh/ErnestoCostaSantos/agoravap@main/belezza/avatar_01.png" alt="Avatar" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--pk100)">
       <div>
-        <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:4px">Avatar da cliente</div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:4px">Avatar da(o) cliente</div>
         <button type="button" onclick="abrirPickerAvatar('cli')" style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--pk200);background:var(--pk50);color:var(--pk700);cursor:pointer;font-family:inherit">Trocar avatar</button>
       </div>
     </div>
