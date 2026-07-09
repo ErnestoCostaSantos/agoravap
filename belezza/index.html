@@ -174,7 +174,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* Texto sobreposto na imagem */
 .svc-banner-txt{position:absolute;bottom:0;left:0;right:0;padding:10px 14px 12px}
 .svc-name{font-size:14px;font-weight:700;color:white;line-height:1.2;text-shadow:0 1px 4px rgba(0,0,0,.4)}
-.svc-desc{font-size:11px;color:rgba(255,255,255,.82);line-height:1.4;margin-top:2px;text-shadow:0 1px 3px rgba(0,0,0,.3);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;overflow-wrap:break-word;max-height:4.2em}
+.svc-desc{font-size:11px;color:rgba(255,255,255,.82);line-height:1.4;margin-top:2px;text-shadow:0 1px 3px rgba(0,0,0,.3);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-break:break-word;overflow-wrap:break-word;max-height:4.2em}
 /* Rodapé: preço + chevron */
 .svc-card-footer{display:flex;align-items:center;justify-content:space-between;padding:9px 14px 10px;background:white}
 .svc-price{font-size:13px;font-weight:700;color:#993556}
@@ -950,7 +950,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <!-- Formulário novo serviço (oculto inicialmente) -->
       <div id="p-svc-form-wrap" style="display:none;background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);padding:16px;margin-bottom:12px">
         <div style="font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
-          <span><i class="ti ti-sparkles" style="color:var(--pk600)"></i> Novo serviço</span>
+          <span><i class="ti ti-sparkles" style="color:var(--pk600)"></i> <span id="svc-form-title-txt">Novo serviço</span></span>
           <span onclick="fecharFormSvc()" style="cursor:pointer;color:var(--tx3);font-size:18px;line-height:1">×</span>
         </div>
         <div style="margin-bottom:8px">
@@ -958,8 +958,8 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
           <input id="svc-nome-inp" type="text" placeholder="Ex: Limpeza de pele" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
         </div>
         <div style="margin-bottom:8px">
-          <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Descrição <span id="svc-desc-count" style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0">100</span></label>
-          <input id="svc-desc-inp" type="text" maxlength="100" placeholder="Ex: Extração profunda e hidratação" oninput="document.getElementById('svc-desc-count').textContent=100-this.value.length" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box">
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Descrição <span id="svc-desc-count" style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0">400</span></label>
+          <textarea id="svc-desc-inp" maxlength="400" rows="3" placeholder="Ex: Extração profunda e hidratação" oninput="document.getElementById('svc-desc-count').textContent=400-this.value.length" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);margin-top:4px;box-sizing:border-box;resize:vertical;font-family:inherit"></textarea>
         </div>
         <div style="margin-bottom:8px">
           <label style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em">Preço</label>
@@ -8848,6 +8848,9 @@ function iniciarListenerServicos() {
           <div style="font-size:11px;color:var(--tx2);margin-top:1px;overflow-wrap:break-word;word-break:break-word">${s.desc||''}</div>
           <div style="font-size:11px;color:var(--pk600);font-weight:600;margin-top:2px">${s.preco||''}</div>
         </div>
+        <button onclick="editarSvc('${d.id}')" class="btn sm" style="flex-shrink:0;color:var(--tx2);border-color:var(--br)">
+          <i class="ti ti-pencil" style="font-size:14px"></i>
+        </button>
         <button onclick="removerSvc('${d.id}')" class="btn sm" style="flex-shrink:0;color:var(--tx3);border-color:var(--br)">
           <i class="ti ti-trash" style="font-size:14px"></i>
         </button>
@@ -9143,6 +9146,8 @@ window.previewSvcImg = previewSvcImg;
 window.removerSvcImg = removerSvcImg;
 
 // ── Salvar novo serviço ───────────────────────────────────────────────────
+let _svcEditId = ''; // '' = criando novo · id do doc = editando existente
+
 async function salvarSvc() {
   const nome  = (document.getElementById('svc-nome-inp')?.value || '').trim();
   const desc  = (document.getElementById('svc-desc-inp')?.value || '').trim();
@@ -9154,17 +9159,68 @@ async function salvarSvc() {
   if(erro) erro.textContent = '';
   try {
     const cid = clinicaAtual();
-    await addDoc(collection(db, 'servicos', cid, 'items'), {
+    const dadosSvc = {
       nome, desc, preco, icone, cat,
       imagemBase64: _svcImgBase64 || '',
-      criadoEm: serverTimestamp()
-    });
+    };
+    if (_svcEditId) {
+      await updateDoc(doc(db, 'servicos', cid, 'items', _svcEditId), dadosSvc);
+    } else {
+      await addDoc(collection(db, 'servicos', cid, 'items'), {
+        ...dadosSvc,
+        criadoEm: serverTimestamp()
+      });
+    }
+    _svcEditId = '';
     fecharFormSvc();
   } catch(e) {
     console.error('[Belezza] salvarSvc:', e);
     if(erro) erro.textContent = 'Erro ao salvar. Tente novamente.';
   }
 }
+
+// ── Editar serviço existente — preenche o formulário com os dados atuais ───
+function editarSvc(id) {
+  const s = (window._svcTodosAdmin || []).find(x => x._id === id);
+  if (!s) return;
+  abrirFormSvc(); // reseta e abre o form no estado limpo
+  _svcEditId = id;
+  const titulo = document.getElementById('svc-form-title-txt');
+  if (titulo) titulo.textContent = 'Editar serviço';
+  const nomeEl = document.getElementById('svc-nome-inp');
+  const descEl = document.getElementById('svc-desc-inp');
+  const precoEl = document.getElementById('svc-preco-inp');
+  const iconeEl = document.getElementById('svc-icone-inp');
+  if (nomeEl)  nomeEl.value = s.nome  || '';
+  if (precoEl) precoEl.value = s.preco || '';
+  if (iconeEl) iconeEl.value = s.icone || 'ti-sparkles';
+  if (descEl) {
+    descEl.value = s.desc || '';
+    const cnt = document.getElementById('svc-desc-count');
+    if (cnt) cnt.textContent = String(400 - (s.desc || '').length);
+  }
+  // Categoria — marca o chip correspondente
+  if (s.cat) {
+    const chipBtn = Array.from(document.querySelectorAll('.admin-cat-chip')).find(b => b.textContent.trim() === s.cat);
+    selecionarAdminCat(s.cat, chipBtn || null);
+  }
+  // Imagem — distingue foto própria (data:) de imagem do banco (URL)
+  if (s.imagemBase64 && s.imagemBase64.startsWith('data:')) {
+    trocarTabSvcImg('upload');
+    _svcImgBase64 = s.imagemBase64;
+    const preview = document.getElementById('svc-img-preview');
+    const badge   = document.getElementById('svc-img-badge');
+    if (preview) { preview.src = s.imagemBase64; preview.style.display = 'block'; }
+    if (badge)   { badge.style.display = 'block'; badge.textContent = 'Trocar'; }
+  } else if (s.imagemBase64) {
+    trocarTabSvcImg('picker');
+    _svcImgBase64 = s.imagemBase64;
+    _svcPickerSel = s.imagemBase64;
+    const item = document.querySelector(`.svc-img-picker-item[data-url="${s.imagemBase64}"]`);
+    if (item) item.classList.add('sel');
+  }
+}
+window.editarSvc = editarSvc;
 
 // ── Remover serviço ───────────────────────────────────────────────────────
 async function removerSvc(id) {
@@ -9179,12 +9235,15 @@ async function removerSvc(id) {
 function abrirFormSvc() {
   const wrap = document.getElementById('p-svc-form-wrap');
   if (!wrap) return;
+  _svcEditId = '';
+  const titulo = document.getElementById('svc-form-title-txt');
+  if (titulo) titulo.textContent = 'Novo serviço';
   // Limpa campos de texto
   ['svc-nome-inp','svc-desc-inp','svc-preco-inp'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value = '';
   });
   const cnt = document.getElementById('svc-desc-count');
-  if(cnt) cnt.textContent = '100';
+  if(cnt) cnt.textContent = '400';
   const sel = document.getElementById('svc-icone-inp');
   if(sel) sel.value = 'ti-sparkles';
   const erro = document.getElementById('svc-form-erro');
@@ -9265,6 +9324,7 @@ function abrirFormSvc(){ if(window.abrirFormSvc) window.abrirFormSvc(); }
 function fecharFormSvc(){ if(window.fecharFormSvc) window.fecharFormSvc(); }
 function salvarSvc(){ if(window.salvarSvc) window.salvarSvc(); }
 function removerSvc(id){ if(window.removerSvc) window.removerSvc(id); }
+function editarSvc(id){ if(window.editarSvc) window.editarSvc(id); }
 function abrirAgendaServico(){ if(window.abrirAgendaServico) window.abrirAgendaServico(); }
 function abrirModalCliente(){ try{ window._abrirModalCliente && window._abrirModalCliente(); }catch(e){} }
 function fecharModalCliente(){ try{ window._fecharModalCliente && window._fecharModalCliente(); }catch(e){} }
