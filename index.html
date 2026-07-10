@@ -1130,7 +1130,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <img id="vap-promo-img-preview" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="document.querySelector('#vap-img-label input').click()" title="Clique para trocar">
           </div>
         </div>
-        <div style="padding:12px 14px;border-top:1px solid var(--border)">
+        <div style="padding:12px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="vap-promo-popup-toggle" onclick="vapTogglePromoPopup()" style="width:38px;height:22px;border-radius:20px;background:var(--border);position:relative;cursor:pointer;transition:background .15s;flex-shrink:0">
+              <div id="vap-promo-popup-knob" style="width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
+            </div>
+            <span style="font-size:12px;font-weight:600;color:#566573">Pop-up de boas-vindas</span>
+          </div>
+        </div>
+        <div style="padding:0 14px 12px">
           <button class="btn-save btn" style="width:100%;justify-content:center;padding:10px" onclick="vapPublicarPromo()"><i class="ti ti-megaphone"></i> Publicar promoção</button>
         </div>
       </div>
@@ -2343,6 +2351,8 @@ onAuthStateChanged(auth, async user => {
     // ── Módulos Campanhas + Promoções ──────────────────
     window._vapCompanyId = cp.companyId || _companyId || null;
     if (typeof vapIniciarModulos === 'function') vapIniciarModulos();
+    // Pop-up de boas-vindas (só vendedor, 1x/dia)
+    setTimeout(() => { if(window.vapVerificarPopupPromo) window.vapVerificarPopupPromo(); }, 600);
     const tabCamp   = document.getElementById('tab-campanhas');
     const tabPromos = document.getElementById('tab-promocoes');
     const tabPromoV = document.getElementById('tab-promocoes-vendedor');
@@ -5378,12 +5388,16 @@ async function vapPublicarPromo(){
       precoDe:document.getElementById('vap-promo-preco-de')?.value||'',
       precoPor:document.getElementById('vap-promo-preco-por')?.value||'',
       imagemUrl,
+      popup:_vapPromoPopupAtivo||false,
       criadoEm:new Date().toISOString(),
       criadoPor:cu?.uid||'lider'
     });
     ['vap-promo-nome','vap-promo-items','vap-promo-preco-de','vap-promo-preco-por'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     const pv=document.getElementById('vap-promo-img-preview'),lb=document.getElementById('vap-img-label');
     if(pv){pv.style.display='none';pv.src='';}if(lb)lb.style.display='flex';
+    _vapPromoPopupAtivo=false;
+    const tgEl=document.getElementById('vap-promo-popup-toggle'),knEl=document.getElementById('vap-promo-popup-knob');
+    if(tgEl)tgEl.style.background='var(--border)';if(knEl)knEl.style.left='3px';
     const t=document.getElementById('vap-promo-toast');if(t){t.style.display='flex';setTimeout(()=>t.style.display='none',3500);}
   }catch(e){
     console.error('[VAP] publicarPromo:',e);
@@ -5406,6 +5420,76 @@ async function vapApagarPromo(id){
 window.vapApagarPromo=vapApagarPromo;
 function vapTogglePromoDetalhe(id){const el=document.getElementById('vap-promo-det-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 window.vapTogglePromoDetalhe=vapTogglePromoDetalhe;
+
+// ── Toggle pop-up no formulário (Líder) ────────────────────────────────
+let _vapPromoPopupAtivo=false;
+function vapTogglePromoPopup(){
+  _vapPromoPopupAtivo=!_vapPromoPopupAtivo;
+  const toggle=document.getElementById('vap-promo-popup-toggle');
+  const knob=document.getElementById('vap-promo-popup-knob');
+  if(toggle)toggle.style.background=_vapPromoPopupAtivo?'#C53030':'var(--border)';
+  if(knob)knob.style.left=_vapPromoPopupAtivo?'19px':'3px';
+}
+window.vapTogglePromoPopup=vapTogglePromoPopup;
+
+// ── Pop-up de boas-vindas (Vendedor) — 1x por dia no login ─────────────
+async function vapVerificarPopupPromo(){
+  try{
+    if(!cp||cp.role!=='vendedor')return; // só vendedor recebe o pop-up
+    const CID=_vapGetCompanyId();if(!CID)return;
+    const uid=cu?.uid;if(!uid)return;
+
+    const hojeStr=tod(); // YYYY-MM-DD, mesmo helper usado no resto do app
+    const chave='vapPopupVisto_'+uid;
+    if(localStorage.getItem(chave)===hojeStr)return; // já viu hoje
+
+    const snap=await getDocs(query(collection(db,'promocoes'),
+      where('companyId','==',CID),
+      where('popup','==',true)
+    ));
+    const hoje=new Date();
+    const promos=snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(p=>{
+        if(!p.validadeFim)return true;
+        const [dd,mm,aa]=p.validadeFim.split('/');
+        if(!dd||!mm||!aa)return true;
+        return new Date(parseInt(aa),parseInt(mm)-1,parseInt(dd))>=hoje;
+      })
+      .sort((a,b)=>a.criadoEm>b.criadoEm?-1:1);
+
+    if(promos.length===0)return;
+    const promo=promos[0];
+
+    const overlay=document.getElementById('vap-popup-overlay');
+    const imgEl=document.getElementById('vap-popup-img');
+    const noImg=document.getElementById('vap-popup-noimg');
+    const nomeEl=document.getElementById('vap-popup-nome');
+    const subEl=document.getElementById('vap-popup-sub');
+    if(!overlay)return;
+
+    if(promo.imagemUrl){
+      imgEl.src=promo.imagemUrl;
+      imgEl.style.display='block';
+      if(noImg)noImg.style.display='none';
+    }else{
+      imgEl.style.display='none';
+      if(noImg)noImg.style.display='block';
+      if(nomeEl)nomeEl.textContent=promo.nome||'';
+      if(subEl)subEl.textContent=promo.servicos?promo.servicos.replace(/\n/g,', '):'';
+    }
+    overlay.style.display='flex';
+    localStorage.setItem(chave,hojeStr);
+  }catch(e){
+    console.warn('[VAP] popup promo:',e);
+  }
+}
+window.vapVerificarPopupPromo=vapVerificarPopupPromo;
+
+function vapFecharPopupPromo(){
+  const overlay=document.getElementById('vap-popup-overlay');
+  if(overlay)overlay.style.display='none';
+}
+window.vapFecharPopupPromo=vapFecharPopupPromo;
 // ── Vendas por Promoção ───────────────────────────────────────────────────
 
 // Registrar venda do dia (vendedor)
@@ -5519,6 +5603,39 @@ window.vapCarregarAcumLider = vapCarregarAcumLider;
 
 function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
 window.vapIniciarModulos=vapIniciarModulos;</script>
+
+<!-- ══ POP-UP PROMOCIONAL — Boas-vindas Vendedor ═══════════════════════ -->
+<div id="vap-popup-overlay" style="
+  display:none;position:fixed;inset:0;z-index:99999;
+  background:rgba(0,0,0,.82);
+  align-items:center;justify-content:center;
+  padding:20px;box-sizing:border-box;
+">
+  <div style="position:relative;max-width:min(480px,92vw);max-height:92vh;display:flex;align-items:center;justify-content:center">
+    <button onclick="vapFecharPopupPromo()" style="
+      position:absolute;top:-14px;right:-14px;z-index:2;
+      width:34px;height:34px;border-radius:50%;
+      background:#fff;border:none;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 8px rgba(0,0,0,.35);
+      font-size:18px;color:#333;line-height:1;
+      transition:transform .15s;
+    " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">&#x2715;</button>
+    <img id="vap-popup-img" src="" alt="Promoção" style="
+      display:none;max-width:100%;max-height:92vh;
+      border-radius:12px;object-fit:contain;
+      box-shadow:0 8px 32px rgba(0,0,0,.4);
+    ">
+    <div id="vap-popup-noimg" style="
+      display:none;background:#fff;border-radius:var(--radius,12px);
+      padding:32px 24px;text-align:center;min-width:280px;
+    ">
+      <div id="vap-popup-nome" style="font-size:20px;font-weight:700;color:#C53030;margin-bottom:8px"></div>
+      <div id="vap-popup-sub" style="font-size:13px;color:#566573"></div>
+    </div>
+  </div>
+</div>
+<!-- ══ /POP-UP PROMOCIONAL ══════════════════════════════════════════════ -->
 
 <script>/* Chart.js 4.4.1 inline */
 /*!
