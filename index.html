@@ -1694,6 +1694,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 <div class="vap-lb-ov" id="vap-lb-ov" onclick="if(event.target===this)vapFecharImagemPromo()">
   <button class="vap-lb-close" onclick="vapFecharImagemPromo()" title="Fechar">×</button>
   <img class="vap-lb-img" id="vap-lb-img" src="" alt="">
+  <video class="vap-lb-img" id="vap-lb-video" src="" controls playsinline style="display:none;background:#000"></video>
   <div class="vap-lb-cap" id="vap-lb-cap"></div>
 </div>
 
@@ -5237,11 +5238,15 @@ function _vapRenderPromosPro(promos){
   if(promos.length===0){lista.innerHTML='<div style="color:#95A5A6;font-size:13px;padding:10px 0">Nenhuma promoção publicada ainda.</div>';return;}
   lista.innerHTML=promos.map(p=>{
     const det=[p.campanha?`Campanha: ${p.campanha}`:'',p.responsavel?`Responsável: ${p.responsavel}`:'',p.canal?`Canal: ${p.canal}`:'',p.servicos?`Itens: ${p.servicos.replace(/\n/g,', ')}`:'',((p.validadeIni||p.validadeFim)?`Validade: ${p.validadeIni||''} → ${p.validadeFim||'—'}`:''),p.precoDe?`De R$ ${p.precoDe} por R$ ${p.precoPor}`:(p.precoPor?`R$ ${p.precoPor}`:'')].filter(Boolean).join(' · ');
-    const imgDetalhe=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:'';
+    const imgDetalhe=p.tipoMidia==='video'&&p.videoUrl
+      ?`<div style="position:relative;width:100%;aspect-ratio:1/1;border-radius:var(--rsm);margin-bottom:8px;cursor:pointer;overflow:hidden;background:#1a1a1a" onclick="event.stopPropagation();vapAbrirVideoPromo('${p.videoUrl}','${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para assistir"><video src="${p.videoUrl}#t=0.1" preload="metadata" muted style="width:100%;height:100%;object-fit:cover;pointer-events:none"></video><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center"><i class="ti ti-player-play-filled" style="font-size:20px;color:#C53030"></i></div></div></div>`
+      :(p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:'');
     return `
       <div class="rec-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch">
         <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="vapTogglePromoDetalhe('${p.id}')">
-          ${p.imagemUrl?`<img src="${p.imagemUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:''}
+          ${p.tipoMidia==='video'&&p.videoUrl
+            ?`<div style="position:relative;width:44px;height:44px;border-radius:var(--rsm);flex-shrink:0;cursor:pointer;overflow:hidden;background:#1a1a1a" onclick="event.stopPropagation();vapAbrirVideoPromo('${p.videoUrl}','${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para assistir"><i class="ti ti-player-play-filled" style="position:absolute;inset:0;margin:auto;font-size:16px;color:#fff;width:16px;height:16px"></i></div>`
+            :(p.imagemUrl?`<img src="${p.imagemUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:'')}
           <div style="flex:1;min-width:0">
             <div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}</div>
             <div class="rec-meta">${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}${p.responsavel?' · '+p.responsavel:''}</div>
@@ -5290,16 +5295,35 @@ function vapAbrirImagemPromo(url, nome){
   if(!url) return;
   const ov = document.getElementById('vap-lb-ov');
   const img = document.getElementById('vap-lb-img');
+  const video = document.getElementById('vap-lb-video');
   const cap = document.getElementById('vap-lb-cap');
   if(!ov || !img) return;
+  if(video){video.pause();video.style.display='none';video.src='';}
   img.src = url;
   img.alt = nome || '';
+  img.style.display='block';
   if(cap) cap.textContent = nome || '';
   ov.classList.add('open');
 }
 window.vapAbrirImagemPromo = vapAbrirImagemPromo;
+function vapAbrirVideoPromo(url, nome){
+  if(!url) return;
+  const ov = document.getElementById('vap-lb-ov');
+  const img = document.getElementById('vap-lb-img');
+  const video = document.getElementById('vap-lb-video');
+  const cap = document.getElementById('vap-lb-cap');
+  if(!ov || !video) return;
+  if(img){img.style.display='none';img.src='';}
+  video.src = url;
+  video.style.display='block';
+  if(cap) cap.textContent = nome || '';
+  ov.classList.add('open');
+}
+window.vapAbrirVideoPromo = vapAbrirVideoPromo;
 function vapFecharImagemPromo(){
   const ov = document.getElementById('vap-lb-ov');
+  const video = document.getElementById('vap-lb-video');
+  if(video){video.pause();video.src='';} // evita áudio continuar tocando escondido
   if(ov) ov.classList.remove('open');
 }
 window.vapFecharImagemPromo = vapFecharImagemPromo;
@@ -5318,7 +5342,9 @@ function _vapRenderPromosVendedor(promos){
     const pills=(p.servicos||'').split('\n').filter(s=>s.trim()).map(s=>`<span class="pill">${s.trim()}</span>`).join('');
     const preco=p.precoDe?`<span class="p-old">R$ ${p.precoDe}</span><span class="p-new">R$ ${p.precoPor||'—'}</span>`:`<span class="p-new">R$ ${p.precoPor||'—'}</span>`;
     const bc=p.campanha?`<span style="font-size:10px;background:var(--pu50);color:var(--pu700);border-radius:10px;padding:2px 8px;font-weight:600"><i class="ti ti-speakerphone" style="font-size:10px"></i> ${p.campanha}</span>`:'';
-    const img=p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;cursor:zoom-in" onclick="vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:'';
+    const img=p.tipoMidia==='video'&&p.videoUrl
+      ?`<div style="position:relative;width:100%;max-height:120px;height:120px;border-radius:var(--rsm);margin-bottom:8px;cursor:pointer;overflow:hidden;background:#1a1a1a" onclick="vapAbrirVideoPromo('${p.videoUrl}','${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para assistir"><video src="${p.videoUrl}#t=0.1" preload="metadata" muted style="width:100%;height:100%;object-fit:cover;pointer-events:none"></video><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center"><i class="ti ti-player-play-filled" style="font-size:20px;color:#C53030"></i></div></div></div>`
+      :(p.imagemUrl?`<img src="${p.imagemUrl}" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;cursor:zoom-in" onclick="vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:'');
     const vendaHoje=_vapVendasHoje[p.id]||{valor:0};
     const acum=_vapVendasAcum[p.id]||0;
     // Mensagem de WhatsApp montada a partir dos dados da promoção (mesmo padrão usado nas etapas de Campanhas)
