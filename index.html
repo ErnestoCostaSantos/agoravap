@@ -1122,12 +1122,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <label id="vap-img-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;position:absolute;inset:0;cursor:pointer;color:#95A5A6;gap:8px;transition:background .15s" onmouseover="this.style.background='var(--pk50)'" onmouseout="this.style.background='transparent'">
               <i class="ti ti-photo-plus" style="font-size:36px;color:#FC8181"></i>
               <div style="text-align:center;padding:0 8px">
-                <div style="font-size:12px;font-weight:600;color:#566573">Adicionar imagem</div>
-                <div style="font-size:10px;color:#95A5A6;margin-top:4px;line-height:1.6">JPG ou PNG · Qualquer formato</div>
+                <div style="font-size:12px;font-weight:600;color:#566573">Adicionar imagem ou vídeo</div>
+                <div style="font-size:10px;color:#95A5A6;margin-top:4px;line-height:1.6">JPG, PNG ou MP4 · Vídeo: até 45s recomendado</div>
               </div>
-              <input type="file" accept="image/*" style="display:none" onchange="vapPreviewPromoImg(this)">
+              <input type="file" accept="image/*,video/*" style="display:none" onchange="vapPreviewPromoImg(this)">
             </label>
             <img id="vap-promo-img-preview" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="document.querySelector('#vap-img-label input').click()" title="Clique para trocar">
+            <video id="vap-promo-video-preview" muted loop playsinline autoplay style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="document.querySelector('#vap-img-label input').click()" title="Clique para trocar"></video>
           </div>
         </div>
         <div style="padding:12px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px">
@@ -1726,6 +1727,8 @@ import { getFirestore, collection, addDoc, updateDoc, deleteDoc,
          query, where, orderBy, onSnapshot,
          doc, setDoc, getDoc, getDocs, writeBatch }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 // ════════════════════════════════════════════════════════
 // ⚠️  COLE AQUI AS CREDENCIAIS DO SEU FIREBASE
@@ -1745,6 +1748,7 @@ const firebaseConfig = {
 const FA   = initializeApp(firebaseConfig);
 const auth = getAuth(FA);
 const db   = getFirestore(FA);
+const storage = getStorage(FA);
 
 // Instância secundária — SOMENTE para criar novos usuários
 // Impede que createUserWithEmailAndPassword derrube a sessão do Líder
@@ -5172,8 +5176,24 @@ function vapPreviewPromoImg(input){
   if(!input.files||!input.files[0])return;
   _vapPromoImgFile = input.files[0];
   const url=URL.createObjectURL(_vapPromoImgFile);
-  const p=document.getElementById('vap-promo-img-preview'),l=document.getElementById('vap-img-label');
-  if(p){p.src=url;p.style.display='block';}
+  const p=document.getElementById('vap-promo-img-preview'),
+        v=document.getElementById('vap-promo-video-preview'),
+        l=document.getElementById('vap-img-label'),
+        errEl=document.getElementById('vap-promo-erro');
+  const isVideo=_vapPromoImgFile.type.startsWith('video/');
+  if(isVideo && _vapPromoImgFile.size>25*1024*1024){
+    if(errEl)errEl.textContent='Vídeo muito grande (máx. 25MB). Comprima antes de enviar.';
+    _vapPromoImgFile=null;
+    return;
+  }
+  if(errEl)errEl.textContent='';
+  if(isVideo){
+    if(v){v.src=url;v.style.display='block';}
+    if(p){p.style.display='none';p.src='';}
+  }else{
+    if(p){p.src=url;p.style.display='block';}
+    if(v){v.style.display='none';v.src='';}
+  }
   if(l)l.style.display='none';
 }
 window.vapPreviewPromoImg=vapPreviewPromoImg;
@@ -5370,11 +5390,27 @@ async function vapPublicarPromo(){
   if(btnPub){btnPub.disabled=true;btnPub.textContent='Publicando...';}
   const getDt=pref=>{const d=document.getElementById(pref+'-dia')?.value,m=document.getElementById(pref+'-mes')?.value,a=document.getElementById(pref+'-ano')?.value;return d&&m&&a?`${d}/${m}/${a}`:'';}
   try{
-    // Converter imagem para base64 (redimensionada)
-    let imagemUrl='';
+    // Imagem → base64 (redimensionada) · Vídeo → upload no Firebase Storage
+    let imagemUrl='', videoUrl='', tipoMidia='';
     if(_vapPromoImgFile){
-      try{ imagemUrl=await _vapImgParaBase64(_vapPromoImgFile); }
-      catch(ie){ console.warn('[VAP] conversão imagem:',ie); }
+      const isVideo=_vapPromoImgFile.type.startsWith('video/');
+      if(isVideo){
+        if(btnPub)btnPub.textContent='Enviando vídeo...';
+        try{
+          const nomeArq=`${Date.now()}_${_vapPromoImgFile.name}`.replace(/[^a-zA-Z0-9._-]/g,'_');
+          const ref=storageRef(storage,`promocoes_videos/${CID}/${nomeArq}`);
+          await uploadBytes(ref,_vapPromoImgFile);
+          videoUrl=await getDownloadURL(ref);
+          tipoMidia='video';
+        }catch(ve){
+          console.error('[VAP] upload vídeo:',ve);
+          if(errEl)errEl.textContent='Erro ao enviar vídeo. Verifique sua conexão e tente novamente.';
+          return;
+        }
+      }else{
+        try{ imagemUrl=await _vapImgParaBase64(_vapPromoImgFile); tipoMidia='imagem'; }
+        catch(ie){ console.warn('[VAP] conversão imagem:',ie); }
+      }
       _vapPromoImgFile=null;
     }
     await addDoc(collection(db,'promocoes'),{
@@ -5387,14 +5423,18 @@ async function vapPublicarPromo(){
       validadeFim:getDt('vap-promo-fim'),
       precoDe:document.getElementById('vap-promo-preco-de')?.value||'',
       precoPor:document.getElementById('vap-promo-preco-por')?.value||'',
-      imagemUrl,
+      imagemUrl,videoUrl,tipoMidia,
       popup:_vapPromoPopupAtivo||false,
       criadoEm:new Date().toISOString(),
       criadoPor:cu?.uid||'lider'
     });
     ['vap-promo-nome','vap-promo-items','vap-promo-preco-de','vap-promo-preco-por'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    const pv=document.getElementById('vap-promo-img-preview'),lb=document.getElementById('vap-img-label');
-    if(pv){pv.style.display='none';pv.src='';}if(lb)lb.style.display='flex';
+    const pv=document.getElementById('vap-promo-img-preview'),
+          vv=document.getElementById('vap-promo-video-preview'),
+          lb=document.getElementById('vap-img-label');
+    if(pv){pv.style.display='none';pv.src='';}
+    if(vv){vv.style.display='none';vv.src='';}
+    if(lb)lb.style.display='flex';
     _vapPromoPopupAtivo=false;
     const tgEl=document.getElementById('vap-promo-popup-toggle'),knEl=document.getElementById('vap-promo-popup-knob');
     if(tgEl)tgEl.style.background='var(--border)';if(knEl)knEl.style.left='3px';
@@ -5462,17 +5502,24 @@ async function vapVerificarPopupPromo(){
 
     const overlay=document.getElementById('vap-popup-overlay');
     const imgEl=document.getElementById('vap-popup-img');
+    const videoEl=document.getElementById('vap-popup-video');
     const noImg=document.getElementById('vap-popup-noimg');
     const nomeEl=document.getElementById('vap-popup-nome');
     const subEl=document.getElementById('vap-popup-sub');
     if(!overlay)return;
 
-    if(promo.imagemUrl){
+    if(promo.tipoMidia==='video' && promo.videoUrl){
+      if(videoEl){videoEl.src=promo.videoUrl;videoEl.style.display='block';videoEl.play().catch(()=>{});}
+      imgEl.style.display='none';
+      if(noImg)noImg.style.display='none';
+    }else if(promo.imagemUrl){
       imgEl.src=promo.imagemUrl;
       imgEl.style.display='block';
+      if(videoEl)videoEl.style.display='none';
       if(noImg)noImg.style.display='none';
     }else{
       imgEl.style.display='none';
+      if(videoEl)videoEl.style.display='none';
       if(noImg)noImg.style.display='block';
       if(nomeEl)nomeEl.textContent=promo.nome||'';
       if(subEl)subEl.textContent=promo.servicos?promo.servicos.replace(/\n/g,', '):'';
@@ -5487,6 +5534,8 @@ window.vapVerificarPopupPromo=vapVerificarPopupPromo;
 
 function vapFecharPopupPromo(){
   const overlay=document.getElementById('vap-popup-overlay');
+  const videoEl=document.getElementById('vap-popup-video');
+  if(videoEl){videoEl.pause();videoEl.src='';} // evita áudio continuar tocando escondido
   if(overlay)overlay.style.display='none';
 }
 window.vapFecharPopupPromo=vapFecharPopupPromo;
@@ -5626,6 +5675,11 @@ window.vapIniciarModulos=vapIniciarModulos;</script>
       border-radius:12px;object-fit:contain;
       box-shadow:0 8px 32px rgba(0,0,0,.4);
     ">
+    <video id="vap-popup-video" src="" playsinline controls autoplay style="
+      display:none;max-width:100%;max-height:92vh;
+      border-radius:12px;
+      box-shadow:0 8px 32px rgba(0,0,0,.4);
+    "></video>
     <div id="vap-popup-noimg" style="
       display:none;background:#fff;border-radius:var(--radius,12px);
       padding:32px 24px;text-align:center;min-width:280px;
