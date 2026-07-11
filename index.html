@@ -5506,10 +5506,18 @@ async function vapVerificarPopupPromo(){
     const noImg=document.getElementById('vap-popup-noimg');
     const nomeEl=document.getElementById('vap-popup-nome');
     const subEl=document.getElementById('vap-popup-sub');
+    const fecharBtn=document.getElementById('vap-popup-fechar');
     if(!overlay)return;
 
     if(promo.tipoMidia==='video' && promo.videoUrl){
-      if(videoEl){videoEl.src=promo.videoUrl;videoEl.style.display='block';videoEl.play().catch(()=>{});}
+      if(videoEl){
+        videoEl.src=promo.videoUrl;
+        videoEl.style.display='block';
+        // Fica pausado até o vendedor dar play (autoplay com som é bloqueado no mobile).
+        // Botão de fechar só libera quando o vídeo terminar de tocar.
+        if(fecharBtn)fecharBtn.style.display='none';
+        videoEl.onended=()=>{ if(fecharBtn)fecharBtn.style.display='flex'; };
+      }
       imgEl.style.display='none';
       if(noImg)noImg.style.display='none';
     }else if(promo.imagemUrl){
@@ -5517,12 +5525,14 @@ async function vapVerificarPopupPromo(){
       imgEl.style.display='block';
       if(videoEl)videoEl.style.display='none';
       if(noImg)noImg.style.display='none';
+      if(fecharBtn)fecharBtn.style.display='flex';
     }else{
       imgEl.style.display='none';
       if(videoEl)videoEl.style.display='none';
       if(noImg)noImg.style.display='block';
       if(nomeEl)nomeEl.textContent=promo.nome||'';
       if(subEl)subEl.textContent=promo.servicos?promo.servicos.replace(/\n/g,', '):'';
+      if(fecharBtn)fecharBtn.style.display='flex';
     }
     overlay.style.display='flex';
     localStorage.setItem(chave,hojeStr);
@@ -5535,7 +5545,10 @@ window.vapVerificarPopupPromo=vapVerificarPopupPromo;
 function vapFecharPopupPromo(){
   const overlay=document.getElementById('vap-popup-overlay');
   const videoEl=document.getElementById('vap-popup-video');
-  if(videoEl){videoEl.pause();videoEl.src='';} // evita áudio continuar tocando escondido
+  const fecharBtn=document.getElementById('vap-popup-fechar');
+  // Só fecha se o botão estiver visível (vídeo já terminou, ou é imagem/texto)
+  if(fecharBtn && fecharBtn.style.display==='none')return;
+  if(videoEl){videoEl.pause();videoEl.src='';videoEl.onended=null;} // evita áudio continuar tocando escondido
   if(overlay)overlay.style.display='none';
 }
 window.vapFecharPopupPromo=vapFecharPopupPromo;
@@ -5661,7 +5674,7 @@ window.vapIniciarModulos=vapIniciarModulos;</script>
   padding:20px;box-sizing:border-box;
 ">
   <div style="position:relative;max-width:min(480px,92vw);max-height:92vh;display:flex;align-items:center;justify-content:center">
-    <button onclick="vapFecharPopupPromo()" style="
+    <button id="vap-popup-fechar" onclick="vapFecharPopupPromo()" style="
       position:absolute;top:-14px;right:-14px;z-index:2;
       width:34px;height:34px;border-radius:50%;
       background:#fff;border:none;cursor:pointer;
@@ -5675,7 +5688,7 @@ window.vapIniciarModulos=vapIniciarModulos;</script>
       border-radius:12px;object-fit:contain;
       box-shadow:0 8px 32px rgba(0,0,0,.4);
     ">
-    <video id="vap-popup-video" src="" playsinline controls autoplay style="
+    <video id="vap-popup-video" src="" playsinline controls style="
       display:none;max-width:100%;max-height:92vh;
       border-radius:12px;
       box-shadow:0 8px 32px rgba(0,0,0,.4);
