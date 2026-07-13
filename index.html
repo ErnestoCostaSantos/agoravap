@@ -5377,19 +5377,23 @@ function _vapRenderPromosVendedor(promos){
           <!-- Registro de venda do dia -->
           <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
             <div style="font-size:10px;font-weight:700;color:#566573;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Minhas vendas desta promoção</div>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
-              <div style="flex:1;min-width:120px">
-                <div style="font-size:10px;color:#95A5A6;margin-bottom:3px">Hoje (${_vapFmtBR(new Date().toISOString().slice(0,10))})</div>
+            <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:6px">
+              <div style="min-width:90px">
+                <div style="font-size:10px;color:#95A5A6;margin-bottom:3px">Já registrado hoje</div>
+                <div id="vap-vp-anterior-${p.id}" style="font-size:13px;font-weight:700;color:#566573;padding:5px 0">R$ ${vendaHoje.valor>0?vendaHoje.valor.toFixed(2).replace('.',','):'0,00'}</div>
+              </div>
+              <div style="flex:1;min-width:110px">
+                <div style="font-size:10px;color:#95A5A6;margin-bottom:3px">Nova venda (R$)</div>
                 <div style="display:flex;gap:4px;align-items:center">
                   <span style="font-size:11px;font-weight:600;color:#566573">R$</span>
                   <input type="text" inputmode="decimal"
                     id="vap-vp-${p.id}"
-                    value="${vendaHoje.valor>0?vendaHoje.valor.toFixed(2).replace('.',','):''}"
+                    value=""
                     placeholder="0,00"
                     style="flex:1;padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--pk200);font-size:13px;background:var(--pk50);color:#C53030;font-weight:700;max-width:120px">
                   <button onclick="vapRegistrarVendaPromo('${p.id}','${p.nome.replace(/'/g,"\'")}')"
                     style="padding:5px 10px;border-radius:var(--rsm);border:none;background:var(--p,#E53E3E);color:#fff;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">
-                    <i class="ti ti-check"></i> Salvar
+                    <i class="ti ti-plus"></i> Adicionar
                   </button>
                 </div>
               </div>
@@ -5585,10 +5589,11 @@ async function vapRegistrarVendaPromo(promoId, promoNome) {
   const CID = _vapGetCompanyId(); if (!CID) return;
   const input = document.getElementById('vap-vp-' + promoId);
   const msgEl = document.getElementById('vap-vp-msg-' + promoId);
+  const anteriorEl = document.getElementById('vap-vp-anterior-' + promoId);
   if (!input) return;
   const raw = input.value.replace(/[^0-9.,]/g,'').replace(',','.');
-  const valor = parseFloat(raw) || 0;
-  if (valor <= 0) { if(msgEl) msgEl.textContent='Informe um valor válido.'; return; }
+  const novaVenda = parseFloat(raw) || 0;
+  if (novaVenda <= 0) { if(msgEl) msgEl.textContent='Informe um valor válido.'; return; }
   const hoje = new Date().toISOString().slice(0,10); // YYYY-MM-DD (interno)
   const meuUid = cu?.uid || '';
   const meuNome = cp?.name || '';
@@ -5599,19 +5604,24 @@ async function vapRegistrarVendaPromo(promoId, promoNome) {
       const r = d.data();
       return r.companyId===CID && r.promoId===promoId && r.vendedorUid===meuUid && r.data===hoje;
     });
+    let valorTotal;
     if (existente) {
-      await updateDoc(doc(db,'vendas_promo',existente.id), { valor, atualizadoEm: new Date().toISOString() });
+      valorTotal = (existente.data().valor||0) + novaVenda; // soma a nova venda ao total do dia
+      await updateDoc(doc(db,'vendas_promo',existente.id), { valor: valorTotal, atualizadoEm: new Date().toISOString() });
     } else {
+      valorTotal = novaVenda;
       await addDoc(collection(db,'vendas_promo'), {
         companyId: CID, promoId, promoNome,
         vendedorUid: meuUid, vendedor: meuNome,
-        data: hoje, valor,
+        data: hoje, valor: valorTotal,
         criadoEm: new Date().toISOString(),
         atualizadoEm: new Date().toISOString(),
       });
     }
-    _vapVendasHoje[promoId] = { valor };
-    if (msgEl) { msgEl.textContent = 'Salvo!'; setTimeout(()=>msgEl.textContent='', 2000); }
+    _vapVendasHoje[promoId] = { valor: valorTotal };
+    input.value=''; // limpa o campo "nova venda" pra próxima entrada
+    if (anteriorEl) anteriorEl.textContent = 'R$ ' + valorTotal.toFixed(2).replace('.',',');
+    if (msgEl) { msgEl.textContent = 'Venda adicionada!'; setTimeout(()=>msgEl.textContent='', 2000); }
     // Atualiza acumulado na tela sem re-render
     const acumEl = document.getElementById('vap-vacum-' + promoId);
     if (acumEl) {
@@ -5645,8 +5655,8 @@ function vapIniciarListenerVendasPromo() {
       .forEach(r => { _vapVendasAcum[r.promoId] = (_vapVendasAcum[r.promoId]||0) + r.valor; });
     // Atualizar campos na tela sem re-render completo
     Object.entries(_vapVendasHoje).forEach(([pid, v]) => {
-      const inp = document.getElementById('vap-vp-' + pid);
-      if (inp && document.activeElement !== inp) inp.value = v.valor > 0 ? v.valor.toFixed(2).replace('.',',') : '';
+      const anteriorEl = document.getElementById('vap-vp-anterior-' + pid);
+      if (anteriorEl) anteriorEl.textContent = 'R$ ' + (v.valor > 0 ? v.valor.toFixed(2).replace('.',',') : '0,00');
     });
     Object.entries(_vapVendasAcum).forEach(([pid, total]) => {
       const el = document.getElementById('vap-vacum-' + pid);
