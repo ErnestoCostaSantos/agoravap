@@ -2816,10 +2816,10 @@ function renderPerdasTable(){
     const valorFmt = row.valor ? String(row.valor).replace('.',',') : '';
     tr.innerHTML = `
       <td style="padding:6px 4px">
-        <input type="date" value="${row.data||''}" max="${tod()}"
+        <input type="text" inputmode="numeric" value="${_perdaISOtoBR(row.data)}" placeholder="DD/MM/AAAA" maxlength="10"
           data-pid="${row.id}" data-pf="data"
           style="border:none;outline:none;width:100%;font-family:inherit;font-size:.8rem;background:transparent;color:var(--dark)"
-          onchange="window.perdaChange(this)"/>
+          oninput="window.perdaDataMask(this)" onblur="window.perdaChange(this)"/>
       </td>
       <td style="padding:6px 4px">
         <input type="text" value="${row.cliente||''}" placeholder="Nome do cliente"
@@ -2851,6 +2851,29 @@ function renderPerdasTable(){
 // Renderiza imediatamente vazio (antes do Firestore carregar)
 renderPerdasTable();
 
+// Conversão de datas para exibição/edição em DD/MM/AAAA (armazenamento interno continua ISO)
+function _perdaISOtoBR(iso){
+  if(!iso) return '';
+  const [a,m,d] = iso.split('-');
+  if(!a||!m||!d) return '';
+  return `${d}/${m}/${a}`;
+}
+function _perdaBRtoISO(br){
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(br||'');
+  if(!m) return '';
+  const [,d,mo,y] = m;
+  const iso = `${y}-${mo}-${d}`;
+  const dt = new Date(iso+'T00:00:00');
+  if(isNaN(dt.getTime()) || dt.getDate()!==parseInt(d,10) || (dt.getMonth()+1)!==parseInt(mo,10)) return '';
+  return iso;
+}
+window.perdaDataMask = function(el){
+  let v = el.value.replace(/\D/g,'').slice(0,8);
+  if(v.length>4) v = v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);
+  else if(v.length>2) v = v.slice(0,2)+'/'+v.slice(2);
+  el.value = v;
+};
+
 window.perdaChange = function(el){
   const id = el.dataset.pid;
   const field = el.dataset.pf;
@@ -2859,6 +2882,13 @@ window.perdaChange = function(el){
   if(field === 'valor'){
     row.valor = _perdasParseMoney(el.value);
     _perdasAtualizarResumo();
+  } else if(field === 'data'){
+    if(el.value.trim()===''){ el.value = _perdaISOtoBR(row.data); return; } // campo vazio: mantém data anterior
+    const iso = _perdaBRtoISO(el.value);
+    if(!iso){ toast('Data inválida. Use o formato DD/MM/AAAA.'); el.value = _perdaISOtoBR(row.data); return; }
+    if(iso > tod()){ toast('Não é permitido lançar para datas futuras.'); el.value = _perdaISOtoBR(row.data); return; }
+    row.data = iso;
+    el.value = _perdaISOtoBR(iso);
   } else {
     row[field] = el.value;
   }
