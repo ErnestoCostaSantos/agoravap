@@ -1259,7 +1259,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Cotações Perdidas</b> — Perdas por Preço (R$) · Estoque (R$) · Outras Causas (R$)</li>
             <li><b>Meta Mensal (R$)</b> — Campo somente leitura, exibe a meta do mês cadastrada no módulo Administrativo</li>
             <li><b>Top 10 Clientes</b> — Tabela de 10 linhas com acumulado de pedidos e vendas por cliente. Colunas: Cliente · Ped. Ant · Ped. Atu · Vendas Ant (R$) · Vendas Atu (R$). Ao salvar, os valores "Atu" são somados aos "Ant" e a lista é reordenada por Vendas decrescente. O botão "Zerar Lista" reinicia todos os acumulados.</li>
-            <li><b>Relatório das 2 Principais Vendas Perdidas por Dia</b> — Logo abaixo do Top 10 Clientes. O vendedor registra manualmente até 42 linhas com Data · Cliente · Produtos · Venda Perdida (R$), usando o botão "+ Adicionar Linha". Ao salvar, a lista é reordenada automaticamente por data (mais recente primeiro) — o mesmo acontece a cada novo login ou troca de dia. O total acumulado em R$ aparece no canto superior direito, atualizado em tempo real. Cada linha pode ser removida individualmente pelo ✕. No fim do mês, use "Zerar Lista" para reiniciar o relatório.</li>
+            <li><b>Relatório das 2 Principais Vendas Perdidas por Dia</b> — Logo abaixo do Top 10 Clientes. O vendedor registra manualmente até 42 linhas com Data (formato DD/MM/AAAA, digitado com máscara automática) · Cliente · Produtos · Venda Perdida (R$), usando o botão "+ Adicionar Linha". Datas futuras são bloqueadas. Ao salvar, a lista é reordenada automaticamente por data (mais recente primeiro) — o mesmo acontece a cada novo login ou troca de dia. O total acumulado em R$ aparece no canto superior direito, atualizado em tempo real. Cada linha pode ser removida individualmente pelo ✕. No fim do mês, use "Zerar Lista" para reiniciar o relatório.</li>
           </ul>
           <div class="help-tip">Quatro boxes no topo exibem os dados do dia selecionado. Atualizados automaticamente após cada lançamento.</div>
 
@@ -1312,19 +1312,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h3>2.5 Módulo Promoções</h3>
           <p>O Líder publica promoções vinculadas a campanhas. O Vendedor visualiza em leitura e registra diariamente o valor vendido por promoção.</p>
           <ul>
-            <li><b>Líder</b> — Cria promoção com nome, canal, responsável, campanha, produtos, validade, valor e imagem (qualquer formato)</li>
+            <li><b>Líder</b> — Cria promoção com nome, canal, responsável, campanha, produtos, validade, valor e uma peça de mídia: <b>imagem</b> (qualquer formato, redimensionada e salva automaticamente) ou <b>vídeo curto</b> (recomendado até ~45s, limite de 25MB; o vídeo é enviado ao Firebase Storage e só a URL é salva na promoção)</li>
             <li><b>Líder</b> — Vê total vendido por promoção e breakdown por vendedor ao expandir o card</li>
-            <li><b>Vendedor</b> — Campo "Hoje (DD/MM/AAAA)" editável em cada card de promoção ativa</li>
+            <li><b>Assistir à mídia</b> — Nos cards de Promoções (Líder e Vendedor), promoções com imagem mostram a miniatura (clique para ampliar); promoções com vídeo mostram uma miniatura escura com ícone de play — clique para assistir com controles normais, em um modal compartilhado com a visualização de imagem</li>
+            <li><b>Pop-up de boas-vindas</b> — Ao criar a promoção, o Líder pode ativar o toggle "Pop-up de boas-vindas". Promoções marcadas aparecem automaticamente para o Vendedor, uma vez por dia (no primeiro login), mostrando a promoção mais recente e ainda válida com essa marcação. Se for vídeo, o pop-up abre pausado (autoplay com som é bloqueado por navegadores mobile) — o vendedor precisa dar play manualmente, e o botão de fechar (✕) só é liberado depois que o vídeo termina de tocar. Se for imagem, o botão de fechar já aparece normalmente.</li>
+            <li><b>Vendedor</b> — Em cada card de promoção ativa, dois campos: <b>"Já registrado hoje"</b> (somente leitura, mostra o total acumulado do dia) e <b>"Nova venda (R$)"</b> (editável, sempre vazio). Cada clique em "Adicionar" soma o valor digitado ao total do dia — não substitui o valor anterior.</li>
             <li><b>Vendedor</b> — Acumulado do período: soma de todos os seus dias desde o início da promoção</li>
-            <li><b>Vendedor</b> — Edição — O vendedor pode corrigir o valor do dia quantas vezes quiser — não duplica</li>
-            <li><b>Vendedor</b> — <b>Enviar por WhatsApp</b> — Cada card de promoção tem um botão que abre o WhatsApp com uma mensagem já pronta, montada automaticamente a partir do nome, itens, preço e validade da promoção. Se houver imagem, aparece também um botão "Baixar imagem" para anexá-la manualmente na conversa.
+            <li><b>Vendedor</b> — <b>Enviar por WhatsApp</b> — Cada card de promoção tem um botão que abre o WhatsApp com uma mensagem já pronta, montada automaticamente a partir do nome, itens, preço e validade da promoção. Se houver imagem, aparece também um botão "Baixar imagem" para anexá-la manualmente na conversa. Vídeo não tem esse botão de anexo automático — o vendedor precisa baixar/compartilhar o vídeo manualmente, pelo mesmo motivo abaixo.
               <ul style="margin-top:6px">
                 <li>O WhatsApp pode perguntar se você deseja abrir o WhatsApp Desktop ou Web ao clicar em "Enviar por WhatsApp" — é um comportamento do próprio link "clique para conversar" do WhatsApp, não um erro do AgoraVAP!. Para não ser mais perguntado, marque a opção "sempre permitir" que o navegador exibir.</li>
-                <li>Não é possível anexar a imagem da promoção automaticamente na mensagem — nenhum link de WhatsApp (wa.me, web.whatsapp.com etc.) suporta isso. Por isso o fluxo continua sendo baixar a imagem e anexá-la manualmente na conversa, como já acontece no módulo Campanhas.</li>
+                <li>Não é possível anexar imagem ou vídeo da promoção automaticamente na mensagem — nenhum link de WhatsApp (wa.me, web.whatsapp.com etc.) suporta isso. Por isso o fluxo continua sendo baixar o arquivo e anexá-lo manualmente na conversa, como já acontece no módulo Campanhas.</li>
               </ul>
             </li>
           </ul>
-          <div class="help-tip">A imagem da promoção é automaticamente redimensionada e salva. Qualquer formato é aceito: post, reels, banner.</div>
+          <div class="help-tip">Vídeo nas promoções exige que o projeto Firebase esteja no plano Blaze com o Storage provisionado. Sem isso, o upload de vídeo falha com uma mensagem de erro no formulário (a imagem continua funcionando normalmente).</div>
 
           <h3>2.6 Ranking de Clientes</h3>
           <p>O Vendedor registra manualmente seus clientes com o valor de pedidos do período. O Líder vê o consolidado da equipe com medalhas.</p>
