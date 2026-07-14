@@ -2351,6 +2351,11 @@ onAuthStateChanged(auth, async user => {
     initExpDates();
     startListeners();
     resetInactivityTimer();
+    // A aba "Lançar" já vem marcada como ativa no HTML estático, então o usuário pode nunca
+    // clicar nela explicitamente (é a tela que ele já vê ao entrar). Sem essa chamada, os dados
+    // do Top 10 Clientes e demais campos da aba só carregavam ao clicar na aba manualmente —
+    // por isso pareciam "sumir" após um novo login, mesmo estando salvos corretamente.
+    if (typeof window.switchTab === 'function') window.switchTab('lancar');
     // Verifica banner dia 1 do mês
     setTimeout(checkBannerMesAnterior, 800);
 
