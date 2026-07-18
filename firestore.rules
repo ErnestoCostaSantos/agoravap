@@ -12,49 +12,59 @@ service cloud.firestore {
       return request.auth != null &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'lider';
     }
+    // Master: novo nível — acessa/edita tudo que o Líder acessa, MAIS a Carteira de todos os vendedores
+    // (o Líder, na Carteira, fica restrito à própria — ver isGestorCarteira mais abaixo)
+    function isMaster() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'master';
+    }
+    // Líder ou Master — usado em todas as coleções administrativas (exceto carteira_clientes)
+    function isGestor() {
+      return isLider() || isMaster();
+    }
     function myCompany() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId;
     }
     match /companies/{companyId} {
       allow read: if true;
       allow write: if isSuperAdmin();
-      allow update: if isLider() && myCompany() == companyId;
+      allow update: if isGestor() && myCompany() == companyId;
     }
     match /users/{userId} {
       allow read, write: if isAuth() && request.auth.uid == userId;
-      allow read: if isLider() && myCompany() == resource.data.companyId;
-      allow create: if isLider() && myCompany() == request.resource.data.companyId;
-      allow update, delete: if isLider() && myCompany() == resource.data.companyId;
+      allow read: if isGestor() && myCompany() == resource.data.companyId;
+      allow create: if isGestor() && myCompany() == request.resource.data.companyId;
+      allow update, delete: if isGestor() && myCompany() == resource.data.companyId;
       allow read, write: if isSuperAdmin();
     }
     match /records/{recordId} {
       allow create: if isAuth() && request.resource.data.uid == request.auth.uid;
       allow read, update: if isAuth() && resource.data.uid == request.auth.uid;
-      allow read, delete, update: if isLider() && resource.data.companyId == myCompany();
+      allow read, delete, update: if isGestor() && resource.data.companyId == myCompany();
       allow read, write: if isSuperAdmin();
     }
     match /metas/{metaId} {
       allow read: if isAuth();
-      allow write: if isLider() && myCompany() == request.resource.data.companyId;
+      allow write: if isGestor() && myCompany() == request.resource.data.companyId;
       allow write: if isSuperAdmin();
     }
     match /deleted_users/{uid} {
-      allow read, write: if isLider();
+      allow read, write: if isGestor();
       allow read, write: if isSuperAdmin();
     }
     match /logs/{logId} {
       allow create: if isAuth();
-      allow read, delete: if isLider() || isSuperAdmin();
+      allow read, delete: if isGestor() || isSuperAdmin();
     }
     match /campanhas/{id} {
       allow read: if isAuth();
-      allow write: if isLider() && request.resource.data.companyId == myCompany();
+      allow write: if isGestor() && request.resource.data.companyId == myCompany();
       allow write: if isSuperAdmin();
     }
     match /promocoes/{id} {
       allow read: if isAuth();
-      allow create, update: if isLider() && request.resource.data.companyId == myCompany();
-      allow delete:          if isLider() && resource.data.companyId == myCompany();
+      allow create, update: if isGestor() && request.resource.data.companyId == myCompany();
+      allow delete:          if isGestor() && resource.data.companyId == myCompany();
       allow write:           if isSuperAdmin();
     }
     match /vendas_promo/{id} {
@@ -62,15 +72,15 @@ service cloud.firestore {
       allow create: if isAuth() && request.resource.data.companyId == myCompany();
       allow update: if isAuth() && resource.data.vendedorUid == request.auth.uid;
       allow delete: if isAuth() && resource.data.vendedorUid == request.auth.uid;
-      allow delete: if isLider() && resource.data.companyId == myCompany();
-      allow read, write: if isLider() && resource.data.companyId == myCompany();
+      allow delete: if isGestor() && resource.data.companyId == myCompany();
+      allow read, write: if isGestor() && resource.data.companyId == myCompany();
       allow read, write: if isSuperAdmin();
     }
     match /ranking_clientes/{id} {
       allow read: if isAuth();
       allow create: if isAuth() && request.resource.data.companyId == myCompany();
       allow update, delete: if isAuth() && resource.data.vendedorUid == request.auth.uid;
-      allow read, write: if isLider() && resource.data.companyId == myCompany();
+      allow read, write: if isGestor() && resource.data.companyId == myCompany();
       allow read, write: if isSuperAdmin();
     }
     match /top10_clientes/{docId} {
@@ -78,7 +88,7 @@ service cloud.firestore {
       allow create: if isAuth() && request.resource.data.companyId == myCompany();
       allow update: if isAuth() && resource.data.uid == request.auth.uid;
       allow delete: if isAuth() && resource.data.uid == request.auth.uid;
-      allow read, write: if isLider() && resource.data.companyId == myCompany();
+      allow read, write: if isGestor() && resource.data.companyId == myCompany();
       allow read, write: if isSuperAdmin();
     }
     match /vendas_perdidas_dia/{docId} {
@@ -86,16 +96,18 @@ service cloud.firestore {
       allow create: if isAuth() && request.resource.data.companyId == myCompany();
       allow update: if isAuth() && resource.data.uid == request.auth.uid;
       allow delete: if isAuth() && resource.data.uid == request.auth.uid;
-      allow read, write: if isLider() && resource.data.companyId == myCompany();
+      allow read, write: if isGestor() && resource.data.companyId == myCompany();
       allow read, write: if isSuperAdmin();
     }
     match /carteira_clientes/{docId} {
       allow read: if isAuth();
       allow create: if isAuth() && request.resource.data.companyId == myCompany();
+      // Líder NÃO tem bypass aqui de propósito — na Carteira, o Líder é tratado como
+      // um vendedor comum (só edita/apaga a própria), a menos que também seja Master.
       allow update: if isAuth() && resource.data.uid == request.auth.uid;
       allow delete: if isAuth() && resource.data.uid == request.auth.uid;
-      // Líder pode ler/gerenciar/limpar a carteira de qualquer vendedor da empresa
-      allow read, write: if isLider() && resource.data.companyId == myCompany();
+      // Só Master gerencia/limpa a carteira de qualquer vendedor da empresa
+      allow read, write: if isMaster() && resource.data.companyId == myCompany();
       allow read, write: if isSuperAdmin();
     }
     // ── MeCuidar ─────────────────────────────────────────────────
