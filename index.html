@@ -1782,10 +1782,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <option value="Sem contato">Sem contato</option>
         </select>
       </div>
-      <div class="field"><label>Data do último contato</label><input type="date" id="cart-cli-data-contato" style="width:100%"/></div>
+      <div class="field"><label>Data do último contato</label><input type="text" inputmode="numeric" id="cart-cli-data-contato" placeholder="DD/MM/AAAA" maxlength="10" style="width:100%" oninput="window.cartDataMask(this)"/></div>
     </div>
     <div class="fgrid fg1" id="cart-cli-wrap-compra">
-      <div class="field"><label>Data da última compra <span style="font-weight:400;color:var(--gray)">(preencha quando o resultado for "Pedido" — define o status Ativo/Inativo)</span></label><input type="date" id="cart-cli-data-compra" style="width:100%"/></div>
+      <div class="field"><label>Data da última compra <span style="font-weight:400;color:var(--gray)">(preencha quando o resultado for "Pedido" — define o status Ativo/Inativo)</span></label><input type="text" inputmode="numeric" id="cart-cli-data-compra" placeholder="DD/MM/AAAA" maxlength="10" style="width:100%" oninput="window.cartDataMask(this)"/></div>
     </div>
     <div class="fgrid fg1">
       <div class="field"><label>Observações</label><textarea id="cart-cli-obs" rows="2" placeholder="Anotações livres..." style="width:100%;resize:vertical;font-family:var(--font)"></textarea></div>
@@ -5903,6 +5903,29 @@ function cartNomeVendedor(uid){
   return u ? u.name : '—';
 }
 
+// Conversão de datas para exibição/edição em DD/MM/AAAA (armazenamento interno continua ISO YYYY-MM-DD)
+function cartISOtoBR(iso){
+  if(!iso) return '';
+  const [a,m,d] = iso.split('-');
+  if(!a||!m||!d) return '';
+  return `${d}/${m}/${a}`;
+}
+function cartBRtoISO(br){
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(br||'');
+  if(!m) return '';
+  const [,d,mo,y] = m;
+  const iso = `${y}-${mo}-${d}`;
+  const dt = new Date(iso+'T00:00:00');
+  if(isNaN(dt.getTime()) || dt.getDate()!==parseInt(d,10) || (dt.getMonth()+1)!==parseInt(mo,10)) return '';
+  return iso;
+}
+window.cartDataMask = function(el){
+  let v = el.value.replace(/\D/g,'').slice(0,8);
+  if(v.length>4) v = v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);
+  else if(v.length>2) v = v.slice(0,2)+'/'+v.slice(2);
+  el.value = v;
+};
+
 // Máscara simples de telefone BR: (XX) XXXXX-XXXX / (XX) XXXX-XXXX
 function cartMaskTelefone(el){
   let v = el.value.replace(/\D/g,'').slice(0,11);
@@ -6021,8 +6044,8 @@ function abrirModalCarteiraCliente(id){
     $('cart-cli-cidade').value = c.cidade || '';
     $('cart-cli-bairro').value = c.bairro || '';
     $('cart-cli-resultado').value = c.resultadoUltimoContato || 'Inicial';
-    $('cart-cli-data-contato').value = c.dataUltimoContato || '';
-    $('cart-cli-data-compra').value = c.dataUltimaCompra || '';
+    $('cart-cli-data-contato').value = cartISOtoBR(c.dataUltimoContato);
+    $('cart-cli-data-compra').value = cartISOtoBR(c.dataUltimaCompra);
     $('cart-cli-obs').value = c.observacoes || '';
   } else {
     $('cart-cli-id').value = '';
@@ -6034,7 +6057,7 @@ function abrirModalCarteiraCliente(id){
     $('cart-cli-cidade').value = '';
     $('cart-cli-bairro').value = '';
     $('cart-cli-resultado').value = 'Inicial';
-    $('cart-cli-data-contato').value = tod();
+    $('cart-cli-data-contato').value = cartISOtoBR(tod());
     $('cart-cli-data-compra').value = '';
     $('cart-cli-obs').value = '';
   }
@@ -6048,10 +6071,21 @@ async function salvarCarteiraCliente(){
   const id = $('cart-cli-id').value;
   const CID = _vapGetCompanyId(); if(!CID){ toast('Empresa não identificada.'); return; }
 
-  let dataCompra = $('cart-cli-data-compra').value || '';
+  // Datas digitadas em DD/MM/AAAA — converte pra ISO (formato interno) com validação
+  const dataContatoBR = $('cart-cli-data-contato').value.trim();
+  const dataCompraBR = $('cart-cli-data-compra').value.trim();
+  let dataContatoISO = '', dataCompraISO = '';
+  if(dataContatoBR){
+    dataContatoISO = cartBRtoISO(dataContatoBR);
+    if(!dataContatoISO){ toast('Data do último contato inválida. Use o formato DD/MM/AAAA.'); return; }
+  }
+  if(dataCompraBR){
+    dataCompraISO = cartBRtoISO(dataCompraBR);
+    if(!dataCompraISO){ toast('Data da última compra inválida. Use o formato DD/MM/AAAA.'); return; }
+  }
   const resultado = $('cart-cli-resultado').value;
   // Se marcou "Pedido" e não preencheu a data da compra, assume a data do contato (ou hoje)
-  if(resultado === 'Pedido' && !dataCompra) dataCompra = $('cart-cli-data-contato').value || tod();
+  if(resultado === 'Pedido' && !dataCompraISO) dataCompraISO = dataContatoISO || tod();
 
   const payload = {
     nome,
@@ -6061,8 +6095,8 @@ async function salvarCarteiraCliente(){
     cidade: $('cart-cli-cidade').value.trim(),
     bairro: $('cart-cli-bairro').value.trim(),
     resultadoUltimoContato: resultado,
-    dataUltimoContato: $('cart-cli-data-contato').value || '',
-    dataUltimaCompra: dataCompra,
+    dataUltimoContato: dataContatoISO,
+    dataUltimaCompra: dataCompraISO,
     observacoes: $('cart-cli-obs').value.trim(),
     companyId: CID,
   };
