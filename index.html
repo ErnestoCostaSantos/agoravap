@@ -834,7 +834,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           </div>
           <div class="fgrid fg2">
             <div class="field"><label>Perfil</label>
-              <select id="adm-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option></select>
+              <select id="adm-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="master" id="adm-perfil-master-opt" hidden>Master</option></select>
             </div>
             <div class="field"><label>Meta mensal (R$)</label><input type="number" id="adm-meta-ini" placeholder="0,00" min="0"/></div>
           </div>
@@ -1717,7 +1717,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title" id="mu-title">Editar Usuário</div><button class="btn-close" id="mu-close">×</button></div>
     <div class="fgrid fg1"><div class="field"><label>Nome</label><input type="text" id="mu-nome"/></div></div>
-    <div class="fgrid fg1"><div class="field"><label>Perfil</label><select id="mu-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option></select></div></div>
+    <div class="fgrid fg1"><div class="field"><label>Perfil</label><select id="mu-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="master" id="mu-perfil-master-opt" hidden>Master</option></select></div></div>
     <div class="fgrid fg1"><div class="field"><label>Meta mensal atual (R$)</label><input type="number" id="mu-meta" placeholder="0,00"/></div></div>
     <input type="hidden" id="mu-uid"/>
     <div class="ffooter"><button class="btn-sec" id="mu-cancel">Cancelar</button><button class="btn-save" id="mu-save">Salvar</button></div>
@@ -2491,25 +2491,34 @@ onAuthStateChanged(auth, async user => {
       topbarLogo.alt = _company.fantasyName || _company.name || '';
     }
     const isLider      = cp.role === 'lider';
+    const isMasterRole = cp.role === 'master';
     const isSuperAdm   = cp.role === 'superadmin';
-    const roleLabel    = isSuperAdm ? 'Super Admin' : isLider ? 'Lider' : 'Vendedor';
+    // Master herda tudo que o Líder tem acesso — exceto que, ao contrário do Líder,
+    // Master enxerga a Carteira de TODOS os vendedores (ver isGestorCarteira mais abaixo).
+    const isGestor      = isLider || isMasterRole;
+    const roleLabel    = isSuperAdm ? 'Super Admin' : isMasterRole ? 'Master' : isLider ? 'Lider' : 'Vendedor';
     $('role-badge').textContent = roleLabel;
-    if (isLider || isSuperAdm) $('role-badge').classList.add('role-lider');
-    else                       $('role-badge').classList.remove('role-lider');
+    if (isGestor || isSuperAdm) $('role-badge').classList.add('role-lider');
+    else                        $('role-badge').classList.remove('role-lider');
 
-    $('ff-vendedor').style.display   = (isLider||isSuperAdm) ? 'flex'  : 'none';
-    $('btn-limpar').style.display    = (isLider||isSuperAdm) ? 'block' : 'none';
-    $('exp-vend-wrap').style.display = (isLider||isSuperAdm) ? 'block' : 'none';
-    if($('ff-cart-vendedor'))  $('ff-cart-vendedor').style.display  = (isLider||isSuperAdm) ? 'flex'  : 'none';
-    if($('btn-cart-limpar'))  $('btn-cart-limpar').style.display  = (isLider||isSuperAdm) ? 'inline-block' : 'none';
+    $('ff-vendedor').style.display   = (isGestor||isSuperAdm) ? 'flex'  : 'none';
+    $('btn-limpar').style.display    = (isGestor||isSuperAdm) ? 'block' : 'none';
+    $('exp-vend-wrap').style.display = (isGestor||isSuperAdm) ? 'block' : 'none';
+    // Carteira: Líder só vê a própria (como vendedor); só Master e SuperAdmin veem a de todos
+    if($('ff-cart-vendedor'))  $('ff-cart-vendedor').style.display  = (isMasterRole||isSuperAdm) ? 'flex'  : 'none';
+    if($('btn-cart-limpar'))  $('btn-cart-limpar').style.display  = (isMasterRole||isSuperAdm) ? 'inline-block' : 'none';
 
     // Super Admin: mostra aba Super Admin, esconde abas normais
     const tabSA = $('tab-superadmin');
     if(tabSA) tabSA.style.display = isSuperAdm ? 'block' : 'none';
 
-    // Admin visível para Líder e SuperAdmin
+    // Admin visível para Líder, Master e SuperAdmin
     const admTab = document.querySelector('[data-tab="admin"]');
-    if(admTab) admTab.style.display = (isLider || isSuperAdm) ? '' : 'none';
+    if(admTab) admTab.style.display = (isGestor || isSuperAdm) ? '' : 'none';
+
+    // Só o Superadmin pode promover alguém a "Master" (evita autopromoção em cadeia)
+    if($('adm-perfil-master-opt')) $('adm-perfil-master-opt').hidden = !isSuperAdm;
+    if($('mu-perfil-master-opt'))  $('mu-perfil-master-opt').hidden  = !isSuperAdm;
 
     $('hist-data').value = tod();
     if($('hist-mes'))  $('hist-mes').value  = thisMes();
@@ -2538,9 +2547,9 @@ onAuthStateChanged(auth, async user => {
     const tabCamp   = document.getElementById('tab-campanhas');
     const tabPromos = document.getElementById('tab-promocoes');
     const tabPromoV = document.getElementById('tab-promocoes-vendedor');
-    if (tabCamp)   tabCamp.style.display   = (isLider || isSuperAdm) ? '' : 'none';
-    if (tabPromos) tabPromos.style.display  = (isLider || isSuperAdm) ? '' : 'none';
-    if (tabPromoV) tabPromoV.style.display  = (!isLider && !isSuperAdm) ? '' : 'none';
+    if (tabCamp)   tabCamp.style.display   = (isGestor || isSuperAdm) ? '' : 'none';
+    if (tabPromos) tabPromos.style.display  = (isGestor || isSuperAdm) ? '' : 'none';
+    if (tabPromoV) tabPromoV.style.display  = (!isGestor && !isSuperAdm) ? '' : 'none';
 
   } else {
     // Deslogado — volta para tela de login
@@ -2557,7 +2566,7 @@ onAuthStateChanged(auth, async user => {
 // ── Listeners ─────────────────────────────────────────────
 function startListeners(){
   const uid=cu.uid;
-  const isLider   = cp.role === 'lider';
+  const isLider   = cp.role === 'lider' || cp.role === 'master';
   const isSuperAdmin = cp.role === 'superadmin';
   // SuperAdmin: usa _companyId (empresa selecionada via "Ver Dados")
   // Líder/Vendedor: usa cp.companyId (empresa do usuário)
@@ -3167,10 +3176,7 @@ function renderMetricsDia(){
   // Usa a data selecionada no seletor — pode ser retroativa
   const t = getLancarData ? getLancarData() : tod();
   const isHoje = t === tod();
-  const isLider    = cp?.role === 'lider';
-  const isSuperAdm = cp?.role === 'superadmin';
-  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
-  let dr = _recs.filter(r => r.date === t);
+  const isLider    = cp?.role === 'lider' || cp?.role === 'master';
   if(isSuperAdm && _companyId){
     dr = dr.filter(r => r.companyId === _companyId);
   } else if(isSuperAdm){
@@ -3301,10 +3307,7 @@ function renderHistorico(){
   const modo = $('hist-modo')?.value || 'dia';
   const tf   = $('hist-tipo').value;
   const sv   = $('hist-vendedor').value;
-  const isLider = cp?.role === 'lider';
-  const isSuperAdm = cp?.role === 'superadmin';
-  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
-  let recs = [..._recs];
+  const isLider = cp?.role === 'lider' || cp?.role === 'master';
   if(isSuperAdm && _companyId){
     recs = recs.filter(r => r.companyId === _companyId);
   } else if(isSuperAdm){
@@ -3436,10 +3439,7 @@ function renderHistorico(){
 
 // ── Dashboard ─────────────────────────────────────────────
 function renderDashboard(filtroUid){
-  const isLider=cp?.role==='lider';
-  const isSuperAdm=cp?.role==='superadmin';
-  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
-  const mes=thisMes();
+  const isLider=cp?.role==='lider' || cp?.role==='master';
   // Filtra registros pela empresa ativa
   let recs;
   if(isSuperAdm && _companyId){
@@ -3787,10 +3787,7 @@ window.gerarRelatorio = async function(){
   const btn = $('rel-gerar');
   btn.disabled = true; btn.textContent = 'Gerando…';
   try{
-    const isLider = cp?.role==='lider';
-    const isSuperAdm = cp?.role==='superadmin';
-    const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
-    const mes = thisMes();
+    const isLider = cp?.role==='lider' || cp?.role==='master';
     const modoEquipe = $('rel-tipo-equipe').checked;
 
     let bodyHtml = '';
@@ -4162,7 +4159,7 @@ function renderUsersTable(){
     <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Meta mensal</th><th>Ações</th></tr></thead>
     <tbody>${_users.map(u=>`<tr>
       <td>${u.name}</td><td>${u.email}</td>
-      <td><span class="badge ${u.role==='lider'?'bg-amber':u.role==='superadmin'?'bg-purple':'bg-blue'}">${u.role==='lider'?'Líder':u.role==='superadmin'?'Super Admin':'Vendedor'}</span></td>
+      <td><span class="badge ${u.role==='lider'?'bg-amber':u.role==='master'?'bg-teal':u.role==='superadmin'?'bg-purple':'bg-blue'}">${u.role==='lider'?'Líder':u.role==='master'?'Master':u.role==='superadmin'?'Super Admin':'Vendedor'}</span></td>
       <td>${fC(u.meta||0)}</td>
       <td><div class="act">
         <button class="btn-xs bx-edit" data-uid="${u.id}">Editar</button>
@@ -4193,7 +4190,7 @@ function editUser(uid){
   // Aviso sobre o que esta sendo editado
   const avisoEl = document.getElementById('aviso-edicao');
   if(avisoEl){
-    avisoEl.textContent = 'Editando: ' + u.name + ' (' + (u.role==='lider'?'Lider':'Vendedor') + ')';
+    avisoEl.textContent = 'Editando: ' + u.name + ' (' + (u.role==='lider'?'Lider':u.role==='master'?'Master':'Vendedor') + ')';
     avisoEl.style.display='block';
   }
   $('btn-adm-save').textContent = 'Salvar Alteracoes';
@@ -4288,7 +4285,7 @@ function populateSelects(){
     const sel=$(id); if(!sel) return;
     const cur=sel.value;
     const opt0=(id==='hist-vendedor'||id==='exp-vendedor'||id==='cart-filtro-vendedor')?'<option value="">Todos</option>':'<option value="">Selecione...</option>';
-    sel.innerHTML=opt0+todos.map(u=>`<option value="${u.id}">${u.name}${u.role==='lider'?' (Lider)':''}</option>`).join('');
+    sel.innerHTML=opt0+todos.map(u=>`<option value="${u.id}">${u.name}${u.role==='lider'?' (Lider)':u.role==='master'?' (Master)':''}</option>`).join('');
     if(cur) sel.value=cur;
   });
 }
@@ -4304,11 +4301,7 @@ $('btn-exportar').onclick = async () => {
   const de=$('exp-de').value, ate=$('exp-ate').value;
   const tipo=$('exp-tipo').value;
   const vuid=$('exp-vendedor')?.value||'';
-  const isLider    = cp?.role==='lider';
-  const isSuperAdm = cp?.role==='superadmin';
-  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
-
-  // ── helpers internos ───────────────────────────────────────
+  const isLider    = cp?.role==='lider' || cp?.role==='master';
   const esc = v => JSON.stringify(String(v==null?'':v));
   const toRows = rows => rows.map(r=>r.map(esc).join(',')).join('\n');
   const sep = label => `\n\n"=== ${label} ==="\n`;
@@ -4476,7 +4469,7 @@ function getMesAnterior(){
 }
 
 function checkBannerMesAnterior(){
-  if(cp?.role !== 'lider') return;
+  if(cp?.role !== 'lider' && cp?.role !== 'master') return;
   const hoje = tod();
   const diaDoMes = new Date().getDate();
   // Aparece apenas no dia 1 do mes e apenas uma vez por dia
@@ -5977,12 +5970,12 @@ function vapAbrirWppTelefone(telefone, nome){
 }
 window.vapAbrirWppTelefone = vapAbrirWppTelefone;
 
-// ── Listener em tempo real (escopo: vendedor vê só o dele; líder/superadmin veem a empresa toda) ──
+// ── Listener em tempo real (escopo: vendedor e líder veem só a própria; master/superadmin veem a empresa toda) ──
 function vapIniciarListenerCarteira(){
   const CID = _vapGetCompanyId(); if(!CID) return;
   if(unCarteira){ unCarteira(); unCarteira = null; }
-  const isLider = cp?.role==='lider' || cp?.role==='superadmin';
-  const q = isLider
+  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
+  const q = veTodaEmpresa
     ? query(collection(db,'carteira_clientes'), where('companyId','==',CID))
     : query(collection(db,'carteira_clientes'), where('companyId','==',CID), where('uid','==',cu.uid));
   unCarteira = onSnapshot(q, snap => {
@@ -5998,7 +5991,7 @@ window.vapIniciarListenerCarteira = vapIniciarListenerCarteira;
 // ── Renderização da lista/tabela com filtros ────────────────
 function renderCarteiraLista(){
   const wrap = $('cart-list'); if(!wrap) return;
-  const isLider = cp?.role==='lider' || cp?.role==='superadmin';
+  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
   const busca   = ($('cart-busca')?.value || '').toLowerCase().trim();
   const fSeg    = $('cart-filtro-segmento')?.value || '';
   const fStatus = $('cart-filtro-status')?.value || '';
@@ -6023,7 +6016,7 @@ function renderCarteiraLista(){
   wrap.innerHTML = `<div style="overflow-x:auto"><table class="adm-table">
     <thead><tr>
       <th>Nome</th><th>Telefone</th><th>Segmento</th><th>Cidade/Bairro</th>
-      <th>Últ. contato</th><th>Status</th>${isLider?'<th>Vendedor</th>':''}<th>Ações</th>
+      <th>Últ. contato</th><th>Status</th>${veTodaEmpresa?'<th>Vendedor</th>':''}<th>Ações</th>
     </tr></thead>
     <tbody>${lista.map(c => {
       const st = cartStatus(c);
@@ -6037,7 +6030,7 @@ function renderCarteiraLista(){
         <td>${[c.cidade,c.bairro].filter(Boolean).join(' / ')||'—'}</td>
         <td><span class="badge ${resultBadgeClass}">${rc||'—'}</span>${c.dataUltimoContato?`<br><span style="font-size:.7rem;color:var(--gray)">${fD(c.dataUltimoContato)}</span>`:''}</td>
         <td>${stBadge}</td>
-        ${isLider?`<td style="font-size:.75rem">${cartNomeVendedor(c.uid)}</td>`:''}
+        ${veTodaEmpresa?`<td style="font-size:.75rem">${cartNomeVendedor(c.uid)}</td>`:''}
         <td><div class="act">
           <button class="btn-xs bx-wpp" data-id="${c.id}" style="border-color:var(--gl);color:var(--g)" title="WhatsApp">💬</button>
           <button class="btn-xs bx-edit" data-id="${c.id}" style="border-color:var(--border);color:var(--gray)">Editar</button>
