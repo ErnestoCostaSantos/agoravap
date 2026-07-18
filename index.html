@@ -4909,6 +4909,8 @@ window.loginAsEmpresa = async function(companyId, code){
 
   // Recarrega listeners filtrados pela nova empresa
   startListeners();
+  window._vapCompanyId = _companyId; // mantém sincronizado (usado como fallback em _vapGetCompanyId)
+  if (typeof vapIniciarListenerCarteira === 'function') vapIniciarListenerCarteira();
 
   setTimeout(() => {
     console.log('[Ver Dados] _recs:', _recs.length, '_users:', _users.length);
@@ -4925,7 +4927,13 @@ window.switchTab_orig = window.switchTab;
 // ══════════════════════════════════════════════════════════════════════════
 // MÓDULOS CAMPANHAS + PROMOÇÕES — AgoraVAP! v1.0.0
 // ══════════════════════════════════════════════════════════════════════════
-function _vapGetCompanyId(){const id=window._vapCompanyId;if(!id)console.warn('[VAP] _vapCompanyId não definido.');return id||'';}
+function _vapGetCompanyId(){
+  // Calcula na hora, em vez de depender de um valor "congelado" no login —
+  // isso evita ficar desatualizado quando o Superadmin troca de empresa (loginAsEmpresa)
+  const id = (cp && cp.companyId) || _companyId || window._vapCompanyId || null;
+  if(!id) console.warn('[VAP] Empresa não identificada (cp.companyId, _companyId e window._vapCompanyId todos vazios).');
+  return id || '';
+}
 const VAP_MESES=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 let _vapUnsubCamp=null,_vapUnsubPromo=null,_vapCampanhasDB=[];
 const VAP_CAMP_TIPOS={
