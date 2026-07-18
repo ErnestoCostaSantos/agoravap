@@ -4010,9 +4010,9 @@ $('btn-adm-save').onclick = async () => {
   if(!uid && !e){ toast('Informe o e-mail.'); return; }
 
   if(uid){
-    // Modo editar: atualiza apenas nome e meta
+    // Modo editar: atualiza nome, perfil (papel) e meta
     if(!validateNome(n)){ toast('Informe nome e sobrenome (min. 2 caracteres cada).'); return; }
-    await updateDoc(doc(db,'users',uid),{name:n, updatedAt:new Date().toISOString()});
+    await updateDoc(doc(db,'users',uid),{name:n, role:r, updatedAt:new Date().toISOString()});
     // Salva meta do mes atual se informada
     if(metaIni > 0){
       const mesAtual = thisMes();
@@ -4157,7 +4157,7 @@ async function recoverDeletedUser(email, name, role, meta) {
 function resetAdmForm(){
   ['adm-nome','adm-email','adm-uid'].forEach(id=>{ const el=$(id); if(el) el.value=''; });
   const metaEl = $('adm-meta-ini'); if(metaEl) metaEl.value='';
-  const perfEl = $('adm-perfil'); if(perfEl) perfEl.value='vendedor';
+  const perfEl = $('adm-perfil'); if(perfEl){ perfEl.value='vendedor'; perfEl.disabled=false; }
   const saveBtn = $('btn-adm-save'); if(saveBtn) saveBtn.textContent='Cadastrar Profissional';
   const cancelBtn = $('btn-adm-cancel'); if(cancelBtn) cancelBtn.style.display='none';
   // Restaura campos que foram escondidos no modo editar
@@ -4199,12 +4199,18 @@ function editUser(uid){
   const metaAtual = _metas.find(m=>m.uid===uid&&m.mes===mesMeta)?.valor || u.meta || 0;
   const metaEl = $('adm-meta-ini');
   if(metaEl) metaEl.value = metaAtual > 0 ? metaAtual : '';
-  // Esconde campos que nao devem ser editados
+  // Mostra o perfil (agora editável) e pré-seleciona o papel atual do usuário
   const emailWrap = $('adm-email')?.closest('.field');
   const perfilWrap = $('adm-perfil')?.closest('.field');
   const emailGrid = $('adm-email')?.closest('.fgrid');
-  if(emailWrap) emailWrap.style.display='none';
-  if(perfilWrap) perfilWrap.style.display='none';
+  if(emailWrap) emailWrap.style.display='none'; // e-mail continua não editável por aqui (ver Firebase Console)
+  if(perfilWrap) perfilWrap.style.display='';
+  const perfilSel = $('adm-perfil');
+  if(perfilSel){
+    perfilSel.value = u.role || 'vendedor';
+    // Evita que alguém mude o próprio papel por engano (ex: se autorrebaixar sem querer)
+    perfilSel.disabled = (uid === cu.uid);
+  }
   // Aviso sobre o que esta sendo editado
   const avisoEl = document.getElementById('aviso-edicao');
   if(avisoEl){
