@@ -2081,6 +2081,12 @@ function toast(m, ms = 2600) {
 }
 function openModal(id) { $(id).classList.add('open'); }
 function closeModal(id) { $(id).classList.remove('open'); }
+// Expostas no window porque HTML gerado dinamicamente via innerHTML (ex: tela de sucesso
+// da importação da Carteira) usa onclick="closeModal(...)" inline — esse atributo roda no
+// escopo global, e funções declaradas dentro do <script type="module"> não ficam
+// acessíveis ali por padrão.
+window.openModal = openModal;
+window.closeModal = closeModal;
 
 // ── Confirmação ───────────────────────────────────────────
 let _confirmCb = null;
@@ -3177,6 +3183,9 @@ function renderMetricsDia(){
   const t = getLancarData ? getLancarData() : tod();
   const isHoje = t === tod();
   const isLider    = cp?.role === 'lider' || cp?.role === 'master';
+  const isSuperAdm = cp?.role === 'superadmin';
+  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
+  let dr = _recs.filter(r => r.date === t);
   if(isSuperAdm && _companyId){
     dr = dr.filter(r => r.companyId === _companyId);
   } else if(isSuperAdm){
@@ -3308,6 +3317,9 @@ function renderHistorico(){
   const tf   = $('hist-tipo').value;
   const sv   = $('hist-vendedor').value;
   const isLider = cp?.role === 'lider' || cp?.role === 'master';
+  const isSuperAdm = cp?.role === 'superadmin';
+  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
+  let recs = [..._recs];
   if(isSuperAdm && _companyId){
     recs = recs.filter(r => r.companyId === _companyId);
   } else if(isSuperAdm){
@@ -3440,6 +3452,9 @@ function renderHistorico(){
 // ── Dashboard ─────────────────────────────────────────────
 function renderDashboard(filtroUid){
   const isLider=cp?.role==='lider' || cp?.role==='master';
+  const isSuperAdm=cp?.role==='superadmin';
+  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
+  const mes=thisMes();
   // Filtra registros pela empresa ativa
   let recs;
   if(isSuperAdm && _companyId){
@@ -3788,6 +3803,9 @@ window.gerarRelatorio = async function(){
   btn.disabled = true; btn.textContent = 'Gerando…';
   try{
     const isLider = cp?.role==='lider' || cp?.role==='master';
+    const isSuperAdm = cp?.role==='superadmin';
+    const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
+    const mes = thisMes();
     const modoEquipe = $('rel-tipo-equipe').checked;
 
     let bodyHtml = '';
@@ -4302,6 +4320,8 @@ $('btn-exportar').onclick = async () => {
   const tipo=$('exp-tipo').value;
   const vuid=$('exp-vendedor')?.value||'';
   const isLider    = cp?.role==='lider' || cp?.role==='master';
+  const isSuperAdm = cp?.role==='superadmin';
+  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
   const esc = v => JSON.stringify(String(v==null?'':v));
   const toRows = rows => rows.map(r=>r.map(esc).join(',')).join('\n');
   const sep = label => `\n\n"=== ${label} ==="\n`;
