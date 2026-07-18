@@ -535,6 +535,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   <div class="nav" id="main-nav">
     <div class="nav-tab active" data-tab="lancar">Lançar</div>
     <div class="nav-tab" data-tab="historico">Histórico</div>
+    <div class="nav-tab" data-tab="carteira">Carteira</div>
     <div class="nav-tab" data-tab="dashboard">Dashboard</div>
     <div class="nav-tab" data-tab="admin">Administrativo</div>
     <div class="nav-tab" data-tab="campanhas" id="tab-campanhas" style="display:none"><i class="ti ti-speakerphone" style="font-size:14px;vertical-align:middle;margin-right:4px"></i>Campanhas</div>
@@ -724,6 +725,60 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div id="hist-resumo" style="margin-top:.5rem;font-size:.8rem;color:var(--gray)"></div>
       </div>
       <div id="hist-list"><div class="loading"><div class="spin"></div> Carregando…</div></div>
+    </div>
+
+    <!-- ════ CARTEIRA DE CLIENTES ═════════════════════════════ -->
+    <div class="panel" id="panel-carteira">
+      <div class="fcard" style="padding:.75rem 1.25rem;margin-bottom:.75rem">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <div class="ff" style="min-width:160px;flex:1">
+            <label>Buscar</label>
+            <input type="text" id="cart-busca" placeholder="Nome, responsável..." style="width:100%"/>
+          </div>
+          <div class="ff" style="min-width:150px">
+            <label>Segmento</label>
+            <select id="cart-filtro-segmento" style="width:100%">
+              <option value="">Todos</option>
+              <option value="Serviço Automotivo">Serviço Automotivo</option>
+              <option value="Transportadora">Transportadora</option>
+              <option value="Posto de Troca">Posto de Troca</option>
+              <option value="Posto de Combustível">Posto de Combustível</option>
+              <option value="Revenda">Revenda</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+          <div class="ff" style="min-width:130px">
+            <label>Status</label>
+            <select id="cart-filtro-status" style="width:100%">
+              <option value="">Todos</option>
+              <option value="ativo">Ativo</option>
+              <option value="inativo">Inativo</option>
+            </select>
+          </div>
+          <div class="ff" style="min-width:150px">
+            <label>Último contato</label>
+            <select id="cart-filtro-resultado" style="width:100%">
+              <option value="">Todos</option>
+              <option value="Pedido">Pedido</option>
+              <option value="Cotação">Cotação</option>
+              <option value="Sem contato">Sem contato</option>
+              <option value="Inicial">Inicial</option>
+              <option value="Aguardando">Aguardando</option>
+            </select>
+          </div>
+          <div class="ff" id="ff-cart-vendedor" style="display:none;min-width:150px">
+            <label>Vendedor</label>
+            <select id="cart-filtro-vendedor" style="width:100%"><option value="">Todos</option></select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-end;padding-bottom:2px;flex-wrap:wrap">
+            <button class="btn-sec" id="btn-cart-importar">📇 Importar Contatos</button>
+            <button class="btn-save" id="btn-cart-add">+ Adicionar Cliente</button>
+            <button class="btn-danger" id="btn-cart-limpar" style="display:none;white-space:nowrap">⚠ Limpar Carteira</button>
+          </div>
+        </div>
+        <div id="cart-resumo" style="margin-top:.5rem;font-size:.8rem;color:var(--gray)"></div>
+      </div>
+      <div id="cart-list"><div class="loading"><div class="spin"></div> Carregando…</div></div>
     </div>
 
     <!-- ════ DASHBOARD ════════════════════════════════════════ -->
@@ -1297,7 +1352,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
                 <li>Clique em <b>"Baixar imagem"</b>, ao lado da miniatura da etapa. A imagem é salva no computador/celular (um alerta confirma o download).</li>
                 <li>Se o download não cair automaticamente (mais comum em iPhone), toque e segure a miniatura na tela e escolha "Salvar imagem".</li>
                 <li>Clique em <b>"WhatsApp"</b> — abre o app já com o texto da etapa pré-preenchido.</li>
-                <li>Escolha o contato ou grupo para onde vai mandar a mensagem.</li>
+                <li>Escolha o contato ou grupo para onde vai mandar a mensagem. <b>Atenção:</b> como o link não indica um número específico, essa primeira tela é só de seleção de contato/conversa (igual à tela de "Encaminhar") — nela não existe o botão de anexar (📎 ou "+"). Depois de escolher o contato, você entra na conversa de verdade, e é só ali que o botão de anexar aparece, ao lado do campo de digitar.</li>
                 <li>Anexe a imagem baixada no passo 1 usando o clipe/anexo do WhatsApp (geralmente na pasta Downloads ou na Galeria).</li>
                 <li>Envie a mensagem com a imagem anexada.</li>
                 <li>Volte ao AgoraVAP! e clique em <b>"Marcar enviado"</b> para concluir a etapa e liberar a próxima.</li>
@@ -1321,6 +1376,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Vendedor</b> — <b>Enviar por WhatsApp</b> — Cada card de promoção tem um botão que abre o WhatsApp com uma mensagem já pronta, montada automaticamente a partir do nome, itens, preço e validade da promoção. Se houver imagem, aparece também um botão "Baixar imagem" para anexá-la manualmente na conversa. Vídeo não tem esse botão de anexo automático — o vendedor precisa baixar/compartilhar o vídeo manualmente, pelo mesmo motivo abaixo.
               <ul style="margin-top:6px">
                 <li>O WhatsApp pode perguntar se você deseja abrir o WhatsApp Desktop ou Web ao clicar em "Enviar por WhatsApp" — é um comportamento do próprio link "clique para conversar" do WhatsApp, não um erro do AgoraVAP!. Para não ser mais perguntado, marque a opção "sempre permitir" que o navegador exibir.</li>
+                <li>Como o link não indica um número específico, a primeira tela que abre é só de seleção de contato/conversa (igual à tela de "Encaminhar" do WhatsApp) — nela não existe o botão de anexar (📎 ou "+"). Escolha o contato, e só depois — já dentro da conversa de verdade — o botão de anexar aparece normalmente ao lado do campo de digitar, pra você anexar a imagem baixada.</li>
                 <li>Não é possível anexar imagem ou vídeo da promoção automaticamente na mensagem — nenhum link de WhatsApp (wa.me, web.whatsapp.com etc.) suporta isso. Por isso o fluxo continua sendo baixar o arquivo e anexá-lo manualmente na conversa, como já acontece no módulo Campanhas.</li>
               </ul>
             </li>
@@ -1688,6 +1744,88 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       <select id="rel-vendedor-select" disabled style="width:100%"></select>
     </div>
     <div class="ffooter"><button class="btn-sec" id="rel-cancel">Cancelar</button><button class="btn-save" id="rel-gerar"><i class="ti ti-printer"></i> Gerar e imprimir</button></div>
+  </div>
+</div>
+
+<!-- MODAL Carteira — Adicionar/Editar Cliente -->
+<div class="modal-ov" id="modal-carteira-cliente">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr"><div class="modal-title" id="cart-cli-title">Adicionar Cliente</div><button class="btn-close" id="cart-cli-close">×</button></div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Nome *</label><input type="text" id="cart-cli-nome" placeholder="Nome do cliente"/></div>
+      <div class="field"><label>Telefone</label><input type="text" id="cart-cli-telefone" placeholder="(11) 91234-5678" maxlength="16"/></div>
+    </div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Segmento</label>
+        <select id="cart-cli-segmento" style="width:100%">
+          <option value="Serviço Automotivo">Serviço Automotivo</option>
+          <option value="Transportadora">Transportadora</option>
+          <option value="Posto de Troca">Posto de Troca</option>
+          <option value="Posto de Combustível">Posto de Combustível</option>
+          <option value="Revenda">Revenda</option>
+          <option value="Outros">Outros</option>
+        </select>
+      </div>
+      <div class="field"><label>Responsável</label><input type="text" id="cart-cli-responsavel" placeholder="Nome do contato"/></div>
+    </div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Cidade</label><input type="text" id="cart-cli-cidade" placeholder="Cidade"/></div>
+      <div class="field"><label>Bairro</label><input type="text" id="cart-cli-bairro" placeholder="Bairro"/></div>
+    </div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Resultado do último contato</label>
+        <select id="cart-cli-resultado" style="width:100%">
+          <option value="Inicial">Inicial</option>
+          <option value="Cotação">Cotação</option>
+          <option value="Pedido">Pedido</option>
+          <option value="Aguardando">Aguardando</option>
+          <option value="Sem contato">Sem contato</option>
+        </select>
+      </div>
+      <div class="field"><label>Data do último contato</label><input type="date" id="cart-cli-data-contato" style="width:100%"/></div>
+    </div>
+    <div class="fgrid fg1" id="cart-cli-wrap-compra">
+      <div class="field"><label>Data da última compra <span style="font-weight:400;color:var(--gray)">(preencha quando o resultado for "Pedido" — define o status Ativo/Inativo)</span></label><input type="date" id="cart-cli-data-compra" style="width:100%"/></div>
+    </div>
+    <div class="fgrid fg1">
+      <div class="field"><label>Observações</label><textarea id="cart-cli-obs" rows="2" placeholder="Anotações livres..." style="width:100%;resize:vertical;font-family:var(--font)"></textarea></div>
+    </div>
+    <input type="hidden" id="cart-cli-id"/>
+    <input type="hidden" id="cart-cli-origem"/>
+    <div class="ffooter"><button class="btn-sec" id="cart-cli-cancel">Cancelar</button><button class="btn-save" id="cart-cli-save">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL Carteira — Importar Contatos -->
+<div class="modal-ov" id="modal-carteira-importar">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-hdr"><div class="modal-title">Importar Contatos</div><button class="btn-close" id="cart-imp-close">×</button></div>
+    <div id="cart-imp-intro" style="font-size:.85rem;color:var(--gray);margin-bottom:.75rem">
+      Toque no botão abaixo para abrir sua agenda de contatos e selecionar quem entra na sua Carteira de Clientes.
+    </div>
+    <div id="cart-imp-unsupported" style="display:none;font-size:.85rem;background:var(--rl);color:var(--r);padding:10px 12px;border-radius:var(--rsm);margin-bottom:.75rem">
+      Seu navegador não suporta importação direta de contatos (essa função funciona em Chrome/Android). Use o botão "Adicionar Cliente" para cadastrar manualmente.
+    </div>
+    <button class="btn-save" id="cart-imp-selecionar" style="width:100%">📇 Selecionar Contatos</button>
+    <div id="cart-imp-lista" style="margin-top:1rem;max-height:320px;overflow-y:auto"></div>
+    <div class="ffooter" id="cart-imp-footer" style="display:none">
+      <button class="btn-sec" id="cart-imp-cancel">Cancelar</button>
+      <button class="btn-save" id="cart-imp-salvar">Salvar Selecionados</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL Carteira — Limpar Carteira (líder) -->
+<div class="modal-ov" id="modal-carteira-limpar">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr"><div class="modal-title">Limpar Carteira de um Vendedor</div><button class="btn-close" id="cart-lim-close">×</button></div>
+    <div class="fgrid fg1" style="margin-bottom:.5rem">
+      <div class="field"><label>Vendedor</label><select id="cart-lim-vendedor" style="width:100%"><option value="">Selecione...</option></select></div>
+    </div>
+    <div style="font-size:.8rem;color:var(--r);background:var(--rl);padding:10px 12px;border-radius:var(--rsm);margin-bottom:.5rem">
+      ⚠ Esta ação apaga permanentemente todos os clientes da carteira do vendedor selecionado. Não pode ser desfeita.
+    </div>
+    <div class="ffooter"><button class="btn-sec" id="cart-lim-cancel">Cancelar</button><button class="btn-danger" id="cart-lim-confirmar" style="border-color:var(--r)">Apagar Carteira</button></div>
   </div>
 </div>
 
@@ -2331,6 +2469,8 @@ onAuthStateChanged(auth, async user => {
     $('ff-vendedor').style.display   = (isLider||isSuperAdm) ? 'flex'  : 'none';
     $('btn-limpar').style.display    = (isLider||isSuperAdm) ? 'block' : 'none';
     $('exp-vend-wrap').style.display = (isLider||isSuperAdm) ? 'block' : 'none';
+    if($('ff-cart-vendedor'))  $('ff-cart-vendedor').style.display  = (isLider||isSuperAdm) ? 'flex'  : 'none';
+    if($('btn-cart-limpar'))  $('btn-cart-limpar').style.display  = (isLider||isSuperAdm) ? 'inline-block' : 'none';
 
     // Super Admin: mostra aba Super Admin, esconde abas normais
     const tabSA = $('tab-superadmin');
@@ -4113,10 +4253,10 @@ function populateSelects(){
   const todos = [..._users]
     .filter(u => isSuperAdm || !cid || u.companyId === cid)
     .sort((a,b)=>a.name.localeCompare(b.name));
-  ['meta-uid','hist-vendedor','exp-vendedor'].forEach(id=>{
+  ['meta-uid','hist-vendedor','exp-vendedor','cart-filtro-vendedor','cart-lim-vendedor'].forEach(id=>{
     const sel=$(id); if(!sel) return;
     const cur=sel.value;
-    const opt0=id==='hist-vendedor'||id==='exp-vendedor'?'<option value="">Todos</option>':'<option value="">Selecione...</option>';
+    const opt0=(id==='hist-vendedor'||id==='exp-vendedor'||id==='cart-filtro-vendedor')?'<option value="">Todos</option>':'<option value="">Selecione...</option>';
     sel.innerHTML=opt0+todos.map(u=>`<option value="${u.id}">${u.name}${u.role==='lider'?' (Lider)':''}</option>`).join('');
     if(cur) sel.value=cur;
   });
@@ -4426,6 +4566,7 @@ window.switchTab = tab => {
     preencherCamposLancar(); // carrega valores existentes do dia selecionado
   }
   if(tab==='historico'){ setupHistoricoListeners(); renderHistorico(); }
+  if(tab==='carteira'){ renderCarteiraLista(); }
   if(tab==='superadmin'){ loadEmpresas(); }
   if(tab==='dashboard') renderDashboard();
   if(tab==='admin')     { renderUsersTable(); checkBannerMesAnterior(); }
@@ -5740,7 +5881,347 @@ async function vapCarregarAcumLider(promos) {
 }
 window.vapCarregarAcumLider = vapCarregarAcumLider;
 
-function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
+// ══════════════════════════════════════════════════════════
+// MÓDULO CARTEIRA DE CLIENTES
+// ══════════════════════════════════════════════════════════
+let _cartClientes = [];
+let unCarteira = null;
+let _cartContatosSelecionados = []; // contatos escolhidos no picker, aguardando salvar
+
+// Status calculado: ativo se dataUltimaCompra <= 6 meses atrás (não é gravado no Firestore)
+function cartStatus(cli){
+  if(!cli.dataUltimaCompra) return 'inativo';
+  const d = new Date(cli.dataUltimaCompra + 'T00:00:00');
+  if(isNaN(d.getTime())) return 'inativo';
+  const limite = new Date();
+  limite.setMonth(limite.getMonth() - 6);
+  return d >= limite ? 'ativo' : 'inativo';
+}
+
+function cartNomeVendedor(uid){
+  const u = _users.find(x=>x.id===uid);
+  return u ? u.name : '—';
+}
+
+// Máscara simples de telefone BR: (XX) XXXXX-XXXX / (XX) XXXX-XXXX
+function cartMaskTelefone(el){
+  let v = el.value.replace(/\D/g,'').slice(0,11);
+  if(v.length > 10)      v = v.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+  else if(v.length > 6)  v = v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+  else if(v.length > 2)  v = v.replace(/^(\d{2})(\d{0,5}).*/, '($1) $2');
+  else if(v.length > 0)  v = v.replace(/^(\d{0,2}).*/, '($1');
+  el.value = v;
+}
+$('cart-cli-telefone') && ($('cart-cli-telefone').oninput = () => cartMaskTelefone($('cart-cli-telefone')));
+
+// WhatsApp direto por telefone do cliente
+function vapAbrirWppTelefone(telefone, nome){
+  let digits = (telefone||'').replace(/\D/g,'');
+  if(!digits){ toast('Cliente sem telefone cadastrado.'); return; }
+  if(digits.length <= 11) digits = '55' + digits; // adiciona DDI Brasil quando ausente
+  const msg = `Olá${nome ? ', '+nome.split(' ')[0] : ''}! Tudo bem?`;
+  window.open('https://wa.me/'+digits+'?text='+encodeURIComponent(msg), '_blank');
+}
+window.vapAbrirWppTelefone = vapAbrirWppTelefone;
+
+// ── Listener em tempo real (escopo: vendedor vê só o dele; líder/superadmin veem a empresa toda) ──
+function vapIniciarListenerCarteira(){
+  const CID = _vapGetCompanyId(); if(!CID) return;
+  if(unCarteira){ unCarteira(); unCarteira = null; }
+  const isLider = cp?.role==='lider' || cp?.role==='superadmin';
+  const q = isLider
+    ? query(collection(db,'carteira_clientes'), where('companyId','==',CID))
+    : query(collection(db,'carteira_clientes'), where('companyId','==',CID), where('uid','==',cu.uid));
+  unCarteira = onSnapshot(q, snap => {
+    _cartClientes = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderCarteiraLista();
+  }, err => {
+    console.error('[Carteira] Erro no listener:', err);
+    // Se o erro for de índice ausente, o Firestore imprime no console o link para criá-lo.
+  });
+}
+window.vapIniciarListenerCarteira = vapIniciarListenerCarteira;
+
+// ── Renderização da lista/tabela com filtros ────────────────
+function renderCarteiraLista(){
+  const wrap = $('cart-list'); if(!wrap) return;
+  const isLider = cp?.role==='lider' || cp?.role==='superadmin';
+  const busca   = ($('cart-busca')?.value || '').toLowerCase().trim();
+  const fSeg    = $('cart-filtro-segmento')?.value || '';
+  const fStatus = $('cart-filtro-status')?.value || '';
+  const fResult = $('cart-filtro-resultado')?.value || '';
+  const fVend   = $('cart-filtro-vendedor')?.value || '';
+
+  let lista = _cartClientes.filter(c => {
+    if(busca && !((c.nome||'').toLowerCase().includes(busca) || (c.responsavel||'').toLowerCase().includes(busca))) return false;
+    if(fSeg && c.segmento !== fSeg) return false;
+    if(fResult && c.resultadoUltimoContato !== fResult) return false;
+    if(fVend && c.uid !== fVend) return false;
+    if(fStatus && cartStatus(c) !== fStatus) return false;
+    return true;
+  }).sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+
+  const ativos = _cartClientes.filter(c=>cartStatus(c)==='ativo').length;
+  const resumo = $('cart-resumo');
+  if(resumo) resumo.textContent = `${_cartClientes.length} cliente(s) — ${ativos} ativo(s), ${_cartClientes.length-ativos} inativo(s)`;
+
+  if(!lista.length){ wrap.innerHTML = '<div class="empty">Nenhum cliente encontrado.</div>'; return; }
+
+  wrap.innerHTML = `<div style="overflow-x:auto"><table class="adm-table">
+    <thead><tr>
+      <th>Nome</th><th>Telefone</th><th>Segmento</th><th>Cidade/Bairro</th>
+      <th>Últ. contato</th><th>Status</th>${isLider?'<th>Vendedor</th>':''}<th>Ações</th>
+    </tr></thead>
+    <tbody>${lista.map(c => {
+      const st = cartStatus(c);
+      const stBadge = st==='ativo' ? '<span class="badge bg-green">Ativo</span>' : '<span class="badge bg-gray">Inativo</span>';
+      const rc = c.resultadoUltimoContato;
+      const resultBadgeClass = rc==='Pedido' ? 'bg-green' : rc==='Cotação' ? 'bg-teal' : rc==='Aguardando' ? 'bg-amber' : rc==='Sem contato' ? 'bg-red' : 'bg-gray';
+      return `<tr>
+        <td><b>${c.nome||''}</b>${c.responsavel?`<br><span style="font-size:.72rem;color:var(--gray)">${c.responsavel}</span>`:''}</td>
+        <td>${c.telefone||'—'}</td>
+        <td>${c.segmento||'—'}</td>
+        <td>${[c.cidade,c.bairro].filter(Boolean).join(' / ')||'—'}</td>
+        <td><span class="badge ${resultBadgeClass}">${rc||'—'}</span>${c.dataUltimoContato?`<br><span style="font-size:.7rem;color:var(--gray)">${fD(c.dataUltimoContato)}</span>`:''}</td>
+        <td>${stBadge}</td>
+        ${isLider?`<td style="font-size:.75rem">${cartNomeVendedor(c.uid)}</td>`:''}
+        <td><div class="act">
+          <button class="btn-xs bx-wpp" data-id="${c.id}" style="border-color:var(--gl);color:var(--g)" title="WhatsApp">💬</button>
+          <button class="btn-xs bx-edit" data-id="${c.id}" style="border-color:var(--border);color:var(--gray)">Editar</button>
+          <button class="btn-xs bx-del" data-id="${c.id}" style="border-color:var(--rl);color:var(--r)">Excluir</button>
+        </div></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+
+  wrap.querySelectorAll('.bx-wpp').forEach(b=>b.onclick=()=>{
+    const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapAbrirWppTelefone(c.telefone, c.nome);
+  });
+  wrap.querySelectorAll('.bx-edit').forEach(b=>b.onclick=()=>abrirModalCarteiraCliente(b.dataset.id));
+  wrap.querySelectorAll('.bx-del').forEach(b=>b.onclick=()=>excluirCarteiraCliente(b.dataset.id));
+}
+window.renderCarteiraLista = renderCarteiraLista;
+['cart-busca','cart-filtro-segmento','cart-filtro-status','cart-filtro-resultado','cart-filtro-vendedor'].forEach(id=>{
+  const el = $(id); if(!el) return;
+  el.addEventListener(el.tagName==='SELECT' ? 'change' : 'input', renderCarteiraLista);
+});
+
+// ── Modal Adicionar/Editar Cliente ──────────────────────────
+function abrirModalCarteiraCliente(id){
+  $('cart-cli-title').textContent = id ? 'Editar Cliente' : 'Adicionar Cliente';
+  if(id){
+    const c = _cartClientes.find(x=>x.id===id);
+    if(!c){ toast('Cliente não encontrado.'); return; }
+    $('cart-cli-id').value = c.id;
+    $('cart-cli-origem').value = c.origem || 'manual';
+    $('cart-cli-nome').value = c.nome || '';
+    $('cart-cli-telefone').value = c.telefone || '';
+    $('cart-cli-segmento').value = c.segmento || 'Outros';
+    $('cart-cli-responsavel').value = c.responsavel || '';
+    $('cart-cli-cidade').value = c.cidade || '';
+    $('cart-cli-bairro').value = c.bairro || '';
+    $('cart-cli-resultado').value = c.resultadoUltimoContato || 'Inicial';
+    $('cart-cli-data-contato').value = c.dataUltimoContato || '';
+    $('cart-cli-data-compra').value = c.dataUltimaCompra || '';
+    $('cart-cli-obs').value = c.observacoes || '';
+  } else {
+    $('cart-cli-id').value = '';
+    $('cart-cli-origem').value = 'manual';
+    $('cart-cli-nome').value = '';
+    $('cart-cli-telefone').value = '';
+    $('cart-cli-segmento').value = 'Outros';
+    $('cart-cli-responsavel').value = '';
+    $('cart-cli-cidade').value = '';
+    $('cart-cli-bairro').value = '';
+    $('cart-cli-resultado').value = 'Inicial';
+    $('cart-cli-data-contato').value = tod();
+    $('cart-cli-data-compra').value = '';
+    $('cart-cli-obs').value = '';
+  }
+  openModal('modal-carteira-cliente');
+}
+window.abrirModalCarteiraCliente = abrirModalCarteiraCliente;
+
+async function salvarCarteiraCliente(){
+  const nome = $('cart-cli-nome').value.trim();
+  if(!nome){ toast('Informe o nome do cliente.'); return; }
+  const id = $('cart-cli-id').value;
+  const CID = _vapGetCompanyId(); if(!CID){ toast('Empresa não identificada.'); return; }
+
+  let dataCompra = $('cart-cli-data-compra').value || '';
+  const resultado = $('cart-cli-resultado').value;
+  // Se marcou "Pedido" e não preencheu a data da compra, assume a data do contato (ou hoje)
+  if(resultado === 'Pedido' && !dataCompra) dataCompra = $('cart-cli-data-contato').value || tod();
+
+  const payload = {
+    nome,
+    telefone: $('cart-cli-telefone').value.trim(),
+    segmento: $('cart-cli-segmento').value,
+    responsavel: $('cart-cli-responsavel').value.trim(),
+    cidade: $('cart-cli-cidade').value.trim(),
+    bairro: $('cart-cli-bairro').value.trim(),
+    resultadoUltimoContato: resultado,
+    dataUltimoContato: $('cart-cli-data-contato').value || '',
+    dataUltimaCompra: dataCompra,
+    observacoes: $('cart-cli-obs').value.trim(),
+    companyId: CID,
+  };
+
+  const btn = $('cart-cli-save');
+  if(btn){ btn.disabled = true; btn.textContent = 'Salvando…'; }
+  try {
+    if(id){
+      await updateDoc(doc(db,'carteira_clientes',id), payload);
+      toast('Cliente atualizado.');
+    } else {
+      payload.uid = cu.uid;
+      payload.origem = $('cart-cli-origem').value || 'manual';
+      payload.criadoEm = new Date().toISOString();
+      await addDoc(collection(db,'carteira_clientes'), payload);
+      toast('Cliente adicionado à Carteira.');
+    }
+    closeModal('modal-carteira-cliente');
+  } catch(err){
+    console.error('[Carteira] salvar:', err);
+    toast('Erro ao salvar: ' + (err.message||err.code));
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = 'Salvar'; }
+  }
+}
+window.salvarCarteiraCliente = salvarCarteiraCliente;
+
+function excluirCarteiraCliente(id){
+  const c = _cartClientes.find(x=>x.id===id); if(!c) return;
+  confirm2(`Excluir "${c.nome}" da Carteira de Clientes? Esta ação não pode ser desfeita.`, async () => {
+    try {
+      await deleteDoc(doc(db,'carteira_clientes',id));
+      toast('Cliente excluído.');
+    } catch(err){
+      console.error('[Carteira] excluir:', err);
+      toast('Erro ao excluir: ' + (err.message||err.code));
+    }
+  });
+}
+window.excluirCarteiraCliente = excluirCarteiraCliente;
+
+$('btn-cart-add')    && ($('btn-cart-add').onclick    = () => abrirModalCarteiraCliente(null));
+$('cart-cli-close')  && ($('cart-cli-close').onclick  = () => closeModal('modal-carteira-cliente'));
+$('cart-cli-cancel') && ($('cart-cli-cancel').onclick = () => closeModal('modal-carteira-cliente'));
+$('cart-cli-save')   && ($('cart-cli-save').onclick   = salvarCarteiraCliente);
+
+// ── Modal Importar Contatos (Contact Picker API — Chrome/Android) ──
+function abrirModalImportar(){
+  $('cart-imp-lista').innerHTML = '';
+  $('cart-imp-footer').style.display = 'none';
+  _cartContatosSelecionados = [];
+  const suportado = ('contacts' in navigator) && ('ContactsManager' in window);
+  $('cart-imp-unsupported').style.display = suportado ? 'none' : 'block';
+  $('cart-imp-selecionar').style.display  = suportado ? 'block' : 'none';
+  openModal('modal-carteira-importar');
+}
+window.abrirModalImportar = abrirModalImportar;
+
+async function cartSelecionarContatos(){
+  try {
+    const contatos = await navigator.contacts.select(['name','tel'], {multiple:true});
+    if(!contatos.length) return;
+    _cartContatosSelecionados = contatos
+      .map(c => ({ nome: (c.name&&c.name[0])||'(sem nome)', telefone: (c.tel&&c.tel[0])||'' }))
+      .filter(c => c.telefone); // ignora contatos sem telefone
+    renderCarteiraImportLista();
+  } catch(err){
+    console.error('[Carteira] Contact Picker:', err);
+    if(err.name !== 'AbortError') toast('Não foi possível acessar os contatos.');
+  }
+}
+$('cart-imp-selecionar') && ($('cart-imp-selecionar').onclick = cartSelecionarContatos);
+
+function renderCarteiraImportLista(){
+  const wrap = $('cart-imp-lista');
+  if(!_cartContatosSelecionados.length){
+    wrap.innerHTML = '<div class="empty">Nenhum contato com telefone selecionado.</div>';
+    $('cart-imp-footer').style.display = 'none';
+    return;
+  }
+  wrap.innerHTML = _cartContatosSelecionados.map((c,i) => `
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--border);font-size:.85rem;cursor:pointer">
+      <input type="checkbox" class="cart-imp-check" data-i="${i}" checked style="width:16px;height:16px">
+      <span style="flex:1"><b>${c.nome}</b><br><span style="font-size:.75rem;color:var(--gray)">${c.telefone}</span></span>
+    </label>`).join('');
+  $('cart-imp-footer').style.display = 'flex';
+}
+
+async function cartImportarSalvar(){
+  const marcados = [...document.querySelectorAll('.cart-imp-check:checked')].map(el => _cartContatosSelecionados[+el.dataset.i]);
+  if(!marcados.length){ toast('Selecione ao menos um contato.'); return; }
+  const CID = _vapGetCompanyId(); if(!CID){ toast('Empresa não identificada.'); return; }
+  const btn = $('cart-imp-salvar');
+  if(btn){ btn.disabled = true; btn.textContent = 'Salvando…'; }
+  try {
+    const batch = writeBatch(db);
+    marcados.forEach(c => {
+      const ref = doc(collection(db,'carteira_clientes'));
+      batch.set(ref, {
+        nome: c.nome, telefone: c.telefone,
+        segmento: 'Outros', responsavel: '', cidade: '', bairro: '',
+        resultadoUltimoContato: 'Inicial', dataUltimoContato: '', dataUltimaCompra: '',
+        observacoes: '', origem: 'importado', uid: cu.uid, companyId: CID,
+        criadoEm: new Date().toISOString()
+      });
+    });
+    await batch.commit();
+    toast(`${marcados.length} cliente(s) importado(s) para a Carteira.`);
+    closeModal('modal-carteira-importar');
+  } catch(err){
+    console.error('[Carteira] importar:', err);
+    toast('Erro ao importar: ' + (err.message||err.code));
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = 'Salvar Selecionados'; }
+  }
+}
+$('cart-imp-salvar')    && ($('cart-imp-salvar').onclick    = cartImportarSalvar);
+$('btn-cart-importar')  && ($('btn-cart-importar').onclick  = abrirModalImportar);
+$('cart-imp-close')     && ($('cart-imp-close').onclick     = () => closeModal('modal-carteira-importar'));
+$('cart-imp-cancel')    && ($('cart-imp-cancel').onclick    = () => closeModal('modal-carteira-importar'));
+
+// ── Modal Limpar Carteira de um Vendedor (líder/superadmin) ─
+function abrirModalLimparCarteira(){
+  $('cart-lim-vendedor').value = '';
+  openModal('modal-carteira-limpar');
+}
+window.abrirModalLimparCarteira = abrirModalLimparCarteira;
+
+function cartLimparCarteiraVendedor(){
+  const uid = $('cart-lim-vendedor').value;
+  if(!uid){ toast('Selecione um vendedor.'); return; }
+  const u = _users.find(x=>x.id===uid);
+  confirm2(`Apagar TODA a carteira de "${u?.name||'este vendedor'}"? Esta ação não pode ser desfeita.`, async () => {
+    const btn = $('cart-lim-confirmar');
+    if(btn){ btn.disabled = true; btn.textContent = 'Apagando…'; }
+    try {
+      const CID = _vapGetCompanyId();
+      const q = query(collection(db,'carteira_clientes'), where('companyId','==',CID), where('uid','==',uid));
+      const snap = await getDocs(q);
+      if(snap.empty){ toast('Este vendedor não tem clientes na Carteira.'); return; }
+      const batch = writeBatch(db);
+      snap.docs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+      toast(`Carteira de ${u?.name||'vendedor'} apagada (${snap.size} cliente(s)).`);
+      closeModal('modal-carteira-limpar');
+    } catch(err){
+      console.error('[Carteira] limpar:', err);
+      toast('Erro ao apagar: ' + (err.message||err.code));
+    } finally {
+      if(btn){ btn.disabled = false; btn.textContent = 'Apagar Carteira'; }
+    }
+  });
+}
+$('cart-lim-confirmar') && ($('cart-lim-confirmar').onclick = cartLimparCarteiraVendedor);
+$('btn-cart-limpar')    && ($('btn-cart-limpar').onclick    = abrirModalLimparCarteira);
+$('cart-lim-close')     && ($('cart-lim-close').onclick     = () => closeModal('modal-carteira-limpar'));
+$('cart-lim-cancel')    && ($('cart-lim-cancel').onclick    = () => closeModal('modal-carteira-limpar'));
+
+function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();vapIniciarListenerCarteira();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
 window.vapIniciarModulos=vapIniciarModulos;</script>
 
 <!-- ══ POP-UP PROMOCIONAL — Boas-vindas Vendedor ═══════════════════════ -->
