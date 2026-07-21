@@ -5488,7 +5488,7 @@ function _vapRenderPromosPro(promos){
             ?`<div style="position:relative;width:44px;height:44px;border-radius:var(--rsm);flex-shrink:0;cursor:pointer;overflow:hidden;background:#1a1a1a" onclick="event.stopPropagation();vapAbrirVideoPromo('${p.videoUrl}','${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para assistir"><i class="ti ti-player-play-filled" style="position:absolute;inset:0;margin:auto;font-size:16px;color:#fff;width:16px;height:16px"></i></div>`
             :(p.imagemUrl?`<img src="${p.imagemUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:'')}
           <div style="flex:1;min-width:0">
-            <div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}</div>
+            <div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}${p.status==='pausada'?' <span style="font-size:10px;background:#FEF3C7;color:#B45309;border-radius:10px;padding:1px 8px;font-weight:600">⏸ Pausada</span>':''}</div>
             <div class="rec-meta">${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}${p.responsavel?' · '+p.responsavel:''}</div>
           </div>
           <div style="text-align:right;flex-shrink:0">
@@ -5503,7 +5503,10 @@ function _vapRenderPromosPro(promos){
             <div style="font-weight:700;margin-bottom:6px">Vendas por vendedor</div>
             <div id="vap-lider-breakdown-${p.id}" style="font-size:11px;color:#95A5A6">Carregando...</div>
           </div>
-          <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
+          <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+            <button onclick="event.stopPropagation();vapToggleStatusPromo('${p.id}','${p.status==='pausada'?'ativa':'pausada'}')" style="display:flex;align-items:center;gap:5px;background:${p.status==='pausada'?'#DCFCE7':'#FEF3C7'};border:1px solid ${p.status==='pausada'?'#BBF7D0':'#FDE68A'};color:${p.status==='pausada'?'#15803D':'#B45309'};border-radius:var(--rsm);padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">
+              <i class="ti ti-${p.status==='pausada'?'player-play':'player-pause'}" style="font-size:14px"></i> ${p.status==='pausada'?'Retomar campanha':'Interromper campanha'}
+            </button>
             <button onclick="event.stopPropagation();vapApagarPromo('${p.id}')" style="display:flex;align-items:center;gap:5px;background:#FEE2E2;border:1px solid #FECACA;color:#C53030;border-radius:var(--rsm);padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">
               <i class="ti ti-trash" style="font-size:14px"></i> Apagar promoção
             </button>
@@ -5573,6 +5576,7 @@ function _vapRenderPromosVendedor(promos){
   const lista=document.getElementById('vap-promo-lista-vendedor');if(!lista)return;
   const hoje=new Date();hoje.setHours(0,0,0,0);
   const ativas=promos.filter(p=>{
+    if(p.status==='pausada')return false;
     if(!p.validadeFim)return true;
     const fim=_vapParseDataBR(p.validadeFim);
     return fim && fim>=hoje;
@@ -5728,6 +5732,13 @@ async function vapApagarPromo(id){
   }catch(e){console.error('[VAP] apagarPromo:',e);alert('Erro ao apagar.');}
 }
 window.vapApagarPromo=vapApagarPromo;
+async function vapToggleStatusPromo(id,novoStatus){
+  try{
+    await updateDoc(doc(db,'promocoes',id),{status:novoStatus});
+    toast(novoStatus==='pausada'?'Campanha interrompida. Ela some da lista dos vendedores até ser retomada.':'Campanha retomada.');
+  }catch(e){console.error('[VAP] toggleStatusPromo:',e);alert('Erro ao atualizar status da campanha.');}
+}
+window.vapToggleStatusPromo=vapToggleStatusPromo;
 function vapTogglePromoDetalhe(id){const el=document.getElementById('vap-promo-det-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 window.vapTogglePromoDetalhe=vapTogglePromoDetalhe;
 
@@ -5760,6 +5771,7 @@ async function vapVerificarPopupPromo(){
     const hoje=new Date();
     const promos=snap.docs.map(d=>({id:d.id,...d.data()}))
       .filter(p=>{
+        if(p.status==='pausada')return false;
         if(!p.validadeFim)return true;
         const [dd,mm,aa]=p.validadeFim.split('/');
         if(!dd||!mm||!aa)return true;
