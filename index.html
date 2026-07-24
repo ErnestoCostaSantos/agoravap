@@ -1298,6 +1298,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <p>O AgoraVAP! é um sistema, versão web e app, de gestão comercial desenvolvido para equipes de vendas B2B. Ele não é um sistema transacional como ERP ou CRM.</p>
           <p>A plataforma permite centralizar diariamente os registros feitos pelos agentes de vendas, de seus contatos realizados, cotações, pedidos fechados e perdas. Assim, oferece visibilidade em tempo real da performance aos próprios profissionais e ao líder da equipe.</p>
           <p>A <b>versão 4.0</b> adiciona os módulos de <b>Campanhas</b>, <b>Promoções</b>, <b>Ranking de Clientes</b> e <b>Top 10 Clientes</b>, permitindo ao Líder criar ações de relacionamento e ao Vendedor registrar resultados e acompanhar seus principais clientes diariamente.</p>
+          <p>Atualizações recentes adicionam o módulo <b>Carteira de Clientes</b> (com importação em massa via agenda, CSV ou VCF) e o novo nível de acesso <b>Master</b>, que enxerga a carteira de todos os vendedores da empresa.</p>
           <div class="help-tip">O sistema é indicado para equipes com ciclo de vendas consultivo, onde o acompanhamento de funil, taxas de conversão e ticket médio são indicadores críticos de performance.</div>
         </div>
         <div class="divider"></div>
@@ -1369,6 +1370,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <ul>
             <li><b>Líder</b> — Cria promoção com nome, canal, responsável, campanha, produtos, validade, valor e uma peça de mídia: <b>imagem</b> (qualquer formato, redimensionada e salva automaticamente) ou <b>vídeo curto</b> (recomendado até ~45s, limite de 25MB; o vídeo é enviado ao Firebase Storage e só a URL é salva na promoção)</li>
             <li><b>Líder</b> — Vê total vendido por promoção e breakdown por vendedor ao expandir o card</li>
+            <li><b>Líder</b> — <b>Interromper campanha</b> — Botão ao lado de "Apagar promoção" pausa a promoção sem excluí-la: ela some da lista do Vendedor e do pop-up de boas-vindas, mas o histórico de vendas registradas continua intacto. O botão vira "Retomar campanha" enquanto pausada, e um selo "⏸ Pausada" aparece no card. Use quando quiser interromper temporariamente uma campanha para retomar depois, sem perder os dados já lançados.</li>
             <li><b>Assistir à mídia</b> — Nos cards de Promoções (Líder e Vendedor), promoções com imagem mostram a miniatura (clique para ampliar); promoções com vídeo mostram uma miniatura escura com ícone de play — clique para assistir com controles normais, em um modal compartilhado com a visualização de imagem</li>
             <li><b>Pop-up de boas-vindas</b> — Ao criar a promoção, o Líder pode ativar o toggle "Pop-up de boas-vindas". Promoções marcadas aparecem automaticamente para o Vendedor, uma vez por dia (no primeiro login), mostrando a promoção mais recente e ainda válida com essa marcação. Se for vídeo, o pop-up abre pausado (autoplay com som é bloqueado por navegadores mobile) — o vendedor precisa dar play manualmente, e o botão de fechar (✕) só é liberado depois que o vídeo termina de tocar. Se for imagem, o botão de fechar já aparece normalmente.</li>
             <li><b>Vendedor</b> — Em cada card de promoção ativa, dois campos: <b>"Já registrado hoje"</b> (somente leitura, mostra o total acumulado do dia) e <b>"Nova venda (R$)"</b> (editável, sempre vazio). Cada clique em "Adicionar" soma o valor digitado ao total do dia — não substitui o valor anterior.</li>
@@ -1391,6 +1393,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Líder</b> (aba Campanhas, seção inferior) — Ranking consolidado com 🥇🥈🥉 e seletor de período</li>
             <li><b>Tempo real</b> — Ao Vendedor lançar, o Líder vê imediatamente</li>
           </ul>
+        </div>
+        <div class="divider"></div>
+
+        <!-- 2.7 CARTEIRA DE CLIENTES -->
+        <div class="help-section">
+          <h3>2.7 Módulo Carteira de Clientes</h3>
+          <p>Cada vendedor mantém sua própria carteira de clientes dentro do AgoraVAP!, com busca, filtros, cadastro manual e importação em massa.</p>
+          <ul>
+            <li><b>Campos do cliente</b> — Nome, Telefone, Segmento (6 opções), Responsável, Cidade, Bairro, Resultado do Último Contato (5 opções), Data do Último Contato, Data da Última Compra (formato DD/MM/AAAA com máscara automática) e Observações</li>
+            <li><b>Status Ativo/Inativo</b> — Calculado automaticamente: um cliente fica <b>Inativo</b> quando a Data da Última Compra está há mais de 6 meses; sem necessidade de marcar manualmente</li>
+            <li><b>Busca e filtros</b> — Por nome/responsável, Segmento, Status (Ativo/Inativo) e Resultado do Último Contato</li>
+            <li><b>Adicionar / Editar / Excluir</b> — Cadastro manual pelo formulário, ou clique no cliente da lista para editar</li>
+            <li><b>Botão WhatsApp</b> — Abre conversa direta com o cliente a partir do telefone cadastrado</li>
+            <li><b>Importar Contatos</b> — Botão que abre um modal com três formas de importação em massa:
+              <ul style="margin-top:6px">
+                <li><b>Agenda do celular</b> — Usa a agenda de contatos do próprio aparelho (só funciona em Chrome/Android; não disponível em iPhone/Safari)</li>
+                <li><b>Planilha/CSV</b> — Envie um arquivo .csv com colunas de Nome e Telefone (aceita variações como WhatsApp, Celular, Fone)</li>
+                <li><b>Arquivo VCF</b> — Envie um arquivo .vcf exportado de qualquer agenda de contatos (Google, iPhone, Outlook etc.)</li>
+              </ul>
+              Em qualquer uma das três formas, o sistema mostra uma prévia com os contatos encontrados antes de importar — todos vêm marcados por padrão, e dá pra desmarcar individualmente. Contatos duplicados (mesmo telefone já cadastrado) são ignorados automaticamente. Contatos sem um número de celular reconhecível também são ignorados, sem travar a importação dos demais.
+            </li>
+          </ul>
+          <div class="help-tip">Quem vê o quê na Carteira: Vendedor e Líder enxergam apenas a própria carteira. Apenas o perfil <b>Master</b> (e o Super Admin) tem acesso à carteira de todos os vendedores da empresa, com filtro por vendedor e botão "Limpar Carteira" para reiniciar a de um vendedor específico.</div>
         </div>
         <div class="divider"></div>
 
@@ -1432,7 +1457,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h2>4. Módulo Administrativo</h2>
 
           <h3>Profissionais</h3>
-          <p>Cadastre, edite ou remova profissionais. A edição permite alterar apenas Nome e Meta. Ao cadastrar, o profissional recebe automaticamente o <b>companyId</b> da empresa do Líder.</p>
+          <p>Cadastre, edite ou remova profissionais. A edição permite alterar Nome, Meta e Perfil (Vendedor/Líder). Ao cadastrar, o profissional recebe automaticamente o <b>companyId</b> da empresa do Líder.</p>
+          <div class="help-tip">O perfil <b>Master</b> só aparece como opção para quem está logado como Super Admin — nem Líder, nem o próprio Master, conseguem promover alguém a Master. Ao editar o próprio cadastro, o campo de Perfil fica bloqueado, para evitar rebaixamento acidental.</div>
 
           <h3>Download do histórico do mês anterior</h3>
           <p>No <b>primeiro dia de cada mês</b>, aparece um banner com duas etapas: download do histórico + confirmação de backup. O arquivo inclui duas colunas extras em relação à exportação manual — <b>Profissional</b> (nome) e <b>Perfil</b> (função) — e vem ordenado por profissional e data.</p>
@@ -1460,8 +1486,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="help-section">
           <h2>5. Perfis de Acesso</h2>
           <ul>
-            <li><b>Vendedor / Profissional</b> — Lança e consulta apenas seus próprios dados. Registra vendas por promoção e clientes no ranking. Abas: Lançar, Histórico, Dashboard, Promoções (inclui Ranking de Clientes), Ajuda.</li>
-            <li><b>Líder</b> — Visualiza dados de toda a equipe, gerencia profissionais, metas e exportações. Cria e gerencia Campanhas e Promoções. Acessa todas as abas (exceto Super Admin).</li>
+            <li><b>Vendedor / Profissional</b> — Lança e consulta apenas seus próprios dados. Registra vendas por promoção e clientes no ranking. Gerencia a própria Carteira de Clientes. Abas: Lançar, Histórico, Dashboard, Promoções (inclui Ranking de Clientes), Carteira, Ajuda.</li>
+            <li><b>Líder</b> — Visualiza dados de toda a equipe, gerencia profissionais, metas e exportações. Cria e gerencia Campanhas e Promoções. Na Carteira de Clientes, porém, é tratado como um vendedor comum: só vê e gerencia a própria carteira, não a dos demais vendedores. Acessa todas as abas (exceto Super Admin).</li>
+            <li><b>Master</b> — Nível acima do Líder. Tem todo o acesso do Líder em todos os módulos, e é o único perfil (além do Super Admin) que enxerga e gerencia a <b>Carteira de Clientes de todos os vendedores da empresa</b>, com filtro por vendedor e botão "Limpar Carteira". A promoção de um usuário a Master só pode ser feita pelo Super Admin, para evitar autopromoções em cadeia.</li>
             <li><b>Super Admin</b> — Perfil exclusivo ECS. Gerencia todas as empresas da plataforma e visualiza dados de qualquer empresa.</li>
           </ul>
           <div class="help-tip">Cada empresa tem seus dados completamente isolados — um Líder nunca vê dados de outra empresa.</div>
