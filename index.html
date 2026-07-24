@@ -6080,9 +6080,9 @@ function renderCarteiraLista(){
     return true;
   }).sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
 
-  const ativos = _cartClientes.filter(c=>cartStatus(c)==='ativo').length;
+  const ativos = lista.filter(c=>cartStatus(c)==='ativo').length;
   const resumo = $('cart-resumo');
-  if(resumo) resumo.textContent = `${_cartClientes.length} cliente(s) — ${ativos} ativo(s), ${_cartClientes.length-ativos} inativo(s)`;
+  if(resumo) resumo.textContent = `${lista.length} cliente(s) — ${ativos} ativo(s), ${lista.length-ativos} inativo(s)`;
 
   if(!lista.length){ wrap.innerHTML = '<div class="empty">Nenhum cliente encontrado.</div>'; return; }
 
