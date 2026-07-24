@@ -535,6 +535,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   <div class="nav" id="main-nav">
     <div class="nav-tab active" data-tab="lancar">Lançar</div>
     <div class="nav-tab" data-tab="historico">Histórico</div>
+    <div class="nav-tab" data-tab="carteira">Carteira</div>
     <div class="nav-tab" data-tab="dashboard">Dashboard</div>
     <div class="nav-tab" data-tab="admin">Administrativo</div>
     <div class="nav-tab" data-tab="campanhas" id="tab-campanhas" style="display:none"><i class="ti ti-speakerphone" style="font-size:14px;vertical-align:middle;margin-right:4px"></i>Campanhas</div>
@@ -726,6 +727,60 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       <div id="hist-list"><div class="loading"><div class="spin"></div> Carregando…</div></div>
     </div>
 
+    <!-- ════ CARTEIRA DE CLIENTES ═════════════════════════════ -->
+    <div class="panel" id="panel-carteira">
+      <div class="fcard" style="padding:.75rem 1.25rem;margin-bottom:.75rem">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <div class="ff" style="min-width:160px;flex:1">
+            <label>Buscar</label>
+            <input type="text" id="cart-busca" placeholder="Nome, responsável..." style="width:100%"/>
+          </div>
+          <div class="ff" style="min-width:150px">
+            <label>Segmento</label>
+            <select id="cart-filtro-segmento" style="width:100%">
+              <option value="">Todos</option>
+              <option value="Serviço Automotivo">Serviço Automotivo</option>
+              <option value="Transportadora">Transportadora</option>
+              <option value="Posto de Troca">Posto de Troca</option>
+              <option value="Posto de Combustível">Posto de Combustível</option>
+              <option value="Revenda">Revenda</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+          <div class="ff" style="min-width:130px">
+            <label>Status</label>
+            <select id="cart-filtro-status" style="width:100%">
+              <option value="">Todos</option>
+              <option value="ativo">Ativo</option>
+              <option value="inativo">Inativo</option>
+            </select>
+          </div>
+          <div class="ff" style="min-width:150px">
+            <label>Último contato</label>
+            <select id="cart-filtro-resultado" style="width:100%">
+              <option value="">Todos</option>
+              <option value="Pedido">Pedido</option>
+              <option value="Cotação">Cotação</option>
+              <option value="Sem contato">Sem contato</option>
+              <option value="Inicial">Inicial</option>
+              <option value="Aguardando">Aguardando</option>
+            </select>
+          </div>
+          <div class="ff" id="ff-cart-vendedor" style="display:none;min-width:150px">
+            <label>Vendedor</label>
+            <select id="cart-filtro-vendedor" style="width:100%"><option value="">Todos</option></select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-end;padding-bottom:2px;flex-wrap:wrap">
+            <button class="btn-sec" id="btn-cart-importar">📇 Importar Contatos</button>
+            <button class="btn-save" id="btn-cart-add">+ Adicionar Cliente</button>
+            <button class="btn-danger" id="btn-cart-limpar" style="display:none;white-space:nowrap">⚠ Limpar Carteira</button>
+          </div>
+        </div>
+        <div id="cart-resumo" style="margin-top:.5rem;font-size:.8rem;color:var(--gray)"></div>
+      </div>
+      <div id="cart-list"><div class="loading"><div class="spin"></div> Carregando…</div></div>
+    </div>
+
     <!-- ════ DASHBOARD ════════════════════════════════════════ -->
     <div class="panel" id="panel-dashboard">
       <div id="dash-content"><div class="loading"><div class="spin"></div> Carregando…</div></div>
@@ -779,7 +834,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           </div>
           <div class="fgrid fg2">
             <div class="field"><label>Perfil</label>
-              <select id="adm-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option></select>
+              <select id="adm-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="master" id="adm-perfil-master-opt" hidden>Master</option></select>
             </div>
             <div class="field"><label>Meta mensal (R$)</label><input type="number" id="adm-meta-ini" placeholder="0,00" min="0"/></div>
           </div>
@@ -1662,7 +1717,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title" id="mu-title">Editar Usuário</div><button class="btn-close" id="mu-close">×</button></div>
     <div class="fgrid fg1"><div class="field"><label>Nome</label><input type="text" id="mu-nome"/></div></div>
-    <div class="fgrid fg1"><div class="field"><label>Perfil</label><select id="mu-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option></select></div></div>
+    <div class="fgrid fg1"><div class="field"><label>Perfil</label><select id="mu-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="master" id="mu-perfil-master-opt" hidden>Master</option></select></div></div>
     <div class="fgrid fg1"><div class="field"><label>Meta mensal atual (R$)</label><input type="number" id="mu-meta" placeholder="0,00"/></div></div>
     <input type="hidden" id="mu-uid"/>
     <div class="ffooter"><button class="btn-sec" id="mu-cancel">Cancelar</button><button class="btn-save" id="mu-save">Salvar</button></div>
@@ -1689,6 +1744,119 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       <select id="rel-vendedor-select" disabled style="width:100%"></select>
     </div>
     <div class="ffooter"><button class="btn-sec" id="rel-cancel">Cancelar</button><button class="btn-save" id="rel-gerar"><i class="ti ti-printer"></i> Gerar e imprimir</button></div>
+  </div>
+</div>
+
+<!-- MODAL Carteira — Adicionar/Editar Cliente -->
+<div class="modal-ov" id="modal-carteira-cliente">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr"><div class="modal-title" id="cart-cli-title">Adicionar Cliente</div><button class="btn-close" id="cart-cli-close">×</button></div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Nome *</label><input type="text" id="cart-cli-nome" placeholder="Nome do cliente"/></div>
+      <div class="field"><label>Telefone</label><input type="text" id="cart-cli-telefone" placeholder="(11) 91234-5678" maxlength="16"/></div>
+    </div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Segmento</label>
+        <select id="cart-cli-segmento" style="width:100%">
+          <option value="Serviço Automotivo">Serviço Automotivo</option>
+          <option value="Transportadora">Transportadora</option>
+          <option value="Posto de Troca">Posto de Troca</option>
+          <option value="Posto de Combustível">Posto de Combustível</option>
+          <option value="Revenda">Revenda</option>
+          <option value="Outros">Outros</option>
+        </select>
+      </div>
+      <div class="field"><label>Responsável</label><input type="text" id="cart-cli-responsavel" placeholder="Nome do contato"/></div>
+    </div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Cidade</label><input type="text" id="cart-cli-cidade" placeholder="Cidade"/></div>
+      <div class="field"><label>Bairro</label><input type="text" id="cart-cli-bairro" placeholder="Bairro"/></div>
+    </div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Resultado do último contato</label>
+        <select id="cart-cli-resultado" style="width:100%">
+          <option value="Inicial">Inicial</option>
+          <option value="Cotação">Cotação</option>
+          <option value="Pedido">Pedido</option>
+          <option value="Aguardando">Aguardando</option>
+          <option value="Sem contato">Sem contato</option>
+        </select>
+      </div>
+      <div class="field"><label>Data do último contato</label><input type="text" inputmode="numeric" id="cart-cli-data-contato" placeholder="DD/MM/AAAA" maxlength="10" style="width:100%" oninput="window.cartDataMask(this)"/></div>
+    </div>
+    <div class="fgrid fg1" id="cart-cli-wrap-compra">
+      <div class="field"><label>Data da última compra <span style="font-weight:400;color:var(--gray)">(preencha quando o resultado for "Pedido" — define o status Ativo/Inativo)</span></label><input type="text" inputmode="numeric" id="cart-cli-data-compra" placeholder="DD/MM/AAAA" maxlength="10" style="width:100%" oninput="window.cartDataMask(this)"/></div>
+    </div>
+    <div class="fgrid fg1">
+      <div class="field"><label>Observações</label><textarea id="cart-cli-obs" rows="2" placeholder="Anotações livres..." style="width:100%;resize:vertical;font-family:var(--font)"></textarea></div>
+    </div>
+    <input type="hidden" id="cart-cli-id"/>
+    <input type="hidden" id="cart-cli-origem"/>
+    <div class="ffooter"><button class="btn-sec" id="cart-cli-cancel">Cancelar</button><button class="btn-save" id="cart-cli-save">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL Carteira — Importar Contatos -->
+<div class="modal-ov" id="modal-carteira-importar">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr"><div class="modal-title">Importar Contatos</div><button class="btn-close" id="cart-imp-close">×</button></div>
+
+    <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:var(--rsm);overflow:hidden;margin-bottom:.75rem">
+      <button id="cart-imp-tab-nativo" onclick="window.cartSetImportTab('nativo')" style="flex:1;padding:8px 4px;border:none;cursor:pointer;font-size:.72rem;font-weight:700;background:var(--rl);color:#C53030">📇 Agenda</button>
+      <button id="cart-imp-tab-csv" onclick="window.cartSetImportTab('csv')" style="flex:1;padding:8px 4px;border:none;cursor:pointer;font-size:.72rem;font-weight:600;background:transparent;color:var(--gray);border-left:1px solid var(--border)">📊 Planilha/CSV</button>
+      <button id="cart-imp-tab-vcf" onclick="window.cartSetImportTab('vcf')" style="flex:1;padding:8px 4px;border:none;cursor:pointer;font-size:.72rem;font-weight:600;background:transparent;color:var(--gray);border-left:1px solid var(--border)">📁 Arquivo VCF</button>
+    </div>
+
+    <!-- Painel Agenda (Contact Picker nativo) -->
+    <div id="cart-imp-painel-nativo">
+      <div style="font-size:.8rem;color:var(--gray);margin-bottom:.6rem">Toque no botão abaixo para abrir sua agenda de contatos e selecionar quem entra na sua Carteira de Clientes.</div>
+      <div id="cart-imp-unsupported" style="display:none;font-size:.8rem;background:var(--rl);color:var(--r);padding:10px 12px;border-radius:var(--rsm);margin-bottom:.6rem">
+        Seu navegador não suporta essa importação direta (funciona em Chrome/Android). Use as abas "Planilha/CSV" ou "Arquivo VCF" — ou "Adicionar Cliente" pra cadastrar manualmente.
+      </div>
+      <button class="btn-save" id="cart-imp-selecionar" style="width:100%">📇 Selecionar Contatos</button>
+      <div id="cart-imp-preview-nativo" style="display:none;margin-top:.75rem"></div>
+    </div>
+
+    <!-- Painel Planilha/CSV -->
+    <div id="cart-imp-painel-csv" style="display:none">
+      <div style="font-size:.76rem;color:var(--gray);margin-bottom:.6rem;line-height:1.5">
+        <b>Do Google Contatos:</b> Contatos → Exportar → Google CSV<br>
+        <b>Do Excel/Sheets:</b> Arquivo → Baixar → CSV<br>
+        O arquivo precisa ter colunas com Nome e Telefone/WhatsApp (detectamos automaticamente).
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:2px dashed var(--border);border-radius:var(--rsm);cursor:pointer;font-size:.8rem;color:var(--gray);justify-content:center">
+        📤 <span id="cart-imp-csv-label">Selecionar arquivo .csv</span>
+        <input type="file" accept=".csv,.txt" style="display:none" onchange="window.cartImportarCSV(this)">
+      </label>
+      <div id="cart-imp-preview-csv" style="display:none;margin-top:.75rem"></div>
+    </div>
+
+    <!-- Painel Arquivo VCF -->
+    <div id="cart-imp-painel-vcf" style="display:none">
+      <div style="font-size:.76rem;color:var(--gray);margin-bottom:.6rem;line-height:1.5">
+        <b>iPhone:</b> Contatos → selecione os contatos → Compartilhar → Salvar como .vcf<br>
+        <b>Android:</b> Contatos → Menu → Exportar → Exportar para arquivo VCF
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:2px dashed var(--border);border-radius:var(--rsm);cursor:pointer;font-size:.8rem;color:var(--gray);justify-content:center">
+        📤 <span id="cart-imp-vcf-label">Selecionar arquivo .vcf</span>
+        <input type="file" accept=".vcf,.vcard" style="display:none" onchange="window.cartImportarVCF(this)">
+      </label>
+      <div id="cart-imp-preview-vcf" style="display:none;margin-top:.75rem"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL Carteira — Limpar Carteira (líder) -->
+<div class="modal-ov" id="modal-carteira-limpar">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr"><div class="modal-title">Limpar Carteira de um Vendedor</div><button class="btn-close" id="cart-lim-close">×</button></div>
+    <div class="fgrid fg1" style="margin-bottom:.5rem">
+      <div class="field"><label>Vendedor</label><select id="cart-lim-vendedor" style="width:100%"><option value="">Selecione...</option></select></div>
+    </div>
+    <div style="font-size:.8rem;color:var(--r);background:var(--rl);padding:10px 12px;border-radius:var(--rsm);margin-bottom:.5rem">
+      ⚠ Esta ação apaga permanentemente todos os clientes da carteira do vendedor selecionado. Não pode ser desfeita.
+    </div>
+    <div class="ffooter"><button class="btn-sec" id="cart-lim-cancel">Cancelar</button><button class="btn-danger" id="cart-lim-confirmar" style="border-color:var(--r)">Apagar Carteira</button></div>
   </div>
 </div>
 
@@ -1913,6 +2081,12 @@ function toast(m, ms = 2600) {
 }
 function openModal(id) { $(id).classList.add('open'); }
 function closeModal(id) { $(id).classList.remove('open'); }
+// Expostas no window porque HTML gerado dinamicamente via innerHTML (ex: tela de sucesso
+// da importação da Carteira) usa onclick="closeModal(...)" inline — esse atributo roda no
+// escopo global, e funções declaradas dentro do <script type="module"> não ficam
+// acessíveis ali por padrão.
+window.openModal = openModal;
+window.closeModal = closeModal;
 
 // ── Confirmação ───────────────────────────────────────────
 let _confirmCb = null;
@@ -2323,23 +2497,34 @@ onAuthStateChanged(auth, async user => {
       topbarLogo.alt = _company.fantasyName || _company.name || '';
     }
     const isLider      = cp.role === 'lider';
+    const isMasterRole = cp.role === 'master';
     const isSuperAdm   = cp.role === 'superadmin';
-    const roleLabel    = isSuperAdm ? 'Super Admin' : isLider ? 'Lider' : 'Vendedor';
+    // Master herda tudo que o Líder tem acesso — exceto que, ao contrário do Líder,
+    // Master enxerga a Carteira de TODOS os vendedores (ver isGestorCarteira mais abaixo).
+    const isGestor      = isLider || isMasterRole;
+    const roleLabel    = isSuperAdm ? 'Super Admin' : isMasterRole ? 'Master' : isLider ? 'Lider' : 'Vendedor';
     $('role-badge').textContent = roleLabel;
-    if (isLider || isSuperAdm) $('role-badge').classList.add('role-lider');
-    else                       $('role-badge').classList.remove('role-lider');
+    if (isGestor || isSuperAdm) $('role-badge').classList.add('role-lider');
+    else                        $('role-badge').classList.remove('role-lider');
 
-    $('ff-vendedor').style.display   = (isLider||isSuperAdm) ? 'flex'  : 'none';
-    $('btn-limpar').style.display    = (isLider||isSuperAdm) ? 'block' : 'none';
-    $('exp-vend-wrap').style.display = (isLider||isSuperAdm) ? 'block' : 'none';
+    $('ff-vendedor').style.display   = (isGestor||isSuperAdm) ? 'flex'  : 'none';
+    $('btn-limpar').style.display    = (isGestor||isSuperAdm) ? 'block' : 'none';
+    $('exp-vend-wrap').style.display = (isGestor||isSuperAdm) ? 'block' : 'none';
+    // Carteira: Líder só vê a própria (como vendedor); só Master e SuperAdmin veem a de todos
+    if($('ff-cart-vendedor'))  $('ff-cart-vendedor').style.display  = (isMasterRole||isSuperAdm) ? 'flex'  : 'none';
+    if($('btn-cart-limpar'))  $('btn-cart-limpar').style.display  = (isMasterRole||isSuperAdm) ? 'inline-block' : 'none';
 
     // Super Admin: mostra aba Super Admin, esconde abas normais
     const tabSA = $('tab-superadmin');
     if(tabSA) tabSA.style.display = isSuperAdm ? 'block' : 'none';
 
-    // Admin visível para Líder e SuperAdmin
+    // Admin visível para Líder, Master e SuperAdmin
     const admTab = document.querySelector('[data-tab="admin"]');
-    if(admTab) admTab.style.display = (isLider || isSuperAdm) ? '' : 'none';
+    if(admTab) admTab.style.display = (isGestor || isSuperAdm) ? '' : 'none';
+
+    // Só o Superadmin pode promover alguém a "Master" (evita autopromoção em cadeia)
+    if($('adm-perfil-master-opt')) $('adm-perfil-master-opt').hidden = !isSuperAdm;
+    if($('mu-perfil-master-opt'))  $('mu-perfil-master-opt').hidden  = !isSuperAdm;
 
     $('hist-data').value = tod();
     if($('hist-mes'))  $('hist-mes').value  = thisMes();
@@ -2368,9 +2553,9 @@ onAuthStateChanged(auth, async user => {
     const tabCamp   = document.getElementById('tab-campanhas');
     const tabPromos = document.getElementById('tab-promocoes');
     const tabPromoV = document.getElementById('tab-promocoes-vendedor');
-    if (tabCamp)   tabCamp.style.display   = (isLider || isSuperAdm) ? '' : 'none';
-    if (tabPromos) tabPromos.style.display  = (isLider || isSuperAdm) ? '' : 'none';
-    if (tabPromoV) tabPromoV.style.display  = (!isLider && !isSuperAdm) ? '' : 'none';
+    if (tabCamp)   tabCamp.style.display   = (isGestor || isSuperAdm) ? '' : 'none';
+    if (tabPromos) tabPromos.style.display  = (isGestor || isSuperAdm) ? '' : 'none';
+    if (tabPromoV) tabPromoV.style.display  = (!isGestor && !isSuperAdm) ? '' : 'none';
 
   } else {
     // Deslogado — volta para tela de login
@@ -2387,7 +2572,7 @@ onAuthStateChanged(auth, async user => {
 // ── Listeners ─────────────────────────────────────────────
 function startListeners(){
   const uid=cu.uid;
-  const isLider   = cp.role === 'lider';
+  const isLider   = cp.role === 'lider' || cp.role === 'master';
   const isSuperAdmin = cp.role === 'superadmin';
   // SuperAdmin: usa _companyId (empresa selecionada via "Ver Dados")
   // Líder/Vendedor: usa cp.companyId (empresa do usuário)
@@ -2997,7 +3182,7 @@ function renderMetricsDia(){
   // Usa a data selecionada no seletor — pode ser retroativa
   const t = getLancarData ? getLancarData() : tod();
   const isHoje = t === tod();
-  const isLider    = cp?.role === 'lider';
+  const isLider    = cp?.role === 'lider' || cp?.role === 'master';
   const isSuperAdm = cp?.role === 'superadmin';
   const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
   let dr = _recs.filter(r => r.date === t);
@@ -3131,7 +3316,7 @@ function renderHistorico(){
   const modo = $('hist-modo')?.value || 'dia';
   const tf   = $('hist-tipo').value;
   const sv   = $('hist-vendedor').value;
-  const isLider = cp?.role === 'lider';
+  const isLider = cp?.role === 'lider' || cp?.role === 'master';
   const isSuperAdm = cp?.role === 'superadmin';
   const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
   let recs = [..._recs];
@@ -3266,7 +3451,7 @@ function renderHistorico(){
 
 // ── Dashboard ─────────────────────────────────────────────
 function renderDashboard(filtroUid){
-  const isLider=cp?.role==='lider';
+  const isLider=cp?.role==='lider' || cp?.role==='master';
   const isSuperAdm=cp?.role==='superadmin';
   const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
   const mes=thisMes();
@@ -3617,7 +3802,7 @@ window.gerarRelatorio = async function(){
   const btn = $('rel-gerar');
   btn.disabled = true; btn.textContent = 'Gerando…';
   try{
-    const isLider = cp?.role==='lider';
+    const isLider = cp?.role==='lider' || cp?.role==='master';
     const isSuperAdm = cp?.role==='superadmin';
     const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
     const mes = thisMes();
@@ -3825,9 +4010,9 @@ $('btn-adm-save').onclick = async () => {
   if(!uid && !e){ toast('Informe o e-mail.'); return; }
 
   if(uid){
-    // Modo editar: atualiza apenas nome e meta
+    // Modo editar: atualiza nome, perfil (papel) e meta
     if(!validateNome(n)){ toast('Informe nome e sobrenome (min. 2 caracteres cada).'); return; }
-    await updateDoc(doc(db,'users',uid),{name:n, updatedAt:new Date().toISOString()});
+    await updateDoc(doc(db,'users',uid),{name:n, role:r, updatedAt:new Date().toISOString()});
     // Salva meta do mes atual se informada
     if(metaIni > 0){
       const mesAtual = thisMes();
@@ -3972,7 +4157,7 @@ async function recoverDeletedUser(email, name, role, meta) {
 function resetAdmForm(){
   ['adm-nome','adm-email','adm-uid'].forEach(id=>{ const el=$(id); if(el) el.value=''; });
   const metaEl = $('adm-meta-ini'); if(metaEl) metaEl.value='';
-  const perfEl = $('adm-perfil'); if(perfEl) perfEl.value='vendedor';
+  const perfEl = $('adm-perfil'); if(perfEl){ perfEl.value='vendedor'; perfEl.disabled=false; }
   const saveBtn = $('btn-adm-save'); if(saveBtn) saveBtn.textContent='Cadastrar Profissional';
   const cancelBtn = $('btn-adm-cancel'); if(cancelBtn) cancelBtn.style.display='none';
   // Restaura campos que foram escondidos no modo editar
@@ -3992,7 +4177,7 @@ function renderUsersTable(){
     <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Meta mensal</th><th>Ações</th></tr></thead>
     <tbody>${_users.map(u=>`<tr>
       <td>${u.name}</td><td>${u.email}</td>
-      <td><span class="badge ${u.role==='lider'?'bg-amber':u.role==='superadmin'?'bg-purple':'bg-blue'}">${u.role==='lider'?'Líder':u.role==='superadmin'?'Super Admin':'Vendedor'}</span></td>
+      <td><span class="badge ${u.role==='lider'?'bg-amber':u.role==='master'?'bg-teal':u.role==='superadmin'?'bg-purple':'bg-blue'}">${u.role==='lider'?'Líder':u.role==='master'?'Master':u.role==='superadmin'?'Super Admin':'Vendedor'}</span></td>
       <td>${fC(u.meta||0)}</td>
       <td><div class="act">
         <button class="btn-xs bx-edit" data-uid="${u.id}">Editar</button>
@@ -4014,16 +4199,22 @@ function editUser(uid){
   const metaAtual = _metas.find(m=>m.uid===uid&&m.mes===mesMeta)?.valor || u.meta || 0;
   const metaEl = $('adm-meta-ini');
   if(metaEl) metaEl.value = metaAtual > 0 ? metaAtual : '';
-  // Esconde campos que nao devem ser editados
+  // Mostra o perfil (agora editável) e pré-seleciona o papel atual do usuário
   const emailWrap = $('adm-email')?.closest('.field');
   const perfilWrap = $('adm-perfil')?.closest('.field');
   const emailGrid = $('adm-email')?.closest('.fgrid');
-  if(emailWrap) emailWrap.style.display='none';
-  if(perfilWrap) perfilWrap.style.display='none';
+  if(emailWrap) emailWrap.style.display='none'; // e-mail continua não editável por aqui (ver Firebase Console)
+  if(perfilWrap) perfilWrap.style.display='';
+  const perfilSel = $('adm-perfil');
+  if(perfilSel){
+    perfilSel.value = u.role || 'vendedor';
+    // Evita que alguém mude o próprio papel por engano (ex: se autorrebaixar sem querer)
+    perfilSel.disabled = (uid === cu.uid);
+  }
   // Aviso sobre o que esta sendo editado
   const avisoEl = document.getElementById('aviso-edicao');
   if(avisoEl){
-    avisoEl.textContent = 'Editando: ' + u.name + ' (' + (u.role==='lider'?'Lider':'Vendedor') + ')';
+    avisoEl.textContent = 'Editando: ' + u.name + ' (' + (u.role==='lider'?'Lider':u.role==='master'?'Master':'Vendedor') + ')';
     avisoEl.style.display='block';
   }
   $('btn-adm-save').textContent = 'Salvar Alteracoes';
@@ -4114,11 +4305,11 @@ function populateSelects(){
   const todos = [..._users]
     .filter(u => isSuperAdm || !cid || u.companyId === cid)
     .sort((a,b)=>a.name.localeCompare(b.name));
-  ['meta-uid','hist-vendedor','exp-vendedor'].forEach(id=>{
+  ['meta-uid','hist-vendedor','exp-vendedor','cart-filtro-vendedor','cart-lim-vendedor'].forEach(id=>{
     const sel=$(id); if(!sel) return;
     const cur=sel.value;
-    const opt0=id==='hist-vendedor'||id==='exp-vendedor'?'<option value="">Todos</option>':'<option value="">Selecione...</option>';
-    sel.innerHTML=opt0+todos.map(u=>`<option value="${u.id}">${u.name}${u.role==='lider'?' (Lider)':''}</option>`).join('');
+    const opt0=(id==='hist-vendedor'||id==='exp-vendedor'||id==='cart-filtro-vendedor')?'<option value="">Todos</option>':'<option value="">Selecione...</option>';
+    sel.innerHTML=opt0+todos.map(u=>`<option value="${u.id}">${u.name}${u.role==='lider'?' (Lider)':u.role==='master'?' (Master)':''}</option>`).join('');
     if(cur) sel.value=cur;
   });
 }
@@ -4134,11 +4325,9 @@ $('btn-exportar').onclick = async () => {
   const de=$('exp-de').value, ate=$('exp-ate').value;
   const tipo=$('exp-tipo').value;
   const vuid=$('exp-vendedor')?.value||'';
-  const isLider    = cp?.role==='lider';
+  const isLider    = cp?.role==='lider' || cp?.role==='master';
   const isSuperAdm = cp?.role==='superadmin';
   const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
-
-  // ── helpers internos ───────────────────────────────────────
   const esc = v => JSON.stringify(String(v==null?'':v));
   const toRows = rows => rows.map(r=>r.map(esc).join(',')).join('\n');
   const sep = label => `\n\n"=== ${label} ==="\n`;
@@ -4306,7 +4495,7 @@ function getMesAnterior(){
 }
 
 function checkBannerMesAnterior(){
-  if(cp?.role !== 'lider') return;
+  if(cp?.role !== 'lider' && cp?.role !== 'master') return;
   const hoje = tod();
   const diaDoMes = new Date().getDate();
   // Aparece apenas no dia 1 do mes e apenas uma vez por dia
@@ -4427,6 +4616,7 @@ window.switchTab = tab => {
     preencherCamposLancar(); // carrega valores existentes do dia selecionado
   }
   if(tab==='historico'){ setupHistoricoListeners(); renderHistorico(); }
+  if(tab==='carteira'){ renderCarteiraLista(); }
   if(tab==='superadmin'){ loadEmpresas(); }
   if(tab==='dashboard') renderDashboard();
   if(tab==='admin')     { renderUsersTable(); checkBannerMesAnterior(); }
@@ -4745,6 +4935,8 @@ window.loginAsEmpresa = async function(companyId, code){
 
   // Recarrega listeners filtrados pela nova empresa
   startListeners();
+  window._vapCompanyId = _companyId; // mantém sincronizado (usado como fallback em _vapGetCompanyId)
+  if (typeof vapIniciarListenerCarteira === 'function') vapIniciarListenerCarteira();
 
   setTimeout(() => {
     console.log('[Ver Dados] _recs:', _recs.length, '_users:', _users.length);
@@ -4761,7 +4953,13 @@ window.switchTab_orig = window.switchTab;
 // ══════════════════════════════════════════════════════════════════════════
 // MÓDULOS CAMPANHAS + PROMOÇÕES — AgoraVAP! v1.0.0
 // ══════════════════════════════════════════════════════════════════════════
-function _vapGetCompanyId(){const id=window._vapCompanyId;if(!id)console.warn('[VAP] _vapCompanyId não definido.');return id||'';}
+function _vapGetCompanyId(){
+  // Calcula na hora, em vez de depender de um valor "congelado" no login —
+  // isso evita ficar desatualizado quando o Superadmin troca de empresa (loginAsEmpresa)
+  const id = (cp && cp.companyId) || _companyId || window._vapCompanyId || null;
+  if(!id) console.warn('[VAP] Empresa não identificada (cp.companyId, _companyId e window._vapCompanyId todos vazios).');
+  return id || '';
+}
 const VAP_MESES=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 let _vapUnsubCamp=null,_vapUnsubPromo=null,_vapCampanhasDB=[];
 const VAP_CAMP_TIPOS={
@@ -5290,7 +5488,7 @@ function _vapRenderPromosPro(promos){
             ?`<div style="position:relative;width:44px;height:44px;border-radius:var(--rsm);flex-shrink:0;cursor:pointer;overflow:hidden;background:#1a1a1a" onclick="event.stopPropagation();vapAbrirVideoPromo('${p.videoUrl}','${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para assistir"><i class="ti ti-player-play-filled" style="position:absolute;inset:0;margin:auto;font-size:16px;color:#fff;width:16px;height:16px"></i></div>`
             :(p.imagemUrl?`<img src="${p.imagemUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:'')}
           <div style="flex:1;min-width:0">
-            <div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}</div>
+            <div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}${p.status==='pausada'?' <span style="font-size:10px;background:#FEF3C7;color:#B45309;border-radius:10px;padding:1px 8px;font-weight:600">⏸ Pausada</span>':''}</div>
             <div class="rec-meta">${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}${p.responsavel?' · '+p.responsavel:''}</div>
           </div>
           <div style="text-align:right;flex-shrink:0">
@@ -5305,7 +5503,10 @@ function _vapRenderPromosPro(promos){
             <div style="font-weight:700;margin-bottom:6px">Vendas por vendedor</div>
             <div id="vap-lider-breakdown-${p.id}" style="font-size:11px;color:#95A5A6">Carregando...</div>
           </div>
-          <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
+          <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+            <button onclick="event.stopPropagation();vapToggleStatusPromo('${p.id}','${p.status==='pausada'?'ativa':'pausada'}')" style="display:flex;align-items:center;gap:5px;background:${p.status==='pausada'?'#DCFCE7':'#FEF3C7'};border:1px solid ${p.status==='pausada'?'#BBF7D0':'#FDE68A'};color:${p.status==='pausada'?'#15803D':'#B45309'};border-radius:var(--rsm);padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">
+              <i class="ti ti-${p.status==='pausada'?'player-play':'player-pause'}" style="font-size:14px"></i> ${p.status==='pausada'?'Retomar campanha':'Interromper campanha'}
+            </button>
             <button onclick="event.stopPropagation();vapApagarPromo('${p.id}')" style="display:flex;align-items:center;gap:5px;background:#FEE2E2;border:1px solid #FECACA;color:#C53030;border-radius:var(--rsm);padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">
               <i class="ti ti-trash" style="font-size:14px"></i> Apagar promoção
             </button>
@@ -5375,6 +5576,7 @@ function _vapRenderPromosVendedor(promos){
   const lista=document.getElementById('vap-promo-lista-vendedor');if(!lista)return;
   const hoje=new Date();hoje.setHours(0,0,0,0);
   const ativas=promos.filter(p=>{
+    if(p.status==='pausada')return false;
     if(!p.validadeFim)return true;
     const fim=_vapParseDataBR(p.validadeFim);
     return fim && fim>=hoje;
@@ -5530,6 +5732,13 @@ async function vapApagarPromo(id){
   }catch(e){console.error('[VAP] apagarPromo:',e);alert('Erro ao apagar.');}
 }
 window.vapApagarPromo=vapApagarPromo;
+async function vapToggleStatusPromo(id,novoStatus){
+  try{
+    await updateDoc(doc(db,'promocoes',id),{status:novoStatus});
+    toast(novoStatus==='pausada'?'Campanha interrompida. Ela some da lista dos vendedores até ser retomada.':'Campanha retomada.');
+  }catch(e){console.error('[VAP] toggleStatusPromo:',e);alert('Erro ao atualizar status da campanha.');}
+}
+window.vapToggleStatusPromo=vapToggleStatusPromo;
 function vapTogglePromoDetalhe(id){const el=document.getElementById('vap-promo-det-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 window.vapTogglePromoDetalhe=vapTogglePromoDetalhe;
 
@@ -5562,6 +5771,7 @@ async function vapVerificarPopupPromo(){
     const hoje=new Date();
     const promos=snap.docs.map(d=>({id:d.id,...d.data()}))
       .filter(p=>{
+        if(p.status==='pausada')return false;
         if(!p.validadeFim)return true;
         const [dd,mm,aa]=p.validadeFim.split('/');
         if(!dd||!mm||!aa)return true;
@@ -5741,7 +5951,535 @@ async function vapCarregarAcumLider(promos) {
 }
 window.vapCarregarAcumLider = vapCarregarAcumLider;
 
-function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
+// ══════════════════════════════════════════════════════════
+// MÓDULO CARTEIRA DE CLIENTES
+// ══════════════════════════════════════════════════════════
+let _cartClientes = [];
+let unCarteira = null;
+
+// Status calculado: ativo se dataUltimaCompra <= 6 meses atrás (não é gravado no Firestore)
+function cartStatus(cli){
+  if(!cli.dataUltimaCompra) return 'inativo';
+  const d = new Date(cli.dataUltimaCompra + 'T00:00:00');
+  if(isNaN(d.getTime())) return 'inativo';
+  const limite = new Date();
+  limite.setMonth(limite.getMonth() - 6);
+  return d >= limite ? 'ativo' : 'inativo';
+}
+
+function cartNomeVendedor(uid){
+  const u = _users.find(x=>x.id===uid);
+  return u ? u.name : '—';
+}
+
+// Conversão de datas para exibição/edição em DD/MM/AAAA (armazenamento interno continua ISO YYYY-MM-DD)
+function cartISOtoBR(iso){
+  if(!iso) return '';
+  const [a,m,d] = iso.split('-');
+  if(!a||!m||!d) return '';
+  return `${d}/${m}/${a}`;
+}
+function cartBRtoISO(br){
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(br||'');
+  if(!m) return '';
+  const [,d,mo,y] = m;
+  const iso = `${y}-${mo}-${d}`;
+  const dt = new Date(iso+'T00:00:00');
+  if(isNaN(dt.getTime()) || dt.getDate()!==parseInt(d,10) || (dt.getMonth()+1)!==parseInt(mo,10)) return '';
+  return iso;
+}
+window.cartDataMask = function(el){
+  let v = el.value.replace(/\D/g,'').slice(0,8);
+  if(v.length>4) v = v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);
+  else if(v.length>2) v = v.slice(0,2)+'/'+v.slice(2);
+  el.value = v;
+};
+
+// Máscara simples de telefone BR: (XX) XXXXX-XXXX / (XX) XXXX-XXXX
+function cartMaskTelefone(el){
+  let v = el.value.replace(/\D/g,'').slice(0,11);
+  if(v.length > 10)      v = v.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+  else if(v.length > 6)  v = v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+  else if(v.length > 2)  v = v.replace(/^(\d{2})(\d{0,5}).*/, '($1) $2');
+  else if(v.length > 0)  v = v.replace(/^(\d{0,2}).*/, '($1');
+  el.value = v;
+}
+$('cart-cli-telefone') && ($('cart-cli-telefone').oninput = () => cartMaskTelefone($('cart-cli-telefone')));
+
+// WhatsApp direto por telefone do cliente
+function vapAbrirWppTelefone(telefone, nome){
+  let digits = (telefone||'').replace(/\D/g,'');
+  if(!digits){ toast('Cliente sem telefone cadastrado.'); return; }
+  if(digits.length <= 11) digits = '55' + digits; // adiciona DDI Brasil quando ausente
+  const msg = `Olá${nome ? ', '+nome.split(' ')[0] : ''}! Tudo bem?`;
+  window.open('https://wa.me/'+digits+'?text='+encodeURIComponent(msg), '_blank');
+}
+window.vapAbrirWppTelefone = vapAbrirWppTelefone;
+
+// ── Listener em tempo real (escopo: vendedor e líder veem só a própria; master/superadmin veem a empresa toda) ──
+function vapIniciarListenerCarteira(){
+  const CID = _vapGetCompanyId(); if(!CID) return;
+  if(unCarteira){ unCarteira(); unCarteira = null; }
+  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
+  const q = veTodaEmpresa
+    ? query(collection(db,'carteira_clientes'), where('companyId','==',CID))
+    : query(collection(db,'carteira_clientes'), where('companyId','==',CID), where('uid','==',cu.uid));
+  unCarteira = onSnapshot(q, snap => {
+    _cartClientes = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderCarteiraLista();
+  }, err => {
+    console.error('[Carteira] Erro no listener:', err);
+    // Se o erro for de índice ausente, o Firestore imprime no console o link para criá-lo.
+  });
+}
+window.vapIniciarListenerCarteira = vapIniciarListenerCarteira;
+
+// ── Renderização da lista/tabela com filtros ────────────────
+function renderCarteiraLista(){
+  const wrap = $('cart-list'); if(!wrap) return;
+  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
+  const busca   = ($('cart-busca')?.value || '').toLowerCase().trim();
+  const fSeg    = $('cart-filtro-segmento')?.value || '';
+  const fStatus = $('cart-filtro-status')?.value || '';
+  const fResult = $('cart-filtro-resultado')?.value || '';
+  const fVend   = $('cart-filtro-vendedor')?.value || '';
+
+  let lista = _cartClientes.filter(c => {
+    if(busca && !((c.nome||'').toLowerCase().includes(busca) || (c.responsavel||'').toLowerCase().includes(busca))) return false;
+    if(fSeg && c.segmento !== fSeg) return false;
+    if(fResult && c.resultadoUltimoContato !== fResult) return false;
+    if(fVend && c.uid !== fVend) return false;
+    if(fStatus && cartStatus(c) !== fStatus) return false;
+    return true;
+  }).sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+
+  const ativos = _cartClientes.filter(c=>cartStatus(c)==='ativo').length;
+  const resumo = $('cart-resumo');
+  if(resumo) resumo.textContent = `${_cartClientes.length} cliente(s) — ${ativos} ativo(s), ${_cartClientes.length-ativos} inativo(s)`;
+
+  if(!lista.length){ wrap.innerHTML = '<div class="empty">Nenhum cliente encontrado.</div>'; return; }
+
+  wrap.innerHTML = `<div style="overflow-x:auto"><table class="adm-table">
+    <thead><tr>
+      <th>Nome</th><th>Telefone</th><th>Segmento</th><th>Cidade/Bairro</th>
+      <th>Últ. contato</th><th>Status</th>${veTodaEmpresa?'<th>Vendedor</th>':''}<th>Ações</th>
+    </tr></thead>
+    <tbody>${lista.map(c => {
+      const st = cartStatus(c);
+      const stBadge = st==='ativo' ? '<span class="badge bg-green">Ativo</span>' : '<span class="badge bg-gray">Inativo</span>';
+      const rc = c.resultadoUltimoContato;
+      const resultBadgeClass = rc==='Pedido' ? 'bg-green' : rc==='Cotação' ? 'bg-teal' : rc==='Aguardando' ? 'bg-amber' : rc==='Sem contato' ? 'bg-red' : 'bg-gray';
+      return `<tr>
+        <td><b>${c.nome||''}</b>${c.responsavel?`<br><span style="font-size:.72rem;color:var(--gray)">${c.responsavel}</span>`:''}</td>
+        <td>${c.telefone||'—'}</td>
+        <td>${c.segmento||'—'}</td>
+        <td>${[c.cidade,c.bairro].filter(Boolean).join(' / ')||'—'}</td>
+        <td><span class="badge ${resultBadgeClass}">${rc||'—'}</span>${c.dataUltimoContato?`<br><span style="font-size:.7rem;color:var(--gray)">${fD(c.dataUltimoContato)}</span>`:''}</td>
+        <td>${stBadge}</td>
+        ${veTodaEmpresa?`<td style="font-size:.75rem">${cartNomeVendedor(c.uid)}</td>`:''}
+        <td><div class="act">
+          <button class="btn-xs bx-wpp" data-id="${c.id}" style="border-color:var(--gl);color:var(--g)" title="WhatsApp">💬</button>
+          <button class="btn-xs bx-edit" data-id="${c.id}" style="border-color:var(--border);color:var(--gray)">Editar</button>
+          <button class="btn-xs bx-del" data-id="${c.id}" style="border-color:var(--rl);color:var(--r)">Excluir</button>
+        </div></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+
+  wrap.querySelectorAll('.bx-wpp').forEach(b=>b.onclick=()=>{
+    const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapAbrirWppTelefone(c.telefone, c.nome);
+  });
+  wrap.querySelectorAll('.bx-edit').forEach(b=>b.onclick=()=>abrirModalCarteiraCliente(b.dataset.id));
+  wrap.querySelectorAll('.bx-del').forEach(b=>b.onclick=()=>excluirCarteiraCliente(b.dataset.id));
+}
+window.renderCarteiraLista = renderCarteiraLista;
+['cart-busca','cart-filtro-segmento','cart-filtro-status','cart-filtro-resultado','cart-filtro-vendedor'].forEach(id=>{
+  const el = $(id); if(!el) return;
+  el.addEventListener(el.tagName==='SELECT' ? 'change' : 'input', renderCarteiraLista);
+});
+
+// ── Modal Adicionar/Editar Cliente ──────────────────────────
+function abrirModalCarteiraCliente(id){
+  $('cart-cli-title').textContent = id ? 'Editar Cliente' : 'Adicionar Cliente';
+  if(id){
+    const c = _cartClientes.find(x=>x.id===id);
+    if(!c){ toast('Cliente não encontrado.'); return; }
+    $('cart-cli-id').value = c.id;
+    $('cart-cli-origem').value = c.origem || 'manual';
+    $('cart-cli-nome').value = c.nome || '';
+    $('cart-cli-telefone').value = c.telefone || '';
+    $('cart-cli-segmento').value = c.segmento || 'Outros';
+    $('cart-cli-responsavel').value = c.responsavel || '';
+    $('cart-cli-cidade').value = c.cidade || '';
+    $('cart-cli-bairro').value = c.bairro || '';
+    $('cart-cli-resultado').value = c.resultadoUltimoContato || 'Inicial';
+    $('cart-cli-data-contato').value = cartISOtoBR(c.dataUltimoContato);
+    $('cart-cli-data-compra').value = cartISOtoBR(c.dataUltimaCompra);
+    $('cart-cli-obs').value = c.observacoes || '';
+  } else {
+    $('cart-cli-id').value = '';
+    $('cart-cli-origem').value = 'manual';
+    $('cart-cli-nome').value = '';
+    $('cart-cli-telefone').value = '';
+    $('cart-cli-segmento').value = 'Outros';
+    $('cart-cli-responsavel').value = '';
+    $('cart-cli-cidade').value = '';
+    $('cart-cli-bairro').value = '';
+    $('cart-cli-resultado').value = 'Inicial';
+    $('cart-cli-data-contato').value = cartISOtoBR(tod());
+    $('cart-cli-data-compra').value = '';
+    $('cart-cli-obs').value = '';
+  }
+  openModal('modal-carteira-cliente');
+}
+window.abrirModalCarteiraCliente = abrirModalCarteiraCliente;
+
+async function salvarCarteiraCliente(){
+  const nome = $('cart-cli-nome').value.trim();
+  if(!nome){ toast('Informe o nome do cliente.'); return; }
+  const id = $('cart-cli-id').value;
+  const CID = _vapGetCompanyId(); if(!CID){ toast('Empresa não identificada.'); return; }
+
+  // Datas digitadas em DD/MM/AAAA — converte pra ISO (formato interno) com validação
+  const dataContatoBR = $('cart-cli-data-contato').value.trim();
+  const dataCompraBR = $('cart-cli-data-compra').value.trim();
+  let dataContatoISO = '', dataCompraISO = '';
+  if(dataContatoBR){
+    dataContatoISO = cartBRtoISO(dataContatoBR);
+    if(!dataContatoISO){ toast('Data do último contato inválida. Use o formato DD/MM/AAAA.'); return; }
+  }
+  if(dataCompraBR){
+    dataCompraISO = cartBRtoISO(dataCompraBR);
+    if(!dataCompraISO){ toast('Data da última compra inválida. Use o formato DD/MM/AAAA.'); return; }
+  }
+  const resultado = $('cart-cli-resultado').value;
+  // Se marcou "Pedido" e não preencheu a data da compra, assume a data do contato (ou hoje)
+  if(resultado === 'Pedido' && !dataCompraISO) dataCompraISO = dataContatoISO || tod();
+
+  const payload = {
+    nome,
+    telefone: $('cart-cli-telefone').value.trim(),
+    segmento: $('cart-cli-segmento').value,
+    responsavel: $('cart-cli-responsavel').value.trim(),
+    cidade: $('cart-cli-cidade').value.trim(),
+    bairro: $('cart-cli-bairro').value.trim(),
+    resultadoUltimoContato: resultado,
+    dataUltimoContato: dataContatoISO,
+    dataUltimaCompra: dataCompraISO,
+    observacoes: $('cart-cli-obs').value.trim(),
+    companyId: CID,
+  };
+
+  const btn = $('cart-cli-save');
+  if(btn){ btn.disabled = true; btn.textContent = 'Salvando…'; }
+  try {
+    if(id){
+      await updateDoc(doc(db,'carteira_clientes',id), payload);
+      toast('Cliente atualizado.');
+    } else {
+      payload.uid = cu.uid;
+      payload.origem = $('cart-cli-origem').value || 'manual';
+      payload.criadoEm = new Date().toISOString();
+      await addDoc(collection(db,'carteira_clientes'), payload);
+      toast('Cliente adicionado à Carteira.');
+    }
+    closeModal('modal-carteira-cliente');
+  } catch(err){
+    console.error('[Carteira] salvar:', err);
+    toast('Erro ao salvar: ' + (err.message||err.code));
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = 'Salvar'; }
+  }
+}
+window.salvarCarteiraCliente = salvarCarteiraCliente;
+
+function excluirCarteiraCliente(id){
+  const c = _cartClientes.find(x=>x.id===id); if(!c) return;
+  confirm2(`Excluir "${c.nome}" da Carteira de Clientes? Esta ação não pode ser desfeita.`, async () => {
+    try {
+      await deleteDoc(doc(db,'carteira_clientes',id));
+      toast('Cliente excluído.');
+    } catch(err){
+      console.error('[Carteira] excluir:', err);
+      toast('Erro ao excluir: ' + (err.message||err.code));
+    }
+  });
+}
+window.excluirCarteiraCliente = excluirCarteiraCliente;
+
+$('btn-cart-add')    && ($('btn-cart-add').onclick    = () => abrirModalCarteiraCliente(null));
+$('cart-cli-close')  && ($('cart-cli-close').onclick  = () => closeModal('modal-carteira-cliente'));
+$('cart-cli-cancel') && ($('cart-cli-cancel').onclick = () => closeModal('modal-carteira-cliente'));
+$('cart-cli-save')   && ($('cart-cli-save').onclick   = salvarCarteiraCliente);
+
+// ── Modal Importar Contatos (Agenda nativa / Planilha CSV / Arquivo VCF) ──
+// Mesma rotina de parsing usada no Projeto Belezza (MeCuidar), adaptada aos
+// campos da Carteira de Clientes do AgoraVAP!.
+function abrirModalImportar(){
+  window.cartSetImportTab('nativo');
+  ['nativo','csv','vcf'].forEach(t => {
+    const p = $('cart-imp-preview-'+t); if(p){ p.style.display = 'none'; p.innerHTML = ''; }
+  });
+  $('cart-imp-csv-label').textContent = 'Selecionar arquivo .csv';
+  $('cart-imp-vcf-label').textContent = 'Selecionar arquivo .vcf';
+  const suportado = ('contacts' in navigator) && ('ContactsManager' in window);
+  $('cart-imp-unsupported').style.display = suportado ? 'none' : 'block';
+  $('cart-imp-selecionar').style.display  = suportado ? 'block' : 'none';
+  openModal('modal-carteira-importar');
+}
+window.abrirModalImportar = abrirModalImportar;
+
+window.cartSetImportTab = function(tab){
+  ['nativo','csv','vcf'].forEach(t=>{
+    const panel = $('cart-imp-painel-'+t);
+    const btn = $('cart-imp-tab-'+t);
+    if(panel) panel.style.display = (t===tab) ? '' : 'none';
+    if(btn){
+      btn.style.background = (t===tab) ? 'var(--rl)' : 'transparent';
+      btn.style.color = (t===tab) ? '#C53030' : 'var(--gray)';
+      btn.style.fontWeight = (t===tab) ? '700' : '600';
+    }
+  });
+};
+
+// ── Aba Agenda: Contact Picker API (Chrome/Android) ─────────
+async function cartSelecionarContatos(){
+  try {
+    const contatos = await navigator.contacts.select(['name','tel'], {multiple:true});
+    if(!contatos.length) return;
+    const lista = contatos
+      .map(c => ({ nome: (c.name&&c.name[0])||'(sem nome)', telefone: _cartNormalizarTel((c.tel&&c.tel[0])||'') }))
+      .filter(c => c.telefone);
+    const ignorados = contatos.length - lista.length;
+    if(!lista.length){ _cartImpErro('nativo', 'Nenhum contato com celular válido encontrado.'); return; }
+    _cartImpPreview('nativo', lista, ignorados);
+  } catch(err){
+    console.error('[Carteira] Contact Picker:', err);
+    if(err.name !== 'AbortError') toast('Não foi possível acessar os contatos.');
+  }
+}
+$('cart-imp-selecionar') && ($('cart-imp-selecionar').onclick = cartSelecionarContatos);
+
+// ── Normaliza telefone: só aceita celular BR com 9 dígitos ──
+function _cartNormalizarTel(raw){
+  let n = (raw||'').replace(/[^\d+]/g,'');
+  n = n.replace(/^\+55/,'');
+  n = n.replace(/^55(\d{10,11})$/,'$1');
+  n = n.replace(/^0/,'');
+  if(n.length===11 && n[2]==='9') return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
+  return '';
+}
+
+// ── Aba Planilha/CSV ─────────────────────────────────────────
+window.cartImportarCSV = function(input){
+  const file = input.files[0]; if(!file) return;
+  input.value = '';
+  $('cart-imp-csv-label').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const linhas = e.target.result.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
+      if(linhas.length < 2){ _cartImpErro('csv','Arquivo vazio ou sem dados.'); return; }
+      const sep = linhas[0].includes(';') ? ';' : ',';
+      const header = linhas[0].split(sep).map(h=>h.replace(/['"]/g,'').toLowerCase().trim());
+      const iNome = header.findIndex(h=>h.includes('nome')||h.includes('name')||h==='contato');
+      const iTel  = header.findIndex(h=>h.includes('whatsapp')||h.includes('wpp')||h.includes('telefon')||h.includes('celular')||h.includes('fone')||h.includes('phone')||h.includes('mobile')||h.includes('número')||h.includes('numero'));
+      if(iNome===-1 || iTel===-1){
+        _cartImpErro('csv', `Colunas não encontradas. Cabeçalho detectado: "${header.join(' | ')}". O arquivo precisa ter colunas com "Nome" e "Telefone" (ou WhatsApp/Celular).`);
+        return;
+      }
+      const contatos = []; let ignorados = 0;
+      for(let i=1;i<linhas.length;i++){
+        const cols = linhas[i].split(sep).map(c=>c.replace(/^["']|["']$/g,'').trim());
+        const nome = cols[iNome] || '';
+        const tel  = _cartNormalizarTel(cols[iTel] || '');
+        if(nome && tel) contatos.push({nome, telefone: tel});
+        else if(nome && (cols[iTel]||'').trim()) ignorados++;
+      }
+      if(!contatos.length){ _cartImpErro('csv','Nenhum contato com celular válido encontrado no arquivo.'); return; }
+      _cartImpPreview('csv', contatos, ignorados);
+    } catch(err){ _cartImpErro('csv', 'Erro ao ler o arquivo: '+err.message); }
+  };
+  reader.readAsText(file, 'UTF-8');
+};
+
+// ── Aba Arquivo VCF ──────────────────────────────────────────
+window.cartImportarVCF = function(input){
+  const file = input.files[0]; if(!file) return;
+  input.value = '';
+  $('cart-imp-vcf-label').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const texto = e.target.result;
+      const blocos = texto.split(/BEGIN:VCARD/i).filter(b=>b.includes('END:VCARD'));
+      const contatos = []; let ignorados = 0;
+      blocos.forEach(bloco => {
+        let nome = '';
+        const fnMatch = bloco.match(/^FN(?:;[^:]*)?:(.+)$/im);
+        if(fnMatch){ nome = fnMatch[1].trim().replace(/\\,/g,','); }
+        else {
+          const nMatch = bloco.match(/^N(?:;[^:]*)?:(.+)$/im);
+          if(nMatch){ const partes = nMatch[1].split(';').map(p=>p.trim()).filter(Boolean); nome = partes.slice(0,2).reverse().join(' '); }
+        }
+        const telMatches = [...bloco.matchAll(/^TEL(?:;[^:]*)?:(.+)$/gim)];
+        let tel = '';
+        for(const m of telMatches){ const t=_cartNormalizarTel(m[1].trim()); if(t){ tel=t; break; } }
+        if(nome && tel) contatos.push({nome, telefone: tel});
+        else if(nome && telMatches.length>0) ignorados++;
+      });
+      if(!contatos.length){ _cartImpErro('vcf','Nenhum contato com celular válido encontrado no arquivo.'); return; }
+      _cartImpPreview('vcf', contatos, ignorados);
+    } catch(err){ _cartImpErro('vcf', 'Erro ao ler o arquivo: '+err.message); }
+  };
+  reader.readAsText(file, 'UTF-8');
+};
+
+// ── Preview/checklist compartilhado pelas 3 abas ─────────────
+function _cartEscHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function _cartImpPreview(tipo, contatos, ignorados){
+  ignorados = ignorados || 0;
+  const div = $('cart-imp-preview-'+tipo); if(!div) return;
+  div.style.display = '';
+  div.innerHTML = `
+    <div style="font-size:.75rem;font-weight:700;color:var(--g);margin-bottom:4px">✓ ${contatos.length} contato${contatos.length>1?'s':''} encontrado${contatos.length>1?'s':''}</div>
+    ${ignorados>0 ? `<div style="font-size:.72rem;color:var(--gray);margin-bottom:6px">ℹ️ ${ignorados} ignorado${ignorados>1?'s':''} (não parece celular)</div>` : ''}
+    <div style="border:1px solid var(--border);border-radius:var(--rsm);overflow:hidden;margin-bottom:.6rem;max-height:260px;overflow-y:auto">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--grayl);font-size:.72rem;font-weight:700">
+        <input type="checkbox" id="_cimp-todos-${tipo}" checked onchange="window._cartImpToggleTodos('${tipo}')" style="width:15px;height:15px">
+        <label for="_cimp-todos-${tipo}" style="cursor:pointer;flex:1">Selecionar todos</label>
+      </div>
+      ${contatos.map((c,i)=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border);font-size:.78rem">
+          <input type="checkbox" class="_cimp-chk-${tipo}" data-i="${i}" checked onchange="window._cartImpAtualizarContagem('${tipo}')" style="width:15px;height:15px">
+          <span style="flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_cartEscHtml(c.nome)}</span>
+          <span style="color:var(--gray);white-space:nowrap">${c.telefone}</span>
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-sec" onclick="window._cartImpCancelar('${tipo}')" style="flex:1">Cancelar</button>
+      <button class="btn-save" id="_cimp-btn-${tipo}" onclick="window._cartImpConfirmar('${tipo}')" style="flex:1">Importar <span id="_cimp-contagem-${tipo}">${contatos.length}</span> cliente${contatos.length>1?'s':''}</button>
+    </div>`;
+  window[`_cartImpContatos_${tipo}`] = contatos;
+}
+
+function _cartImpErro(tipo, msg){
+  const div = $('cart-imp-preview-'+tipo); if(!div) return;
+  div.style.display = '';
+  div.innerHTML = `<div style="padding:10px;background:var(--rl);border-radius:var(--rsm);font-size:.78rem;color:var(--r)">⚠ ${_cartEscHtml(msg)}</div>`;
+}
+
+window._cartImpAtualizarContagem = function(tipo){
+  const checks = document.querySelectorAll(`._cimp-chk-${tipo}`);
+  const marcados = Array.from(checks).filter(c=>c.checked).length;
+  const span = $('_cimp-contagem-'+tipo); if(span) span.textContent = marcados;
+  const btn = $('_cimp-btn-'+tipo);
+  if(btn){ btn.disabled = marcados===0; btn.style.opacity = marcados===0 ? '.5' : '1'; }
+  const todos = $('_cimp-todos-'+tipo); if(todos) todos.checked = marcados>0 && marcados===checks.length;
+};
+
+window._cartImpToggleTodos = function(tipo){
+  const todos = $('_cimp-todos-'+tipo); if(!todos) return;
+  document.querySelectorAll(`._cimp-chk-${tipo}`).forEach(c=>c.checked=todos.checked);
+  window._cartImpAtualizarContagem(tipo);
+};
+
+window._cartImpCancelar = function(tipo){
+  const div = $('cart-imp-preview-'+tipo);
+  if(div){ div.style.display = 'none'; div.innerHTML = ''; }
+  if(tipo==='csv') $('cart-imp-csv-label').textContent = 'Selecionar arquivo .csv';
+  if(tipo==='vcf') $('cart-imp-vcf-label').textContent = 'Selecionar arquivo .vcf';
+};
+
+// ── Confirmação: grava em lote no Firestore (checa duplicidade por telefone) ──
+window._cartImpConfirmar = async function(tipo){
+  const todosContatos = window[`_cartImpContatos_${tipo}`] || [];
+  const checks = document.querySelectorAll(`._cimp-chk-${tipo}`);
+  const contatos = [];
+  checks.forEach(chk => { if(chk.checked){ const i=+chk.dataset.i; if(todosContatos[i]) contatos.push(todosContatos[i]); } });
+  if(!contatos.length) return;
+
+  const CID = _vapGetCompanyId(); if(!CID){ toast('Empresa não identificada.'); return; }
+  const div = $('cart-imp-preview-'+tipo);
+  if(div) div.innerHTML = `<div style="text-align:center;padding:14px;font-size:.85rem;color:var(--gray)">Importando ${contatos.length} cliente(s)…</div>`;
+
+  const existentes = new Set(_cartClientes.map(c => (c.telefone||'').replace(/\D/g,'')));
+  let importados = 0, duplicados = 0;
+  try {
+    const batch = writeBatch(db);
+    contatos.forEach(c => {
+      const telNorm = c.telefone.replace(/\D/g,'');
+      if(existentes.has(telNorm)){ duplicados++; return; }
+      existentes.add(telNorm);
+      const ref = doc(collection(db,'carteira_clientes'));
+      batch.set(ref, {
+        nome: c.nome, telefone: c.telefone,
+        segmento: 'Outros', responsavel: '', cidade: '', bairro: '',
+        resultadoUltimoContato: 'Inicial', dataUltimoContato: '', dataUltimaCompra: '',
+        observacoes: '', origem: 'importado', uid: cu.uid, companyId: CID,
+        criadoEm: new Date().toISOString()
+      });
+      importados++;
+    });
+    if(importados > 0) await batch.commit();
+  } catch(err){
+    console.error('[Carteira] importar:', err);
+    toast('Erro ao importar: ' + (err.message||err.code));
+    return;
+  }
+
+  if(div){
+    div.innerHTML = `
+      <div style="padding:12px 14px;background:var(--gl);border-radius:var(--rsm);text-align:center">
+        <div style="font-size:.85rem;font-weight:700;color:var(--g)">${importados} cliente${importados===1?'':'s'} importado${importados===1?'':'s'}!</div>
+        ${duplicados>0?`<div style="font-size:.72rem;color:var(--gray);margin-top:4px">${duplicados} já cadastrado${duplicados>1?'s':''} (ignorado${duplicados>1?'s':''})</div>`:''}
+        <button class="btn-save" style="margin-top:10px" onclick="closeModal('modal-carteira-importar')">Fechar</button>
+      </div>`;
+  }
+};
+
+$('btn-cart-importar')  && ($('btn-cart-importar').onclick  = abrirModalImportar);
+$('cart-imp-close')     && ($('cart-imp-close').onclick     = () => closeModal('modal-carteira-importar'));
+
+// ── Modal Limpar Carteira de um Vendedor (líder/superadmin) ─
+function abrirModalLimparCarteira(){
+  $('cart-lim-vendedor').value = '';
+  openModal('modal-carteira-limpar');
+}
+window.abrirModalLimparCarteira = abrirModalLimparCarteira;
+
+function cartLimparCarteiraVendedor(){
+  const uid = $('cart-lim-vendedor').value;
+  if(!uid){ toast('Selecione um vendedor.'); return; }
+  const u = _users.find(x=>x.id===uid);
+  confirm2(`Apagar TODA a carteira de "${u?.name||'este vendedor'}"? Esta ação não pode ser desfeita.`, async () => {
+    const btn = $('cart-lim-confirmar');
+    if(btn){ btn.disabled = true; btn.textContent = 'Apagando…'; }
+    try {
+      const CID = _vapGetCompanyId();
+      const q = query(collection(db,'carteira_clientes'), where('companyId','==',CID), where('uid','==',uid));
+      const snap = await getDocs(q);
+      if(snap.empty){ toast('Este vendedor não tem clientes na Carteira.'); return; }
+      const batch = writeBatch(db);
+      snap.docs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+      toast(`Carteira de ${u?.name||'vendedor'} apagada (${snap.size} cliente(s)).`);
+      closeModal('modal-carteira-limpar');
+    } catch(err){
+      console.error('[Carteira] limpar:', err);
+      toast('Erro ao apagar: ' + (err.message||err.code));
+    } finally {
+      if(btn){ btn.disabled = false; btn.textContent = 'Apagar Carteira'; }
+    }
+  });
+}
+$('cart-lim-confirmar') && ($('cart-lim-confirmar').onclick = cartLimparCarteiraVendedor);
+$('btn-cart-limpar')    && ($('btn-cart-limpar').onclick    = abrirModalLimparCarteira);
+$('cart-lim-close')     && ($('cart-lim-close').onclick     = () => closeModal('modal-carteira-limpar'));
+$('cart-lim-cancel')    && ($('cart-lim-cancel').onclick    = () => closeModal('modal-carteira-limpar'));
+
+function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();vapIniciarListenerCarteira();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
 window.vapIniciarModulos=vapIniciarModulos;</script>
 
 <!-- ══ POP-UP PROMOCIONAL — Boas-vindas Vendedor ═══════════════════════ -->
