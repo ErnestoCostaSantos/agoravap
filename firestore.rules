@@ -61,6 +61,11 @@ service cloud.firestore {
       allow write: if isGestor() && request.resource.data.companyId == myCompany();
       allow write: if isSuperAdmin();
     }
+    match /letreiro/{companyId} {
+      allow read: if isAuth();
+      allow write: if isGestor() && myCompany() == companyId;
+      allow write: if isSuperAdmin();
+    }
     match /promocoes/{id} {
       allow read: if isAuth();
       allow create, update: if isGestor() && request.resource.data.companyId == myCompany();

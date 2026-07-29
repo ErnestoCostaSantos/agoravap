@@ -318,6 +318,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   .btn-vap-sm{padding:5px 10px!important;font-size:11px!important}
   .vap-sec-lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#95A5A6;margin-bottom:12px}
 
+  /* Letreiro de texto rolando — tela Lançar */
+  .letreiro-wrap{background:linear-gradient(90deg,#1B4F72,#154360);border-radius:var(--radius);overflow:hidden;margin-bottom:.75rem;display:none;position:relative;height:38px}
+  .letreiro-wrap.ativo{display:flex;align-items:center}
+  .letreiro-track{display:flex;white-space:nowrap;position:absolute;left:0;will-change:transform;animation:letreiro-scroll linear infinite}
+  .letreiro-item{display:inline-flex;align-items:center;color:#fff;font-size:13px;font-weight:600;padding:0 40px}
+  .letreiro-item i{margin-right:8px;font-size:14px;color:#F7DC6F}
+  @keyframes letreiro-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media (prefers-reduced-motion: reduce){.letreiro-track{animation:none}}
+
 </style>
 </head>
 <body>
@@ -549,6 +558,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
     <!-- ════ LANÇAR ════════════════════════════════════════════ -->
     <div class="panel active" id="panel-lancar">
+      <!-- Letreiro de texto rolando -->
+      <div class="letreiro-wrap" id="letreiro-wrap">
+        <div class="letreiro-track" id="letreiro-track"></div>
+      </div>
       <div id="metrics-dia"></div>
 
       <!-- Seletor de data para lançar / editar -->
@@ -820,6 +833,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       <div class="nav" style="margin-bottom:1rem;border-radius:var(--radius);overflow:hidden">
         <div class="nav-tab active" data-adm="vendedores">Profissionais</div>
         <div class="nav-tab" data-adm="metas">Metas Mensais</div>
+        <div class="nav-tab" data-adm="letreiro">Letreiro</div>
         <div class="nav-tab" data-adm="exportar">Exportar Excel</div>
         <div class="nav-tab" data-adm="logs">Logs</div>
       </div>
@@ -873,6 +887,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="chart-card">
           <div class="chart-title">Metas cadastradas</div>
           <div id="metas-table"><div class="loading"><div class="spin"></div></div></div>
+        </div>
+      </div>
+
+      <!-- Letreiro -->
+      <div id="adm-letreiro" style="display:none">
+        <div class="fcard">
+          <div class="fcard-title"><span class="bar" style="background:#1B4F72"></span>Letreiro de Texto Rolando (tela Lançar)</div>
+          <div class="field">
+            <label>Texto do letreiro</label>
+            <textarea id="letreiro-texto" rows="2" placeholder="Ex: Bem-vindos à campanha de julho! Metas revisadas — confira com seu líder." maxlength="300" style="width:100%;resize:vertical;font-family:inherit"></textarea>
+          </div>
+          <div style="font-size:.78rem;color:var(--gray);margin:-.25rem 0 .75rem">Aparece rolando no topo da tela "Lançar" para todos os profissionais da empresa.</div>
+          <div id="letreiro-status-badge" style="display:none;font-size:11px;font-weight:600;border-radius:20px;padding:3px 10px;margin-bottom:.75rem;width:fit-content"></div>
+          <div class="ffooter" style="gap:8px">
+            <button class="btn-sec" id="btn-letreiro-toggle">Ativar Letreiro</button>
+            <button class="btn-save" id="btn-letreiro-save">Salvar Texto</button>
+          </div>
         </div>
       </div>
 
@@ -4656,9 +4687,10 @@ document.querySelectorAll('[data-tab]').forEach(btn=>{
 document.querySelectorAll('[data-adm]').forEach(btn=>{
   btn.onclick=()=>{
     document.querySelectorAll('[data-adm]').forEach(b=>b.classList.remove('active'));
-    ['adm-vendedores','adm-metas','adm-exportar','adm-logs'].forEach(id=>$(id).style.display='none');
+    ['adm-vendedores','adm-metas','adm-letreiro','adm-exportar','adm-logs'].forEach(id=>$(id).style.display='none');
     btn.classList.add('active');
     $('adm-'+btn.dataset.adm).style.display='block';
+    if(btn.dataset.adm==='letreiro' && typeof vapCarregarLetreiroAdmin==='function') vapCarregarLetreiroAdmin();
   };
 });
 
@@ -6506,7 +6538,121 @@ $('btn-cart-limpar')    && ($('btn-cart-limpar').onclick    = abrirModalLimparCa
 $('cart-lim-close')     && ($('cart-lim-close').onclick     = () => closeModal('modal-carteira-limpar'));
 $('cart-lim-cancel')    && ($('cart-lim-cancel').onclick    = () => closeModal('modal-carteira-limpar'));
 
-function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();vapIniciarListenerCarteira();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
+// ── Módulo Letreiro de Texto Rolando (tela Lançar) ─────────────────────
+// Documento único por empresa: coleção 'letreiro', doc ID = companyId.
+// Campos: texto (string), status ('ativa'/'pausada'), atualizadoEm.
+let _vapLetreiroUnsub = null;
+
+function vapIniciarListenerLetreiro(){
+  const cid = _vapGetCompanyId();
+  if(!cid) return;
+  if(_vapLetreiroUnsub) { _vapLetreiroUnsub(); _vapLetreiroUnsub = null; }
+  _vapLetreiroUnsub = onSnapshot(doc(db,'letreiro',cid), snap => {
+    const d = snap.exists() ? snap.data() : null;
+    vapRenderLetreiro(d);
+    // Se a aba Admin > Letreiro estiver aberta, mantém o formulário sincronizado
+    if(document.getElementById('adm-letreiro')?.style.display !== 'none') vapPreencherFormLetreiro(d);
+  }, e => console.error('[VAP] listener letreiro:', e));
+}
+
+function vapRenderLetreiro(d){
+  const wrap  = document.getElementById('letreiro-wrap');
+  const track = document.getElementById('letreiro-track');
+  if(!wrap || !track) return;
+  const ativo = !!(d && d.status === 'ativa' && d.texto && d.texto.trim());
+  if(!ativo){
+    wrap.classList.remove('ativo');
+    track.style.animation = 'none';
+    track.innerHTML = '';
+    return;
+  }
+  const texto = d.texto.trim();
+  // Duplica o texto (2x) para o loop de rolagem ficar contínuo, sem "salto" visível
+  track.innerHTML = Array(2).fill(
+    `<span class="letreiro-item"><i class="ti ti-speakerphone"></i>${escapeHtml(texto)}</span>`
+  ).join('');
+  wrap.classList.add('ativo');
+  // Velocidade proporcional ao tamanho do texto, para textos curtos e longos rolarem num ritmo parecido
+  requestAnimationFrame(() => {
+    const largura = track.scrollWidth / 2;
+    const duracao = Math.max(8, largura / 60); // ~60px/s
+    track.style.animation = `letreiro-scroll ${duracao}s linear infinite`;
+  });
+}
+
+function escapeHtml(s){
+  const el = document.createElement('div');
+  el.textContent = s;
+  return el.innerHTML;
+}
+
+async function vapCarregarLetreiroAdmin(){
+  const cid = _vapGetCompanyId();
+  if(!cid) return;
+  try{
+    const snap = await getDoc(doc(db,'letreiro',cid));
+    vapPreencherFormLetreiro(snap.exists() ? snap.data() : null);
+  }catch(e){ console.error('[VAP] carregarLetreiroAdmin:', e); }
+}
+window.vapCarregarLetreiroAdmin = vapCarregarLetreiroAdmin;
+
+function vapPreencherFormLetreiro(d){
+  const txt = document.getElementById('letreiro-texto');
+  const btnToggle = document.getElementById('btn-letreiro-toggle');
+  const badge = document.getElementById('letreiro-status-badge');
+  if(!txt || !btnToggle || !badge) return;
+  if(document.activeElement !== txt) txt.value = d?.texto || '';
+  const pausada = !d || d.status !== 'ativa';
+  btnToggle.textContent = pausada ? 'Ativar Letreiro' : 'Suspender Letreiro';
+  btnToggle.style.borderColor = pausada ? '' : '#B45309';
+  btnToggle.style.color = pausada ? '' : '#B45309';
+  if(d){
+    badge.style.display = 'block';
+    badge.textContent = pausada ? '⏸ Suspenso' : '● Ativo';
+    badge.style.background = pausada ? '#FEF3C7' : '#DCFCE7';
+    badge.style.color = pausada ? '#B45309' : '#15803D';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function vapSalvarLetreiro(){
+  const cid = _vapGetCompanyId();
+  const txt = document.getElementById('letreiro-texto');
+  if(!cid || !txt) return;
+  const texto = txt.value.trim();
+  if(!texto){ alert('Digite o texto do letreiro.'); return; }
+  try{
+    const ref = doc(db,'letreiro',cid);
+    const snap = await getDoc(ref);
+    const statusAtual = snap.exists() ? snap.data().status : 'pausada';
+    await setDoc(ref, { companyId: cid, texto, status: statusAtual, atualizadoEm: new Date().toISOString() }, { merge: true });
+    toast('Texto do letreiro salvo.');
+  }catch(e){ console.error('[VAP] salvarLetreiro:', e); alert('Erro ao salvar o letreiro.'); }
+}
+window.vapSalvarLetreiro = vapSalvarLetreiro;
+document.getElementById('btn-letreiro-save')?.addEventListener('click', vapSalvarLetreiro);
+
+async function vapToggleLetreiro(){
+  const cid = _vapGetCompanyId();
+  if(!cid) return;
+  try{
+    const ref = doc(db,'letreiro',cid);
+    const snap = await getDoc(ref);
+    const d = snap.exists() ? snap.data() : null;
+    if(!d || !d.texto || !d.texto.trim()){
+      alert('Digite e salve um texto antes de ativar o letreiro.');
+      return;
+    }
+    const novoStatus = d.status === 'ativa' ? 'pausada' : 'ativa';
+    await updateDoc(ref, { status: novoStatus, atualizadoEm: new Date().toISOString() });
+    toast(novoStatus === 'ativa' ? 'Letreiro ativado — visível na tela Lançar de todos.' : 'Letreiro suspenso.');
+  }catch(e){ console.error('[VAP] toggleLetreiro:', e); alert('Erro ao atualizar o letreiro.'); }
+}
+window.vapToggleLetreiro = vapToggleLetreiro;
+document.getElementById('btn-letreiro-toggle')?.addEventListener('click', vapToggleLetreiro);
+
+function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();vapIniciarListenerCarteira();vapIniciarListenerLetreiro();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
 window.vapIniciarModulos=vapIniciarModulos;</script>
 
 <!-- ══ POP-UP PROMOCIONAL — Boas-vindas Vendedor ═══════════════════════ -->
