@@ -4324,15 +4324,21 @@ $('btn-meta-save').onclick = async () => {
         val=n0($('meta-valor').value);
   if(!uid||!mes){ toast('Selecione o vendedor e o mês.'); return; }
   const id=`${uid}_${mes}`;
-  await setDoc(doc(db,'metas',id),{
-    uid, mes, valor:val,
-    sellerName: _users.find(u=>u.id===uid)?.name||'',
-    updatedAt: new Date().toISOString()
-  });
-  // Also update user meta field
-  await updateDoc(doc(db,'users',uid),{meta:val});
-  $('meta-valor').value='';
-  toast('Meta salva!');
+  try {
+    await setDoc(doc(db,'metas',id),{
+      uid, mes, valor:val,
+      companyId: cp.companyId || _companyId || 'default',
+      sellerName: _users.find(u=>u.id===uid)?.name||'',
+      updatedAt: new Date().toISOString()
+    });
+    // Also update user meta field
+    await updateDoc(doc(db,'users',uid),{meta:val});
+    $('meta-valor').value='';
+    toast('Meta salva!');
+  } catch(err){
+    VapLogger.error('Erro ao salvar meta', { code: err.code, msg: err.message, uid, mes });
+    toast('Erro ao salvar meta: ' + (err.code || err.message));
+  }
 };
 
 function renderMetasTable(){
