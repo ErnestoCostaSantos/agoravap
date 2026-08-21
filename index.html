@@ -2566,8 +2566,15 @@ onAuthStateChanged(auth, async user => {
     else                        $('role-badge').classList.remove('role-lider');
 
     $('ff-vendedor').style.display   = (isGestor||isSuperAdm) ? 'flex'  : 'none';
-    $('btn-limpar').style.display    = (isGestor||isSuperAdm) ? 'block' : 'none';
     $('exp-vend-wrap').style.display = (isGestor||isSuperAdm) ? 'block' : 'none';
+    // Apagar Registros: visível para quem já via a barra de Histórico (Líder/Master/SuperAdmin),
+    // mas só clicável (não inerte) para Master e SuperAdmin — Líder vê desabilitado.
+    const podeApagarRegistros = isMasterRole || isSuperAdm;
+    $('btn-limpar').style.display = (isGestor||isSuperAdm) ? 'block' : 'none';
+    $('btn-limpar').disabled = !podeApagarRegistros;
+    $('btn-limpar').style.opacity = podeApagarRegistros ? '1' : '.5';
+    $('btn-limpar').style.cursor = podeApagarRegistros ? 'pointer' : 'not-allowed';
+    $('btn-limpar').title = podeApagarRegistros ? '' : 'Apenas o usuário Master pode apagar registros.';
     // Carteira: Líder só vê a própria (como vendedor); só Master e SuperAdmin veem a de todos
     if($('ff-cart-vendedor'))  $('ff-cart-vendedor').style.display  = (isMasterRole||isSuperAdm) ? 'flex'  : 'none';
     if($('btn-cart-limpar'))  $('btn-cart-limpar').style.display  = (isMasterRole||isSuperAdm) ? 'inline-block' : 'none';
@@ -3348,20 +3355,50 @@ function setupHistoricoListeners(){
     renderHistorico();
   };
 
-  // Botão Apagar Registros — só líder
+  // Botão Apagar Registros — só Master/SuperAdmin (botão fica desabilitado/inerte para os demais)
   $('btn-limpar') && ($('btn-limpar').onclick = () => {
-    confirm2('Apagar TODOS os registros? Esta ação não pode ser desfeita.', async () => {
-      const uid_filter = $('hist-vendedor')?.value;
-      let snap;
-      if(uid_filter){
-        snap = await getDocs(query(collection(db,'records'), where('uid','==',uid_filter)));
-      } else {
-        snap = await getDocs(collection(db,'records'));
-      }
+    const podeApagarRegistros = cp?.role === 'master' || cp?.role === 'superadmin';
+    if(!podeApagarRegistros) return; // segurança extra além do disabled do botão
+
+    const isSuperAdmClick = cp?.role === 'superadmin';
+    const cid = isSuperAdmClick ? _companyId : cp?.companyId;
+    if(!cid){ toast('Empresa não identificada.'); return; }
+
+    // Recalcula exatamente os mesmos registros exibidos no Histórico (empresa + filtros de tela)
+    const uid_filter = $('hist-vendedor')?.value;
+    const tf   = $('hist-tipo')?.value;
+    const modo = $('hist-modo')?.value || 'dia';
+
+    let recsAlvo = _recs.filter(r => r.companyId === cid);
+    if(uid_filter) recsAlvo = recsAlvo.filter(r => r.uid === uid_filter);
+    if(tf) recsAlvo = recsAlvo.filter(r => r.tipo === tf);
+
+    let periodoLabel = '';
+    if(modo === 'dia'){
+      const df = $('hist-data').value;
+      if(df){ recsAlvo = recsAlvo.filter(r => r.date === df); periodoLabel = fD(df); }
+    } else if(modo === 'periodo'){
+      const de  = $('hist-de').value;
+      const ate = $('hist-ate').value;
+      if(de)  recsAlvo = recsAlvo.filter(r => r.date >= de);
+      if(ate) recsAlvo = recsAlvo.filter(r => r.date <= ate);
+      if(de && ate) periodoLabel = fD(de) + ' até ' + fD(ate);
+      else if(de)   periodoLabel = 'a partir de ' + fD(de);
+      else if(ate)  periodoLabel = 'até ' + fD(ate);
+    } else if(modo === 'mes'){
+      const mes = $('hist-mes').value;
+      if(mes){ recsAlvo = recsAlvo.filter(r => r.date?.startsWith(mes)); periodoLabel = mes; }
+    }
+    if(!periodoLabel) periodoLabel = 'selecionado (sem filtro de data)';
+
+    const qtd = recsAlvo.length;
+    if(!qtd){ toast('Nenhum registro para apagar no período selecionado.'); return; }
+
+    confirm2(`Apagar ${qtd} registro(s) do período ${periodoLabel}? Esta ação não pode ser desfeita.`, async () => {
       const batch = writeBatch(db);
-      snap.docs.forEach(d => batch.delete(d.ref));
+      recsAlvo.forEach(r => batch.delete(doc(db,'records', r.id)));
       await batch.commit();
-      VapLogger.warning('Registros apagados', { uid_filter: uid_filter||'todos' });
+      VapLogger.warning('Registros apagados', { uid_filter: uid_filter||'todos', companyId: cid, periodo: periodoLabel, qtd });
       toast('Registros apagados.');
     });
   });
