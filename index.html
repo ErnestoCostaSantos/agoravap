@@ -1358,7 +1358,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Mês</b> — seleciona um mês inteiro de uma vez</li>
           </ul>
           <p>Combinado com filtros de Tipo e Profissional (Líder). Registros ordenados do mais recente para o mais antigo.</p>
-          <div class="help-tip">O botão <b>⚠ Apagar Registros</b> fica à direita da barra para evitar cliques acidentais. Apenas Líderes.</div>
+          <div class="help-tip">O botão <b>⚠ Apagar Registros</b> fica à direita da barra para evitar cliques acidentais. Só o perfil <b>Master</b> (e o Super Admin) consegue clicar — para Líder o botão aparece desabilitado (acinzentado). A exclusão sempre respeita os filtros de Mês/Dia/Período, Tipo e Profissional que estiverem aplicados na tela (nunca apaga registros de fora do filtro) e nunca ultrapassa a empresa atual. Ao clicar, a confirmação mostra a quantidade exata de registros e o período que serão apagados.</div>
 
           <h3>2.3 Módulo Dashboard</h3>
           <p>Consolida os registros do mês atual em KPIs e gráficos em tempo real. Líderes visualizam o ranking completo com barra de progresso.</p>
@@ -1371,6 +1371,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Vendas vs. Cotações</b> — Gráfico de linhas com 31 dias e linha de meta tracejada</li>
             <li><b>Motivos de Perda</b> — Rosca: Preço, Estoque, Outras</li>
             <li><b>Contatos por Origem</b> — Barras horizontais com 7 origens</li>
+            <li><b>Vendas Perdidas</b> (Líder/Master/SuperAdmin) — Listagem consolidada de todos os vendedores da empresa, sempre do mês em curso, com as mesmas colunas do relatório (Data, Vendedor, Cliente, Produtos, Valor). Ordenável por Data, Vendedor ou Valor, com os totais "R$ perdidos no mês" e "Quantidade de perdas" no topo — puxa da mesma lista que cada vendedor já preenche em Lançar &gt; Relatório das 2 Principais Vendas Perdidas por Dia</li>
           </ul>
 
           <h3>2.4 Módulo Campanhas <span style="font-size:.75rem;background:#FED7D7;color:#9B2C2C;padding:2px 8px;border-radius:10px;margin-left:6px">Líder</span></h3>
