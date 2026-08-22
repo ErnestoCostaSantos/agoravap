@@ -2122,8 +2122,8 @@ VapLogger.info('App inicializado', { version: '2.0', ts: new Date().toISOString(
 let cu = null, cp = null;
 let _company = null;   // empresa ativa no login
 let _companyId = null; // id da empresa ativa
-let _recs = [], _users = [], _metas = [];
-let unRecs = null, unUsers = null, unMetas = null;
+let _recs = [], _users = [], _metas = [], _perdasMesDash = [];
+let unRecs = null, unUsers = null, unMetas = null, unPerdasDash = null;
 
 // ── Utils ────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -2467,7 +2467,7 @@ $('btn-primeiro').onclick = async () => {
 // ── LOGOUT ─────────────────────────────────────────────────
 $('btn-logout').onclick = async () => {
   clearInactivityTimer();
-  [unRecs, unUsers, unMetas].forEach(u => u && u());
+  [unRecs, unUsers, unMetas, unPerdasDash].forEach(u => u && u());
   await signOut(auth);
   // Reload para resetar o DOM completamente — garante que
   // o proximo usuario veja todos os modulos corretamente
@@ -2483,7 +2483,7 @@ function resetInactivityTimer() {
   clearTimeout(_inactTimer);
   _inactTimer = setTimeout(async () => {
     $('inactivity-bar').style.display = 'block';
-    [unRecs, unUsers, unMetas].forEach(u => u && u());
+    [unRecs, unUsers, unMetas, unPerdasDash].forEach(u => u && u());
     await signOut(auth);
     // Reload apos inatividade — mesmo motivo do logout manual
     setTimeout(() => window.location.reload(), 2000);
@@ -2694,6 +2694,27 @@ function startListeners(){
     unMetas = onSnapshot(mq, snap=>{
       _metas = snap.docs.map(d=>({id:d.id,...d.data()}));
       renderMetasTable();
+    });
+
+    // Vendas perdidas do mês — consolidado de todos os vendedores da empresa (card do Dashboard)
+    const pdq = isSuperAdmin && cid
+      ? query(collection(db,PERDAS_COLLECTION), where('companyId','==',cid))
+      : isSuperAdmin
+      ? query(collection(db,PERDAS_COLLECTION))
+      : query(collection(db,PERDAS_COLLECTION), where('companyId','==',cid));
+    unPerdasDash = onSnapshot(pdq, snap=>{
+      const rows = [];
+      snap.forEach(docSnap=>{
+        const d = docSnap.data();
+        (d.linhas||[]).forEach(l=>{
+          if(l.data){
+            rows.push({data:l.data, seller:d.seller||'', cliente:l.cliente||'', produtos:l.produtos||'', valor:Number(l.valor)||0});
+          }
+        });
+      });
+      _perdasMesDash = rows;
+      const ap = document.querySelector('.panel.active')?.id;
+      if(ap==='panel-dashboard') renderDashboard(window._dashFiltroUid);
     });
   }
 }
@@ -3652,6 +3673,24 @@ function renderDashboard(filtroUid){
     ? Array(31).fill(Math.round(metaVendedor/31))
     : [];
 
+  // Vendas Perdidas do mes — consolidado de todos os vendedores (Lider/Master/SuperAdmin)
+  const perdasSort = window._perdasDashSort || 'data';
+  const perdasMesRows = _perdasMesDash.filter(r => r.data && r.data.startsWith(mes));
+  const perdasMesTotal = perdasMesRows.reduce((a,b)=>a+(b.valor||0),0);
+  const perdasMesQtd = perdasMesRows.length;
+  const perdasMesOrdenadas = [...perdasMesRows].sort((a,b)=>{
+    if(perdasSort==='vendedor') return (a.seller||'').localeCompare(b.seller||'');
+    if(perdasSort==='valor')    return (b.valor||0)-(a.valor||0);
+    return (b.data||'').localeCompare(a.data||''); // data, mais recente primeiro
+  });
+  const perdasMesRowsHtml = perdasMesOrdenadas.map(r=>`<tr>
+      <td style="padding:6px 4px;border-bottom:1px solid #FED7D7">${fD(r.data)}</td>
+      <td style="padding:6px 4px;border-bottom:1px solid #FED7D7">${r.seller}</td>
+      <td style="padding:6px 4px;border-bottom:1px solid #FED7D7">${r.cliente}</td>
+      <td style="padding:6px 4px;border-bottom:1px solid #FED7D7;color:#566573">${r.produtos}</td>
+      <td style="padding:6px 4px;border-bottom:1px solid #FED7D7;text-align:right">${fC(r.valor)}</td>
+    </tr>`).join('') || `<tr><td colspan="5" style="padding:10px;text-align:center;color:#888">Nenhuma venda perdida registrada em ${mes}</td></tr>`;
+
   $('dash-content').innerHTML=`
     <div class="mgrid" style="margin-bottom:1.25rem">
       <div class="mcard green">
@@ -3711,7 +3750,48 @@ function renderDashboard(filtroUid){
         <div class="chart-title">Contatos por Origem</div>
         <div class="chart-wrap" style="height:180px"><canvas id="ch-orig"></canvas></div>
       </div>
-    </div>`;
+    </div>
+
+    ${(isLider||isSuperAdm)?`
+    <div class="fcard" style="margin-top:.75rem">
+      <div class="fcard-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <span><span class="bar" style="background:#E53E3E"></span>Vendas Perdidas — ${mes}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:#566573;white-space:nowrap">Ordenar por</span>
+          <select id="perdas-dash-sort"
+            onchange="window._perdasDashSort=this.value;window.renderDashboard(window._dashFiltroUid)"
+            style="padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)">
+            <option value="data" ${perdasSort==='data'?'selected':''}>Data</option>
+            <option value="vendedor" ${perdasSort==='vendedor'?'selected':''}>Vendedor</option>
+            <option value="valor" ${perdasSort==='valor'?'selected':''}>Valor</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:.75rem 0">
+        <div class="mcard red">
+          <div class="mcard-label">R$ perdidos no mes</div>
+          <div class="mcard-val" style="font-size:1rem;color:var(--r)">${fC(perdasMesTotal)}</div>
+        </div>
+        <div class="mcard amber">
+          <div class="mcard-label">Quantidade de perdas</div>
+          <div class="mcard-val" style="font-size:1rem;color:var(--a)">${perdasMesQtd}</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+          <thead>
+            <tr style="background:#FFF5F5">
+              <th style="padding:7px 6px;text-align:left;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2;width:90px">Data</th>
+              <th style="padding:7px 6px;text-align:left;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2">Vendedor</th>
+              <th style="padding:7px 6px;text-align:left;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2">Cliente</th>
+              <th style="padding:7px 6px;text-align:left;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2">Produtos</th>
+              <th style="padding:7px 6px;text-align:right;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2;width:100px">Valor (R$)</th>
+            </tr>
+          </thead>
+          <tbody>${perdasMesRowsHtml}</tbody>
+        </table>
+      </div>
+    </div>`:''}`;
 
   setTimeout(()=>{
     // Vendas vs Cotacoes — gráfico de linhas com 31 dias
@@ -5032,7 +5112,7 @@ window.loginAsEmpresa = async function(companyId, code){
   } catch(e){}
 
   // Desconecta listeners atuais
-  [unRecs, unUsers, unMetas].forEach(u => u && u());
+  [unRecs, unUsers, unMetas, unPerdasDash].forEach(u => u && u());
   _recs = []; _users = []; _metas = [];
 
   // Recarrega listeners filtrados pela nova empresa
