@@ -1402,9 +1402,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <ul>
             <li><b>Líder</b> — Cria promoção com nome, canal, responsável, campanha, produtos, validade, valor e uma peça de mídia: <b>imagem</b> (qualquer formato, redimensionada e salva automaticamente) ou <b>vídeo curto</b> (recomendado até ~45s, limite de 25MB; o vídeo é enviado ao Firebase Storage e só a URL é salva na promoção)</li>
             <li><b>Líder</b> — Vê total vendido por promoção e breakdown por vendedor ao expandir o card</li>
-            <li><b>Líder</b> — <b>Interromper campanha</b> — Botão ao lado de "Apagar promoção" pausa a promoção sem excluí-la: ela some da lista do Vendedor e do pop-up de boas-vindas, mas o histórico de vendas registradas continua intacto. O botão vira "Retomar campanha" enquanto pausada, e um selo "⏸ Pausada" aparece no card. Use quando quiser interromper temporariamente uma campanha para retomar depois, sem perder os dados já lançados.</li>
+            <li><b>Líder</b> — <b>Interromper promoção</b> — Botão ao lado de "Apagar promoção" pausa a promoção sem excluí-la: ela some da lista do Vendedor e do pop-up de boas-vindas, mas o histórico de vendas registradas continua intacto. O botão vira "Retomar promoção" enquanto pausada, e um selo "⏸ Pausada" aparece no card. Use quando quiser interromper temporariamente uma promoção para retomar depois, sem perder os dados já lançados.</li>
             <li><b>Assistir à mídia</b> — Nos cards de Promoções (Líder e Vendedor), promoções com imagem mostram a miniatura (clique para ampliar); promoções com vídeo mostram uma miniatura escura com ícone de play — clique para assistir com controles normais, em um modal compartilhado com a visualização de imagem</li>
-            <li><b>Pop-up de boas-vindas</b> — Ao criar a promoção, o Líder pode ativar o toggle "Pop-up de boas-vindas". Promoções marcadas aparecem automaticamente para o Vendedor, uma vez por dia (no primeiro login), mostrando a promoção mais recente e ainda válida com essa marcação. Se for vídeo, o pop-up abre pausado (autoplay com som é bloqueado por navegadores mobile) — o vendedor precisa dar play manualmente, e o botão de fechar (✕) só é liberado depois que o vídeo termina de tocar. Se for imagem, o botão de fechar já aparece normalmente.</li>
+            <li><b>Pop-up de boas-vindas</b> — Ao criar a promoção, o Líder pode ativar o toggle "Pop-up de boas-vindas". Promoções marcadas aparecem automaticamente para Vendedor, Líder e Master, uma vez por dia (no primeiro login), mostrando a promoção mais recente e ainda válida com essa marcação. Se for vídeo, o pop-up abre pausado (autoplay com som é bloqueado por navegadores mobile) — é preciso dar play manualmente, e o botão de fechar (✕) só é liberado depois que o vídeo termina de tocar. Se for imagem, o botão de fechar já aparece normalmente. Se a promoção mais recente tiver imagem e estiver vinculada a uma Campanha com outras promoções (também com imagem) ativas na mesma campanha, até 3 delas aparecem juntas em um carrossel, alternando automaticamente a cada poucos segundos.</li>
             <li><b>Vendedor</b> — Em cada card de promoção ativa, dois campos: <b>"Já registrado hoje"</b> (somente leitura, mostra o total acumulado do dia) e <b>"Nova venda (R$)"</b> (editável, sempre vazio). Cada clique em "Adicionar" soma o valor digitado ao total do dia — não substitui o valor anterior.</li>
             <li><b>Vendedor</b> — Acumulado do período: soma de todos os seus dias desde o início da promoção</li>
             <li><b>Vendedor</b> — <b>Enviar por WhatsApp</b> — Cada card de promoção tem um botão que abre o WhatsApp com uma mensagem já pronta, montada automaticamente a partir do nome, itens, preço e validade da promoção. Se houver imagem, aparece também um botão "Baixar imagem" para anexá-la manualmente na conversa. Vídeo não tem esse botão de anexo automático — o vendedor precisa baixar/compartilhar o vídeo manualmente, pelo mesmo motivo abaixo.
@@ -2614,7 +2614,7 @@ onAuthStateChanged(auth, async user => {
     // ── Módulos Campanhas + Promoções ──────────────────
     window._vapCompanyId = cp.companyId || _companyId || null;
     if (typeof vapIniciarModulos === 'function') vapIniciarModulos();
-    // Pop-up de boas-vindas (só vendedor, 1x/dia)
+    // Pop-up de boas-vindas (vendedor, líder e master, 1x/dia)
     setTimeout(() => { if(window.vapVerificarPopupPromo) window.vapVerificarPopupPromo(); }, 600);
     const tabCamp   = document.getElementById('tab-campanhas');
     const tabPromos = document.getElementById('tab-promocoes');
@@ -5688,7 +5688,7 @@ function _vapRenderPromosPro(promos){
           </div>
           <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
             <button onclick="event.stopPropagation();vapToggleStatusPromo('${p.id}','${p.status==='pausada'?'ativa':'pausada'}')" style="display:flex;align-items:center;gap:5px;background:${p.status==='pausada'?'#DCFCE7':'#FEF3C7'};border:1px solid ${p.status==='pausada'?'#BBF7D0':'#FDE68A'};color:${p.status==='pausada'?'#15803D':'#B45309'};border-radius:var(--rsm);padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">
-              <i class="ti ti-${p.status==='pausada'?'player-play':'player-pause'}" style="font-size:14px"></i> ${p.status==='pausada'?'Retomar campanha':'Interromper campanha'}
+              <i class="ti ti-${p.status==='pausada'?'player-play':'player-pause'}" style="font-size:14px"></i> ${p.status==='pausada'?'Retomar promoção':'Interromper promoção'}
             </button>
             <button onclick="event.stopPropagation();vapApagarPromo('${p.id}')" style="display:flex;align-items:center;gap:5px;background:#FEE2E2;border:1px solid #FECACA;color:#C53030;border-radius:var(--rsm);padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">
               <i class="ti ti-trash" style="font-size:14px"></i> Apagar promoção
@@ -5918,8 +5918,8 @@ window.vapApagarPromo=vapApagarPromo;
 async function vapToggleStatusPromo(id,novoStatus){
   try{
     await updateDoc(doc(db,'promocoes',id),{status:novoStatus});
-    toast(novoStatus==='pausada'?'Campanha interrompida. Ela some da lista dos vendedores até ser retomada.':'Campanha retomada.');
-  }catch(e){console.error('[VAP] toggleStatusPromo:',e);alert('Erro ao atualizar status da campanha.');}
+    toast(novoStatus==='pausada'?'Promoção interrompida. Ela some da lista dos vendedores até ser retomada.':'Promoção retomada.');
+  }catch(e){console.error('[VAP] toggleStatusPromo:',e);alert('Erro ao atualizar status da promoção.');}
 }
 window.vapToggleStatusPromo=vapToggleStatusPromo;
 function vapTogglePromoDetalhe(id){const el=document.getElementById('vap-promo-det-'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
@@ -5937,9 +5937,54 @@ function vapTogglePromoPopup(){
 window.vapTogglePromoPopup=vapTogglePromoPopup;
 
 // ── Pop-up de boas-vindas (Vendedor) — 1x por dia no login ─────────────
+// Carrossel: quando 2+ promoções (com imagem) da mesma campanha estão ativas
+// e marcadas para popup, elas giram automaticamente dentro do mesmo pop-up.
+let _vapPopupCarrosselTimer=null;
+let _vapPopupSlides=[];
+let _vapPopupSlideIdx=0;
+const VAP_POPUP_CARROSSEL_MS=4000; // intervalo de troca entre as imagens
+const VAP_POPUP_CARROSSEL_MAX=3; // máximo de imagens no carrossel do pop-up
+
+function _vapPopupPararCarrossel(){
+  if(_vapPopupCarrosselTimer){clearInterval(_vapPopupCarrosselTimer);_vapPopupCarrosselTimer=null;}
+  _vapPopupSlides=[];_vapPopupSlideIdx=0;
+  const dots=document.getElementById('vap-popup-dots');
+  if(dots){dots.style.display='none';dots.innerHTML='';}
+}
+
+function _vapPopupRenderDots(){
+  const dots=document.getElementById('vap-popup-dots');
+  if(!dots)return;
+  dots.innerHTML=_vapPopupSlides.map((_,i)=>`<span style="
+    display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 3px;
+    background:${i===_vapPopupSlideIdx?'#fff':'rgba(255,255,255,.45)'};
+    box-shadow:0 1px 3px rgba(0,0,0,.4);
+  "></span>`).join('');
+  dots.style.display='block';
+}
+
+function _vapPopupMostrarSlideAtual(){
+  const imgEl=document.getElementById('vap-popup-img');
+  const slide=_vapPopupSlides[_vapPopupSlideIdx];
+  if(!imgEl||!slide)return;
+  imgEl.src=slide.imagemUrl;
+  _vapPopupRenderDots();
+}
+
+function _vapPopupIniciarCarrossel(slides){
+  _vapPopupSlides=slides;
+  _vapPopupSlideIdx=0;
+  _vapPopupMostrarSlideAtual();
+  if(_vapPopupCarrosselTimer)clearInterval(_vapPopupCarrosselTimer);
+  _vapPopupCarrosselTimer=setInterval(()=>{
+    _vapPopupSlideIdx=(_vapPopupSlideIdx+1)%_vapPopupSlides.length;
+    _vapPopupMostrarSlideAtual();
+  },VAP_POPUP_CARROSSEL_MS);
+}
+
 async function vapVerificarPopupPromo(){
   try{
-    if(!cp||cp.role!=='vendedor')return; // só vendedor recebe o pop-up
+    if(!cp||(cp.role!=='vendedor'&&cp.role!=='lider'&&cp.role!=='master'))return; // vendedor, líder e master recebem o pop-up
     const CID=_vapGetCompanyId();if(!CID)return;
     const uid=cu?.uid;if(!uid)return;
 
@@ -5973,6 +6018,29 @@ async function vapVerificarPopupPromo(){
     const subEl=document.getElementById('vap-popup-sub');
     const fecharBtn=document.getElementById('vap-popup-fechar');
     if(!overlay)return;
+
+    _vapPopupPararCarrossel(); // limpa estado de uma eventual exibição anterior
+
+    // Carrossel: só entra nesse modo se a promoção principal já é uma imagem
+    // (não vídeo) vinculada a uma campanha com 2+ promoções com imagem.
+    let slidesCampanha=[];
+    if(promo.imagemUrl && promo.tipoMidia!=='video' && promo.campanha){
+      slidesCampanha=promos
+        .filter(p=>p.campanha===promo.campanha && p.imagemUrl && p.tipoMidia!=='video')
+        .sort((a,b)=>a.criadoEm>b.criadoEm?1:-1)
+        .slice(-VAP_POPUP_CARROSSEL_MAX); // mantém as mais recentes, até o limite
+    }
+
+    if(slidesCampanha.length>1){
+      imgEl.style.display='block';
+      if(videoEl)videoEl.style.display='none';
+      if(noImg)noImg.style.display='none';
+      if(fecharBtn)fecharBtn.style.display='flex';
+      _vapPopupIniciarCarrossel(slidesCampanha);
+      overlay.style.display='flex';
+      localStorage.setItem(chave,hojeStr);
+      return;
+    }
 
     if(promo.tipoMidia==='video' && promo.videoUrl){
       if(videoEl){
@@ -6014,6 +6082,7 @@ function vapFecharPopupPromo(){
   // Só fecha se o botão estiver visível (vídeo já terminou, ou é imagem/texto)
   if(fecharBtn && fecharBtn.style.display==='none')return;
   if(videoEl){videoEl.pause();videoEl.src='';videoEl.onended=null;} // evita áudio continuar tocando escondido
+  _vapPopupPararCarrossel();
   if(overlay)overlay.style.display='none';
 }
 window.vapFecharPopupPromo=vapFecharPopupPromo;
@@ -6801,6 +6870,10 @@ window.vapIniciarModulos=vapIniciarModulos;</script>
       border-radius:12px;object-fit:contain;
       box-shadow:0 8px 32px rgba(0,0,0,.4);
     ">
+    <div id="vap-popup-dots" style="
+      display:none;position:absolute;bottom:14px;left:0;right:0;
+      text-align:center;z-index:2;
+    "></div>
     <video id="vap-popup-video" src="" playsinline controls style="
       display:none;max-width:100%;max-height:92vh;
       border-radius:12px;
