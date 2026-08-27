@@ -568,7 +568,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       <div class="fcard" style="padding:.75rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <div class="field" style="margin:0;flex:1;min-width:160px">
           <label>Data do lançamento</label>
-          <input type="date" id="lancar-data" style="width:100%"/>
+          <div style="position:relative">
+            <input type="date" id="lancar-data" style="width:100%"/>
+            <div id="lancar-data-fmt" style="position:absolute;left:11px;right:32px;top:1.5px;bottom:1.5px;display:flex;align-items:center;font-size:.88rem;color:var(--dark);background:var(--bg);pointer-events:none;border-radius:5px 0 0 5px"></div>
+          </div>
         </div>
         <div style="font-size:.78rem;color:var(--gray);margin-top:18px">
           Editar lançamento anterior? Selecione a data acima. Datas futuras não são permitidas.
@@ -651,32 +654,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div class="ffooter"><button class="btn-save" id="btn-salvar-cotacoes">Registrar Cotações e Pedidos</button></div>
       </div>
 
-      <!-- Top 10 Clientes -->
-      <div class="fcard" id="card-top10-clientes">
-        <div class="fcard-title"><span class="bar" style="background:#805AD5"></span>Top 10 Clientes</div>
-        <div style="overflow-x:auto">
-          <table id="top10-table" style="width:100%;border-collapse:collapse;font-size:.82rem">
-            <thead>
-              <tr style="background:#F0EBF8">
-                <th style="padding:7px 6px;text-align:left;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:28px">#</th>
-                <th style="padding:7px 6px;text-align:left;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA">Cliente</th>
-                <th style="padding:7px 6px;text-align:center;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:72px">Ped. Ant</th>
-                <th style="padding:7px 6px;text-align:center;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:72px">Ped. Hoje</th>
-                <th style="padding:7px 6px;text-align:right;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:90px">Vendas Ant</th>
-                <th style="padding:7px 6px;text-align:right;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:90px">Vendas Hoje</th>
-              </tr>
-            </thead>
-            <tbody id="top10-body">
-              <!-- linhas geradas pelo JS -->
-            </tbody>
-          </table>
-        </div>
-        <div class="ffooter" style="margin-top:1rem;justify-content:space-between">
-          <button class="btn-danger" id="btn-zerar-top10" onclick="window.zerarTop10()">🗑 Zerar Lista</button>
-          <button class="btn-save" id="btn-salvar-top10" onclick="window.salvarTop10()">Salvar Top 10 Clientes</button>
-        </div>
-      </div>
-
       <!-- Relatório das 2 Principais Vendas Perdidas por Dia -->
       <div class="fcard" id="card-perdas-dia">
         <div class="fcard-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
@@ -709,6 +686,32 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <button class="btn-danger" id="btn-zerar-perdas" onclick="window.zerarPerdas()">🗑 Zerar Lista</button>
             <button class="btn-save" id="btn-salvar-perdas" onclick="window.salvarPerdas()">Salvar Vendas Perdidas</button>
           </div>
+        </div>
+      </div>
+
+      <!-- Top 10 Clientes -->
+      <div class="fcard" id="card-top10-clientes">
+        <div class="fcard-title"><span class="bar" style="background:#805AD5"></span>Top 10 Clientes</div>
+        <div style="overflow-x:auto">
+          <table id="top10-table" style="width:100%;border-collapse:collapse;font-size:.82rem">
+            <thead>
+              <tr style="background:#F0EBF8">
+                <th style="padding:7px 6px;text-align:left;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:28px">#</th>
+                <th style="padding:7px 6px;text-align:left;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA">Cliente</th>
+                <th style="padding:7px 6px;text-align:center;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:72px">Ped. Ant</th>
+                <th style="padding:7px 6px;text-align:center;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:72px">Ped. Hoje</th>
+                <th style="padding:7px 6px;text-align:right;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:90px">Vendas Ant</th>
+                <th style="padding:7px 6px;text-align:right;font-weight:700;color:#553C9A;border-bottom:2px solid #D6BCFA;width:90px">Vendas Hoje</th>
+              </tr>
+            </thead>
+            <tbody id="top10-body">
+              <!-- linhas geradas pelo JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="ffooter" style="margin-top:1rem;justify-content:space-between">
+          <button class="btn-danger" id="btn-zerar-top10" onclick="window.zerarTop10()">🗑 Zerar Lista</button>
+          <button class="btn-save" id="btn-salvar-top10" onclick="window.salvarTop10()">Salvar Top 10 Clientes</button>
         </div>
       </div>
     </div>
@@ -2162,7 +2165,26 @@ let unRecs = null, unUsers = null, unMetas = null, unPerdasDash = null;
 // ── Utils ────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const tod = () => new Date().toISOString().slice(0, 10);
+// Exibe a "Data do lançamento" no formato DD/MM/AA sobre o input nativo (que continua em ISO por baixo)
+function atualizarLancarDataFmt(){
+  const el = $('lancar-data'), lbl = $('lancar-data-fmt');
+  if(!el || !lbl) return;
+  const v = el.value; // YYYY-MM-DD
+  if(!v){ lbl.textContent = ''; return; }
+  const [y,m,d] = v.split('-');
+  lbl.textContent = `${d}/${m}/${y.slice(2)}`;
+}
+window.atualizarLancarDataFmt = atualizarLancarDataFmt;
 const thisMes = () => new Date().toISOString().slice(0, 7);
+const MESES_EXTENSO=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+// Formata "YYYY-MM" como "Mês - YYYY" (ex: "2026-08" -> "Agosto - 2026")
+function mesExtenso(mesStr){
+  if(!mesStr) return mesStr;
+  const [y,m] = mesStr.split('-');
+  const idx = parseInt(m,10)-1;
+  if(idx<0||idx>11) return mesStr;
+  return `${MESES_EXTENSO[idx]} - ${y}`;
+}
 const fD = d => { try { const [y, m, dd] = d.split('-'); return `${dd}/${m}/${y}`; } catch { return d; } };
 const fC = v => 'R$\u00a0' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const n0 = v => Number(v) || 0;
@@ -2631,6 +2653,7 @@ onAuthStateChanged(auth, async user => {
     if($('lancar-data')){
       if(!$('lancar-data').value) $('lancar-data').value = tod();
       $('lancar-data').max   = tod(); // bloqueia datas futuras no picker
+      atualizarLancarDataFmt();
     }
     $('meta-mes').value  = thisMes();
     initExpDates();
@@ -2772,6 +2795,7 @@ function fmtValInput(el){
 const lancarDataEl = $('lancar-data');
 if(lancarDataEl){
   lancarDataEl.addEventListener('change', ()=>{
+    atualizarLancarDataFmt();
     renderMetricsDia();
     preencherCamposLancar();
   });
@@ -3681,7 +3705,7 @@ function renderDashboard(filtroUid){
     const sorted=Object.values(sm).sort((a,b)=>b.val-a.val);
     const medals=['🥇','🥈','🥉'],rks=['rk1','rk2','rk3'];
     if(sorted.length){
-      rankHtml=`<div class="chart-card"><div class="chart-title">Ranking do Mes — ${mes}</div>
+      rankHtml=`<div class="chart-card"><div class="chart-title">Ranking do Mês — ${mesExtenso(mes)}</div>
         <div class="rank-list">${sorted.map((s,i)=>{
           const meta=getMetaUser(s.uid);
           const pct=meta>0?Math.min(Math.round(s.val/meta*100),999):0;
@@ -3785,7 +3809,7 @@ function renderDashboard(filtroUid){
     </div>`:''}
 
     <div class="chart-card">
-      <div class="chart-title">Vendas vs. Cotacoes${metaVendedor>0?' vs. Meta':''} — ${mes} (por dia)${(isLider||isSuperAdm)&&window._dashFiltroUid?' · '+(_users.find(u=>u.id===window._dashFiltroUid)?.name||''):''}${(isLider||isSuperAdm)&&!window._dashFiltroUid?' · Todos':''}</div>
+      <div class="chart-title">Vendas vs. Cotações${metaVendedor>0?' vs. Meta':''} — ${mesExtenso(mes)} (por dia)${(isLider||isSuperAdm)&&window._dashFiltroUid?' · '+(_users.find(u=>u.id===window._dashFiltroUid)?.name||''):''}${(isLider||isSuperAdm)&&!window._dashFiltroUid?' · Todos':''}</div>
       <div class="chart-wrap" style="height:220px"><canvas id="ch-ped"></canvas></div>
     </div>
 
@@ -3803,7 +3827,7 @@ function renderDashboard(filtroUid){
     ${(isLider||isSuperAdm)?`
     <div class="fcard" style="margin-top:.75rem">
       <div class="fcard-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <span><span class="bar" style="background:#E53E3E"></span>Vendas Perdidas — ${mes}</span>
+        <span><span class="bar" style="background:#E53E3E"></span>Vendas Perdidas — ${mesExtenso(mes)}</span>
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:12px;color:#566573;white-space:nowrap">Ordenar por</span>
           <select id="perdas-dash-sort"
@@ -4860,6 +4884,7 @@ window.switchTab = tab => {
       // Não reseta ao voltar da aba Histórico ou outras abas
       if(!$('lancar-data').value) $('lancar-data').value = tod();
       $('lancar-data').max = tod();
+      atualizarLancarDataFmt();
     }
     renderMetricsDia();
     preencherCamposLancar(); // carrega valores existentes do dia selecionado
