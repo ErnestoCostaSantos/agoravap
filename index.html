@@ -607,12 +607,45 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         </div>
         <div class="divider"></div>
         <div class="fcard-title" style="margin-bottom:.75rem"><span class="bar" style="background:var(--r)"></span>Cotações Perdidas do Dia</div>
-        <div class="fgrid fg2">
-          <div class="field"><label>Perdas por Preço (R$)</label><input type="text" id="per-preco" inputmode="decimal" placeholder="0,00"/></div>
-          <div class="field"><label>Perdas por Estoque (R$)</label><input type="text" id="per-estoque" inputmode="decimal" placeholder="0,00"/></div>
+
+        <div style="background:#FDF2F0;border-left:3px solid #D85A30;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#1C2833;margin-bottom:8px">Cotações Perdidas do Dia - Carga</div>
+          <div class="fgrid fg3">
+            <div class="field"><label>Perdas por Preço (R$)</label><input type="text" id="per-preco-carga" inputmode="decimal" placeholder="0,00"/></div>
+            <div class="field"><label>Perdas por Estoque (R$)</label><input type="text" id="per-estoque-carga" inputmode="decimal" placeholder="0,00"/></div>
+            <div class="field"><label>Perdas Outras Causas (R$)</label><input type="text" id="per-outras-carga" inputmode="decimal" placeholder="0,00"/></div>
+          </div>
         </div>
+
+        <div style="background:#EEF3FB;border-left:3px solid #378ADD;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#1C2833;margin-bottom:8px">Cotações Perdidas do Dia - Passeio</div>
+          <div class="fgrid fg3">
+            <div class="field"><label>Perdas por Preço (R$)</label><input type="text" id="per-preco-passeio" inputmode="decimal" placeholder="0,00"/></div>
+            <div class="field"><label>Perdas por Estoque (R$)</label><input type="text" id="per-estoque-passeio" inputmode="decimal" placeholder="0,00"/></div>
+            <div class="field"><label>Perdas Outras Causas (R$)</label><input type="text" id="per-outras-passeio" inputmode="decimal" placeholder="0,00"/></div>
+          </div>
+        </div>
+
+        <div style="background:#F1F5EA;border-left:3px solid #639922;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#1C2833;margin-bottom:8px">Cotações Perdidas do Dia - Óleo</div>
+          <div class="fgrid fg3">
+            <div class="field"><label>Perdas por Preço (R$)</label><input type="text" id="per-preco-oleo" inputmode="decimal" placeholder="0,00"/></div>
+            <div class="field"><label>Perdas por Estoque (R$)</label><input type="text" id="per-estoque-oleo" inputmode="decimal" placeholder="0,00"/></div>
+            <div class="field"><label>Perdas Outras Causas (R$)</label><input type="text" id="per-outras-oleo" inputmode="decimal" placeholder="0,00"/></div>
+          </div>
+        </div>
+
+        <div style="background:#FCF6E3;border-left:3px solid #D4AC0D;border-radius:8px;padding:10px 12px;margin-bottom:14px">
+          <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#1C2833;margin-bottom:8px">Cotações Perdidas do Dia - Variadas</div>
+          <div class="fgrid fg3">
+            <div class="field"><label>Perdas por Preço (R$)</label><input type="text" id="per-preco-variadas" inputmode="decimal" placeholder="0,00"/></div>
+            <div class="field"><label>Perdas por Estoque (R$)</label><input type="text" id="per-estoque-variadas" inputmode="decimal" placeholder="0,00"/></div>
+            <div class="field"><label>Perdas Outras Causas (R$)</label><input type="text" id="per-outras-variadas" inputmode="decimal" placeholder="0,00"/></div>
+          </div>
+        </div>
+
         <div class="fgrid fg2">
-          <div class="field"><label>Perdas por Outras Causas (R$)</label><input type="text" id="per-outras" inputmode="decimal" placeholder="0,00"/></div>
+          <div></div>
           <div class="field"><label>Meta Mensal (R$)</label><input type="text" id="meta-mensal-display" placeholder="–" readonly style="background:#F0F4FF;color:#1B4F72;font-weight:700;cursor:default"/></div>
         </div>
         <div class="ffooter"><button class="btn-save" id="btn-salvar-cotacoes">Registrar Cotações e Pedidos</button></div>
@@ -1343,7 +1376,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <ul>
             <li><b>Contatos Efetivos do Dia</b> — Carteira · Prosp. Int. · Vis. Ativos · Vis. Inativos · Prosp. Ext. · Outras Externas · Inválidos</li>
             <li><b>Cotações e Pedidos</b> — Qtd. Cotações · Valor Total (R$) · Qtd. Pedidos · Valor Total dos Pedidos (R$)</li>
-            <li><b>Cotações Perdidas</b> — Perdas por Preço (R$) · Estoque (R$) · Outras Causas (R$)</li>
+            <li><b>Cotações Perdidas</b> — Dividido em 4 grupos (Carga, Passeio, Óleo, Variadas), cada um com Perdas por Preço (R$) · Estoque (R$) · Outras Causas (R$)</li>
             <li><b>Meta Mensal (R$)</b> — Campo somente leitura, exibe a meta do mês cadastrada no módulo Administrativo</li>
             <li><b>Top 10 Clientes</b> — Tabela de 10 linhas com acumulado de pedidos e vendas por cliente. Colunas: Cliente · Ped. Ant · Ped. Hoje · Vendas Ant (R$) · Vendas Hoje (R$). Ao salvar, os valores "Hoje" são somados aos "Ant" e a lista é reordenada por Vendas decrescente. O botão "Zerar Lista" reinicia todos os acumulados.</li>
             <li><b>Relatório das 2 Principais Vendas Perdidas por Dia</b> — Logo abaixo do Top 10 Clientes. O vendedor registra manualmente até 42 linhas com Data (formato DD/MM/AAAA, digitado com máscara automática) · Cliente · Produtos · Venda Perdida (R$), usando o botão "+ Adicionar Linha". Datas futuras são bloqueadas. Ao salvar, a lista é reordenada automaticamente por data (mais recente primeiro) — o mesmo acontece a cada novo login ou troca de dia. O total acumulado em R$ aparece no canto superior direito, atualizado em tempo real. Cada linha pode ser removida individualmente pelo ✕. No fim do mês, use "Zerar Lista" para reiniciar o relatório.</li>
@@ -2744,7 +2777,11 @@ if(lancarDataEl){
   });
 }
 
-['cot-valor','ped-valor','per-preco','per-estoque','per-outras'].forEach(id=>{
+const PER_GRUPOS=['carga','passeio','oleo','variadas'];
+const PER_CAUSAS=['preco','estoque','outras'];
+const PER_IDS=PER_GRUPOS.flatMap(g=>PER_CAUSAS.map(c=>`per-${c}-${g}`));
+
+['cot-valor','ped-valor',...PER_IDS].forEach(id=>{
   const el = $(id); if(!el) return;
   el.placeholder = '0,00';
   el.addEventListener('blur', ()=>fmtValInput(el));
@@ -2758,13 +2795,10 @@ if(lancarDataEl){
 
 // ── Calcula total de perdas automaticamente ────────────────
 function calcTotalPerdas(){
-  const p = parseFloat(($('per-preco').value||'0').replace(',','.')) || 0;
-  const e = parseFloat(($('per-estoque').value||'0').replace(',','.')) || 0;
-  const o = parseFloat(($('per-outras').value||'0').replace(',','.')) || 0;
-  const t = p + e + o;
+  const t = PER_IDS.reduce((a,id)=>a+(parseFloat(($(id)?.value||'0').replace(',','.'))||0),0);
   // per-total field removed — total de perdas não exibido separadamente
 }
-['per-preco','per-estoque','per-outras'].forEach(id=>{
+PER_IDS.forEach(id=>{
   const el=$(id); if(!el) return;
   el.addEventListener('input', calcTotalPerdas);
   el.addEventListener('blur',  ()=>{ fmtValInput(el); calcTotalPerdas(); });
@@ -2794,11 +2828,12 @@ async function preencherCamposLancar(){
     setVal('cot-valor',  recCot.cotValor  || 0);
     setVal('ped-qtd',    recCot.pedQtd    || 0);
     setVal('ped-valor',  recCot.pedValor  || 0);
-    setVal('per-preco',  recCot.perPreco  || 0);
-    setVal('per-estoque',recCot.perEstoque|| 0);
-    setVal('per-outras', recCot.perOutras || 0);
+    PER_IDS.forEach(id=>{
+      const key = 'per' + id.slice(4).split('-').map(s=>s[0].toUpperCase()+s.slice(1)).join('');
+      setVal(id, recCot[key] || 0);
+    });
   } else {
-    ['cot-qtd','cot-valor','ped-qtd','ped-valor','per-preco','per-estoque','per-outras']
+    ['cot-qtd','cot-valor','ped-qtd','ped-valor',...PER_IDS]
       .forEach(id => { const el=$(id); if(el) el.value=''; });
   }
   calcTotalPerdas();
@@ -2865,9 +2900,17 @@ $('btn-salvar-cotacoes').onclick = async () => {
   const cotValor  = pv('cot-valor');
   const pedQtd    = n0($('ped-qtd').value);
   const pedValor  = pv('ped-valor');
-  const perPreco  = pv('per-preco');
-  const perEstoque= pv('per-estoque');
-  const perOutras = pv('per-outras');
+
+  const perGrupos = {};
+  PER_IDS.forEach(id=>{
+    const key = 'per' + id.slice(4).split('-').map(s=>s[0].toUpperCase()+s.slice(1)).join('');
+    perGrupos[key] = pv(id);
+  });
+  // Agregados por causa (soma dos 4 grupos) — mantidos para compatibilidade com
+  // extrato, exportações e relatórios já existentes, que não distinguem grupo.
+  const perPreco   = PER_GRUPOS.reduce((a,g)=>a+perGrupos['perPreco'+g[0].toUpperCase()+g.slice(1)],0);
+  const perEstoque = PER_GRUPOS.reduce((a,g)=>a+perGrupos['perEstoque'+g[0].toUpperCase()+g.slice(1)],0);
+  const perOutras  = PER_GRUPOS.reduce((a,g)=>a+perGrupos['perOutras'+g[0].toUpperCase()+g.slice(1)],0);
   const totalPerdas = perPreco + perEstoque + perOutras;
 
   if(cotQtd===0 && cotValor===0 && pedQtd===0 && pedValor===0){
@@ -2882,7 +2925,7 @@ $('btn-salvar-cotacoes').onclick = async () => {
     const existente = await getRecDia('cotacoes');
     const ts = new Date().toISOString();
     const dadosCot = { cotQtd, cotValor, pedQtd, pedValor,
-                       perPreco, perEstoque, perOutras, totalPerdas, ts };
+                       ...perGrupos, perPreco, perEstoque, perOutras, totalPerdas, ts };
 
     if(existente){
       await updateDoc(doc(db,'records',existente.id), dadosCot);
@@ -2899,7 +2942,7 @@ $('btn-salvar-cotacoes').onclick = async () => {
     return;
   } finally {
     // Limpa campos SEMPRE — independente de erro
-    ['cot-qtd','cot-valor','ped-qtd','ped-valor','per-preco','per-estoque','per-outras']
+    ['cot-qtd','cot-valor','ped-qtd','ped-valor',...PER_IDS]
       .forEach(id=>{ const el=$(id); if(el) el.value=''; });
   }
 
@@ -3611,6 +3654,10 @@ function renderDashboard(filtroUid){
   const perdPreco  =cots.reduce((a,b)=>a+(b.perPreco||0),0);
   const perdEstoque=cots.reduce((a,b)=>a+(b.perEstoque||0),0);
   const perdOutras =cots.reduce((a,b)=>a+(b.perOutras||0),0);
+  const perdGrupoCausa = PER_GRUPOS.flatMap(g=>PER_CAUSAS.map(c=>{
+    const key = 'per' + c[0].toUpperCase()+c.slice(1) + g[0].toUpperCase()+g.slice(1);
+    return { grupo:g, causa:c, valor: cots.reduce((a,b)=>a+(b[key]||0),0) };
+  }));
   const totalPerd  =perdPreco+perdEstoque+perdOutras;
 
   // Meta do vendedor para o mes
@@ -3848,18 +3895,38 @@ function renderDashboard(filtroUid){
       }
     });
 
-    // Motivos de Perda — 3 cores bem contrastantes
+    // Motivos de Perda — 12 fatias: 4 grupos (cor) x 3 causas (tom)
     if(perdPreco+perdEstoque+perdOutras>0){
+      const perdaGrupoLabels={carga:'Carga',passeio:'Passeio',oleo:'Óleo',variadas:'Variadas'};
+      const perdaCausaLabels={preco:'Preço',estoque:'Estoque',outras:'Outras'};
+      const perdaCores={
+        carga:   ['#D85A30','#E8886A','#F0AC94'],
+        passeio: ['#378ADD','#6EA9E6','#A3C7EF'],
+        oleo:    ['#639922','#8CB854','#B4D389'],
+        variadas:['#D4AC0D','#F1C40F','#F7DC6F']
+      };
+      const perdaLabels = perdGrupoCausa.map(d=>`${perdaGrupoLabels[d.grupo]} - ${perdaCausaLabels[d.causa]}`);
+      const perdaData   = perdGrupoCausa.map(d=>d.valor);
+      const perdaBg     = perdGrupoCausa.map(d=>perdaCores[d.grupo][PER_CAUSAS.indexOf(d.causa)]);
       new Chart($('ch-perda'),{
         type:'doughnut',
-        data:{labels:['Preco','Estoque','Outras'],datasets:[{
-          data:[perdPreco,perdEstoque,perdOutras],
-          backgroundColor:['#C0392B','#2980B9','#27AE60'],
-          borderColor:['#fff','#fff','#fff'],
+        data:{labels:perdaLabels,datasets:[{
+          data:perdaData,
+          backgroundColor:perdaBg,
+          borderColor:'#fff',
           borderWidth:2
         }]},
         options:{responsive:true,maintainAspectRatio:false,
-          plugins:{legend:{position:'bottom',labels:{color:'#566573',font:{size:10},boxWidth:10,padding:8}}}}
+          plugins:{legend:{position:'bottom',labels:{
+            color:'#566573',font:{size:10},boxWidth:10,padding:8,
+            generateLabels:c=>PER_GRUPOS.map((g,gi)=>({
+              text:perdaGrupoLabels[g],fillStyle:perdaCores[g][1],strokeStyle:'#fff',lineWidth:1,index:gi
+            }))
+          },onClick:(e,item,legend)=>{
+            const meta=legend.chart.getDatasetMeta(0);
+            for(let i=0;i<3;i++){const idx=item.index*3+i;meta.data[idx].hidden=!meta.data[idx].hidden;}
+            legend.chart.update();
+          }}}}
       });
     } else {
       $('ch-perda').parentElement.innerHTML='<div class="empty" style="padding:2rem 0">Sem perdas no mes</div>';
