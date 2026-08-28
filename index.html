@@ -1377,12 +1377,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h3>2.1 Módulo Lançar</h3>
           <p>Ponto de entrada diário do profissional. Permite registrar contatos, cotações, pedidos e perdas por data selecionável. Datas futuras não são permitidas.</p>
           <ul>
+            <li><b>Data do lançamento</b> — Seletor de calendário; a data selecionada é exibida no formato DD/MM/AA sobre o campo. Editar um lançamento anterior é só selecionar a data acima (datas futuras são bloqueadas).</li>
             <li><b>Contatos Efetivos do Dia</b> — Carteira · Prosp. Int. · Vis. Ativos · Vis. Inativos · Prosp. Ext. · Outras Externas · Inválidos</li>
             <li><b>Cotações e Pedidos</b> — Qtd. Cotações · Valor Total (R$) · Qtd. Pedidos · Valor Total dos Pedidos (R$)</li>
-            <li><b>Cotações Perdidas</b> — Dividido em 4 grupos (Carga, Passeio, Óleo, Variadas), cada um com Perdas por Preço (R$) · Estoque (R$) · Outras Causas (R$)</li>
-            <li><b>Meta Mensal (R$)</b> — Campo somente leitura, exibe a meta do mês cadastrada no módulo Administrativo</li>
+            <li><b>Cotações Perdidas</b> — Dividido em 4 grupos, cada um com uma cor própria para facilitar a leitura (Carga · Passeio · Óleo · Variadas), e em cada grupo os 3 campos lado a lado: Perdas por Preço (R$) · Perdas por Estoque (R$) · Perdas Outras Causas (R$)</li>
+            <li><b>Meta Mensal (R$)</b> — Campo somente leitura, numa linha própria logo antes do botão de registrar; exibe a meta do mês cadastrada no módulo Administrativo</li>
+            <li><b>Relatório das 2 Principais Vendas Perdidas por Dia</b> — Acima do Top 10 Clientes. O vendedor registra manualmente até 42 linhas com Data (formato DD/MM/AAAA, digitado com máscara automática) · Cliente · Produtos · Venda Perdida (R$), usando o botão "+ Adicionar Linha". Datas futuras são bloqueadas. Ao salvar, a lista é reordenada automaticamente por data (mais recente primeiro) — o mesmo acontece a cada novo login ou troca de dia. O total acumulado em R$ aparece no canto superior direito, atualizado em tempo real. Cada linha pode ser removida individualmente pelo ✕. No fim do mês, use "Zerar Lista" para reiniciar o relatório.</li>
             <li><b>Top 10 Clientes</b> — Tabela de 10 linhas com acumulado de pedidos e vendas por cliente. Colunas: Cliente · Ped. Ant · Ped. Hoje · Vendas Ant (R$) · Vendas Hoje (R$). Ao salvar, os valores "Hoje" são somados aos "Ant" e a lista é reordenada por Vendas decrescente. O botão "Zerar Lista" reinicia todos os acumulados.</li>
-            <li><b>Relatório das 2 Principais Vendas Perdidas por Dia</b> — Logo abaixo do Top 10 Clientes. O vendedor registra manualmente até 42 linhas com Data (formato DD/MM/AAAA, digitado com máscara automática) · Cliente · Produtos · Venda Perdida (R$), usando o botão "+ Adicionar Linha". Datas futuras são bloqueadas. Ao salvar, a lista é reordenada automaticamente por data (mais recente primeiro) — o mesmo acontece a cada novo login ou troca de dia. O total acumulado em R$ aparece no canto superior direito, atualizado em tempo real. Cada linha pode ser removida individualmente pelo ✕. No fim do mês, use "Zerar Lista" para reiniciar o relatório.</li>
           </ul>
           <div class="help-tip">Quatro boxes no topo exibem os dados do dia selecionado. Atualizados automaticamente após cada lançamento.</div>
 
@@ -1397,17 +1398,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <div class="help-tip">O botão <b>⚠ Apagar Registros</b> fica à direita da barra para evitar cliques acidentais. Só o perfil <b>Master</b> (e o Super Admin) consegue clicar — para Líder o botão aparece desabilitado (acinzentado). A exclusão sempre respeita os filtros de Mês/Dia/Período, Tipo e Profissional que estiverem aplicados na tela (nunca apaga registros de fora do filtro) e nunca ultrapassa a empresa atual. Ao clicar, a confirmação mostra a quantidade exata de registros e o período que serão apagados.</div>
 
           <h3>2.3 Módulo Dashboard</h3>
-          <p>Consolida os registros do mês atual em KPIs e gráficos em tempo real. Líderes visualizam o ranking completo com barra de progresso.</p>
+          <p>Consolida os registros do mês selecionado em KPIs e gráficos em tempo real. Líderes e Masters visualizam o ranking completo com barra de progresso.</p>
           <ul>
+            <li><b>Seletor de Mês</b> — Dropdown com os últimos 12 meses (mês atual + 11 anteriores), disponível para todos os perfis. Todo o Dashboard (cards, gráficos, ranking e a lista de Vendas Perdidas) passa a refletir o mês escolhido, não só o mês atual.</li>
             <li><b>Vendas do Mês</b> — Quantidade de pedidos + receita total</li>
             <li><b>Pedidos/Cotações</b> — Pedidos ÷ Cotações (R$) × 100</li>
             <li><b>Ticket Médio</b> — Receita total ÷ número de pedidos</li>
-            <li><b>Total Perdido</b> — Soma de todas as perdas do mês</li>
-            <li><b>Filtro por Vendedor</b> — Select dropdown (Líder/SuperAdmin) — filtra os 3 gráficos e 4 cards para um vendedor individual</li>
-            <li><b>Vendas vs. Cotações</b> — Gráfico de linhas com 31 dias e linha de meta tracejada</li>
-            <li><b>Motivos de Perda</b> — Rosca: Preço, Estoque, Outras</li>
+            <li><b>Total Perdido</b> — Soma de todas as perdas do mês selecionado</li>
+            <li><b>Filtro por Vendedor</b> — Select dropdown (Líder/Master/SuperAdmin) — filtra os 3 gráficos, os 4 cards e também a lista de Vendas Perdidas para um vendedor individual</li>
+            <li><b>Vendas vs. Cotações</b> — Gráfico de linhas com 31 dias e linha de meta tracejada; título mostra o mês por extenso (ex: "Agosto - 2026") e o vendedor filtrado, ou "Todos"</li>
+            <li><b>Motivos de Perda</b> — Rosca com 12 fatias: 4 grupos de Cotações Perdidas (Carga, Passeio, Óleo, Variadas), cada um dividido em Preço/Estoque/Outras. As 4 famílias de cor batem com as do card de Lançar; a legenda mostra só os 4 grupos e pode ser clicada para esconder/mostrar um grupo inteiro</li>
             <li><b>Contatos por Origem</b> — Barras horizontais com 7 origens</li>
-            <li><b>Vendas Perdidas</b> (Líder/Master/SuperAdmin) — Listagem consolidada de todos os vendedores da empresa, sempre do mês em curso, com as mesmas colunas do relatório (Data, Vendedor, Cliente, Produtos, Valor). Ordenável por Data, Vendedor ou Valor, com os totais "R$ perdidos no mês" e "Quantidade de perdas" no topo — puxa da mesma lista que cada vendedor já preenche em Lançar &gt; Relatório das 2 Principais Vendas Perdidas por Dia</li>
+            <li><b>Vendas Perdidas</b> (Líder/Master/SuperAdmin) — Listagem do mês selecionado, respeitando também o Filtro por Vendedor, com as mesmas colunas do relatório (Data, Vendedor, Cliente, Produtos, Valor). Ordenável por Data, Vendedor ou Valor, com os totais "R$ perdidos no mês" e "Quantidade de perdas" no topo — puxa da mesma lista que cada vendedor já preenche em Lançar &gt; Relatório das 2 Principais Vendas Perdidas por Dia</li>
+            <li><b>Relatórios (impressão)</b> (Líder/Master/SuperAdmin) — Botão "Relatórios" abre um modal com duas opções: <i>Toda a equipe</i> (KPIs, Ranking do mês, os 3 gráficos, Ranking de Clientes e a lista de Vendas perdidas do mês ordenada do maior valor para o menor) ou <i>Vendedor específico</i> (mesmos KPIs e gráficos, só que daquele vendedor, mais "Vendas x meta" e a lista de vendas perdidas dele, também ordenada por valor). O relatório sempre segue o mês e o vendedor que estiverem selecionados no Dashboard no momento — se um vendedor estiver filtrado, o modal já abre em "Vendedor específico" com ele marcado. O botão "Gerar e imprimir" abre uma nova aba com o relatório pronto para impressão ou salvar como PDF.</li>
           </ul>
 
           <h3>2.4 Módulo Campanhas <span style="font-size:.75rem;background:#FED7D7;color:#9B2C2C;padding:2px 8px;border-radius:10px;margin-left:6px">Líder</span></h3>
