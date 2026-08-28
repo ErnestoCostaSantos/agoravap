@@ -2767,7 +2767,7 @@ function startListeners(){
         const d = docSnap.data();
         (d.linhas||[]).forEach(l=>{
           if(l.data){
-            rows.push({data:l.data, seller:d.seller||'', cliente:l.cliente||'', produtos:l.produtos||'', valor:Number(l.valor)||0});
+            rows.push({data:l.data, uid:d.uid||'', seller:d.seller||'', cliente:l.cliente||'', produtos:l.produtos||'', valor:Number(l.valor)||0});
           }
         });
       });
@@ -3749,7 +3749,7 @@ function renderDashboard(filtroUid){
 
   // Vendas Perdidas do mes — consolidado de todos os vendedores (Lider/Master/SuperAdmin)
   const perdasSort = window._perdasDashSort || 'data';
-  const perdasMesRows = _perdasMesDash.filter(r => r.data && r.data.startsWith(mes));
+  const perdasMesRows = _perdasMesDash.filter(r => r.data && r.data.startsWith(mes) && (!uid_filtro || r.uid===uid_filtro));
   const perdasMesTotal = perdasMesRows.reduce((a,b)=>a+(b.valor||0),0);
   const perdasMesQtd = perdasMesRows.length;
   const perdasMesOrdenadas = [...perdasMesRows].sort((a,b)=>{
@@ -3763,7 +3763,7 @@ function renderDashboard(filtroUid){
       <td style="padding:6px 4px;border-bottom:1px solid #FED7D7">${r.cliente}</td>
       <td style="padding:6px 4px;border-bottom:1px solid #FED7D7;color:#566573">${r.produtos}</td>
       <td style="padding:6px 4px;border-bottom:1px solid #FED7D7;text-align:right">${fC(r.valor)}</td>
-    </tr>`).join('') || `<tr><td colspan="5" style="padding:10px;text-align:center;color:#888">Nenhuma venda perdida registrada em ${mes}</td></tr>`;
+    </tr>`).join('') || `<tr><td colspan="5" style="padding:10px;text-align:center;color:#888">Nenhuma venda perdida registrada em ${mesExtenso(mes)}</td></tr>`;
 
   $('dash-content').innerHTML=`
     <div class="mgrid" style="margin-bottom:1.25rem">
@@ -3839,7 +3839,7 @@ function renderDashboard(filtroUid){
     ${(isLider||isSuperAdm)?`
     <div class="fcard" style="margin-top:.75rem">
       <div class="fcard-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <span><span class="bar" style="background:#E53E3E"></span>Vendas Perdidas — ${mesExtenso(mes)}</span>
+        <span><span class="bar" style="background:#E53E3E"></span>Vendas Perdidas — ${mesExtenso(mes)}${(isLider||isSuperAdm)&&uid_filtro?' · '+(_users.find(u=>u.id===uid_filtro)?.name||''):''}${(isLider||isSuperAdm)&&!uid_filtro?' · Todos':''}</span>
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:12px;color:#566573;white-space:nowrap">Ordenar por</span>
           <select id="perdas-dash-sort"
@@ -4034,41 +4034,90 @@ function _rel7Dias(){
   return out;
 }
 
-// Monta o bloco "vendas x meta" + histórico completo do período de UM vendedor
+// Monta o relatório completo (resumo + gráficos + histórico) de UM vendedor
 function _relBlocoVendedor(uid, sellerName, mes, cid){
   const recsMes = _recs.filter(r=>r.companyId===cid && r.uid===uid && r.date?.startsWith(mes));
   const cots = recsMes.filter(r=>r.tipo==='cotacoes').sort((a,b)=>b.date.localeCompare(a.date));
-  const totPed = cots.reduce((a,b)=>a+(b.pedValor||0),0);
+  const cts  = recsMes.filter(r=>r.tipo==='contatos');
+  const totPedVal = cots.reduce((a,b)=>a+(b.pedValor||0),0);
+  const totPedQtd = cots.reduce((a,b)=>a+(b.pedQtd||0),0);
+  const totCotVal = cots.reduce((a,b)=>a+(b.cotValor||0),0);
+  const conv = totCotVal>0?(totPedVal/totCotVal*100).toFixed(1):'0.0';
+  const ticket = totPedQtd>0?totPedVal/totPedQtd:0;
+  const perdPreco=cots.reduce((a,b)=>a+(b.perPreco||0),0);
+  const perdEstoque=cots.reduce((a,b)=>a+(b.perEstoque||0),0);
+  const perdOutras=cots.reduce((a,b)=>a+(b.perOutras||0),0);
+  const totalPerd = perdPreco+perdEstoque+perdOutras;
+
   const m = _metas.find(x=>x.uid===uid&&x.mes===mes);
   const meta = m ? m.valor : (_users.find(u=>u.id===uid)?.meta||0);
-  const pct = meta>0 ? Math.round(totPed/meta*100) : 0;
+  const pct = meta>0 ? Math.round(totPedVal/meta*100) : 0;
   const metaLinha = meta>0
-    ? `${fC(totPed)} / ${fC(meta)} — ${pct}%`
-    : `${fC(totPed)} (sem meta cadastrada)`;
+    ? `${fC(totPedVal)} / ${fC(meta)} — ${pct}%`
+    : `${fC(totPedVal)} (sem meta cadastrada)`;
 
-  const linhas = cots.map(r=>`<tr>
-      <td style="padding:4px 6px;border-bottom:1px solid #ddd">${fD(r.date)}</td>
-      <td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:right">${r.pedQtd||0}</td>
-      <td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:right">${fC(r.pedValor)}</td>
-      <td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:right">${fC(r.cotValor)}</td>
-      <td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:right;color:#A32D2D">${fC((r.perPreco||0)+(r.perEstoque||0)+(r.perOutras||0))}</td>
-    </tr>`).join('') || `<tr><td colspan="5" style="padding:8px;text-align:center;color:#888">Sem lançamentos no período</td></tr>`;
+  // Séries diárias (31 dias) — mesmos dados do gráfico de linha do Dashboard
+  const dayLabels=[],dayPed=[],dayCot=[];
+  for(let d=1;d<=31;d++){
+    const ds=`${mes}-${String(d).padStart(2,'0')}`;
+    const dr=cots.filter(r=>r.date===ds);
+    dayLabels.push(String(d));
+    dayPed.push(dr.reduce((a,b)=>a+(b.pedValor||0),0));
+    dayCot.push(dr.reduce((a,b)=>a+(b.cotValor||0),0));
+  }
+  const origens=['carteira','prospint','ativos','inativos','prospext','outras','invalidos'];
+  const origLabels=['Carteira','Prosp. Int.','At. Ativos','At. Inativos','Prosp. Ext.','Outras Ext.','Inválidos'];
+  const origVals=origens.map(k=>cts.reduce((a,b)=>a+(b[k]||0),0));
+  const ovNZ=origLabels.filter((_,i)=>origVals[i]>0);
+  const odNZ=origVals.filter(v=>v>0);
+  const coresOrigem=['#1B6CA8','#C0392B','#27AE60','#F39C12','#8E44AD','#16A085','#E67E22'];
+  const coresNZ=origLabels.map((l,i)=>coresOrigem[i]).filter((_,i)=>origVals[i]>0);
 
-  return `<div class="rel-page">
-    <h2 style="font-size:16px;margin:0 0 4px">${sellerName}</h2>
+  const html = `<div class="rel-page">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div>
+        <h1 style="font-size:20px;margin:0 0 2px">${sellerName}</h1>
+        <p style="font-size:12px;margin:0 0 2px">Período: ${_relPeriodoLabel(mes)}</p>
+        <p style="font-size:11px;color:#888;margin:0">Gerado em ${_relAgora()}</p>
+      </div>
+      ${_relLogosHeader()}
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
+      <div style="background:#f7f7f5;border-radius:8px;padding:10px"><div style="font-size:11px;color:#566573">Vendas do mês</div><div style="font-size:16px;font-weight:700;color:#3B6D11">${totPedQtd} · ${fC(totPedVal)}</div></div>
+      <div style="background:#f7f7f5;border-radius:8px;padding:10px"><div style="font-size:11px;color:#566573">Pedidos/Cotações</div><div style="font-size:16px;font-weight:700;color:#854F0B">${conv}%</div></div>
+      <div style="background:#f7f7f5;border-radius:8px;padding:10px"><div style="font-size:11px;color:#566573">Ticket médio</div><div style="font-size:16px;font-weight:700">${fC(Math.round(ticket))}</div></div>
+      <div style="background:#f7f7f5;border-radius:8px;padding:10px"><div style="font-size:11px;color:#566573">Total perdido</div><div style="font-size:16px;font-weight:700;color:#A32D2D">${fC(totalPerd)}</div></div>
+    </div>
+
     <p style="font-size:13px;margin:0 0 14px">Vendas x meta: <b>${metaLinha}</b></p>
-    <p style="font-size:13px;font-weight:600;margin:0 0 6px">Histórico completo do período</p>
-    <table style="width:100%;border-collapse:collapse;font-size:12px">
-      <thead><tr style="color:#566573">
-        <th style="text-align:left;padding:4px 6px">Data</th>
-        <th style="text-align:right;padding:4px 6px">Pedidos</th>
-        <th style="text-align:right;padding:4px 6px">Vendas (R$)</th>
-        <th style="text-align:right;padding:4px 6px">Cotações (R$)</th>
-        <th style="text-align:right;padding:4px 6px">Perdido (R$)</th>
-      </tr></thead>
-      <tbody>${linhas}</tbody>
-    </table>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:18px">
+      <div><div style="font-size:12px;font-weight:600;margin-bottom:6px">Vendas vs. Cotações — ${mesExtenso(mes)} (por dia)</div>
+        <div style="height:180px"><canvas id="rel-ch-ped"></canvas></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+      <div><div style="font-size:12px;font-weight:600;margin-bottom:6px">Motivos de perda</div>
+        <div style="height:160px">${(perdPreco+perdEstoque+perdOutras)>0?'<canvas id="rel-ch-perda"></canvas>':'<div style="color:#888;font-size:12px;padding:2rem 0;text-align:center">Sem perdas no mês</div>'}</div></div>
+      <div><div style="font-size:12px;font-weight:600;margin-bottom:6px">Contatos por origem</div>
+        <div style="height:160px">${odNZ.length?'<canvas id="rel-ch-orig"></canvas>':'<div style="color:#888;font-size:12px;padding:2rem 0;text-align:center">Sem contatos no mês</div>'}</div></div>
+    </div>
   </div>`;
+
+  const chartScript = `
+    new Chart(document.getElementById('rel-ch-ped'),{type:'line',data:{labels:${JSON.stringify(dayLabels)},
+      datasets:[{label:'Pedidos (R$)',data:${JSON.stringify(dayPed)},borderColor:'#1B6CA8',backgroundColor:'rgba(27,108,168,0.08)',borderWidth:2,pointRadius:2,fill:true,tension:0.3},
+                 {label:'Cotações (R$)',data:${JSON.stringify(dayCot)},borderColor:'#F5A623',backgroundColor:'rgba(245,166,35,0.06)',borderWidth:2,pointRadius:2,fill:true,tension:0.3}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},
+        scales:{x:{ticks:{font:{size:8},maxRotation:0}},y:{ticks:{font:{size:9},callback:v=>'R$'+v.toLocaleString('pt-BR')}}}}});
+    ${(perdPreco+perdEstoque+perdOutras)>0?`new Chart(document.getElementById('rel-ch-perda'),{type:'doughnut',
+      data:{labels:['Preço','Estoque','Outras'],datasets:[{data:[${perdPreco},${perdEstoque},${perdOutras}],backgroundColor:['#C0392B','#2980B9','#27AE60'],borderColor:'#fff',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:9},boxWidth:8}}}}});`:''}
+    ${odNZ.length?`new Chart(document.getElementById('rel-ch-orig'),{type:'bar',data:{labels:${JSON.stringify(ovNZ)},datasets:[{data:${JSON.stringify(odNZ)},backgroundColor:${JSON.stringify(coresNZ)},borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}}}});`:''}
+  `;
+
+  return { html, chartScript };
 }
 
 // Logotipos para o cabeçalho do relatório impresso — preencher com data:image/... em base64
@@ -4267,7 +4316,9 @@ window.gerarRelatorio = async function(){
       const uid = $('rel-vendedor-select').value;
       const seller = _users.find(u=>u.id===uid);
       if(!uid || !seller){ toast('Selecione um vendedor.'); btn.disabled=false; btn.textContent='Gerar e imprimir'; return; }
-      bodyHtml = _relBlocoVendedor(uid, seller.name, mes, cid) + REL_RODAPE;
+      const bloco = _relBlocoVendedor(uid, seller.name, mes, cid);
+      bodyHtml = bloco.html + REL_RODAPE;
+      chartScript = bloco.chartScript;
     }
 
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
