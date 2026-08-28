@@ -91,6 +91,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 .nav-tab{flex-shrink:0;padding:13px 18px;font-size:.82rem;font-weight:500;color:var(--gray);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s}
 .nav-tab:hover{color:var(--dark)}
 .nav-tab.active{color:#E53E3E;border-bottom-color:#E53E3E;font-weight:600}
+.nav-tab[data-tab="prospeccao"].active{color:#22C55E;border-bottom-color:#22C55E}
 
 /* ── CONTENT ── */
 .content{max-width:960px;margin:0 auto;padding:1.5rem 1rem 5rem}
@@ -543,6 +544,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
   <div class="nav" id="main-nav">
     <div class="nav-tab active" data-tab="lancar">Lançar</div>
+    <div class="nav-tab" data-tab="prospeccao">Prospecção</div>
     <div class="nav-tab" data-tab="historico">Histórico</div>
     <div class="nav-tab" data-tab="carteira">Carteira</div>
     <div class="nav-tab" data-tab="dashboard">Dashboard</div>
@@ -828,6 +830,72 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div id="cart-resumo" style="margin-top:.5rem;font-size:.8rem;color:var(--gray)"></div>
       </div>
       <div id="cart-list"><div class="loading"><div class="spin"></div> Carregando…</div></div>
+    </div>
+
+    <!-- ════ PROSPECÇÃO ═══════════════════════════════════════ -->
+    <div class="panel" id="panel-prospeccao">
+      <div class="fcard">
+        <div class="fcard-title"><span class="bar" style="background:#22C55E"></span>Nova Prospecção</div>
+        <input type="hidden" id="prosp-id"/>
+        <div class="fgrid fg2">
+          <div class="field"><label>Empresa</label><input type="text" id="prosp-empresa" placeholder="Nome da empresa"/></div>
+          <div class="field"><label>Responsável</label><input type="text" id="prosp-responsavel" placeholder="Nome do responsável"/></div>
+        </div>
+        <div class="fgrid fg2">
+          <div class="field"><label>Segmento</label>
+            <select id="prosp-segmento">
+              <option value="Revenda">Revenda</option>
+              <option value="Centro Automotivo">Centro Automotivo</option>
+              <option value="Transportadora">Transportadora</option>
+              <option value="Posto de Troca">Posto de Troca</option>
+              <option value="Posto de Gasolina">Posto de Gasolina</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+          <div class="field"><label>Telefone</label><input type="text" inputmode="numeric" id="prosp-telefone" placeholder="(XX) XXXXX-XXXX" maxlength="15"/></div>
+        </div>
+        <div class="fgrid fg2">
+          <div class="field"><label>Local na Área de Saturação</label><input type="text" id="prosp-local" placeholder="Ex: Zona Norte, quadra 12"/></div>
+          <div class="field"><label>Resultado</label>
+            <select id="prosp-resultado">
+              <option value="Agendado">Agendado</option>
+              <option value="Sem interesse">Sem interesse</option>
+              <option value="Não atendeu">Não atendeu</option>
+              <option value="Vendeu">Vendeu</option>
+              <option value="Ctto Inválido">Ctto Inválido</option>
+            </select>
+          </div>
+        </div>
+        <div class="fgrid fg2">
+          <div class="field"><label>Próximo Contato</label><input type="text" inputmode="numeric" id="prosp-proximo" placeholder="DD/MM/AAAA" maxlength="10"/></div>
+        </div>
+        <div class="ffooter">
+          <button class="btn-sec" id="btn-prosp-cancel" style="display:none">Cancelar</button>
+          <button class="btn-save" id="btn-prosp-save" style="background:#22C55E">Salvar Prospecção</button>
+        </div>
+      </div>
+
+      <div class="fcard" style="padding:.75rem 1.25rem;margin-bottom:.75rem;display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center">
+        <div><div style="font-size:.72rem;color:var(--gray)">Hoje</div><div id="prosp-total-hoje" style="font-size:1.3rem;font-weight:700;color:#22C55E">0</div></div>
+        <div><div style="font-size:.72rem;color:var(--gray)">Este Mês</div><div id="prosp-total-mes" style="font-size:1.3rem;font-weight:700;color:#22C55E">0</div></div>
+        <div style="flex:1"></div>
+        <div class="ff" id="ff-prosp-vendedor" style="display:none;min-width:150px">
+          <label>Vendedor</label>
+          <select id="prosp-filtro-vendedor" style="width:100%"><option value="">Todos</option></select>
+        </div>
+        <div class="ff" style="min-width:170px">
+          <label>Mês</label>
+          <select id="prosp-filtro-mes" style="width:100%"></select>
+        </div>
+        <button class="btn-sec" id="btn-prosp-pdf">🖨️ Baixar PDF do mês</button>
+      </div>
+
+      <div class="chart-card" id="prosp-chart-card" style="display:none">
+        <div class="chart-title">Resumo do mês por vendedor</div>
+        <canvas id="prosp-ch-resumo" height="220"></canvas>
+      </div>
+
+      <div id="prosp-list"><div class="loading"><div class="spin"></div> Carregando…</div></div>
     </div>
 
     <!-- ════ DASHBOARD ════════════════════════════════════════ -->
@@ -6498,6 +6566,258 @@ function vapIniciarListenerCarteira(){
 }
 window.vapIniciarListenerCarteira = vapIniciarListenerCarteira;
 
+// ══════════════════════════════════════════════════════════
+//  MÓDULO PROSPECÇÃO
+//  (coleção Firestore própria: prospeccoes — não toca em
+//  Cotações/Promoções/Campanhas/Carteira)
+// ══════════════════════════════════════════════════════════
+let _prospLista = [];
+let unProspeccoes = null;
+const PROSP_SEGMENTOS = ['Revenda','Centro Automotivo','Transportadora','Posto de Troca','Posto de Gasolina','Outros'];
+const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Vendeu','Ctto Inválido'];
+const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Vendeu':'#22C55E','Ctto Inválido':'#EF4444'};
+
+function prospNomeVendedor(uid){
+  const u = _users.find(x=>x.id===uid);
+  return u ? u.name : '—';
+}
+
+async function vapProspSalvar(){
+  const CID = _vapGetCompanyId(); if(!CID){ toast('Empresa não identificada.'); return; }
+  const id = $('prosp-id').value;
+  const empresa = $('prosp-empresa').value.trim();
+  const responsavel = $('prosp-responsavel').value.trim();
+  const segmento = $('prosp-segmento').value;
+  const telefone = $('prosp-telefone').value.trim();
+  const local = $('prosp-local').value.trim();
+  const resultado = $('prosp-resultado').value;
+  const proximoBR = $('prosp-proximo').value.trim();
+  if(!empresa){ toast('Informe a empresa.'); return; }
+  let proximoContato = '';
+  if(proximoBR){
+    proximoContato = cartBRtoISO(proximoBR);
+    if(!proximoContato){ toast('Próximo contato inválido. Use o formato DD/MM/AAAA.'); return; }
+  }
+  const payload = {
+    companyId: CID, uid: cu.uid, vendedorNome: cp?.name || cu?.displayName || '—',
+    empresa, responsavel, segmento, telefone, localSaturacao: local, resultado, proximoContato
+  };
+  try{
+    if(id){
+      await updateDoc(doc(db,'prospeccoes',id), payload);
+      toast('Prospecção atualizada!');
+    } else {
+      payload.criadoEm = new Date().toISOString();
+      await addDoc(collection(db,'prospeccoes'), payload);
+      toast('Prospecção registrada!');
+    }
+    vapProspLimparForm();
+  } catch(e){
+    console.error('[Prospecção] salvar:', e);
+    toast('Erro ao salvar prospecção.');
+  }
+}
+window.vapProspSalvar = vapProspSalvar;
+
+function vapProspLimparForm(){
+  $('prosp-id').value=''; $('prosp-empresa').value=''; $('prosp-responsavel').value='';
+  $('prosp-segmento').value=PROSP_SEGMENTOS[0]; $('prosp-telefone').value=''; $('prosp-local').value='';
+  $('prosp-resultado').value=PROSP_RESULTADOS[0]; $('prosp-proximo').value='';
+  $('btn-prosp-cancel').style.display='none';
+  $('btn-prosp-save').textContent='Salvar Prospecção';
+}
+window.vapProspLimparForm = vapProspLimparForm;
+
+function vapProspEditar(id){
+  const p = _prospLista.find(x=>x.id===id); if(!p) return;
+  $('prosp-id').value=p.id; $('prosp-empresa').value=p.empresa||''; $('prosp-responsavel').value=p.responsavel||'';
+  $('prosp-segmento').value=p.segmento||PROSP_SEGMENTOS[0]; $('prosp-telefone').value=p.telefone||'';
+  $('prosp-local').value=p.localSaturacao||''; $('prosp-resultado').value=p.resultado||PROSP_RESULTADOS[0];
+  $('prosp-proximo').value=cartISOtoBR(p.proximoContato||'');
+  $('btn-prosp-cancel').style.display='inline-block';
+  $('btn-prosp-save').textContent='Atualizar Prospecção';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+window.vapProspEditar = vapProspEditar;
+
+async function vapProspApagar(id){
+  if(!confirm('Apagar esta prospecção?')) return;
+  try{ await deleteDoc(doc(db,'prospeccoes',id)); toast('Prospecção apagada.'); }
+  catch(e){ console.error('[Prospecção] apagar:', e); toast('Erro ao apagar.'); }
+}
+window.vapProspApagar = vapProspApagar;
+
+// Listener em tempo real — mesmo escopo de visibilidade da Carteira:
+// vendedor e líder veem só a própria; master/superadmin veem a empresa toda.
+function vapIniciarListenerProspeccao(){
+  const CID = _vapGetCompanyId(); if(!CID) return;
+  if(unProspeccoes){ unProspeccoes(); unProspeccoes = null; }
+  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
+  const q = veTodaEmpresa
+    ? query(collection(db,'prospeccoes'), where('companyId','==',CID))
+    : query(collection(db,'prospeccoes'), where('companyId','==',CID), where('uid','==',cu.uid));
+  unProspeccoes = onSnapshot(q, snap => {
+    _prospLista = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    vapProspAtualizarFiltroMes();
+    vapProspRenderTudo();
+  }, err => {
+    console.error('[Prospecção] Erro no listener:', err);
+    // Se o erro for de índice ausente, o Firestore imprime no console o link para criá-lo.
+  });
+}
+window.vapIniciarListenerProspeccao = vapIniciarListenerProspeccao;
+
+// Select de mês — últimos 12 meses, sempre abre no mês atual (não apaga dados; "zerar" é só a tela)
+function vapProspAtualizarFiltroMes(){
+  const sel = $('prosp-filtro-mes'); if(!sel || sel.dataset.built) return;
+  const hoje = new Date();
+  let opts = '';
+  for(let i=0;i<12;i++){
+    const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
+    const ym = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const label = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+    opts += `<option value="${ym}">${label.charAt(0).toUpperCase()+label.slice(1)}</option>`;
+  }
+  sel.innerHTML = opts;
+  sel.dataset.built = '1';
+  sel.onchange = vapProspRenderTudo;
+}
+
+function vapProspFiltroVendedorPreencher(){
+  const wrap = $('ff-prosp-vendedor'); const sel = $('prosp-filtro-vendedor');
+  if(!wrap || !sel) return;
+  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
+  wrap.style.display = veTodaEmpresa ? 'block' : 'none';
+  if(veTodaEmpresa && !sel.dataset.built){
+    sel.innerHTML = '<option value="">Todos</option>' + _users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+    sel.dataset.built = '1';
+    sel.onchange = vapProspRenderTudo;
+  }
+}
+
+function vapProspListaDoMes(){
+  const ym = $('prosp-filtro-mes')?.value || '';
+  const filtroVend = $('prosp-filtro-vendedor')?.value || '';
+  return _prospLista.filter(p=>{
+    if(ym && !(p.criadoEm||'').startsWith(ym)) return false;
+    if(filtroVend && p.uid!==filtroVend) return false;
+    return true;
+  });
+}
+
+function vapProspRenderTudo(){
+  vapProspFiltroVendedorPreencher();
+  vapProspRenderTotais();
+  vapProspRenderLista();
+  vapProspRenderGrafico();
+}
+
+function vapProspRenderTotais(){
+  const hojeISO = new Date().toISOString().slice(0,10);
+  const hojeQtd = _prospLista.filter(p=>(p.criadoEm||'').startsWith(hojeISO)).length;
+  const mesLista = vapProspListaDoMes();
+  $('prosp-total-hoje').textContent = hojeQtd;
+  $('prosp-total-mes').textContent = mesLista.length;
+}
+
+function vapProspRenderLista(){
+  const el = $('prosp-list'); if(!el) return;
+  const lista = vapProspListaDoMes().slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
+  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
+  if(!lista.length){ el.innerHTML = '<div class="fcard" style="text-align:center;color:var(--gray)">Nenhuma prospecção neste mês.</div>'; return; }
+  el.innerHTML = lista.map(p=>`
+    <div class="fcard" style="padding:.75rem 1.1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:600">${p.empresa||'—'}${veTodaEmpresa?` <span style="font-weight:400;font-size:.72rem;color:var(--gray)">· ${p.vendedorNome||prospNomeVendedor(p.uid)}</span>`:''}</div>
+        <div style="font-size:.78rem;color:var(--gray)">${p.responsavel||'—'} · ${p.segmento||'—'}${p.localSaturacao?' · '+p.localSaturacao:''}</div>
+        ${p.proximoContato?`<div style="font-size:.75rem;color:var(--gray)">Próximo contato: ${cartISOtoBR(p.proximoContato)}</div>`:''}
+      </div>
+      <span class="badge" style="background:${PROSP_CORES[p.resultado]||'#999'}22;color:${PROSP_CORES[p.resultado]||'#666'}">${p.resultado||'—'}</span>
+      <div style="display:flex;gap:6px">
+        ${p.telefone?`<button class="btn-sec" onclick="vapAbrirWppTelefone('${p.telefone}','${(p.responsavel||'').replace(/'/g,"")}')" title="WhatsApp">💬</button>`:''}
+        <button class="btn-sec" onclick="vapProspEditar('${p.id}')">Editar</button>
+        <button class="btn-danger" onclick="vapProspApagar('${p.id}')">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+let _prospChart = null;
+function vapProspRenderGrafico(){
+  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
+  const card = $('prosp-chart-card');
+  if(!card) return;
+  if(!veTodaEmpresa){ card.style.display='none'; return; }
+  const lista = vapProspListaDoMes();
+  if(!lista.length){ card.style.display='none'; return; }
+  card.style.display='block';
+  const porVendedor = {};
+  lista.forEach(p=>{
+    const nome = p.vendedorNome || prospNomeVendedor(p.uid);
+    if(!porVendedor[nome]) porVendedor[nome] = {};
+    porVendedor[nome][p.resultado] = (porVendedor[nome][p.resultado]||0) + 1;
+  });
+  const labels = Object.keys(porVendedor);
+  const datasets = PROSP_RESULTADOS.map(r=>({
+    label: r, backgroundColor: PROSP_CORES[r],
+    data: labels.map(v=>porVendedor[v][r]||0)
+  }));
+  if(_prospChart) _prospChart.destroy();
+  _prospChart = new Chart($('prosp-ch-resumo'), {
+    type:'bar',
+    data:{labels, datasets},
+    options:{
+      indexAxis:'y', responsive:true,
+      scales:{x:{stacked:true, beginAtZero:true, ticks:{precision:0}}, y:{stacked:true}},
+      plugins:{legend:{position:'bottom'}}
+    }
+  });
+}
+
+// PDF do mês — impressão do navegador, sem lib nova
+function vapProspBaixarPDF(){
+  const lista = vapProspListaDoMes();
+  const ym = $('prosp-filtro-mes')?.value || '';
+  const label = $('prosp-filtro-mes')?.selectedOptions?.[0]?.textContent || ym;
+  const linhas = lista.map(p=>`
+    <tr>
+      <td>${p.empresa||''}</td><td>${p.responsavel||''}</td><td>${p.segmento||''}</td>
+      <td>${p.telefone||''}</td><td>${p.localSaturacao||''}</td><td>${p.resultado||''}</td>
+      <td>${cartISOtoBR(p.proximoContato||'')}</td>
+      <td>${p.vendedorNome||prospNomeVendedor(p.uid)}</td>
+    </tr>`).join('');
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html><head><title>Prospecção — ${label}</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:20px}
+      h1{font-size:18px}
+      table{width:100%;border-collapse:collapse;font-size:11px}
+      th,td{border:1px solid #ccc;padding:4px 6px;text-align:left}
+      th{background:#f2f2f2}
+    </style></head><body>
+    <h1>Relatório de Prospecção — ${label}</h1>
+    <p>Total de prospecções: ${lista.length}</p>
+    <table><thead><tr>
+      <th>Empresa</th><th>Responsável</th><th>Segmento</th><th>Telefone</th>
+      <th>Local</th><th>Resultado</th><th>Próximo Contato</th><th>Vendedor</th>
+    </tr></thead><tbody>${linhas}</tbody></table>
+    </body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(()=>win.print(), 400);
+}
+window.vapProspBaixarPDF = vapProspBaixarPDF;
+
+function vapInitProspeccaoUI(){
+  $('btn-prosp-save') && ($('btn-prosp-save').onclick = vapProspSalvar);
+  $('btn-prosp-cancel') && ($('btn-prosp-cancel').onclick = vapProspLimparForm);
+  $('btn-prosp-pdf') && ($('btn-prosp-pdf').onclick = vapProspBaixarPDF);
+  $('prosp-proximo') && ($('prosp-proximo').oninput = () => window.cartDataMask($('prosp-proximo')));
+  $('prosp-telefone') && ($('prosp-telefone').oninput = () => cartMaskTelefone($('prosp-telefone')));
+}
+window.vapInitProspeccaoUI = vapInitProspeccaoUI;
+
 // ── Renderização da lista/tabela com filtros ────────────────
 function renderCarteiraLista(){
   const wrap = $('cart-list'); if(!wrap) return;
@@ -7057,7 +7377,7 @@ async function vapToggleLetreiro(){
 window.vapToggleLetreiro = vapToggleLetreiro;
 document.getElementById('btn-letreiro-toggle')?.addEventListener('click', vapToggleLetreiro);
 
-function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();vapIniciarListenerCarteira();vapIniciarListenerLetreiro();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
+function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();vapIniciarListenerCarteira();vapIniciarListenerLetreiro();vapInitProspeccaoUI();vapIniciarListenerProspeccao();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
 window.vapIniciarModulos=vapIniciarModulos;</script>
 
 <!-- ══ POP-UP PROMOCIONAL — Boas-vindas Vendedor ═══════════════════════ -->
