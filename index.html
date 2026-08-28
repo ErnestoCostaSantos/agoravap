@@ -2185,6 +2185,7 @@ function mesExtenso(mesStr){
   if(idx<0||idx>11) return mesStr;
   return `${MESES_EXTENSO[idx]} - ${y}`;
 }
+window.mesExtenso = mesExtenso; // exposto para testar formatos de mês no Console do navegador
 const fD = d => { try { const [y, m, dd] = d.split('-'); return `${dd}/${m}/${y}`; } catch { return d; } };
 const fC = v => 'R$\u00a0' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const n0 = v => Number(v) || 0;
@@ -3638,7 +3639,7 @@ function renderDashboard(filtroUid){
   const isLider=cp?.role==='lider' || cp?.role==='master';
   const isSuperAdm=cp?.role==='superadmin';
   const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
-  const mes=thisMes();
+  const mes = window._dashFiltroMes || thisMes();
   // Filtra registros pela empresa ativa
   let recs;
   if(isSuperAdm && _companyId){
@@ -3789,9 +3790,19 @@ function renderDashboard(filtroUid){
 
     ${rankHtml}
 
-    ${(isLider||isSuperAdm)?`
     <div class="fcard" style="padding:.6rem 1rem;margin-bottom:.75rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span style="font-size:12px;font-weight:600;color:#566573;white-space:nowrap">Filtrar por vendedor:</span>
+      <span style="font-size:12px;font-weight:600;color:#566573;white-space:nowrap">Mês:</span>
+      <select id="dash-filtro-mes"
+        style="padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)"
+        onchange="window._dashFiltroMes=this.value;if(window.renderDashboard)window.renderDashboard(window._dashFiltroUid||'')">
+        ${Array.from({length:12},(_,i)=>{
+          const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-i);
+          const ym=d.toISOString().slice(0,7);
+          return `<option value="${ym}" ${mes===ym?'selected':''}>${mesExtenso(ym)}</option>`;
+        }).join('')}
+      </select>
+      ${(isLider||isSuperAdm)?`
+      <span style="font-size:12px;font-weight:600;color:#566573;white-space:nowrap">Vendedor:</span>
       <select id="dash-filtro-vendedor"
         style="flex:1;min-width:160px;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)"
         onchange="window._dashFiltroUid=this.value;if(window.renderDashboard)window.renderDashboard(this.value)">
@@ -3805,8 +3816,8 @@ function renderDashboard(filtroUid){
       <button onclick="window.abrirRelatorios&&window.abrirRelatorios()"
         style="padding:5px 12px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--white);font-size:11px;font-weight:600;cursor:pointer;color:#185FA5;white-space:nowrap">
         <i class="ti ti-printer"></i> Relatórios
-      </button>
-    </div>`:''}
+      </button>`:''}
+    </div>
 
     <div class="chart-card">
       <div class="chart-title">Vendas vs. Cotações${metaVendedor>0?' vs. Meta':''} — ${mesExtenso(mes)} (por dia)${(isLider||isSuperAdm)&&window._dashFiltroUid?' · '+(_users.find(u=>u.id===window._dashFiltroUid)?.name||''):''}${(isLider||isSuperAdm)&&!window._dashFiltroUid?' · Todos':''}</div>
