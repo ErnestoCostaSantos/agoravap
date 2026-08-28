@@ -4035,7 +4035,7 @@ function _rel7Dias(){
 }
 
 // Monta o relatório completo (resumo + gráficos + histórico) de UM vendedor
-function _relBlocoVendedor(uid, sellerName, mes, cid){
+function _relBlocoVendedor(uid, sellerName, mes, cid, linhasPerdas){
   const recsMes = _recs.filter(r=>r.companyId===cid && r.uid===uid && r.date?.startsWith(mes));
   const cots = recsMes.filter(r=>r.tipo==='cotacoes').sort((a,b)=>b.date.localeCompare(a.date));
   const cts  = recsMes.filter(r=>r.tipo==='contatos');
@@ -4073,6 +4073,14 @@ function _relBlocoVendedor(uid, sellerName, mes, cid){
   const coresOrigem=['#1B6CA8','#C0392B','#27AE60','#F39C12','#8E44AD','#16A085','#E67E22'];
   const coresNZ=origLabels.map((l,i)=>coresOrigem[i]).filter((_,i)=>origVals[i]>0);
 
+  // Vendas perdidas do vendedor — já vem ordenada do maior para o menor valor
+  const perdasRowsHtml = (linhasPerdas||[]).map(l=>`<tr>
+      <td style="padding:4px 6px;border-bottom:1px solid #ddd">${fD(l.data)}</td>
+      <td style="padding:4px 6px;border-bottom:1px solid #ddd">${l.cliente}</td>
+      <td style="padding:4px 6px;border-bottom:1px solid #ddd">${l.produtos}</td>
+      <td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:right;color:#A32D2D">${fC(l.valor)}</td>
+    </tr>`).join('') || `<tr><td colspan="4" style="padding:8px;text-align:center;color:#888">Nenhuma venda perdida registrada em ${mesExtenso(mes)}</td></tr>`;
+
   const html = `<div class="rel-page">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
       <div>
@@ -4102,6 +4110,17 @@ function _relBlocoVendedor(uid, sellerName, mes, cid){
       <div><div style="font-size:12px;font-weight:600;margin-bottom:6px">Contatos por origem</div>
         <div style="height:160px">${odNZ.length?'<canvas id="rel-ch-orig"></canvas>':'<div style="color:#888;font-size:12px;padding:2rem 0;text-align:center">Sem contatos no mês</div>'}</div></div>
     </div>
+
+    <p style="font-size:13px;font-weight:600;margin:0 0 6px">Vendas perdidas — ${mesExtenso(mes)}</p>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="color:#566573">
+        <th style="text-align:left;padding:4px 6px">Data</th>
+        <th style="text-align:left;padding:4px 6px">Cliente</th>
+        <th style="text-align:left;padding:4px 6px">Produtos</th>
+        <th style="text-align:right;padding:4px 6px">Valor</th>
+      </tr></thead>
+      <tbody>${perdasRowsHtml}</tbody>
+    </table>
   </div>`;
 
   const chartScript = `
@@ -4316,7 +4335,23 @@ window.gerarRelatorio = async function(){
       const uid = $('rel-vendedor-select').value;
       const seller = _users.find(u=>u.id===uid);
       if(!uid || !seller){ toast('Selecione um vendedor.'); btn.disabled=false; btn.textContent='Gerar e imprimir'; return; }
-      const bloco = _relBlocoVendedor(uid, seller.name, mes, cid);
+
+      // Vendas perdidas do vendedor no mês — doc é indexado por companyId_uid
+      let linhasPerdasVendedor = [];
+      try{
+        const snapP = await getDoc(doc(db,'vendas_perdidas_dia', `${cid}_${uid}`));
+        if(snapP.exists()){
+          const d = snapP.data();
+          (d.linhas||[]).forEach(l=>{
+            if(l.data && l.data.startsWith(mes)){
+              linhasPerdasVendedor.push({data:l.data, cliente:l.cliente||'', produtos:l.produtos||'', valor:Number(l.valor)||0});
+            }
+          });
+        }
+      }catch(e){ /* segue sem a lista se a consulta falhar */ }
+      linhasPerdasVendedor.sort((a,b)=>b.valor-a.valor);
+
+      const bloco = _relBlocoVendedor(uid, seller.name, mes, cid, linhasPerdasVendedor);
       bodyHtml = bloco.html + REL_RODAPE;
       chartScript = bloco.chartScript;
     }
