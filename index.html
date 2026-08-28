@@ -1823,6 +1823,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 <div class="modal-ov" id="modal-relatorios">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr"><div class="modal-title">Relatórios</div><button class="btn-close" id="rel-close">×</button></div>
+    <div id="rel-mes-info" style="font-size:.78rem;color:var(--gray);margin:-.25rem 0 .75rem"></div>
     <div class="fgrid fg1" style="margin-bottom:.5rem">
       <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer">
         <input type="radio" name="rel-tipo" id="rel-tipo-equipe" checked style="width:16px;height:16px">
@@ -3996,6 +3997,8 @@ window.abrirRelatorios = function(){
   const sel = $('rel-vendedor-select');
   sel.innerHTML = _users.filter(u=>u.companyId===cid && u.role!=='superadmin')
     .map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+  const mesRel = window._dashFiltroMes || thisMes();
+  if($('rel-mes-info')) $('rel-mes-info').textContent = `Referente a: ${mesExtenso(mesRel)} (mesmo mês selecionado no Dashboard)`;
   $('modal-relatorios').classList.add('open');
 };
 $('rel-close').onclick  = () => $('modal-relatorios').classList.remove('open');
@@ -4083,7 +4086,7 @@ window.gerarRelatorio = async function(){
     const isLider = cp?.role==='lider' || cp?.role==='master';
     const isSuperAdm = cp?.role==='superadmin';
     const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
-    const mes = thisMes();
+    const mes = window._dashFiltroMes || thisMes();
     const modoEquipe = $('rel-tipo-equipe').checked;
 
     let bodyHtml = '';
@@ -4206,7 +4209,7 @@ window.gerarRelatorio = async function(){
         </table>
 
         <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:18px">
-          <div><div style="font-size:12px;font-weight:600;margin-bottom:6px">Vendas vs. Cotações — ${mes} (por dia)</div>
+          <div><div style="font-size:12px;font-weight:600;margin-bottom:6px">Vendas vs. Cotações — ${mesExtenso(mes)} (por dia)</div>
             <div style="height:180px"><canvas id="rel-ch-ped"></canvas></div></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
