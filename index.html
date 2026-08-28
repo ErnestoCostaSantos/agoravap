@@ -834,64 +834,40 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
     <!-- ════ PROSPECÇÃO ═══════════════════════════════════════ -->
     <div class="panel" id="panel-prospeccao">
-      <div class="fcard">
-        <div class="fcard-title"><span class="bar" style="background:#22C55E"></span>Nova Prospecção</div>
-        <input type="hidden" id="prosp-id"/>
-        <div class="fgrid fg2">
-          <div class="field"><label>Empresa</label><input type="text" id="prosp-empresa" placeholder="Nome da empresa"/></div>
-          <div class="field"><label>Responsável</label><input type="text" id="prosp-responsavel" placeholder="Nome do responsável"/></div>
-        </div>
-        <div class="fgrid fg2">
-          <div class="field"><label>Segmento</label>
-            <select id="prosp-segmento">
-              <option value="Revenda">Revenda</option>
-              <option value="Centro Automotivo">Centro Automotivo</option>
-              <option value="Transportadora">Transportadora</option>
-              <option value="Posto de Troca">Posto de Troca</option>
-              <option value="Posto de Gasolina">Posto de Gasolina</option>
-              <option value="Outros">Outros</option>
-            </select>
+      <div class="fcard" style="padding:1rem 1.25rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:.75rem">
+          <div class="fcard-title" style="margin:0"><span class="bar" style="background:#22C55E"></span>Prospecção</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-sec" id="btn-prosp-pdf">🖨️ Baixar PDF do mês</button>
+            <button class="btn-save" id="btn-prosp-add" style="background:#22C55E">+ Nova Prospecção</button>
           </div>
-          <div class="field"><label>Telefone</label><input type="text" inputmode="numeric" id="prosp-telefone" placeholder="(XX) XXXXX-XXXX" maxlength="15"/></div>
         </div>
-        <div class="fgrid fg2">
-          <div class="field"><label>Local na Área de Saturação</label><input type="text" id="prosp-local" placeholder="Ex: Zona Norte, quadra 12"/></div>
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+          <div><div style="font-size:.72rem;color:var(--gray)">Hoje</div><div id="prosp-total-hoje" style="font-size:1.3rem;font-weight:700;color:#22C55E">0</div></div>
+          <div><div style="font-size:.72rem;color:var(--gray)">Este Mês</div><div id="prosp-total-mes" style="font-size:1.3rem;font-weight:700;color:#22C55E">0</div></div>
+        </div>
+        <div class="fgrid fg3">
+          <div class="field"><label>Mês</label><select id="prosp-filtro-mes" style="width:100%"></select></div>
           <div class="field"><label>Resultado</label>
-            <select id="prosp-resultado">
+            <select id="prosp-filtro-resultado" style="width:100%">
+              <option value="">Todos os resultados</option>
               <option value="Agendado">Agendado</option>
               <option value="Sem interesse">Sem interesse</option>
               <option value="Não atendeu">Não atendeu</option>
+              <option value="Fez Cotação">Fez Cotação</option>
               <option value="Vendeu">Vendeu</option>
               <option value="Ctto Inválido">Ctto Inválido</option>
             </select>
           </div>
+          <div class="field" id="ff-prosp-vendedor" style="display:none">
+            <label>Vendedor</label>
+            <select id="prosp-filtro-vendedor" style="width:100%"><option value="">Todos os vendedores</option></select>
+          </div>
         </div>
-        <div class="fgrid fg2">
-          <div class="field"><label>Próximo Contato</label><input type="text" inputmode="numeric" id="prosp-proximo" placeholder="DD/MM/AAAA" maxlength="10"/></div>
-        </div>
-        <div class="ffooter">
-          <button class="btn-sec" id="btn-prosp-cancel" style="display:none">Cancelar</button>
-          <button class="btn-save" id="btn-prosp-save" style="background:#22C55E">Salvar Prospecção</button>
-        </div>
-      </div>
-
-      <div class="fcard" style="padding:.75rem 1.25rem;margin-bottom:.75rem;display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center">
-        <div><div style="font-size:.72rem;color:var(--gray)">Hoje</div><div id="prosp-total-hoje" style="font-size:1.3rem;font-weight:700;color:#22C55E">0</div></div>
-        <div><div style="font-size:.72rem;color:var(--gray)">Este Mês</div><div id="prosp-total-mes" style="font-size:1.3rem;font-weight:700;color:#22C55E">0</div></div>
-        <div style="flex:1"></div>
-        <div class="ff" id="ff-prosp-vendedor" style="display:none;min-width:150px">
-          <label>Vendedor</label>
-          <select id="prosp-filtro-vendedor" style="width:100%"><option value="">Todos</option></select>
-        </div>
-        <div class="ff" style="min-width:170px">
-          <label>Mês</label>
-          <select id="prosp-filtro-mes" style="width:100%"></select>
-        </div>
-        <button class="btn-sec" id="btn-prosp-pdf">🖨️ Baixar PDF do mês</button>
       </div>
 
       <div class="chart-card" id="prosp-chart-card" style="display:none">
-        <div class="chart-title">Resumo do mês por vendedor</div>
+        <div class="chart-title">Prospecção do Mês por Vendedor</div>
         <canvas id="prosp-ch-resumo" height="220"></canvas>
       </div>
 
@@ -1960,6 +1936,48 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     <input type="hidden" id="cart-cli-id"/>
     <input type="hidden" id="cart-cli-origem"/>
     <div class="ffooter"><button class="btn-sec" id="cart-cli-cancel">Cancelar</button><button class="btn-save" id="cart-cli-save">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL Prospecção — Nova/Editar -->
+<div class="modal-ov" id="modal-prospeccao">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr"><div class="modal-title" id="prosp-modal-title">Nova Prospecção</div><button class="btn-close" id="prosp-modal-close">×</button></div>
+    <input type="hidden" id="prosp-id"/>
+    <div class="fgrid fg2">
+      <div class="field"><label>Empresa *</label><input type="text" id="prosp-empresa" placeholder="Nome da empresa" style="width:100%"/></div>
+      <div class="field"><label>Responsável</label><input type="text" id="prosp-responsavel" placeholder="Nome do responsável" style="width:100%"/></div>
+    </div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Segmento</label>
+        <select id="prosp-segmento" style="width:100%">
+          <option value="Revenda">Revenda</option>
+          <option value="Centro Automotivo">Centro Automotivo</option>
+          <option value="Transportadora">Transportadora</option>
+          <option value="Posto de Troca">Posto de Troca</option>
+          <option value="Posto de Gasolina">Posto de Gasolina</option>
+          <option value="Outros">Outros</option>
+        </select>
+      </div>
+      <div class="field"><label>Telefone</label><input type="text" inputmode="numeric" id="prosp-telefone" placeholder="(XX) XXXXX-XXXX" maxlength="15" style="width:100%"/></div>
+    </div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Local na Área de Saturação</label><input type="text" id="prosp-local" placeholder="Ex: Zona Norte, quadra 12" style="width:100%"/></div>
+      <div class="field"><label>Resultado</label>
+        <select id="prosp-resultado" style="width:100%">
+          <option value="Agendado">Agendado</option>
+          <option value="Sem interesse">Sem interesse</option>
+          <option value="Não atendeu">Não atendeu</option>
+          <option value="Fez Cotação">Fez Cotação</option>
+          <option value="Vendeu">Vendeu</option>
+          <option value="Ctto Inválido">Ctto Inválido</option>
+        </select>
+      </div>
+    </div>
+    <div class="fgrid fg1">
+      <div class="field"><label>Próximo Contato</label><input type="text" inputmode="numeric" id="prosp-proximo" placeholder="DD/MM/AAAA" maxlength="10" style="width:100%"/></div>
+    </div>
+    <div class="ffooter"><button class="btn-sec" id="prosp-modal-cancel">Cancelar</button><button class="btn-save" id="btn-prosp-save" style="background:#22C55E">Salvar Prospecção</button></div>
   </div>
 </div>
 
@@ -6574,12 +6592,18 @@ window.vapIniciarListenerCarteira = vapIniciarListenerCarteira;
 let _prospLista = [];
 let unProspeccoes = null;
 const PROSP_SEGMENTOS = ['Revenda','Centro Automotivo','Transportadora','Posto de Troca','Posto de Gasolina','Outros'];
-const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Vendeu','Ctto Inválido'];
-const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Vendeu':'#22C55E','Ctto Inválido':'#EF4444'};
+const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido'];
+const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444'};
 
 function prospNomeVendedor(uid){
   const u = _users.find(x=>x.id===uid);
   return u ? u.name : '—';
+}
+
+// Visão "gestora" da Prospecção: Líder, Master e SuperAdmin veem a empresa toda
+// (diferente da Carteira de Clientes, onde o Líder fica restrito à própria — decisão específica para este módulo)
+function prospEhGestor(){
+  return cp?.role==='lider' || cp?.role==='master' || cp?.role==='superadmin';
 }
 
 async function vapProspSalvar(){
@@ -6611,6 +6635,7 @@ async function vapProspSalvar(){
       await addDoc(collection(db,'prospeccoes'), payload);
       toast('Prospecção registrada!');
     }
+    closeModal('modal-prospeccao');
     vapProspLimparForm();
   } catch(e){
     console.error('[Prospecção] salvar:', e);
@@ -6623,10 +6648,16 @@ function vapProspLimparForm(){
   $('prosp-id').value=''; $('prosp-empresa').value=''; $('prosp-responsavel').value='';
   $('prosp-segmento').value=PROSP_SEGMENTOS[0]; $('prosp-telefone').value=''; $('prosp-local').value='';
   $('prosp-resultado').value=PROSP_RESULTADOS[0]; $('prosp-proximo').value='';
-  $('btn-prosp-cancel').style.display='none';
+  $('prosp-modal-title').textContent='Nova Prospecção';
   $('btn-prosp-save').textContent='Salvar Prospecção';
 }
 window.vapProspLimparForm = vapProspLimparForm;
+
+function vapProspAbrirNovo(){
+  vapProspLimparForm();
+  openModal('modal-prospeccao');
+}
+window.vapProspAbrirNovo = vapProspAbrirNovo;
 
 function vapProspEditar(id){
   const p = _prospLista.find(x=>x.id===id); if(!p) return;
@@ -6634,9 +6665,9 @@ function vapProspEditar(id){
   $('prosp-segmento').value=p.segmento||PROSP_SEGMENTOS[0]; $('prosp-telefone').value=p.telefone||'';
   $('prosp-local').value=p.localSaturacao||''; $('prosp-resultado').value=p.resultado||PROSP_RESULTADOS[0];
   $('prosp-proximo').value=cartISOtoBR(p.proximoContato||'');
-  $('btn-prosp-cancel').style.display='inline-block';
+  $('prosp-modal-title').textContent='Editar Prospecção';
   $('btn-prosp-save').textContent='Atualizar Prospecção';
-  window.scrollTo({top:0,behavior:'smooth'});
+  openModal('modal-prospeccao');
 }
 window.vapProspEditar = vapProspEditar;
 
@@ -6647,12 +6678,11 @@ async function vapProspApagar(id){
 }
 window.vapProspApagar = vapProspApagar;
 
-// Listener em tempo real — mesmo escopo de visibilidade da Carteira:
-// vendedor e líder veem só a própria; master/superadmin veem a empresa toda.
+// Listener em tempo real — Líder/Master/SuperAdmin veem a empresa toda; vendedor vê só a própria.
 function vapIniciarListenerProspeccao(){
   const CID = _vapGetCompanyId(); if(!CID) return;
   if(unProspeccoes){ unProspeccoes(); unProspeccoes = null; }
-  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
+  const veTodaEmpresa = prospEhGestor();
   const q = veTodaEmpresa
     ? query(collection(db,'prospeccoes'), where('companyId','==',CID))
     : query(collection(db,'prospeccoes'), where('companyId','==',CID), where('uid','==',cu.uid));
@@ -6686,10 +6716,10 @@ function vapProspAtualizarFiltroMes(){
 function vapProspFiltroVendedorPreencher(){
   const wrap = $('ff-prosp-vendedor'); const sel = $('prosp-filtro-vendedor');
   if(!wrap || !sel) return;
-  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
+  const veTodaEmpresa = prospEhGestor();
   wrap.style.display = veTodaEmpresa ? 'block' : 'none';
   if(veTodaEmpresa && !sel.dataset.built){
-    sel.innerHTML = '<option value="">Todos</option>' + _users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+    sel.innerHTML = '<option value="">Todos os vendedores</option>' + _users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
     sel.dataset.built = '1';
     sel.onchange = vapProspRenderTudo;
   }
@@ -6698,9 +6728,11 @@ function vapProspFiltroVendedorPreencher(){
 function vapProspListaDoMes(){
   const ym = $('prosp-filtro-mes')?.value || '';
   const filtroVend = $('prosp-filtro-vendedor')?.value || '';
+  const filtroResultado = $('prosp-filtro-resultado')?.value || '';
   return _prospLista.filter(p=>{
     if(ym && !(p.criadoEm||'').startsWith(ym)) return false;
     if(filtroVend && p.uid!==filtroVend) return false;
+    if(filtroResultado && p.resultado!==filtroResultado) return false;
     return true;
   });
 }
@@ -6723,7 +6755,7 @@ function vapProspRenderTotais(){
 function vapProspRenderLista(){
   const el = $('prosp-list'); if(!el) return;
   const lista = vapProspListaDoMes().slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
-  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
+  const veTodaEmpresa = prospEhGestor();
   if(!lista.length){ el.innerHTML = '<div class="fcard" style="text-align:center;color:var(--gray)">Nenhuma prospecção neste mês.</div>'; return; }
   el.innerHTML = lista.map(p=>`
     <div class="fcard" style="padding:.75rem 1.1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
@@ -6744,7 +6776,7 @@ function vapProspRenderLista(){
 
 let _prospChart = null;
 function vapProspRenderGrafico(){
-  const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
+  const veTodaEmpresa = prospEhGestor();
   const card = $('prosp-chart-card');
   if(!card) return;
   if(!veTodaEmpresa){ card.style.display='none'; return; }
@@ -6811,8 +6843,11 @@ window.vapProspBaixarPDF = vapProspBaixarPDF;
 
 function vapInitProspeccaoUI(){
   $('btn-prosp-save') && ($('btn-prosp-save').onclick = vapProspSalvar);
-  $('btn-prosp-cancel') && ($('btn-prosp-cancel').onclick = vapProspLimparForm);
+  $('btn-prosp-add') && ($('btn-prosp-add').onclick = vapProspAbrirNovo);
+  $('prosp-modal-close') && ($('prosp-modal-close').onclick = () => closeModal('modal-prospeccao'));
+  $('prosp-modal-cancel') && ($('prosp-modal-cancel').onclick = () => closeModal('modal-prospeccao'));
   $('btn-prosp-pdf') && ($('btn-prosp-pdf').onclick = vapProspBaixarPDF);
+  $('prosp-filtro-resultado') && ($('prosp-filtro-resultado').onchange = vapProspRenderTudo);
   $('prosp-proximo') && ($('prosp-proximo').oninput = () => window.cartDataMask($('prosp-proximo')));
   $('prosp-telefone') && ($('prosp-telefone').oninput = () => cartMaskTelefone($('prosp-telefone')));
 }
