@@ -115,6 +115,18 @@ service cloud.firestore {
       allow read, write: if isMaster() && resource.data.companyId == myCompany();
       allow read, write: if isSuperAdmin();
     }
+    match /prospeccoes/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.companyId == myCompany()
+                    && request.resource.data.uid == request.auth.uid;
+      // Líder NÃO tem bypass aqui de propósito — mesmo padrão da Carteira: o Líder é
+      // tratado como um vendedor comum (só edita/apaga a própria), a menos que também seja Master.
+      allow update: if isAuth() && resource.data.uid == request.auth.uid;
+      allow delete: if isAuth() && resource.data.uid == request.auth.uid;
+      // Só Master gerencia qualquer prospecção da empresa
+      allow read, write: if isMaster() && resource.data.companyId == myCompany();
+      allow read, write: if isSuperAdmin();
+    }
     // ── MeCuidar ─────────────────────────────────────────────────
     match /agendamentos/{id} {
       allow read, write: if isAuth();
