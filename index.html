@@ -5986,8 +5986,8 @@ function _vapRenderPromosPro(promos){
           </div>
           <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;gap:8px;flex-wrap:wrap">
             <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap" onclick="event.stopPropagation()">
-              <div style="min-width:100px">
-                <div style="font-size:10px;color:#95A5A6;margin-bottom:3px">Minhas vendas acumuladas</div>
+              <div style="min-width:150px">
+                <div style="font-size:10px;color:#95A5A6;margin-bottom:3px;white-space:nowrap">Minhas vendas acumuladas (R$)</div>
                 <div id="vap-vacum-${p.id}" style="font-size:13px;font-weight:700;color:#C53030;padding:5px 0">R$ ${(_vapVendasAcum[p.id]||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
               </div>
               <div style="min-width:110px">
