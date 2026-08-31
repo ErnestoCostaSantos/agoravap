@@ -5985,20 +5985,19 @@ function _vapRenderPromosPro(promos){
             <div id="vap-lider-breakdown-${p.id}" style="font-size:11px;color:#95A5A6">Carregando...</div>
           </div>
           <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;gap:8px;flex-wrap:wrap">
-            <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap" onclick="event.stopPropagation()">
-              <div style="min-width:150px">
-                <div style="font-size:10px;color:#95A5A6;margin-bottom:3px;white-space:nowrap">Minhas vendas acumuladas (R$)</div>
-                <div id="vap-vacum-${p.id}" style="font-size:13px;font-weight:700;color:#C53030;padding:5px 0">R$ ${(_vapVendasAcum[p.id]||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+            <div style="display:flex;gap:32px;align-items:flex-end;flex:1;flex-wrap:wrap" onclick="event.stopPropagation()">
+              <div>
+                <div style="font-size:10px;color:#95A5A6;margin-bottom:3px;white-space:nowrap;height:12px;line-height:12px">Minhas vendas acumuladas (R$)</div>
+                <div id="vap-vacum-${p.id}" style="font-size:13px;font-weight:700;color:#C53030;height:28px;display:flex;align-items:center">R$ ${(_vapVendasAcum[p.id]||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
               </div>
-              <div style="min-width:110px">
-                <div style="font-size:10px;color:#95A5A6;margin-bottom:3px">Nova venda (R$)</div>
-                <div style="display:flex;gap:4px;align-items:center">
-                  <span style="font-size:11px;font-weight:600;color:#566573">R$</span>
+              <div>
+                <div style="font-size:10px;color:#95A5A6;margin-bottom:3px;white-space:nowrap;height:12px;line-height:12px">Nova venda (R$)</div>
+                <div style="display:flex;gap:4px;align-items:center;height:28px">
                   <input type="text" inputmode="decimal"
                     id="vap-vp-${p.id}"
                     value=""
                     placeholder="0,00"
-                    style="flex:1;padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--pk200);font-size:13px;background:var(--pk50);color:#C53030;font-weight:700;max-width:110px">
+                    style="padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--pk200);font-size:13px;background:var(--pk50);color:#C53030;font-weight:700;width:90px">
                   <button onclick="vapRegistrarVendaPromo('${p.id}','${(p.nome||'').replace(/'/g,"\'")}')"
                     style="padding:5px 10px;border-radius:var(--rsm);border:none;background:var(--p,#E53E3E);color:#fff;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">
                     <i class="ti ti-plus"></i> Adicionar
