@@ -2254,7 +2254,11 @@ let unRecs = null, unUsers = null, unMetas = null, unPerdasDash = null;
 
 // ── Utils ────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
-const tod = () => new Date().toISOString().slice(0, 10);
+const _isoLocal = (d = new Date()) => {
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+const tod = () => _isoLocal();
 // Exibe a "Data do lançamento" no formato DD/MM/AA sobre o input nativo (que continua em ISO por baixo)
 function atualizarLancarDataFmt(){
   const el = $('lancar-data'), lbl = $('lancar-data-fmt');
@@ -2265,7 +2269,7 @@ function atualizarLancarDataFmt(){
   lbl.textContent = `${d}/${m}/${y.slice(2)}`;
 }
 window.atualizarLancarDataFmt = atualizarLancarDataFmt;
-const thisMes = () => new Date().toISOString().slice(0, 7);
+const thisMes = () => _isoLocal().slice(0, 7);
 const MESES_EXTENSO=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 // Formata "YYYY-MM" como "Mês - YYYY" (ex: "2026-08" -> "Agosto - 2026")
 function mesExtenso(mesStr){
@@ -6419,7 +6423,7 @@ async function vapRegistrarVendaPromo(promoId, promoNome) {
   const raw = input.value.replace(/[^0-9.,]/g,'').replace(',','.');
   const novaVenda = parseFloat(raw) || 0;
   if (novaVenda <= 0) { if(msgEl) msgEl.textContent='Informe um valor válido.'; return; }
-  const hoje = new Date().toISOString().slice(0,10); // YYYY-MM-DD (interno)
+  const hoje = tod(); // YYYY-MM-DD local (interno)
   const meuUid = cu?.uid || '';
   const meuNome = cp?.name || '';
   try {
@@ -6465,7 +6469,7 @@ let _vapUnsubVendasPromo = null;
 function vapIniciarListenerVendasPromo() {
   const CID = _vapGetCompanyId(); if (!CID) return;
   if (_vapUnsubVendasPromo) _vapUnsubVendasPromo();
-  const hoje = new Date().toISOString().slice(0,10);
+  const hoje = tod();
   const meuUid = cu?.uid || '';
   _vapUnsubVendasPromo = onSnapshot(collection(db,'vendas_promo'), snap => {
     const docs = snap.docs.map(d=>({id:d.id,...d.data()}))
@@ -6768,7 +6772,7 @@ function vapProspRenderTudo(){
 }
 
 function vapProspRenderTotais(){
-  const hojeISO = new Date().toISOString().slice(0,10);
+  const hojeISO = tod();
   const hojeQtd = _prospLista.filter(p=>(p.criadoEm||'').startsWith(hojeISO)).length;
   const mesLista = vapProspListaDoMes();
   $('prosp-total-hoje').textContent = hojeQtd;
