@@ -2197,6 +2197,19 @@ onAuthStateChanged(auth, async user => {
         _splashPendente = false;
         abrirFlores();
 
+      } else if (cp.role === 'fornecedor') {
+        // ── Rota Fornecedor → painel próprio (isolado do fluxo Proprietária/Cliente) ──
+        const loginScreen = document.getElementById('login-cli-screen');
+        const homeForn = document.getElementById('home-forn-screen');
+        const welcomeForn = document.getElementById('forn-welcome');
+        if (welcomeForn) welcomeForn.textContent = 'Olá, ' + (cp.name || user.email.split('@')[0]) + '!';
+        if (loginScreen) { loginScreen.classList.remove('splash'); loginScreen.style.display = 'none'; }
+        if (homeForn) homeForn.style.display = 'flex';
+        if (appDiv) appDiv.style.display = 'none';
+        _splashPendente = false;
+        // Listeners do módulo Fornecedor entram aqui nas próximas etapas
+        // (catálogo, vínculos, pedidos, promoções)
+
       } else {
         // ── Rota Profissional/Admin → app principal ──
         const cliLoginPro = document.getElementById('login-cli-screen');
@@ -2652,6 +2665,7 @@ window.doLogin        = doLogin;
 window.doLogout       = doLogout;
 window.doLogin        = doLogin;
 window.recuperarSenha = recuperarSenha;
+window.sairForn       = doLogout; // logout do Fornecedor reaproveita o mesmo fluxo (login unificado)
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO BACKUP — Exportação de dados da clínica
@@ -9551,6 +9565,19 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       }
     })();
   </script>
+</div>
+<!-- HOME FORNECEDOR (após login) — placeholder inicial, telas do módulo Fornecedor entram aqui -->
+<div id="home-forn-screen" style="position:fixed;inset:0;z-index:9050;background:#f7f3f0;display:none;flex-direction:column;overflow:auto;">
+  <div style="background:#1c1917;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#f59e0b;font-weight:700;">Fornecedor</div>
+      <div id="forn-welcome" style="font-size:16px;font-weight:700;margin-top:2px;">Olá!</div>
+    </div>
+    <button onclick="sairForn()" style="background:#333;border:none;color:#fff;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;">Sair</button>
+  </div>
+  <div style="padding:24px 20px;color:#57534e;font-size:14px;">
+    Painel do Fornecedor em construção — catálogo, vínculos com clínicas e pedidos entram aqui nas próximas etapas.
+  </div>
 </div>
 <!-- HOME CLIENTE (após login) -->
 <div id="home-cli-screen" style="position:fixed;inset:0;z-index:9050;display:none;flex-direction:column;overflow:hidden;">
