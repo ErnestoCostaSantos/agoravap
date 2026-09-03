@@ -6920,6 +6920,19 @@ function fecharImagemPromo() {
 }
 window.abrirImagemPromo  = abrirImagemPromo;
 window.fecharImagemPromo = fecharImagemPromo;
+
+// Mesma modal de tela cheia acima, reaproveitada para as promoções dos
+// Fornecedores exibidas pra Proprietária (dados não vêm de _promosCliCache).
+function abrirImagemPromoForn(src, alt) {
+  if (!src) return;
+  const img   = document.getElementById('modal-img-promo-src');
+  const modal = document.getElementById('modal-img-promo');
+  if (!img || !modal) return;
+  img.src = src;
+  img.alt = alt || '';
+  modal.style.display = 'flex';
+}
+window.abrirImagemPromoForn = abrirImagemPromoForn;
 // Referência para re-renderizar promoções quando agendamentos da cliente atualizam
 let renderPromosClienteAtual = null;
 window.iniciarListenerPromos = iniciarListenerPromos;
@@ -10094,7 +10107,7 @@ async function carregarPromosClinicaForn(aprovados) {
     }
     wrap.innerHTML = todas.map(p => `
       <div class="card" style="margin-bottom:8px;overflow:hidden">
-        ${p.imagemBase64 ? `<img src="${p.imagemBase64}" style="width:100%;max-height:140px;object-fit:cover;border-radius:6px;margin-bottom:8px">` : ''}
+        ${p.imagemBase64 ? `<img src="${p.imagemBase64}" onclick="abrirImagemPromoForn('${p.imagemBase64}','${(p.titulo||'').replace(/'/g,"\\'")}')" style="width:100%;max-height:140px;object-fit:cover;border-radius:6px;margin-bottom:8px;cursor:pointer;">` : ''}
         <div style="font-size:13px;font-weight:600;color:var(--tx)">${p.titulo || 'Promoção'}</div>
         <div style="font-size:12px;color:var(--tx3)">${p.fornecedorNome || 'Fornecedor'}${p.validade ? ' · válida até ' + p.validade.split('-').reverse().join('/') : ''}</div>
         ${p.descricao ? `<div style="font-size:12px;color:var(--tx2);margin-top:4px">${p.descricao}</div>` : ''}
