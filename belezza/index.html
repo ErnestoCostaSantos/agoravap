@@ -2247,6 +2247,7 @@ onAuthStateChanged(auth, async user => {
           if (window.iniciarListenerProdutosForn) window.iniciarListenerProdutosForn();
           if (window.iniciarListenerKitsForn) window.iniciarListenerKitsForn();
           if (window.iniciarListenerVinculosForn) window.iniciarListenerVinculosForn();
+          if (window.iniciarListenerClientesForn) window.iniciarListenerClientesForn();
           if (window.iniciarListenerPedidosForn) window.iniciarListenerPedidosForn();
           if (window.iniciarListenerPromosForn) window.iniciarListenerPromosForn();
         }, 200);
@@ -9575,6 +9576,44 @@ window.fecharFormProduto = fecharFormProduto;
 let _kitsFornTodos = [];
 let _unsubKitsForn = null;
 let _kitEditId = '';
+let _kitImgBase64 = '';
+
+function previewKitImg(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const preview = document.getElementById('forn-kit-img-preview');
+  const removeBtn = document.getElementById('forn-kit-img-remove');
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.onload = () => {
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else       { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      _kitImgBase64 = canvas.toDataURL('image/jpeg', 0.72);
+      if (preview) { preview.src = _kitImgBase64; preview.style.display = 'block'; }
+      if (removeBtn) removeBtn.style.display = 'inline';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+window.previewKitImg = previewKitImg;
+
+function removerKitImg() {
+  _kitImgBase64 = '';
+  const preview = document.getElementById('forn-kit-img-preview');
+  const removeBtn = document.getElementById('forn-kit-img-remove');
+  if (preview) { preview.style.display = 'none'; preview.src = ''; }
+  if (removeBtn) removeBtn.style.display = 'none';
+}
+window.removerKitImg = removerKitImg;
 
 function iniciarListenerKitsForn() {
   if (_unsubKitsForn) return;
@@ -9618,7 +9657,10 @@ function renderKitsGrid(lista) {
     const f = v => v.toFixed(2).replace('.', ',');
     const tipoLabel = k.tipo === 'homecare' ? 'Home care' : 'Profissional';
     const qtdProd = (k.produtoIds || []).length;
-    return `<div style="background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+    const kitImg = k.imagemBase64 || PROD_FALLBACK_IMG;
+    return `<div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <img src="${kitImg}" style="width:100%;height:110px;object-fit:cover;">
+      <div style="padding:14px;">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <div style="font-size:13px;font-weight:700;color:#1c1917;">${k.nome || 'Kit'}</div>
         <span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 6px;border-radius:4px;">${tipoLabel}</span>
@@ -9632,6 +9674,7 @@ function renderKitsGrid(lista) {
       <div style="display:flex;gap:8px;margin-top:10px;">
         <span onclick="editarKit('${k._id}')" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">Editar</span>
         <span onclick="removerKit('${k._id}')" style="font-size:12px;color:#b91c1c;text-decoration:underline;cursor:pointer;">Remover</span>
+      </div>
       </div>
     </div>`;
   }).join('');
@@ -9670,6 +9713,7 @@ async function salvarKit() {
   try {
     const dados = {
       nome, tipo, linha, produtoIds, protocolo,
+      imagemBase64: _kitImgBase64 || '',
       precoOverride: overrideChk && overrideVal ? { cheia: overrideVal } : null
     };
     if (_kitEditId) {
@@ -9699,6 +9743,15 @@ function editarKit(id) {
   set('forn-kit-linha', k.linha || '');
   set('forn-kit-protocolo', k.protocolo || '');
   renderKitProdutosCheck(k.produtoIds || []);
+  if (k.imagemBase64) {
+    _kitImgBase64 = k.imagemBase64;
+    const preview = document.getElementById('forn-kit-img-preview');
+    const removeBtn = document.getElementById('forn-kit-img-remove');
+    if (preview) { preview.src = k.imagemBase64; preview.style.display = 'block'; }
+    if (removeBtn) removeBtn.style.display = 'inline';
+  } else {
+    removerKitImg();
+  }
   const overrideChk = document.getElementById('forn-kit-override-chk');
   const overrideWrap = document.getElementById('forn-kit-override-wrap');
   if (k.precoOverride && k.precoOverride.cheia) {
@@ -9736,6 +9789,7 @@ function abrirFormKit() {
   const linhaEl = document.getElementById('forn-kit-linha'); if (linhaEl) linhaEl.value = '';
   const overrideChk = document.getElementById('forn-kit-override-chk'); if (overrideChk) overrideChk.checked = false;
   const overrideWrap = document.getElementById('forn-kit-override-wrap'); if (overrideWrap) overrideWrap.style.display = 'none';
+  removerKitImg();
   renderKitProdutosCheck();
   const erro = document.getElementById('forn-kit-erro');
   if (erro) erro.textContent = '';
@@ -9770,6 +9824,7 @@ async function carregarClinicasForn() {
     _clinicasTodas = [];
   }
   renderClinicasForn(_clinicasTodas);
+  if (window.renderClientesForn) renderClientesForn();
 }
 
 function iniciarListenerVinculosForn() {
@@ -9782,6 +9837,7 @@ function iniciarListenerVinculosForn() {
     _vinculosPorClinica = {};
     snap.docs.forEach(d => { _vinculosPorClinica[d.data().clinicaId] = d.data().status; });
     renderClinicasForn(_clinicasTodas);
+    if (window.renderClientesForn) renderClientesForn();
   }, err => console.warn('[Belezza] vínculos fornecedor listener:', err));
 }
 window.iniciarListenerVinculosForn = iniciarListenerVinculosForn;
@@ -10036,8 +10092,10 @@ function iniciarListenerPedidosForn() {
   const q = query(collection(db, 'pedidos'), where('fornecedorId', '==', fid));
   _unsubPedidosForn = onSnapshot(q, snap => {
     const lista = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    _pedidosFornTodos = lista;
     renderPedidosForn(lista);
     renderDashboardForn(lista);
+    if (window.renderClientesForn) renderClientesForn();
   }, err => console.warn('[Belezza] pedidos fornecedor listener:', err));
 }
 window.iniciarListenerPedidosForn = iniciarListenerPedidosForn;
@@ -10129,6 +10187,135 @@ async function cancelarPedido(id) {
   catch (e) { console.error('[Belezza] cancelarPedido:', e); }
 }
 window.cancelarPedido = cancelarPedido;
+
+// ══════════════════════════════════════════════════════════════════════════
+// MÓDULO FORNECEDOR — Clientes (CRM do Fornecedor)
+// Coleção: /fornecedores/{fid}/clientes/{clinicaId} — { tipo, responsavel,
+// whatsapp }. Só o Fornecedor lê/escreve (dado privado dele, não faz parte
+// do /vinculos que é compartilhado com a clínica).
+// Última compra e Compras do trimestre NÃO ficam salvos aqui — são
+// calculados na hora a partir de /pedidos (_pedidosFornTodos), pra nunca
+// ficar desatualizado. Conta como compra só pedido com status 'entregue'.
+// ══════════════════════════════════════════════════════════════════════════
+let _pedidosFornTodos = [];
+let _clientesCRM = {}; // clinicaId -> { tipo, responsavel, whatsapp }
+let _unsubClientesForn = null;
+
+function iniciarListenerClientesForn() {
+  if (_unsubClientesForn) return;
+  const fid = cp?.fornecedorId;
+  if (!fid) return;
+  const ref = collection(db, 'fornecedores', fid, 'clientes');
+  _unsubClientesForn = onSnapshot(ref, snap => {
+    _clientesCRM = {};
+    snap.docs.forEach(d => { _clientesCRM[d.id] = d.data(); });
+    renderClientesForn();
+  }, err => console.warn('[Belezza] clientes fornecedor listener:', err));
+}
+window.iniciarListenerClientesForn = iniciarListenerClientesForn;
+
+// Calcula última compra e total do trimestre (últimos 3 meses corridos)
+// de uma clínica, a partir dos pedidos já carregados em memória.
+function calcMetricasClienteForn(clinicaId) {
+  const entregues = _pedidosFornTodos.filter(p => p.clinicaId === clinicaId && p.status === 'entregue');
+  const comData = entregues
+    .map(p => ({ ...p, _data: p.criadoEm?.toDate ? p.criadoEm.toDate() : null }))
+    .filter(p => p._data)
+    .sort((a, b) => b._data - a._data);
+  const ultima = comData[0] || null;
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 3);
+  const trimestre = comData.filter(p => p._data >= cutoff).reduce((s, p) => s + (p.valorTotal || 0), 0);
+  return {
+    ultimaData: ultima ? ultima._data : null,
+    ultimaValor: ultima ? (ultima.valorTotal || 0) : 0,
+    trimestre
+  };
+}
+
+function renderClientesForn() {
+  const wrap = document.getElementById('forn-clientes-lista');
+  if (!wrap) return;
+  const vinculadas = (_clinicasTodas || []).filter(c => _vinculosPorClinica[c._id] === 'aprovado');
+  if (!vinculadas.length) {
+    wrap.innerHTML = '<div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Nenhum cliente vinculado ainda.</div>';
+    return;
+  }
+  const linhas = vinculadas.map(c => {
+    const crm = _clientesCRM[c._id] || {};
+    const met = calcMetricasClienteForn(c._id);
+    return { c, crm, met };
+  }).sort((a, b) => b.met.trimestre - a.met.trimestre);
+
+  wrap.innerHTML = linhas.map(({ c, crm, met }) => {
+    const nome = c.nomeEstab || c.nome || 'Clínica';
+    const tipoBadge = crm.tipo
+      ? `<span style="background:#e0e7ff;color:#3730a3;font-size:10px;padding:2px 8px;border-radius:4px;">${crm.tipo}</span>`
+      : '';
+    const contatoTxt = (crm.responsavel || crm.whatsapp)
+      ? `${crm.responsavel || 'Sem responsável'}${crm.whatsapp ? ' · ' + crm.whatsapp : ''}`
+      : 'Sem contato cadastrado';
+    const ultimaTxt = met.ultimaData
+      ? `${met.ultimaData.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} · R$ ${met.ultimaValor.toFixed(2).replace('.', ',')}`
+      : 'Nunca comprou';
+    return `<div style="background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="font-size:13px;font-weight:700;color:#1c1917;">${nome}</div>
+          ${tipoBadge}
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;color:#a8a29e;">Trimestre</div>
+          <div style="font-size:13px;font-weight:700;color:#1c1917;">R$ ${met.trimestre.toFixed(2).replace('.', ',')}</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#78716c;margin-top:6px;">${contatoTxt}</div>
+      <div style="font-size:12px;color:#a8a29e;margin-top:2px;">Última compra: ${ultimaTxt}</div>
+      <span onclick="abrirFormClienteForn('${c._id}','${nome.replace(/'/g, "\\'")}')" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;display:inline-block;margin-top:8px;">Editar contato</span>
+    </div>`;
+  }).join('');
+}
+window.renderClientesForn = renderClientesForn;
+
+function abrirFormClienteForn(clinicaId, nome) {
+  const wrap = document.getElementById('forn-cliente-form-wrap');
+  if (!wrap) return;
+  const crm = _clientesCRM[clinicaId] || {};
+  document.getElementById('forn-cliente-clinicaid').value = clinicaId;
+  document.getElementById('forn-cliente-form-nome').textContent = nome;
+  document.getElementById('forn-cliente-tipo').value = crm.tipo || '';
+  document.getElementById('forn-cliente-responsavel').value = crm.responsavel || '';
+  document.getElementById('forn-cliente-whatsapp').value = crm.whatsapp || '';
+  const erro = document.getElementById('forn-cliente-erro');
+  if (erro) erro.textContent = '';
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.abrirFormClienteForn = abrirFormClienteForn;
+
+function fecharFormClienteForn() {
+  const wrap = document.getElementById('forn-cliente-form-wrap');
+  if (wrap) wrap.style.display = 'none';
+}
+window.fecharFormClienteForn = fecharFormClienteForn;
+
+async function salvarClienteForn() {
+  const clinicaId = document.getElementById('forn-cliente-clinicaid')?.value;
+  const tipo = document.getElementById('forn-cliente-tipo')?.value || '';
+  const responsavel = (document.getElementById('forn-cliente-responsavel')?.value || '').trim();
+  const whatsapp = (document.getElementById('forn-cliente-whatsapp')?.value || '').trim();
+  const erro = document.getElementById('forn-cliente-erro');
+  const fid = cp?.fornecedorId;
+  if (!fid || !clinicaId) { if (erro) erro.textContent = 'Cliente não identificado.'; return; }
+  try {
+    await setDoc(doc(db, 'fornecedores', fid, 'clientes', clinicaId), { tipo, responsavel, whatsapp }, { merge: true });
+    fecharFormClienteForn();
+  } catch (e) {
+    console.error('[Belezza] salvarClienteForn:', e);
+    if (erro) erro.textContent = 'Erro ao salvar. Tente novamente.';
+  }
+}
+window.salvarClienteForn = salvarClienteForn;
 
 // ══════════════════════════════════════════════════════════════════════════
 // MÓDULO FORNECEDOR — Promoções
@@ -10735,7 +10922,14 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         </div>
       </div>
 
-      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Produtos do kit *</label>
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Foto do kit</label>
+      <input id="forn-kit-img-inp" type="file" accept="image/*" onchange="previewKitImg(this)" style="margin-bottom:6px;">
+      <div>
+        <img id="forn-kit-img-preview" style="display:none;max-width:120px;border-radius:6px;margin-bottom:6px;">
+        <span id="forn-kit-img-remove" onclick="removerKitImg()" style="display:none;color:#b91c1c;font-size:12px;cursor:pointer;">Remover foto</span>
+      </div>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;margin-top:6px;">Produtos do kit *</label>
       <div id="forn-kit-produtos-check" style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow:auto;border:1px solid #e7e5e4;border-radius:6px;padding:10px;margin-bottom:12px;">
         <div style="color:#a8a29e;font-size:12px;">Cadastre produtos primeiro.</div>
       </div>
@@ -10760,6 +10954,43 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <div style="display:flex;gap:10px;">
         <button onclick="salvarKit()" style="background:#1c1917;color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar</button>
         <button onclick="fecharFormKit()" style="background:#e7e5e4;color:#44403c;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:0 20px 20px 20px;">
+    <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Clientes</div>
+    <div id="forn-clientes-lista" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando clientes...</div>
+    </div>
+
+    <div id="forn-cliente-form-wrap" style="display:none;margin-top:16px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <div style="font-size:14px;font-weight:700;color:#1c1917;margin-bottom:12px;">Editar contato — <span id="forn-cliente-form-nome"></span></div>
+      <input id="forn-cliente-clinicaid" type="hidden">
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Tipo</label>
+      <select id="forn-cliente-tipo" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
+        <option value="">Selecione...</option>
+        <option value="Estética">Estética</option>
+        <option value="Clínica">Clínica</option>
+        <option value="Salão">Salão</option>
+        <option value="Revenda">Revenda</option>
+        <option value="Distribuidor">Distribuidor</option>
+        <option value="Escola">Escola</option>
+        <option value="Outros">Outros</option>
+      </select>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Responsável</label>
+      <input id="forn-cliente-responsavel" type="text" maxlength="80" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Whatsapp</label>
+      <input id="forn-cliente-whatsapp" type="text" placeholder="(11) 90000-0000" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
+
+      <div id="forn-cliente-erro" style="color:#b91c1c;font-size:12px;margin-bottom:10px;"></div>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="salvarClienteForn()" style="background:#1c1917;color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar</button>
+        <button onclick="fecharFormClienteForn()" style="background:#e7e5e4;color:#44403c;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
       </div>
     </div>
   </div>
