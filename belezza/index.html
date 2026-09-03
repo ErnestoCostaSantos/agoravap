@@ -2245,6 +2245,7 @@ onAuthStateChanged(auth, async user => {
         if (appDiv) appDiv.style.display = 'none';
         _splashPendente = false;
         setTimeout(() => {
+          if (window.switchFornTab) switchFornTab('dashboard');
           if (window.iniciarListenerProdutosForn) window.iniciarListenerProdutosForn();
           if (window.iniciarListenerKitsForn) window.iniciarListenerKitsForn();
           if (window.iniciarListenerVinculosForn) window.iniciarListenerVinculosForn();
@@ -9377,6 +9378,21 @@ let _unsubProdutosForn = null;
 let _prodImgBase64 = '';
 let _prodEditId = '';
 
+// Navegação por abas do painel do Fornecedor (Dashboard/Catálogo/Clientes/Pedidos/Promoções).
+function switchFornTab(tab) {
+  document.querySelectorAll('.forn-tab-panel').forEach(el => {
+    el.style.display = (el.id === 'forn-tab-' + tab) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.forn-nav-item').forEach(el => {
+    const ativo = el.getAttribute('data-tab') === tab;
+    el.style.color = ativo ? '#fff' : '#a8a29e';
+    el.style.background = ativo ? '#333' : 'transparent';
+  });
+  const contentWrap = document.getElementById('forn-tab-' + tab)?.parentElement;
+  if (contentWrap) contentWrap.scrollTop = 0;
+}
+window.switchFornTab = switchFornTab;
+
 const PROD_FALLBACK_IMG = SVC_FALLBACK_IMG; // reaproveita o placeholder já existente
 
 // Taxonomia fixa de Linhas do Catálogo Fornecedor.
@@ -10858,7 +10874,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
   </script>
 </div>
 <!-- HOME FORNECEDOR (após login) — placeholder inicial, telas do módulo Fornecedor entram aqui -->
-<div id="home-forn-screen" style="position:fixed;inset:0;z-index:9050;background:#f7f3f0;display:none;flex-direction:column;overflow:auto;">
+<div id="home-forn-screen" style="position:fixed;inset:0;z-index:9050;background:#f7f3f0;display:none;flex-direction:column;overflow:hidden;">
   <div style="background:#1c1917;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
     <div>
       <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#f59e0b;font-weight:700;">Fornecedor</div>
@@ -10867,7 +10883,17 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <button onclick="sairForn()" style="background:#333;border:none;color:#fff;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;">Sair</button>
   </div>
 
-  <div style="padding:20px 20px 0 20px;">
+  <div style="display:flex;flex:1;min-height:0;">
+    <nav style="width:170px;flex-shrink:0;background:#1c1917;padding:16px 0;display:flex;flex-direction:column;gap:2px;">
+      <div class="forn-nav-item" data-tab="dashboard" onclick="switchFornTab('dashboard')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#fff;background:#333;">Dashboard</div>
+      <div class="forn-nav-item" data-tab="catalogo" onclick="switchFornTab('catalogo')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Catálogo</div>
+      <div class="forn-nav-item" data-tab="clientes" onclick="switchFornTab('clientes')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Clientes</div>
+      <div class="forn-nav-item" data-tab="pedidos" onclick="switchFornTab('pedidos')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Pedidos</div>
+      <div class="forn-nav-item" data-tab="promocoes" onclick="switchFornTab('promocoes')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Promoções</div>
+    </nav>
+    <div style="flex:1;overflow:auto;min-width:0;">
+
+  <div id="forn-tab-dashboard" class="forn-tab-panel" style="padding:20px 20px 0 20px;">
     <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Dashboard — <span id="forn-dash-mes">este mês</span></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px;">
       <div style="background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
@@ -10885,7 +10911,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     </div>
   </div>
 
-  <div style="padding:20px;">
+  <div id="forn-tab-catalogo" class="forn-tab-panel" style="display:none;padding:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div style="font-size:15px;font-weight:700;color:#1c1917;">Catálogo de produtos</div>
       <button onclick="abrirFormProduto()" style="background:#f59e0b;color:#1c1917;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">+ Novo produto</button>
@@ -11017,7 +11043,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     </div>
   </div>
 
-  <div style="padding:0 20px 20px 20px;">
+  <div id="forn-tab-clientes" class="forn-tab-panel" style="display:none;padding:0 20px 20px 20px;">
     <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Clientes</div>
     <div id="forn-clientes-lista" style="display:flex;flex-direction:column;gap:8px;">
       <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando clientes...</div>
@@ -11062,14 +11088,14 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     </div>
   </div>
 
-  <div style="padding:0 20px 20px 20px;">
+  <div id="forn-tab-pedidos" class="forn-tab-panel" style="display:none;padding:0 20px 20px 20px;">
     <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Pedidos recebidos</div>
     <div id="forn-pedidos-lista" style="display:flex;flex-direction:column;gap:10px;">
       <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando pedidos...</div>
     </div>
   </div>
 
-  <div style="padding:0 20px 20px 20px;">
+  <div id="forn-tab-promocoes" class="forn-tab-panel" style="display:none;padding:0 20px 20px 20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div style="font-size:15px;font-weight:700;color:#1c1917;">Promoções</div>
       <button onclick="abrirFormPromoForn()" style="background:#f59e0b;color:#1c1917;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">+ Nova promoção</button>
@@ -11110,6 +11136,8 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         <button onclick="salvarPromoForn()" style="background:#1c1917;color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar</button>
         <button onclick="fecharFormPromoForn()" style="background:#e7e5e4;color:#44403c;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
       </div>
+    </div>
+  </div>
     </div>
   </div>
 </div>
