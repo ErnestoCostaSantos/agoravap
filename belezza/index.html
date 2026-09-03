@@ -9386,12 +9386,19 @@ function switchFornTab(tab) {
   document.querySelectorAll('.forn-nav-item').forEach(el => {
     const ativo = el.getAttribute('data-tab') === tab;
     el.style.color = ativo ? '#fff' : '#a8a29e';
-    el.style.background = ativo ? '#333' : 'transparent';
+    el.style.background = ativo ? '#5b21b6' : 'transparent';
   });
   const contentWrap = document.getElementById('forn-tab-' + tab)?.parentElement;
   if (contentWrap) contentWrap.scrollTop = 0;
 }
 window.switchFornTab = switchFornTab;
+
+function toggleBuscaClinicaForn() {
+  const wrap = document.getElementById('forn-busca-clinica-wrap');
+  if (!wrap) return;
+  wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+}
+window.toggleBuscaClinicaForn = toggleBuscaClinicaForn;
 
 const PROD_FALLBACK_IMG = SVC_FALLBACK_IMG; // reaproveita o placeholder já existente
 
@@ -10885,7 +10892,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
 
   <div style="display:flex;flex:1;min-height:0;">
     <nav style="width:170px;flex-shrink:0;background:#1c1917;padding:16px 0;display:flex;flex-direction:column;gap:2px;">
-      <div class="forn-nav-item" data-tab="dashboard" onclick="switchFornTab('dashboard')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#fff;background:#333;">Dashboard</div>
+      <div class="forn-nav-item" data-tab="dashboard" onclick="switchFornTab('dashboard')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#fff;background:#5b21b6;">Dashboard</div>
       <div class="forn-nav-item" data-tab="catalogo" onclick="switchFornTab('catalogo')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Catálogo</div>
       <div class="forn-nav-item" data-tab="clientes" onclick="switchFornTab('clientes')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Clientes</div>
       <div class="forn-nav-item" data-tab="pedidos" onclick="switchFornTab('pedidos')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Pedidos</div>
@@ -11044,8 +11051,11 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
   </div>
 
   <div id="forn-tab-clientes" class="forn-tab-panel" style="display:none;padding:0 20px 20px 20px;">
-    <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Clientes</div>
-    <div id="forn-clientes-lista" style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-size:15px;font-weight:700;color:#1c1917;">Carteira</div>
+      <span onclick="toggleBuscaClinicaForn()" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">+ Vincular clínica</span>
+    </div>
+    <div id="forn-clientes-lista" style="display:flex;flex-direction:column;gap:8px;max-height:860px;overflow-y:auto;">
       <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando clientes...</div>
     </div>
 
@@ -11078,13 +11088,13 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         <button onclick="fecharFormClienteForn()" style="background:#e7e5e4;color:#44403c;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
       </div>
     </div>
-  </div>
 
-  <div style="padding:0 20px 20px 20px;">
-    <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Clínicas</div>
-    <input id="forn-clinica-busca" type="text" placeholder="Buscar clínica pelo nome..." oninput="filtrarClinicasForn(this.value)" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
-    <div id="forn-clinicas-lista" style="display:flex;flex-direction:column;gap:8px;">
-      <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando clínicas...</div>
+    <div id="forn-busca-clinica-wrap" style="display:none;margin-top:16px;">
+      <div style="font-size:14px;font-weight:700;color:#1c1917;margin-bottom:12px;">Buscar e vincular nova clínica</div>
+      <input id="forn-clinica-busca" type="text" placeholder="Buscar clínica pelo nome..." oninput="filtrarClinicasForn(this.value)" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
+      <div id="forn-clinicas-lista" style="display:flex;flex-direction:column;gap:8px;">
+        <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando clínicas...</div>
+      </div>
     </div>
   </div>
 
