@@ -3820,15 +3820,17 @@ async function doLoginCli(){
   _splashPendente = true;
   // Converte WhatsApp digitado → e-mail sintético para Firebase Auth.
   // Número pode pertencer a uma cliente (@cli.mecuidar.app), a uma profissional
-  // de equipe (@equipe.mecuidar.app) ou a uma administradora/profissional solo
-  // (@admin.mecuidar.app) — tenta cliente, depois equipe, depois admin, em sequência,
-  // sem pedir nada extra à pessoa que está logando.
+  // de equipe (@equipe.mecuidar.app), a uma administradora/profissional solo
+  // (@admin.mecuidar.app) ou a um fornecedor (@forn.mecuidar.app) — tenta cliente,
+  // depois equipe, depois admin, depois fornecedor, em sequência, sem pedir nada
+  // extra à pessoa que está logando.
   const wppRaw = (document.getElementById('cli-email')?.value || '').trim();
   const wppNum = wppRaw.replace(/\D/g, '');
   const ehNumero = wppNum.length >= 8;
   const emailCliente = ehNumero ? wppNum + '@cli.mecuidar.app' : wppRaw;
   const emailEquipe  = ehNumero ? wppNum + '@equipe.mecuidar.app' : null;
   const emailAdmin   = ehNumero ? wppNum + '@admin.mecuidar.app' : null;
+  const emailForn    = ehNumero ? wppNum + '@forn.mecuidar.app' : null;
   const pass  = document.getElementById('cli-pass')?.value || '';
   const errEl = document.getElementById('cli-error');
   const btn   = document.getElementById('cli-entrar-btn');
@@ -3848,7 +3850,16 @@ async function doLoginCli(){
         } catch(eEquipe) {
           const tentaAdmin = ['auth/invalid-credential','auth/user-not-found','auth/wrong-password'].includes(eEquipe.code);
           if (tentaAdmin) {
-            await signInWithEmailAndPassword(auth, emailAdmin, pass);
+            try {
+              await signInWithEmailAndPassword(auth, emailAdmin, pass);
+            } catch(eAdmin) {
+              const tentaForn = ['auth/invalid-credential','auth/user-not-found','auth/wrong-password'].includes(eAdmin.code);
+              if (tentaForn) {
+                await signInWithEmailAndPassword(auth, emailForn, pass);
+              } else {
+                throw eAdmin;
+              }
+            }
           } else {
             throw eEquipe;
           }
