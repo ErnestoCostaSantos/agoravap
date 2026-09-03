@@ -2245,6 +2245,7 @@ onAuthStateChanged(auth, async user => {
         _splashPendente = false;
         setTimeout(() => {
           if (window.iniciarListenerProdutosForn) window.iniciarListenerProdutosForn();
+          if (window.iniciarListenerKitsForn) window.iniciarListenerKitsForn();
           if (window.iniciarListenerVinculosForn) window.iniciarListenerVinculosForn();
           if (window.iniciarListenerPedidosForn) window.iniciarListenerPedidosForn();
           if (window.iniciarListenerPromosForn) window.iniciarListenerPromosForn();
@@ -9376,6 +9377,25 @@ let _prodEditId = '';
 
 const PROD_FALLBACK_IMG = SVC_FALLBACK_IMG; // reaproveita o placeholder já existente
 
+// Taxonomia fixa de Linhas do Catálogo Fornecedor.
+const LINHAS_FORNECEDOR = ['Facial', 'Corporal', 'Olhos', 'Capilar', 'Diversas'];
+
+// Calcula as 3 faixas de preço publicadas (tabela cheia, -30%, -35%) a partir
+// do preço cheio. Outras condições comerciais ficam fora do app (o Fornecedor
+// lança manualmente no Sistema de Pedidos dele).
+function calcPrecoTiers(precoCheio) {
+  const cheia = parseFloat(String(precoCheio || '0').replace(',', '.')) || 0;
+  return { cheia, p30: cheia * 0.7, p35: cheia * 0.65 };
+}
+function fmtPrecoTiersHTML(precoCheio) {
+  const t = calcPrecoTiers(precoCheio);
+  const f = v => v.toFixed(2).replace('.', ',');
+  return `<div style="font-size:12px;color:#57534e;margin-top:6px;line-height:1.5;">
+    <div>Tabela cheia: <b>R$ ${f(t.cheia)}</b></div>
+    <div style="color:#a8a29e;">-30%: R$ ${f(t.p30)} &nbsp;·&nbsp; -35%: R$ ${f(t.p35)}</div>
+  </div>`;
+}
+
 function iniciarListenerProdutosForn() {
   if (_unsubProdutosForn) return; // já rodando
   const fid = cp?.fornecedorId;
@@ -9384,6 +9404,7 @@ function iniciarListenerProdutosForn() {
   _unsubProdutosForn = onSnapshot(ref, snap => {
     _prodFornTodos = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
     renderProdutosGrid(_prodFornTodos);
+    if (window.renderKitsGrid) renderKitsGrid(_kitsFornTodos);
   }, err => {
     console.warn('[Belezza] produtos fornecedor listener:', err);
     const grid = document.getElementById('forn-produtos-grid');
@@ -9401,7 +9422,7 @@ function renderProdutosGrid(lista) {
   }
   grid.innerHTML = lista.map(p => {
     const img = p.imagemBase64 || PROD_FALLBACK_IMG;
-    const precoTxt = p.preco ? `R$ ${p.preco}` : 'Consulte o valor';
+    const precoHTML = p.preco ? fmtPrecoTiersHTML(p.preco) : '<div style="font-size:12px;color:#a8a29e;margin-top:6px;">Consulte o valor</div>';
     const dispBadge = p.disponivel === false
       ? '<span style="background:#f5f5f4;color:#a8a29e;font-size:10px;padding:2px 6px;border-radius:4px;">Indisponível</span>'
       : '<span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 6px;border-radius:4px;">Disponível</span>';
@@ -9410,7 +9431,7 @@ function renderProdutosGrid(lista) {
       <div style="padding:10px;">
         <div style="font-size:13px;font-weight:700;color:#1c1917;">${p.nome||'Produto'}</div>
         ${p.categoria ? `<div style="font-size:11px;color:#a8a29e;margin-top:2px;">${p.categoria}</div>` : ''}
-        <div style="font-size:13px;color:#57534e;margin-top:6px;">${precoTxt}</div>
+        ${precoHTML}
         <div style="margin-top:6px;">${dispBadge}</div>
         <div style="display:flex;gap:8px;margin-top:10px;">
           <span onclick="editarProduto('${p._id}')" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">Editar</span>
@@ -9543,6 +9564,191 @@ function fecharFormProduto() {
   if (wrap) wrap.style.display = 'none';
 }
 window.fecharFormProduto = fecharFormProduto;
+
+// ══════════════════════════════════════════════════════════════════════════
+// MÓDULO FORNECEDOR — Kits
+// Coleção: /fornecedores/{fid}/kits/{kitId} — { nome, tipo, linha, produtoIds[],
+// protocolo, precoOverride: {cheia} ou null, criadoEm }
+// Preço do kit = soma dos produtos selecionados (tabela cheia), salvo se
+// precoOverride estiver preenchido. -30%/-35% sempre derivados na hora.
+// ══════════════════════════════════════════════════════════════════════════
+let _kitsFornTodos = [];
+let _unsubKitsForn = null;
+let _kitEditId = '';
+
+function iniciarListenerKitsForn() {
+  if (_unsubKitsForn) return;
+  const fid = cp?.fornecedorId;
+  if (!fid) { console.warn('[Belezza] fornecedorId ausente em cp'); return; }
+  const ref = collection(db, 'fornecedores', fid, 'kits');
+  _unsubKitsForn = onSnapshot(ref, snap => {
+    _kitsFornTodos = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    renderKitsGrid(_kitsFornTodos);
+    renderKitProdutosCheck();
+  }, err => {
+    console.warn('[Belezza] kits fornecedor listener:', err);
+    const grid = document.getElementById('forn-kits-grid');
+    if (grid) grid.innerHTML = '<div style="color:#a8a29e;font-size:13px;grid-column:1/-1;text-align:center;padding:24px 0;">Erro ao carregar kits.</div>';
+  });
+}
+window.iniciarListenerKitsForn = iniciarListenerKitsForn;
+
+// Calcula os tiers de preço de um kit somando os produtos selecionados,
+// ou usando o override manual quando presente.
+function calcPrecoKit(kit) {
+  if (kit.precoOverride && kit.precoOverride.cheia) {
+    return calcPrecoTiers(kit.precoOverride.cheia);
+  }
+  const soma = (kit.produtoIds || []).reduce((tot, pid) => {
+    const p = _prodFornTodos.find(x => x._id === pid);
+    return tot + (p ? (parseFloat(String(p.preco || '0').replace(',', '.')) || 0) : 0);
+  }, 0);
+  return calcPrecoTiers(soma);
+}
+
+function renderKitsGrid(lista) {
+  const grid = document.getElementById('forn-kits-grid');
+  if (!grid) return;
+  if (!lista.length) {
+    grid.innerHTML = '<div style="color:#a8a29e;font-size:13px;grid-column:1/-1;text-align:center;padding:24px 0;">Nenhum kit cadastrado ainda.</div>';
+    return;
+  }
+  grid.innerHTML = lista.map(k => {
+    const t = calcPrecoKit(k);
+    const f = v => v.toFixed(2).replace('.', ',');
+    const tipoLabel = k.tipo === 'homecare' ? 'Home care' : 'Profissional';
+    const qtdProd = (k.produtoIds || []).length;
+    return `<div style="background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <div style="font-size:13px;font-weight:700;color:#1c1917;">${k.nome || 'Kit'}</div>
+        <span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 6px;border-radius:4px;">${tipoLabel}</span>
+        ${k.protocolo ? '<span style="background:#ede9fe;color:#5b21b6;font-size:10px;padding:2px 6px;border-radius:4px;">Protocolo</span>' : ''}
+      </div>
+      <div style="font-size:11px;color:#a8a29e;margin-top:2px;">${k.linha || 'Sem linha'} · ${qtdProd} produto${qtdProd === 1 ? '' : 's'}</div>
+      <div style="font-size:12px;color:#57534e;margin-top:8px;line-height:1.5;">
+        <div>Tabela cheia: <b>R$ ${f(t.cheia)}</b></div>
+        <div style="color:#a8a29e;">-30%: R$ ${f(t.p30)} &nbsp;·&nbsp; -35%: R$ ${f(t.p35)}</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <span onclick="editarKit('${k._id}')" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">Editar</span>
+        <span onclick="removerKit('${k._id}')" style="font-size:12px;color:#b91c1c;text-decoration:underline;cursor:pointer;">Remover</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Popula a lista de checkboxes de produtos disponíveis pra montar o kit.
+function renderKitProdutosCheck(marcados) {
+  const wrap = document.getElementById('forn-kit-produtos-check');
+  if (!wrap) return;
+  if (!_prodFornTodos.length) {
+    wrap.innerHTML = '<div style="color:#a8a29e;font-size:12px;">Cadastre produtos primeiro.</div>';
+    return;
+  }
+  const marc = marcados || [];
+  wrap.innerHTML = _prodFornTodos.map(p => `
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#44403c;">
+      <input type="checkbox" value="${p._id}" ${marc.includes(p._id) ? 'checked' : ''} style="width:15px;height:15px;">
+      ${p.nome || 'Produto'} ${p.preco ? '— R$ ' + p.preco : ''}
+    </label>`).join('');
+}
+
+async function salvarKit() {
+  const nome = (document.getElementById('forn-kit-nome')?.value || '').trim();
+  const tipo = document.getElementById('forn-kit-tipo')?.value || 'profissional';
+  const linha = document.getElementById('forn-kit-linha')?.value || '';
+  const protocolo = (document.getElementById('forn-kit-protocolo')?.value || '').trim();
+  const overrideChk = document.getElementById('forn-kit-override-chk')?.checked;
+  const overrideVal = (document.getElementById('forn-kit-preco-override')?.value || '').trim();
+  const produtoIds = Array.from(document.querySelectorAll('#forn-kit-produtos-check input[type=checkbox]:checked')).map(el => el.value);
+  const erro = document.getElementById('forn-kit-erro');
+  if (!nome) { if (erro) erro.textContent = 'Nome é obrigatório.'; return; }
+  if (!produtoIds.length) { if (erro) erro.textContent = 'Selecione ao menos um produto.'; return; }
+  if (erro) erro.textContent = '';
+  const fid = cp?.fornecedorId;
+  if (!fid) { if (erro) erro.textContent = 'Fornecedor não identificado.'; return; }
+  try {
+    const dados = {
+      nome, tipo, linha, produtoIds, protocolo,
+      precoOverride: overrideChk && overrideVal ? { cheia: overrideVal } : null
+    };
+    if (_kitEditId) {
+      await updateDoc(doc(db, 'fornecedores', fid, 'kits', _kitEditId), dados);
+    } else {
+      await addDoc(collection(db, 'fornecedores', fid, 'kits'), { ...dados, criadoEm: serverTimestamp() });
+    }
+    _kitEditId = '';
+    fecharFormKit();
+  } catch (e) {
+    console.error('[Belezza] salvarKit:', e);
+    if (erro) erro.textContent = 'Erro ao salvar. Tente novamente.';
+  }
+}
+window.salvarKit = salvarKit;
+
+function editarKit(id) {
+  const k = _kitsFornTodos.find(x => x._id === id);
+  if (!k) return;
+  abrirFormKit();
+  _kitEditId = id;
+  const titulo = document.getElementById('forn-kit-form-title');
+  if (titulo) titulo.textContent = 'Editar kit';
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
+  set('forn-kit-nome', k.nome);
+  set('forn-kit-tipo', k.tipo || 'profissional');
+  set('forn-kit-linha', k.linha || '');
+  set('forn-kit-protocolo', k.protocolo || '');
+  renderKitProdutosCheck(k.produtoIds || []);
+  const overrideChk = document.getElementById('forn-kit-override-chk');
+  const overrideWrap = document.getElementById('forn-kit-override-wrap');
+  if (k.precoOverride && k.precoOverride.cheia) {
+    if (overrideChk) overrideChk.checked = true;
+    if (overrideWrap) overrideWrap.style.display = 'block';
+    set('forn-kit-preco-override', k.precoOverride.cheia);
+  } else {
+    if (overrideChk) overrideChk.checked = false;
+    if (overrideWrap) overrideWrap.style.display = 'none';
+    set('forn-kit-preco-override', '');
+  }
+}
+window.editarKit = editarKit;
+
+async function removerKit(id) {
+  if (!confirm('Remover este kit?')) return;
+  const fid = cp?.fornecedorId;
+  if (!fid) return;
+  try {
+    await deleteDoc(doc(db, 'fornecedores', fid, 'kits', id));
+  } catch (e) { console.error('[Belezza] removerKit:', e); }
+}
+window.removerKit = removerKit;
+
+function abrirFormKit() {
+  const wrap = document.getElementById('forn-kit-form-wrap');
+  if (!wrap) return;
+  _kitEditId = '';
+  const titulo = document.getElementById('forn-kit-form-title');
+  if (titulo) titulo.textContent = 'Novo kit';
+  ['forn-kit-nome', 'forn-kit-protocolo', 'forn-kit-preco-override'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const tipoEl = document.getElementById('forn-kit-tipo'); if (tipoEl) tipoEl.value = 'profissional';
+  const linhaEl = document.getElementById('forn-kit-linha'); if (linhaEl) linhaEl.value = '';
+  const overrideChk = document.getElementById('forn-kit-override-chk'); if (overrideChk) overrideChk.checked = false;
+  const overrideWrap = document.getElementById('forn-kit-override-wrap'); if (overrideWrap) overrideWrap.style.display = 'none';
+  renderKitProdutosCheck();
+  const erro = document.getElementById('forn-kit-erro');
+  if (erro) erro.textContent = '';
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.abrirFormKit = abrirFormKit;
+
+function fecharFormKit() {
+  const wrap = document.getElementById('forn-kit-form-wrap');
+  if (wrap) wrap.style.display = 'none';
+}
+window.fecharFormKit = fecharFormKit;
 
 // ══════════════════════════════════════════════════════════════════════════
 // MÓDULO FORNECEDOR — Vínculo Fornecedor ↔ Clínica
@@ -10460,8 +10666,15 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
           <input id="forn-prod-preco" type="text" inputmode="decimal" placeholder="0,00" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
         </div>
         <div style="flex:1;">
-          <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Categoria</label>
-          <input id="forn-prod-cat" type="text" placeholder="Ex: Skincare" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+          <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Linha</label>
+          <select id="forn-prod-cat" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+            <option value="">Selecione...</option>
+            <option value="Facial">Facial</option>
+            <option value="Corporal">Corporal</option>
+            <option value="Olhos">Olhos</option>
+            <option value="Capilar">Capilar</option>
+            <option value="Diversas">Diversas</option>
+          </select>
         </div>
       </div>
 
@@ -10482,6 +10695,71 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <div style="display:flex;gap:10px;">
         <button onclick="salvarProduto()" style="background:#1c1917;color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar</button>
         <button onclick="fecharFormProduto()" style="background:#e7e5e4;color:#44403c;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:0 20px 20px 20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:#1c1917;">Kits</div>
+      <button onclick="abrirFormKit()" style="background:#f59e0b;color:#1c1917;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">+ Novo kit</button>
+    </div>
+    <div id="forn-kits-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+      <div style="color:#a8a29e;font-size:13px;grid-column:1/-1;text-align:center;padding:24px 0;">Carregando kits...</div>
+    </div>
+
+    <div id="forn-kit-form-wrap" style="display:none;margin-top:20px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <div id="forn-kit-form-title" style="font-size:14px;font-weight:700;color:#1c1917;margin-bottom:12px;">Novo kit</div>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Nome *</label>
+      <input id="forn-kit-nome" type="text" maxlength="80" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
+
+      <div style="display:flex;gap:12px;margin-bottom:12px;">
+        <div style="flex:1;">
+          <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Tipo</label>
+          <select id="forn-kit-tipo" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+            <option value="profissional">Profissional</option>
+            <option value="homecare">Home care</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Linha</label>
+          <select id="forn-kit-linha" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+            <option value="">Selecione...</option>
+            <option value="Facial">Facial</option>
+            <option value="Corporal">Corporal</option>
+            <option value="Olhos">Olhos</option>
+            <option value="Capilar">Capilar</option>
+            <option value="Diversas">Diversas</option>
+          </select>
+        </div>
+      </div>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Produtos do kit *</label>
+      <div id="forn-kit-produtos-check" style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow:auto;border:1px solid #e7e5e4;border-radius:6px;padding:10px;margin-bottom:12px;">
+        <div style="color:#a8a29e;font-size:12px;">Cadastre produtos primeiro.</div>
+      </div>
+
+      <div style="background:#f7f3f0;border-radius:6px;padding:10px;margin-bottom:12px;">
+        <div id="forn-kit-preco-auto" style="font-size:12px;color:#57534e;">Preço calculado automaticamente pela soma dos produtos selecionados.</div>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#57534e;margin-bottom:8px;">
+        <input id="forn-kit-override-chk" type="checkbox" onchange="document.getElementById('forn-kit-override-wrap').style.display=this.checked?'block':'none'" style="width:16px;height:16px;">
+        Sobrescrever preço da tabela cheia manualmente
+      </label>
+      <div id="forn-kit-override-wrap" style="display:none;margin-bottom:12px;">
+        <input id="forn-kit-preco-override" type="text" inputmode="decimal" placeholder="Preço cheio do kit (R$)" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+      </div>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Protocolo (passo a passo de uso) — opcional</label>
+      <textarea id="forn-kit-protocolo" maxlength="1500" rows="4" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;resize:vertical;"></textarea>
+
+      <div id="forn-kit-erro" style="color:#b91c1c;font-size:12px;margin-bottom:10px;"></div>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="salvarKit()" style="background:#1c1917;color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar</button>
+        <button onclick="fecharFormKit()" style="background:#e7e5e4;color:#44403c;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
       </div>
     </div>
   </div>
