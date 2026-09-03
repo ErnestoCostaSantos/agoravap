@@ -1669,6 +1669,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <!-- Catálogo do fornecedor selecionado / montar pedido -->
       <div id="forn-catalogo-wrap" style="display:none;background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);padding:16px;margin-bottom:18px">
         <div id="forn-catalogo-titulo" style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:10px">Catálogo</div>
+        <div id="forn-catalogo-kits"></div>
         <div id="forn-catalogo-produtos"></div>
         <div id="forn-catalogo-total" style="font-size:13px;font-weight:600;color:var(--tx);margin:10px 0">Total: R$ 0,00</div>
         <div style="display:flex;gap:10px">
@@ -9635,14 +9636,7 @@ window.iniciarListenerKitsForn = iniciarListenerKitsForn;
 // Calcula os tiers de preço de um kit somando os produtos selecionados,
 // ou usando o override manual quando presente.
 function calcPrecoKit(kit) {
-  if (kit.precoOverride && kit.precoOverride.cheia) {
-    return calcPrecoTiers(kit.precoOverride.cheia);
-  }
-  const soma = (kit.produtoIds || []).reduce((tot, pid) => {
-    const p = _prodFornTodos.find(x => x._id === pid);
-    return tot + (p ? (parseFloat(String(p.preco || '0').replace(',', '.')) || 0) : 0);
-  }, 0);
-  return calcPrecoTiers(soma);
+  return calcPrecoKitFromProdutos(kit, _prodFornTodos);
 }
 
 function renderKitsGrid(lista) {
@@ -9958,9 +9952,23 @@ window.recusarVinculo = recusarVinculo;
 // ── Lado Proprietária: montar e enviar pedido a partir do catálogo ─────────
 let _pedidoFornecedorId = '';
 let _pedidoFornecedorNome = '';
-let _pedidoCarrinho = {}; // produtoId -> { nome, precoUnit, qtd }
+let _pedidoCarrinho = {}; // chave 'prod:ID' ou 'kit:ID' -> { tipo, nome, precoUnit, qtd, produtoId?/kitId? }
 let _unsubPedidosClinica = null;
 let _unsubPedidosForn = null;
+
+// Versão genérica do cálculo de preço de kit, usável tanto no painel do
+// Fornecedor (com _prodFornTodos) quanto aqui do lado da clínica (com a
+// lista de produtos buscada na hora).
+function calcPrecoKitFromProdutos(kit, produtosLista) {
+  if (kit.precoOverride && kit.precoOverride.cheia) {
+    return calcPrecoTiers(kit.precoOverride.cheia);
+  }
+  const soma = (kit.produtoIds || []).reduce((tot, pid) => {
+    const p = produtosLista.find(x => x._id === pid);
+    return tot + (p ? (parseFloat(String(p.preco || '0').replace(',', '.')) || 0) : 0);
+  }, 0);
+  return calcPrecoTiers(soma);
+}
 
 async function abrirCatalogoFornecedor(fornecedorId) {
   const v = (window._vinculosAprovadosCache || []).find(x => x.fornecedorId === fornecedorId);
@@ -9970,12 +9978,19 @@ async function abrirCatalogoFornecedor(fornecedorId) {
   const wrap = document.getElementById('forn-catalogo-wrap');
   const titulo = document.getElementById('forn-catalogo-titulo');
   const prodWrap = document.getElementById('forn-catalogo-produtos');
+  const kitsWrap = document.getElementById('forn-catalogo-kits');
   if (titulo) titulo.textContent = 'Catálogo — ' + _pedidoFornecedorNome;
   if (prodWrap) prodWrap.innerHTML = '<div style="color:var(--tx3);font-size:13px">Carregando produtos...</div>';
+  if (kitsWrap) kitsWrap.innerHTML = '';
   if (wrap) { wrap.style.display = 'block'; wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   try {
-    const snap = await getDocs(collection(db, 'fornecedores', fornecedorId, 'produtos'));
-    const produtos = snap.docs.map(d => ({ ...d.data(), _id: d.id })).filter(p => p.disponivel !== false);
+    const [snapProd, snapKits] = await Promise.all([
+      getDocs(collection(db, 'fornecedores', fornecedorId, 'produtos')),
+      getDocs(collection(db, 'fornecedores', fornecedorId, 'kits')),
+    ]);
+    const produtos = snapProd.docs.map(d => ({ ...d.data(), _id: d.id })).filter(p => p.disponivel !== false);
+    const kits = snapKits.docs.map(d => ({ ...d.data(), _id: d.id }));
+    renderCatalogoKits(kits, produtos);
     renderCatalogoProdutos(produtos);
   } catch (e) {
     console.error('[Belezza] abrirCatalogoFornecedor:', e);
@@ -9983,6 +9998,31 @@ async function abrirCatalogoFornecedor(fornecedorId) {
   }
 }
 window.abrirCatalogoFornecedor = abrirCatalogoFornecedor;
+
+function renderCatalogoKits(kits, produtos) {
+  const kitsWrap = document.getElementById('forn-catalogo-kits');
+  if (!kitsWrap) return;
+  if (!kits.length) { kitsWrap.innerHTML = ''; return; }
+  const f = v => v.toFixed(2).replace('.', ',');
+  kitsWrap.innerHTML = '<div style="font-size:12px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Kits</div>' +
+    kits.map(k => {
+      const t = calcPrecoKitFromProdutos(k, produtos);
+      const tipoLabel = k.tipo === 'homecare' ? 'Home care' : 'Profissional';
+      const kitImg = k.imagemBase64 ? `<img src="${k.imagemBase64}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:8px">` : '';
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br)">
+        <div style="display:flex;align-items:center">
+          ${kitImg}
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--tx)">${k.nome || 'Kit'} <span style="font-size:11px;font-weight:400;color:var(--tx3)">(${tipoLabel})</span></div>
+            <div style="font-size:12px;color:var(--tx3)">R$ ${f(t.cheia)}</div>
+            ${k.protocolo ? '<div style="font-size:11px;color:var(--tx3)">Inclui protocolo de uso</div>' : ''}
+          </div>
+        </div>
+        <input type="number" min="0" value="0" style="width:60px;padding:6px;border:1px solid var(--br);border-radius:6px;font-size:13px;text-align:center"
+          onchange="atualizarQtdPedidoKit('${k._id}','${(k.nome||'Kit').replace(/'/g,"\\'")}',${t.cheia},this.value)">
+      </div>`;
+    }).join('') + '<div style="font-size:12px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 6px">Produtos avulsos</div>';
+}
 
 function renderCatalogoProdutos(produtos) {
   const prodWrap = document.getElementById('forn-catalogo-produtos');
@@ -10006,20 +10046,37 @@ function renderCatalogoProdutos(produtos) {
 
 function atualizarQtdPedido(produtoId, nome, precoUnit, qtdStr) {
   const qtd = parseInt(qtdStr, 10) || 0;
+  const chave = 'prod:' + produtoId;
   if (qtd > 0) {
-    _pedidoCarrinho[produtoId] = { nome, precoUnit, qtd };
+    _pedidoCarrinho[chave] = { tipo: 'produto', produtoId, nome, precoUnit, qtd };
   } else {
-    delete _pedidoCarrinho[produtoId];
+    delete _pedidoCarrinho[chave];
   }
+  atualizarTotalPedido();
+}
+window.atualizarQtdPedido = atualizarQtdPedido;
+
+function atualizarQtdPedidoKit(kitId, nome, precoUnit, qtdStr) {
+  const qtd = parseInt(qtdStr, 10) || 0;
+  const chave = 'kit:' + kitId;
+  if (qtd > 0) {
+    _pedidoCarrinho[chave] = { tipo: 'kit', kitId, nome, precoUnit, qtd };
+  } else {
+    delete _pedidoCarrinho[chave];
+  }
+  atualizarTotalPedido();
+}
+window.atualizarQtdPedidoKit = atualizarQtdPedidoKit;
+
+function atualizarTotalPedido() {
   const total = Object.values(_pedidoCarrinho).reduce((s, it) => s + it.precoUnit * it.qtd, 0);
   const totalEl = document.getElementById('forn-catalogo-total');
   if (totalEl) totalEl.textContent = 'Total: R$ ' + total.toFixed(2).replace('.', ',');
 }
-window.atualizarQtdPedido = atualizarQtdPedido;
 
 async function enviarPedido() {
-  const itens = Object.entries(_pedidoCarrinho).map(([produtoId, it]) => ({ produtoId, ...it }));
-  if (!itens.length) { alert('Escolha ao menos um produto.'); return; }
+  const itens = Object.values(_pedidoCarrinho);
+  if (!itens.length) { alert('Escolha ao menos um produto ou kit.'); return; }
   const valorTotal = itens.reduce((s, it) => s + it.precoUnit * it.qtd, 0);
   try {
     await addDoc(collection(db, 'pedidos'), {
@@ -10039,6 +10096,8 @@ window.enviarPedido = enviarPedido;
 function fecharCatalogoFornecedor() {
   const wrap = document.getElementById('forn-catalogo-wrap');
   if (wrap) wrap.style.display = 'none';
+  const kitsWrap = document.getElementById('forn-catalogo-kits');
+  if (kitsWrap) kitsWrap.innerHTML = '';
   _pedidoCarrinho = {};
 }
 window.fecharCatalogoFornecedor = fecharCatalogoFornecedor;
