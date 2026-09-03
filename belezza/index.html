@@ -9802,9 +9802,54 @@ function iniciarListenerPedidosForn() {
   _unsubPedidosForn = onSnapshot(q, snap => {
     const lista = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
     renderPedidosForn(lista);
+    renderDashboardForn(lista);
   }, err => console.warn('[Belezza] pedidos fornecedor listener:', err));
 }
 window.iniciarListenerPedidosForn = iniciarListenerPedidosForn;
+
+// ── Dashboard do Fornecedor: totais do mês + ranking de clínicas ───────────
+// Padrão adaptado de vapCarregarRankingVendedor (AgoraVAP!) — agrupa por
+// clínica e soma valores, aqui a partir dos próprios /pedidos já carregados.
+function renderDashboardForn(lista) {
+  const qtdEl   = document.getElementById('forn-dash-qtd');
+  const totalEl = document.getElementById('forn-dash-total');
+  const rankEl  = document.getElementById('forn-dash-ranking');
+  const mesEl   = document.getElementById('forn-dash-mes');
+  if (!qtdEl || !totalEl || !rankEl) return;
+
+  const agora = new Date();
+  const anoAtual = agora.getFullYear(), mesAtual = agora.getMonth();
+  const mesesNomes = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  if (mesEl) mesEl.textContent = mesesNomes[mesAtual] + ' de ' + anoAtual;
+
+  const validos = lista.filter(p => p.status !== 'cancelado');
+
+  // Totais do mês corrente (criadoEm é um Firestore Timestamp — usa toDate())
+  const doMes = validos.filter(p => {
+    const d = p.criadoEm?.toDate ? p.criadoEm.toDate() : null;
+    return d && d.getFullYear() === anoAtual && d.getMonth() === mesAtual;
+  });
+  qtdEl.textContent = String(doMes.length);
+  const totalMes = doMes.reduce((s, p) => s + (p.valorTotal || 0), 0);
+  totalEl.textContent = 'R$ ' + totalMes.toFixed(2).replace('.', ',');
+
+  // Ranking de clínicas por faturamento (todos os pedidos válidos, não só do mês)
+  const porClinica = {};
+  validos.forEach(p => {
+    const nome = p.clinicaNome || 'Clínica';
+    porClinica[nome] = (porClinica[nome] || 0) + (p.valorTotal || 0);
+  });
+  const ranking = Object.entries(porClinica).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  if (!ranking.length) {
+    rankEl.innerHTML = '<div style="color:#a8a29e;font-size:13px;">Sem pedidos ainda.</div>';
+  } else {
+    rankEl.innerHTML = ranking.map(([nome, valor], i) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:6px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+        <div style="font-size:13px;color:#1c1917;"><strong>${i+1}º</strong> ${nome}</div>
+        <div style="font-size:13px;font-weight:600;color:#1c1917;">R$ ${valor.toFixed(2).replace('.', ',')}</div>
+      </div>`).join('');
+  }
+}
 
 const PEDIDO_PROXIMO = { novo: 'confirmado', confirmado: 'enviado', enviado: 'entregue' };
 const PEDIDO_ACAO_LABEL = { novo: 'Confirmar', confirmado: 'Marcar como enviado', enviado: 'Marcar como entregue' };
@@ -10136,6 +10181,24 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <div id="forn-welcome" style="font-size:16px;font-weight:700;margin-top:2px;">Olá!</div>
     </div>
     <button onclick="sairForn()" style="background:#333;border:none;color:#fff;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;">Sair</button>
+  </div>
+
+  <div style="padding:20px 20px 0 20px;">
+    <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Dashboard — <span id="forn-dash-mes">este mês</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px;">
+      <div style="background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+        <div style="font-size:11px;color:#a8a29e;text-transform:uppercase;letter-spacing:.06em;">Pedidos no mês</div>
+        <div id="forn-dash-qtd" style="font-size:22px;font-weight:700;color:#1c1917;margin-top:4px;">0</div>
+      </div>
+      <div style="background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+        <div style="font-size:11px;color:#a8a29e;text-transform:uppercase;letter-spacing:.06em;">Faturamento no mês</div>
+        <div id="forn-dash-total" style="font-size:22px;font-weight:700;color:#1c1917;margin-top:4px;">R$ 0,00</div>
+      </div>
+    </div>
+    <div style="font-size:13px;font-weight:700;color:#1c1917;margin-bottom:8px;">Ranking de clínicas</div>
+    <div id="forn-dash-ranking" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
+      <div style="color:#a8a29e;font-size:13px;">Sem pedidos ainda.</div>
+    </div>
   </div>
 
   <div style="padding:20px;">
