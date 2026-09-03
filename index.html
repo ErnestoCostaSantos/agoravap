@@ -870,7 +870,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
 
       <div class="chart-card" id="prosp-chart-card" style="display:none">
-        <div class="chart-title">CRM do Mês por Vendedor</div>
+        <div class="chart-title">Prospecção do Mês por Vendedor</div>
         <canvas id="prosp-ch-resumo" height="220"></canvas>
       </div>
 
@@ -1550,8 +1550,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Outros — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, Fez Cotação, Vendeu, Ctto Inválido) e Próximo Contato</li>
             <li><b>Próximo Contato</b> — Pode ser digitado ou escolhido num calendário; é a data usada pelo lembrete de pendências (veja abaixo)</li>
             <li><b>Totais e filtros</b> — Contadores "Hoje" e "Este Mês" no topo; filtros por Mês, Resultado e (Líder/Master/SuperAdmin) por Vendedor</li>
-            <li><b>Gráfico do Mês por Vendedor</b> — Visível para Líder/Master/SuperAdmin, mostra a distribuição de Resultados por vendedor no mês selecionado</li>
-            <li><b>Baixar PDF do mês</b> — Gera um relatório para impressão com todos os lançamentos do mês/filtros selecionados</li>
+            <li><b>Gráfico "Prospecção do Mês por Vendedor"</b> — Visível para Líder/Master/SuperAdmin, mostra a distribuição de Resultados por vendedor no mês selecionado, considerando apenas lançamentos do Tipo <b>Prospecção</b> (lançamentos de Acompanhamento ou Outros não entram nesse gráfico)</li>
+            <li><b>Baixar PDF do mês</b> — Gera um relatório para impressão com todos os lançamentos do mês/filtros selecionados, de qualquer Tipo</li>
           </ul>
           <h4 style="margin:10px 0 4px">Pop-up de Pendências de Hoje</h4>
           <p>Todo dia, ao entrar no sistema, um pop-up de lembrete abre automaticamente logo depois do pop-up de promoções (mesmo em dias sem nenhuma promoção ativa), mostrando os lançamentos com Próximo Contato vencido ou marcado para hoje.</p>
@@ -6888,7 +6888,9 @@ function vapProspRenderGrafico(){
   const card = $('prosp-chart-card');
   if(!card) return;
   if(!veTodaEmpresa){ card.style.display='none'; return; }
-  const lista = vapProspListaDoMes();
+  // Gráfico considera só lançamentos do Tipo "Prospecção" (lançamentos antigos, sem
+  // campo Tipo salvo, são tratados como Prospecção por compatibilidade)
+  const lista = vapProspListaDoMes().filter(p=>!p.tipo || p.tipo==='Prospecção');
   if(!lista.length){ card.style.display='none'; return; }
   card.style.display='block';
   const porVendedor = {};
