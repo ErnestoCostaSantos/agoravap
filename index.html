@@ -120,6 +120,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 .btn-save{padding:9px 22px;background:#E53E3E;color:#fff;border:none;border-radius:var(--rsm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;transition:background .15s}
 .btn-save:hover{background:#C53030}
 .btn-sec{padding:9px 18px;background:transparent;color:#E53E3E;border:1.5px solid #FED7D7;border-radius:var(--rsm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;transition:background .15s}
+.prosp-tipo-btn{padding:7px 14px;font-size:.8rem}
+.prosp-tipo-btn.active{background:#22C55E;color:#fff;border-color:#22C55E}
 .btn-sec:hover{background:#FFF5F5}
 .btn-danger{padding:8px 16px;background:transparent;color:var(--r);border:1.5px solid var(--rl);border-radius:var(--rsm);font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s}
 .btn-danger:hover{background:var(--rl)}
@@ -544,7 +546,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 
   <div class="nav" id="main-nav">
     <div class="nav-tab active" data-tab="lancar">Lançar</div>
-    <div class="nav-tab" data-tab="prospeccao">Prospecção</div>
+    <div class="nav-tab" data-tab="prospeccao">CRM</div>
     <div class="nav-tab" data-tab="historico">Histórico</div>
     <div class="nav-tab" data-tab="carteira">Carteira</div>
     <div class="nav-tab" data-tab="dashboard">Dashboard</div>
@@ -832,14 +834,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       <div id="cart-list"><div class="loading"><div class="spin"></div> Carregando…</div></div>
     </div>
 
-    <!-- ════ PROSPECÇÃO ═══════════════════════════════════════ -->
+    <!-- ════ CRM (ex-Prospecção) ═══════════════════════════════ -->
     <div class="panel" id="panel-prospeccao">
       <div class="fcard" style="padding:1rem 1.25rem">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:.75rem">
-          <div class="fcard-title" style="margin:0"><span class="bar" style="background:#22C55E"></span>Prospecção</div>
+          <div class="fcard-title" style="margin:0"><span class="bar" style="background:#22C55E"></span>CRM</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-sec" id="btn-prosp-pendencias">🔔 Pendências de Hoje</button>
             <button class="btn-sec" id="btn-prosp-pdf">🖨️ Baixar PDF do mês</button>
-            <button class="btn-save" id="btn-prosp-add" style="background:#22C55E">+ Nova Prospecção</button>
+            <button class="btn-save" id="btn-prosp-add" style="background:#22C55E">+ Novo Lançamento</button>
           </div>
         </div>
         <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.75rem">
@@ -867,7 +870,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
 
       <div class="chart-card" id="prosp-chart-card" style="display:none">
-        <div class="chart-title">Prospecção do Mês por Vendedor</div>
+        <div class="chart-title">CRM do Mês por Vendedor</div>
         <canvas id="prosp-ch-resumo" height="220"></canvas>
       </div>
 
@@ -1539,6 +1542,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         </div>
         <div class="divider"></div>
 
+        <!-- 2.8 CRM -->
+        <div class="help-section">
+          <h3>2.8 Módulo CRM</h3>
+          <p>Registro diário de acompanhamento, prospecção e follow-up de contatos comerciais, com totalização diária/mensal e um sistema de lembretes de "Próximo Contato".</p>
+          <ul>
+            <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Outros — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, Fez Cotação, Vendeu, Ctto Inválido) e Próximo Contato</li>
+            <li><b>Próximo Contato</b> — Pode ser digitado ou escolhido num calendário; é a data usada pelo lembrete de pendências (veja abaixo)</li>
+            <li><b>Totais e filtros</b> — Contadores "Hoje" e "Este Mês" no topo; filtros por Mês, Resultado e (Líder/Master/SuperAdmin) por Vendedor</li>
+            <li><b>Gráfico do Mês por Vendedor</b> — Visível para Líder/Master/SuperAdmin, mostra a distribuição de Resultados por vendedor no mês selecionado</li>
+            <li><b>Baixar PDF do mês</b> — Gera um relatório para impressão com todos os lançamentos do mês/filtros selecionados</li>
+          </ul>
+          <h4 style="margin:10px 0 4px">Pop-up de Pendências de Hoje</h4>
+          <p>Todo dia, ao entrar no sistema, um pop-up de lembrete abre automaticamente logo depois do pop-up de promoções (mesmo em dias sem nenhuma promoção ativa), mostrando os lançamentos com Próximo Contato vencido ou marcado para hoje.</p>
+          <ul>
+            <li><b>O que "encerra" uma pendência</b> — Um lançamento deixa de aparecer no lembrete assim que o Resultado é marcado como <b>Vendeu</b>, <b>Sem interesse</b> ou <b>Ctto Inválido</b>, mesmo que a data do Próximo Contato já tenha passado. Os demais resultados (Agendado, Não atendeu, Fez Cotação) continuam gerando lembrete até serem atualizados</li>
+            <li><b>Sem pendências</b> — Quando não há nada vencido, aparece a frase "Não há pendências agendadas para hoje" por 5 segundos, e o pop-up fecha sozinho</li>
+            <li><b>Com pendências</b> — A lista fica até 10 itens visíveis por vez, com rolagem para ver o restante; clicar num item abre o lançamento direto para edição; fecha pelo "✕" no canto superior direito</li>
+            <li><b>Visão Líder/Master</b> — Além da própria lista de pendências (mesmo comportamento acima), uma linha extra no rodapé do pop-up mostra "Hoje o time tem X pendências agendadas", somando a empresa toda</li>
+            <li><b>Botão "🔔 Pendências de Hoje"</b> — No painel CRM, reabre esse mesmo pop-up a qualquer momento, sem esperar o login do dia</li>
+          </ul>
+          <div class="help-tip">O pop-up de lembrete abre só 1x por dia por usuário no fluxo automático (mesma lógica do pop-up de promoções); o botão "Pendências de Hoje" sempre mostra a situação atual, a qualquer hora.</div>
+        </div>
+        <div class="divider"></div>
+
         <!-- 3. ACESSO -->
         <div class="help-section">
           <h2>3. Módulo Acesso</h2>
@@ -1945,14 +1972,24 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   </div>
 </div>
 
-<!-- MODAL Prospecção — Nova/Editar -->
+<!-- MODAL CRM (ex-Prospecção) — Nova/Editar -->
 <div class="modal-ov" id="modal-prospeccao">
   <div class="modal" style="max-width:480px">
-    <div class="modal-hdr"><div class="modal-title" id="prosp-modal-title">Nova Prospecção</div><button class="btn-close" id="prosp-modal-close">×</button></div>
+    <div class="modal-hdr"><div class="modal-title" id="prosp-modal-title">Novo Lançamento</div><button class="btn-close" id="prosp-modal-close">×</button></div>
     <input type="hidden" id="prosp-id"/>
+    <input type="hidden" id="prosp-tipo" value="Prospecção"/>
     <div class="fgrid fg2">
       <div class="field"><label>Empresa *</label><input type="text" id="prosp-empresa" placeholder="Nome da empresa" style="width:100%"/></div>
       <div class="field"><label>Responsável</label><input type="text" id="prosp-responsavel" placeholder="Nome do responsável" style="width:100%"/></div>
+    </div>
+    <div class="fgrid fg1">
+      <div class="field"><label>Tipo</label>
+        <div id="prosp-tipo-group" style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn-sec prosp-tipo-btn" data-tipo="Acompanhamento" onclick="vapProspSelecionarTipo('Acompanhamento')">Acompanhamento</button>
+          <button type="button" class="btn-sec prosp-tipo-btn" data-tipo="Prospecção" onclick="vapProspSelecionarTipo('Prospecção')">Prospecção</button>
+          <button type="button" class="btn-sec prosp-tipo-btn" data-tipo="Outros" onclick="vapProspSelecionarTipo('Outros')">Outros</button>
+        </div>
+      </div>
     </div>
     <div class="fgrid fg2">
       <div class="field"><label>Segmento</label>
@@ -1981,9 +2018,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
     </div>
     <div class="fgrid fg1">
-      <div class="field"><label>Próximo Contato</label><input type="text" inputmode="numeric" id="prosp-proximo" placeholder="DD/MM/AAAA" maxlength="10" style="width:100%"/></div>
+      <div class="field"><label>Próximo Contato</label>
+        <div style="position:relative">
+          <input type="date" id="prosp-proximo" style="width:100%"/>
+          <div id="prosp-proximo-fmt" style="position:absolute;left:11px;right:32px;top:1.5px;bottom:1.5px;display:flex;align-items:center;font-size:.88rem;color:var(--dark);background:var(--bg);pointer-events:none;border-radius:5px 0 0 5px"></div>
+        </div>
+      </div>
     </div>
-    <div class="ffooter"><button class="btn-sec" id="prosp-modal-cancel">Cancelar</button><button class="btn-save" id="btn-prosp-save" style="background:#22C55E">Salvar Prospecção</button></div>
+    <div class="ffooter"><button class="btn-sec" id="prosp-modal-cancel">Cancelar</button><button class="btn-save" id="btn-prosp-save" style="background:#22C55E">Salvar Lançamento</button></div>
   </div>
 </div>
 
@@ -2772,7 +2814,14 @@ onAuthStateChanged(auth, async user => {
     window._vapCompanyId = cp.companyId || _companyId || null;
     if (typeof vapIniciarModulos === 'function') vapIniciarModulos();
     // Pop-up de boas-vindas (vendedor, líder e master, 1x/dia)
-    setTimeout(() => { if(window.vapVerificarPopupPromo) window.vapVerificarPopupPromo(); }, 600);
+    setTimeout(async () => {
+      if(window.vapVerificarPopupPromo) await window.vapVerificarPopupPromo();
+      // Se o pop-up de promoções não abriu (sem promoção ativa ou já visto hoje), o de
+      // Pendências do CRM é disparado direto aqui; se abriu, é encadeado no fechamento dele.
+      const overlayPromo = document.getElementById('vap-popup-overlay');
+      const promoAberto = overlayPromo && overlayPromo.style.display === 'flex';
+      if(!promoAberto && window.vapVerificarPopupCRM) window.vapVerificarPopupCRM();
+    }, 600);
     const tabCamp   = document.getElementById('tab-campanhas');
     const tabPromos = document.getElementById('tab-promocoes');
     const tabPromoV = document.getElementById('tab-promocoes-vendedor');
@@ -6415,6 +6464,8 @@ function vapFecharPopupPromo(){
   if(videoEl){videoEl.pause();videoEl.src='';videoEl.onended=null;} // evita áudio continuar tocando escondido
   _vapPopupPararCarrossel();
   if(overlay)overlay.style.display='none';
+  // Encadeia o pop-up de Pendências do CRM logo depois que o de promoções é fechado
+  if(window.vapVerificarPopupCRM) window.vapVerificarPopupCRM();
 }
 window.vapFecharPopupPromo=vapFecharPopupPromo;
 // ── Vendas por Promoção ───────────────────────────────────────────────────
@@ -6618,15 +6669,19 @@ function vapIniciarListenerCarteira(){
 window.vapIniciarListenerCarteira = vapIniciarListenerCarteira;
 
 // ══════════════════════════════════════════════════════════
-//  MÓDULO PROSPECÇÃO
+//  MÓDULO CRM (ex-Prospecção)
 //  (coleção Firestore própria: prospeccoes — não toca em
-//  Cotações/Promoções/Campanhas/Carteira)
+//  Cotações/Promoções/Campanhas/Carteira; nomes internos e a
+//  coleção seguem "prosp*"/"prospeccoes" por compatibilidade)
 // ══════════════════════════════════════════════════════════
 let _prospLista = [];
 let unProspeccoes = null;
 const PROSP_SEGMENTOS = ['Revenda','Centro Automotivo','Transportadora','Posto de Troca','Posto de Gasolina','Outros'];
 const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido'];
 const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444'};
+const PROSP_TIPOS = ['Acompanhamento','Prospecção','Outros'];
+// Resultados que "encerram" um lançamento — deixam de contar como pendência mesmo com Próximo Contato vencido
+const PROSP_RESULTADOS_FINAIS = ['Vendeu','Sem interesse','Ctto Inválido'];
 
 function prospNomeVendedor(uid){
   const u = _users.find(x=>x.id===uid);
@@ -6639,40 +6694,56 @@ function prospEhGestor(){
   return cp?.role==='lider' || cp?.role==='master' || cp?.role==='superadmin';
 }
 
+// Seleção única do campo Tipo (visual de botões, comportamento de rádio)
+function vapProspSelecionarTipo(tipo){
+  $('prosp-tipo').value = tipo;
+  document.querySelectorAll('.prosp-tipo-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tipo===tipo);
+  });
+}
+window.vapProspSelecionarTipo = vapProspSelecionarTipo;
+
+// Exibe o "Próximo Contato" no formato DD/MM/AA sobre o input nativo (que continua em ISO por baixo)
+function atualizarProspProximoFmt(){
+  const el = $('prosp-proximo'), lbl = $('prosp-proximo-fmt');
+  if(!el || !lbl) return;
+  const v = el.value; // YYYY-MM-DD
+  if(!v){ lbl.textContent = ''; return; }
+  const [y,m,d] = v.split('-');
+  lbl.textContent = `${d}/${m}/${y.slice(2)}`;
+}
+window.atualizarProspProximoFmt = atualizarProspProximoFmt;
+
 async function vapProspSalvar(){
   const CID = _vapGetCompanyId(); if(!CID){ toast('Empresa não identificada.'); return; }
   const id = $('prosp-id').value;
   const empresa = $('prosp-empresa').value.trim();
   const responsavel = $('prosp-responsavel').value.trim();
+  const tipo = $('prosp-tipo').value || PROSP_TIPOS[1];
   const segmento = $('prosp-segmento').value;
   const telefone = $('prosp-telefone').value.trim();
   const local = $('prosp-local').value.trim();
   const resultado = $('prosp-resultado').value;
-  const proximoBR = $('prosp-proximo').value.trim();
+  const proximoContato = $('prosp-proximo').value || ''; // input type=date já entrega YYYY-MM-DD
   if(!empresa){ toast('Informe a empresa.'); return; }
-  let proximoContato = '';
-  if(proximoBR){
-    proximoContato = cartBRtoISO(proximoBR);
-    if(!proximoContato){ toast('Próximo contato inválido. Use o formato DD/MM/AAAA.'); return; }
-  }
   const payload = {
     companyId: CID, uid: cu.uid, vendedorNome: cp?.name || cu?.displayName || '—',
-    empresa, responsavel, segmento, telefone, localSaturacao: local, resultado, proximoContato
+    empresa, responsavel, tipo, segmento, telefone, localSaturacao: local, resultado, proximoContato
   };
   try{
     if(id){
       await updateDoc(doc(db,'prospeccoes',id), payload);
-      toast('Prospecção atualizada!');
+      toast('Lançamento atualizado!');
     } else {
       payload.criadoEm = new Date().toISOString();
       await addDoc(collection(db,'prospeccoes'), payload);
-      toast('Prospecção registrada!');
+      toast('Lançamento registrado!');
     }
     closeModal('modal-prospeccao');
     vapProspLimparForm();
   } catch(e){
-    console.error('[Prospecção] salvar:', e);
-    toast('Erro ao salvar prospecção.');
+    console.error('[CRM] salvar:', e);
+    toast('Erro ao salvar lançamento.');
   }
 }
 window.vapProspSalvar = vapProspSalvar;
@@ -6681,8 +6752,10 @@ function vapProspLimparForm(){
   $('prosp-id').value=''; $('prosp-empresa').value=''; $('prosp-responsavel').value='';
   $('prosp-segmento').value=PROSP_SEGMENTOS[0]; $('prosp-telefone').value=''; $('prosp-local').value='';
   $('prosp-resultado').value=PROSP_RESULTADOS[0]; $('prosp-proximo').value='';
-  $('prosp-modal-title').textContent='Nova Prospecção';
-  $('btn-prosp-save').textContent='Salvar Prospecção';
+  atualizarProspProximoFmt();
+  vapProspSelecionarTipo(PROSP_TIPOS[1]); // default: Prospecção
+  $('prosp-modal-title').textContent='Novo Lançamento';
+  $('btn-prosp-save').textContent='Salvar Lançamento';
 }
 window.vapProspLimparForm = vapProspLimparForm;
 
@@ -6697,17 +6770,19 @@ function vapProspEditar(id){
   $('prosp-id').value=p.id; $('prosp-empresa').value=p.empresa||''; $('prosp-responsavel').value=p.responsavel||'';
   $('prosp-segmento').value=p.segmento||PROSP_SEGMENTOS[0]; $('prosp-telefone').value=p.telefone||'';
   $('prosp-local').value=p.localSaturacao||''; $('prosp-resultado').value=p.resultado||PROSP_RESULTADOS[0];
-  $('prosp-proximo').value=cartISOtoBR(p.proximoContato||'');
-  $('prosp-modal-title').textContent='Editar Prospecção';
-  $('btn-prosp-save').textContent='Atualizar Prospecção';
+  $('prosp-proximo').value=p.proximoContato||'';
+  atualizarProspProximoFmt();
+  vapProspSelecionarTipo(p.tipo||PROSP_TIPOS[1]);
+  $('prosp-modal-title').textContent='Editar Lançamento';
+  $('btn-prosp-save').textContent='Atualizar Lançamento';
   openModal('modal-prospeccao');
 }
 window.vapProspEditar = vapProspEditar;
 
 async function vapProspApagar(id){
-  if(!confirm('Apagar esta prospecção?')) return;
-  try{ await deleteDoc(doc(db,'prospeccoes',id)); toast('Prospecção apagada.'); }
-  catch(e){ console.error('[Prospecção] apagar:', e); toast('Erro ao apagar.'); }
+  if(!confirm('Apagar este lançamento?')) return;
+  try{ await deleteDoc(doc(db,'prospeccoes',id)); toast('Lançamento apagado.'); }
+  catch(e){ console.error('[CRM] apagar:', e); toast('Erro ao apagar.'); }
 }
 window.vapProspApagar = vapProspApagar;
 
@@ -6789,12 +6864,12 @@ function vapProspRenderLista(){
   const el = $('prosp-list'); if(!el) return;
   const lista = vapProspListaDoMes().slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
   const veTodaEmpresa = prospEhGestor();
-  if(!lista.length){ el.innerHTML = '<div class="fcard" style="text-align:center;color:var(--gray)">Nenhuma prospecção neste mês.</div>'; return; }
+  if(!lista.length){ el.innerHTML = '<div class="fcard" style="text-align:center;color:var(--gray)">Nenhum lançamento neste mês.</div>'; return; }
   el.innerHTML = lista.map(p=>`
     <div class="fcard" style="padding:.75rem 1.1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
       <div style="flex:1;min-width:200px">
         <div style="font-weight:600">${p.empresa||'—'}${veTodaEmpresa?` <span style="font-weight:400;font-size:.72rem;color:var(--gray)">· ${p.vendedorNome||prospNomeVendedor(p.uid)}</span>`:''}</div>
-        <div style="font-size:.78rem;color:var(--gray)">${p.responsavel||'—'} · ${p.segmento||'—'}${p.localSaturacao?' · '+p.localSaturacao:''}</div>
+        <div style="font-size:.78rem;color:var(--gray)">${p.responsavel||'—'} · ${p.segmento||'—'}${p.localSaturacao?' · '+p.localSaturacao:''}${p.tipo?' · '+p.tipo:''}</div>
         ${p.proximoContato?`<div style="font-size:.75rem;color:var(--gray)">Próximo contato: ${cartISOtoBR(p.proximoContato)}</div>`:''}
       </div>
       <span class="badge" style="background:${PROSP_CORES[p.resultado]||'#999'}22;color:${PROSP_CORES[p.resultado]||'#666'}">${p.resultado||'—'}</span>
@@ -6846,14 +6921,14 @@ function vapProspBaixarPDF(){
   const label = $('prosp-filtro-mes')?.selectedOptions?.[0]?.textContent || ym;
   const linhas = lista.map(p=>`
     <tr>
-      <td>${p.empresa||''}</td><td>${p.responsavel||''}</td><td>${p.segmento||''}</td>
+      <td>${p.empresa||''}</td><td>${p.responsavel||''}</td><td>${p.tipo||''}</td><td>${p.segmento||''}</td>
       <td>${p.telefone||''}</td><td>${p.localSaturacao||''}</td><td>${p.resultado||''}</td>
       <td>${cartISOtoBR(p.proximoContato||'')}</td>
       <td>${p.vendedorNome||prospNomeVendedor(p.uid)}</td>
     </tr>`).join('');
   const win = window.open('', '_blank');
   win.document.write(`
-    <html><head><title>Prospecção — ${label}</title>
+    <html><head><title>CRM — ${label}</title>
     <style>
       body{font-family:Arial,sans-serif;padding:20px}
       h1{font-size:18px}
@@ -6861,10 +6936,10 @@ function vapProspBaixarPDF(){
       th,td{border:1px solid #ccc;padding:4px 6px;text-align:left}
       th{background:#f2f2f2}
     </style></head><body>
-    <h1>Relatório de Prospecção — ${label}</h1>
-    <p>Total de prospecções: ${lista.length}</p>
+    <h1>Relatório de CRM — ${label}</h1>
+    <p>Total de lançamentos: ${lista.length}</p>
     <table><thead><tr>
-      <th>Empresa</th><th>Responsável</th><th>Segmento</th><th>Telefone</th>
+      <th>Empresa</th><th>Responsável</th><th>Tipo</th><th>Segmento</th><th>Telefone</th>
       <th>Local</th><th>Resultado</th><th>Próximo Contato</th><th>Vendedor</th>
     </tr></thead><tbody>${linhas}</tbody></table>
     </body></html>`);
@@ -6880,11 +6955,115 @@ function vapInitProspeccaoUI(){
   $('prosp-modal-close') && ($('prosp-modal-close').onclick = () => closeModal('modal-prospeccao'));
   $('prosp-modal-cancel') && ($('prosp-modal-cancel').onclick = () => closeModal('modal-prospeccao'));
   $('btn-prosp-pdf') && ($('btn-prosp-pdf').onclick = vapProspBaixarPDF);
+  $('btn-prosp-pendencias') && ($('btn-prosp-pendencias').onclick = () => vapAbrirPopupCRM(false));
   $('prosp-filtro-resultado') && ($('prosp-filtro-resultado').onchange = vapProspRenderTudo);
-  $('prosp-proximo') && ($('prosp-proximo').oninput = () => window.cartDataMask($('prosp-proximo')));
+  $('prosp-proximo') && ($('prosp-proximo').onchange = () => atualizarProspProximoFmt());
   $('prosp-telefone') && ($('prosp-telefone').oninput = () => cartMaskTelefone($('prosp-telefone')));
 }
 window.vapInitProspeccaoUI = vapInitProspeccaoUI;
+
+// ══════════════════════════════════════════════════════════
+//  POP-UP DE PENDÊNCIAS DO CRM (lembrete de "Próximo Contato")
+//  Abre 1x/dia, automaticamente, após o pop-up de promoções do
+//  dia (mesmo sem promoção nenhuma para mostrar). Também pode
+//  ser reaberto a qualquer momento pelo botão "Pendências de
+//  Hoje" no painel CRM.
+// ══════════════════════════════════════════════════════════
+
+// Pendências = Próximo Contato preenchido, vencido/hoje, e resultado ainda não é um dos finais
+// (Vendeu / Sem interesse / Ctto Inválido — ver PROSP_RESULTADOS_FINAIS)
+function vapProspEhPendencia(p){
+  if(!p.proximoContato) return false;
+  if(PROSP_RESULTADOS_FINAIS.includes(p.resultado)) return false;
+  return p.proximoContato <= tod(); // comparação de string ISO (YYYY-MM-DD) é segura
+}
+
+function vapProspPendenciasDe(uid){
+  return _prospLista
+    .filter(p=>p.uid===uid && vapProspEhPendencia(p))
+    .sort((a,b)=>(a.proximoContato||'').localeCompare(b.proximoContato||''));
+}
+
+function vapProspPendenciasTotalEmpresa(){
+  return _prospLista.filter(vapProspEhPendencia).length;
+}
+
+function _crmPopupItemHtml(p){
+  return `
+    <div onclick="vapCrmPendenciaClicar('${p.id}')" style="
+      cursor:pointer;padding:.6rem .8rem;border:1px solid var(--border,#eee);border-radius:8px;
+      margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px;
+    ">
+      <div style="min-width:0">
+        <div style="font-weight:600;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.empresa||'—'}</div>
+        <div style="font-size:.72rem;color:var(--gray)">${p.responsavel||'—'}${p.tipo?' · '+p.tipo:''}</div>
+      </div>
+      <div style="font-size:.75rem;color:#C53030;font-weight:600;white-space:nowrap">${cartISOtoBR(p.proximoContato)}</div>
+    </div>`;
+}
+
+function vapCrmPendenciaClicar(id){
+  vapFecharPopupCRM();
+  vapProspEditar(id);
+}
+window.vapCrmPendenciaClicar = vapCrmPendenciaClicar;
+
+let _crmPopupAutoCloseTimer = null;
+
+// auto=true: fluxo automático diário (respeita a chave do localStorage); auto=false: botão manual (sempre mostra)
+function vapAbrirPopupCRM(auto){
+  const overlay = $('vap-crm-popup-overlay');
+  const body = $('vap-crm-popup-body');
+  const teamLine = $('vap-crm-popup-team');
+  if(!overlay || !body || !cu?.uid) return;
+  if(_crmPopupAutoCloseTimer){ clearTimeout(_crmPopupAutoCloseTimer); _crmPopupAutoCloseTimer=null; }
+
+  const pendenciasMinhas = vapProspPendenciasDe(cu.uid);
+  const ehGestor = prospEhGestor();
+
+  if(pendenciasMinhas.length){
+    body.innerHTML = pendenciasMinhas.map(_crmPopupItemHtml).join('');
+  } else {
+    body.innerHTML = '<div style="text-align:center;color:var(--gray);padding:1.2rem 0">Não há pendências agendadas para hoje</div>';
+  }
+
+  if(ehGestor){
+    const totalTime = vapProspPendenciasTotalEmpresa();
+    teamLine.style.display = 'block';
+    teamLine.textContent = `Hoje o time tem ${totalTime} pendência${totalTime===1?'':'s'} agendada${totalTime===1?'':'s'}.`;
+  } else {
+    teamLine.style.display = 'none';
+  }
+
+  overlay.style.display = 'flex';
+  if(auto) localStorage.setItem('vapPopupCRMVisto_'+cu.uid, tod());
+
+  if(!pendenciasMinhas.length){
+    _crmPopupAutoCloseTimer = setTimeout(vapFecharPopupCRM, 5000);
+  }
+}
+window.vapAbrirPopupCRM = vapAbrirPopupCRM;
+
+function vapFecharPopupCRM(){
+  const overlay = $('vap-crm-popup-overlay');
+  if(overlay) overlay.style.display = 'none';
+  if(_crmPopupAutoCloseTimer){ clearTimeout(_crmPopupAutoCloseTimer); _crmPopupAutoCloseTimer=null; }
+}
+window.vapFecharPopupCRM = vapFecharPopupCRM;
+
+// Checagem automática (1x/dia por usuário), chamada depois do pop-up de promoções do dia
+function vapVerificarPopupCRM(){
+  try{
+    if(!cp||(cp.role!=='vendedor'&&cp.role!=='lider'&&cp.role!=='master'))return;
+    const uid = cu?.uid; if(!uid) return;
+    const chave = 'vapPopupCRMVisto_'+uid;
+    if(localStorage.getItem(chave)===tod()) return; // já viu hoje
+    vapAbrirPopupCRM(true);
+  }catch(e){
+    console.warn('[CRM] popup pendências:', e);
+  }
+}
+window.vapVerificarPopupCRM = vapVerificarPopupCRM;
 
 // ── Renderização da lista/tabela com filtros ────────────────
 function renderCarteiraLista(){
@@ -7489,6 +7668,32 @@ window.vapIniciarModulos=vapIniciarModulos;</script>
   </div>
 </div>
 <!-- ══ /POP-UP PROMOCIONAL ══════════════════════════════════════════════ -->
+
+<!-- ══ POP-UP PENDÊNCIAS DO CRM ═══════════════════════════════════════ -->
+<div id="vap-crm-popup-overlay" style="
+  display:none;position:fixed;inset:0;z-index:99998;
+  background:rgba(0,0,0,.72);
+  align-items:center;justify-content:center;
+  padding:20px;box-sizing:border-box;
+">
+  <div style="position:relative;width:100%;max-width:420px;max-height:88vh;display:flex;flex-direction:column">
+    <button onclick="vapFecharPopupCRM()" style="
+      position:absolute;top:-14px;right:-14px;z-index:2;
+      width:34px;height:34px;border-radius:50%;
+      background:#fff;border:none;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 8px rgba(0,0,0,.35);
+      font-size:18px;color:#333;line-height:1;
+      transition:transform .15s;
+    " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">&#x2715;</button>
+    <div style="background:#fff;border-radius:var(--radius,12px);padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.4);display:flex;flex-direction:column;max-height:88vh">
+      <div style="font-size:17px;font-weight:700;color:var(--dark,#222);margin-bottom:10px">🔔 Pendências de Hoje</div>
+      <div id="vap-crm-popup-body" style="overflow-y:auto;max-height:min(60vh,420px)"></div>
+      <div id="vap-crm-popup-team" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border,#eee);font-size:.82rem;font-weight:600;color:var(--dark,#222)"></div>
+    </div>
+  </div>
+</div>
+<!-- ══ /POP-UP PENDÊNCIAS DO CRM ═══════════════════════════════════════ -->
 
 <script>/* Chart.js 4.4.1 inline */
 /*!
