@@ -1962,6 +1962,7 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
         <button class="help-cat" onclick="filterCat('config',this)">⚙️ Configuração</button>
         <button class="help-cat" onclick="filterCat('crm',this)">🎯 CRM</button>
         <button class="help-cat" onclick="filterCat('backup',this)">💾 Backup</button>
+        <button class="help-cat" onclick="filterCat('fornecedores',this)">🚚 Fornecedores</button>
         <button class="help-cat" onclick="mostrarTutoriais(this)" id="cat-tutoriais">🎧 Tutoriais</button>
       </div>
     </div>
@@ -2980,6 +2981,14 @@ const faqs=[
   {cat:'crm',q:'O que significam as opções do campo "Serviço realizado" no filtro Por Histórico?',a:'São categorias fixas que agrupam os serviços por tipo: Tratamento Facial, Tratamento Corporal, Tratamento Capilar, Cílios e Unhas, Cabelos e Outros. Escolha "Qualquer Serviço" para não restringir por tipo. O app reconhece automaticamente palavras-chave no nome do serviço para encaixá-lo na categoria certa.'},
   {cat:'campanhas',q:'Posso anexar uma imagem a uma etapa da campanha?',a:'Sim — em cada etapa não enviada, há um campo "Anexar imagem (opcional)". Importante: o WhatsApp não permite anexar imagem automaticamente por link, então o fluxo é: anexar a imagem na etapa, tocar em "Baixar imagem" para salvá-la no celular, abrir o WhatsApp pelo botão normal (texto já vem pronto) e anexar a imagem manualmente na conversa. Se o botão "Baixar imagem" não salvar automaticamente (mais comum em iPhone), toque e segure a imagem que aparece na tela e escolha "Salvar imagem" — funciona como alternativa em qualquer celular.'},
   {cat:'campanhas',q:'As mensagens de campanha usam o nome real da minha clínica?',a:'Sim — o nome que aparece ao final de cada mensagem de campanha é o nome cadastrado em Personalização, capturado no momento em que você cria a campanha.'},
+
+  // ── Módulo Fornecedores ────────────────────────────────────────────────
+  {cat:'fornecedores',q:'O que é o menu Fornecedores?',a:'É onde você aprova vínculos com fornecedores de cosméticos, vê o catálogo deles, faz pedidos e acompanha as promoções que eles publicam. Fica no menu lateral, em Configurações.'},
+  {cat:'fornecedores',q:'Como um fornecedor se conecta à minha clínica?',a:'O fornecedor busca sua clínica pelo nome (do lado dele) e solicita o vínculo. A solicitação aparece em "Solicitações de vínculo", no menu Fornecedores, onde você clica em Aprovar ou Recusar.'},
+  {cat:'fornecedores',q:'Como faço um pedido a um fornecedor?',a:'Em "Fornecedores vinculados", clique em "Ver catálogo" ao lado do nome do fornecedor. Escolha a quantidade de cada produto que quiser e clique em "Enviar pedido". O total é calculado automaticamente.'},
+  {cat:'fornecedores',q:'Como acompanho o status de um pedido?',a:'Em "Meus pedidos", cada pedido mostra um selo de status: Novo, Confirmado, Enviado, Entregue ou Cancelado. O status é atualizado pelo próprio fornecedor conforme ele processa o pedido.'},
+  {cat:'fornecedores',q:'Onde vejo as promoções dos fornecedores?',a:'Em "Promoções dos fornecedores", no menu Fornecedores. Só aparecem promoções ativas dos fornecedores já vinculados à sua clínica. Clique na imagem da promoção para vê-la em tela cheia.'},
+  {cat:'fornecedores',q:'Posso recusar ou desfazer um vínculo com um fornecedor?',a:'Você pode recusar uma solicitação pendente antes de aprová-la. Para desfazer um vínculo já aprovado, entre em contato com o suporte MeCuidar.'},
 ];
 
 let curCat='todos',curSearch='';
