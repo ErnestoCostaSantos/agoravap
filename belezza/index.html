@@ -1662,7 +1662,23 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       </div>
 
       <div class="sec-lbl">Fornecedores vinculados</div>
-      <div id="forn-aprovados-lista">
+      <div id="forn-aprovados-lista" style="margin-bottom:18px">
+        <div style="color:var(--tx3);font-size:13px;padding:8px 0">Carregando...</div>
+      </div>
+
+      <!-- Catálogo do fornecedor selecionado / montar pedido -->
+      <div id="forn-catalogo-wrap" style="display:none;background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);padding:16px;margin-bottom:18px">
+        <div id="forn-catalogo-titulo" style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:10px">Catálogo</div>
+        <div id="forn-catalogo-produtos"></div>
+        <div id="forn-catalogo-total" style="font-size:13px;font-weight:600;color:var(--tx);margin:10px 0">Total: R$ 0,00</div>
+        <div style="display:flex;gap:10px">
+          <button class="btn pk" style="padding:9px 16px;font-size:13px" onclick="enviarPedido()">Enviar pedido</button>
+          <button class="btn" style="padding:9px 16px;font-size:13px" onclick="fecharCatalogoFornecedor()">Cancelar</button>
+        </div>
+      </div>
+
+      <div class="sec-lbl">Meus pedidos</div>
+      <div id="clinica-pedidos-lista">
         <div style="color:var(--tx3);font-size:13px;padding:8px 0">Carregando...</div>
       </div>
     </div>
@@ -2224,6 +2240,7 @@ onAuthStateChanged(auth, async user => {
         setTimeout(() => {
           if (window.iniciarListenerProdutosForn) window.iniciarListenerProdutosForn();
           if (window.iniciarListenerVinculosForn) window.iniciarListenerVinculosForn();
+          if (window.iniciarListenerPedidosForn) window.iniciarListenerPedidosForn();
         }, 200);
 
       } else {
@@ -3104,6 +3121,7 @@ function goTo(id,el){
   }
   if(id==='p-fornecedores'){
     setTimeout(()=>{ if(window.iniciarListenerVinculosClinica) window.iniciarListenerVinculosClinica(); }, 50);
+    setTimeout(()=>{ if(window.iniciarListenerPedidosClinica) window.iniciarListenerPedidosClinica(); }, 50);
   }
   if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(id==='c-promos')  setTimeout(() => { if(window.iniciarListenerPromos && !unsubPromos) window.iniciarListenerPromos(); }, 50);
@@ -9605,6 +9623,7 @@ function renderVinculosClinica(todos) {
 
   const pendentes = todos.filter(v => v.status === 'pendente');
   const aprovados = todos.filter(v => v.status === 'aprovado');
+  window._vinculosAprovadosCache = aprovados; // usado por abrirCatalogoFornecedor
 
   pendListEl.innerHTML = pendentes.length ? pendentes.map(v => `
     <div class="card" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -9618,7 +9637,10 @@ function renderVinculosClinica(todos) {
   aprovListEl.innerHTML = aprovados.length ? aprovados.map(v => `
     <div class="card" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div style="font-size:13px;font-weight:600;color:var(--tx)">${v.fornecedorNome || 'Fornecedor'}</div>
-      <span style="background:#dcfce7;color:#166534;font-size:11px;padding:3px 8px;border-radius:4px;">Vinculado</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="background:#dcfce7;color:#166534;font-size:11px;padding:3px 8px;border-radius:4px;">Vinculado</span>
+        <button class="btn" style="padding:6px 12px;font-size:12px" onclick="abrirCatalogoFornecedor('${v.fornecedorId}')">Ver catálogo</button>
+      </div>
     </div>`).join('') : '<div style="color:var(--tx3);font-size:13px;padding:8px 0">Nenhum fornecedor vinculado ainda.</div>';
 }
 
@@ -9634,6 +9656,199 @@ async function recusarVinculo(id) {
   catch (e) { console.error('[Belezza] recusarVinculo:', e); }
 }
 window.recusarVinculo = recusarVinculo;
+
+// ══════════════════════════════════════════════════════════════════════════
+// MÓDULO FORNECEDOR — Pedidos
+// Coleção: /pedidos/{pedidoId} — { clinicaId, clinicaNome, fornecedorId,
+// fornecedorNome, itens:[{produtoId,nome,precoUnit,qtd}], valorTotal,
+// status: 'novo'|'confirmado'|'enviado'|'entregue'|'cancelado', criadoEm }
+// ══════════════════════════════════════════════════════════════════════════
+
+// ── Lado Proprietária: montar e enviar pedido a partir do catálogo ─────────
+let _pedidoFornecedorId = '';
+let _pedidoFornecedorNome = '';
+let _pedidoCarrinho = {}; // produtoId -> { nome, precoUnit, qtd }
+let _unsubPedidosClinica = null;
+let _unsubPedidosForn = null;
+
+async function abrirCatalogoFornecedor(fornecedorId) {
+  const v = (window._vinculosAprovadosCache || []).find(x => x.fornecedorId === fornecedorId);
+  _pedidoFornecedorId = fornecedorId;
+  _pedidoFornecedorNome = v?.fornecedorNome || 'Fornecedor';
+  _pedidoCarrinho = {};
+  const wrap = document.getElementById('forn-catalogo-wrap');
+  const titulo = document.getElementById('forn-catalogo-titulo');
+  const prodWrap = document.getElementById('forn-catalogo-produtos');
+  if (titulo) titulo.textContent = 'Catálogo — ' + _pedidoFornecedorNome;
+  if (prodWrap) prodWrap.innerHTML = '<div style="color:var(--tx3);font-size:13px">Carregando produtos...</div>';
+  if (wrap) { wrap.style.display = 'block'; wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  try {
+    const snap = await getDocs(collection(db, 'fornecedores', fornecedorId, 'produtos'));
+    const produtos = snap.docs.map(d => ({ ...d.data(), _id: d.id })).filter(p => p.disponivel !== false);
+    renderCatalogoProdutos(produtos);
+  } catch (e) {
+    console.error('[Belezza] abrirCatalogoFornecedor:', e);
+    if (prodWrap) prodWrap.innerHTML = '<div style="color:var(--pk600);font-size:13px">Erro ao carregar catálogo.</div>';
+  }
+}
+window.abrirCatalogoFornecedor = abrirCatalogoFornecedor;
+
+function renderCatalogoProdutos(produtos) {
+  const prodWrap = document.getElementById('forn-catalogo-produtos');
+  if (!prodWrap) return;
+  if (!produtos.length) {
+    prodWrap.innerHTML = '<div style="color:var(--tx3);font-size:13px">Este fornecedor ainda não cadastrou produtos disponíveis.</div>';
+    return;
+  }
+  prodWrap.innerHTML = produtos.map(p => {
+    const preco = parseFloat((p.preco || '0').replace(',', '.')) || 0;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br)">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--tx)">${p.nome || 'Produto'}</div>
+        <div style="font-size:12px;color:var(--tx3)">R$ ${preco.toFixed(2).replace('.', ',')}</div>
+      </div>
+      <input type="number" min="0" value="0" style="width:60px;padding:6px;border:1px solid var(--br);border-radius:6px;font-size:13px;text-align:center"
+        onchange="atualizarQtdPedido('${p._id}','${(p.nome||'Produto').replace(/'/g,"\\'")}',${preco},this.value)">
+    </div>`;
+  }).join('');
+}
+
+function atualizarQtdPedido(produtoId, nome, precoUnit, qtdStr) {
+  const qtd = parseInt(qtdStr, 10) || 0;
+  if (qtd > 0) {
+    _pedidoCarrinho[produtoId] = { nome, precoUnit, qtd };
+  } else {
+    delete _pedidoCarrinho[produtoId];
+  }
+  const total = Object.values(_pedidoCarrinho).reduce((s, it) => s + it.precoUnit * it.qtd, 0);
+  const totalEl = document.getElementById('forn-catalogo-total');
+  if (totalEl) totalEl.textContent = 'Total: R$ ' + total.toFixed(2).replace('.', ',');
+}
+window.atualizarQtdPedido = atualizarQtdPedido;
+
+async function enviarPedido() {
+  const itens = Object.entries(_pedidoCarrinho).map(([produtoId, it]) => ({ produtoId, ...it }));
+  if (!itens.length) { alert('Escolha ao menos um produto.'); return; }
+  const valorTotal = itens.reduce((s, it) => s + it.precoUnit * it.qtd, 0);
+  try {
+    await addDoc(collection(db, 'pedidos'), {
+      clinicaId: clinicaAtual(),
+      clinicaNome: window.NOME_ESTAB || '',
+      fornecedorId: _pedidoFornecedorId,
+      fornecedorNome: _pedidoFornecedorNome,
+      itens, valorTotal,
+      status: 'novo',
+      criadoEm: serverTimestamp(),
+    });
+    fecharCatalogoFornecedor();
+  } catch (e) { console.error('[Belezza] enviarPedido:', e); alert('Erro ao enviar pedido.'); }
+}
+window.enviarPedido = enviarPedido;
+
+function fecharCatalogoFornecedor() {
+  const wrap = document.getElementById('forn-catalogo-wrap');
+  if (wrap) wrap.style.display = 'none';
+  _pedidoCarrinho = {};
+}
+window.fecharCatalogoFornecedor = fecharCatalogoFornecedor;
+
+const PEDIDO_STATUS_LABEL = { novo: 'Novo', confirmado: 'Confirmado', enviado: 'Enviado', entregue: 'Entregue', cancelado: 'Cancelado' };
+const PEDIDO_STATUS_COR = {
+  novo:      'background:#fef3c7;color:#92400e',
+  confirmado:'background:#dbeafe;color:#1e40af',
+  enviado:   'background:#e0e7ff;color:#3730a3',
+  entregue:  'background:#dcfce7;color:#166534',
+  cancelado: 'background:#fee2e2;color:#991b1b',
+};
+
+function iniciarListenerPedidosClinica() {
+  if (_unsubPedidosClinica) return;
+  const cid = clinicaAtual();
+  const q = query(collection(db, 'pedidos'), where('clinicaId', '==', cid));
+  _unsubPedidosClinica = onSnapshot(q, snap => {
+    const lista = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    renderPedidosClinica(lista);
+  }, err => console.warn('[Belezza] pedidos clínica listener:', err));
+}
+window.iniciarListenerPedidosClinica = iniciarListenerPedidosClinica;
+
+function renderPedidosClinica(lista) {
+  const wrap = document.getElementById('clinica-pedidos-lista');
+  if (!wrap) return;
+  if (!lista.length) {
+    wrap.innerHTML = '<div style="color:var(--tx3);font-size:13px;padding:8px 0">Nenhum pedido feito ainda.</div>';
+    return;
+  }
+  wrap.innerHTML = lista.map(p => {
+    const itensTxt = (p.itens || []).map(it => `${it.qtd}x ${it.nome}`).join(', ');
+    const badge = PEDIDO_STATUS_COR[p.status] || PEDIDO_STATUS_COR.novo;
+    return `<div class="card" style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:600;color:var(--tx)">${p.fornecedorNome || 'Fornecedor'}</div>
+        <span style="${badge};font-size:11px;padding:3px 8px;border-radius:4px">${PEDIDO_STATUS_LABEL[p.status]||p.status}</span>
+      </div>
+      <div style="font-size:12px;color:var(--tx3);margin-top:4px">${itensTxt}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--tx);margin-top:4px">R$ ${(p.valorTotal||0).toFixed(2).replace('.', ',')}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Lado Fornecedor: ver pedidos recebidos e avançar status ────────────────
+function iniciarListenerPedidosForn() {
+  if (_unsubPedidosForn) return;
+  const fid = cp?.fornecedorId;
+  if (!fid) return;
+  const q = query(collection(db, 'pedidos'), where('fornecedorId', '==', fid));
+  _unsubPedidosForn = onSnapshot(q, snap => {
+    const lista = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    renderPedidosForn(lista);
+  }, err => console.warn('[Belezza] pedidos fornecedor listener:', err));
+}
+window.iniciarListenerPedidosForn = iniciarListenerPedidosForn;
+
+const PEDIDO_PROXIMO = { novo: 'confirmado', confirmado: 'enviado', enviado: 'entregue' };
+const PEDIDO_ACAO_LABEL = { novo: 'Confirmar', confirmado: 'Marcar como enviado', enviado: 'Marcar como entregue' };
+
+function renderPedidosForn(lista) {
+  const wrap = document.getElementById('forn-pedidos-lista');
+  if (!wrap) return;
+  if (!lista.length) {
+    wrap.innerHTML = '<div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Nenhum pedido recebido ainda.</div>';
+    return;
+  }
+  wrap.innerHTML = lista.map(p => {
+    const itensTxt = (p.itens || []).map(it => `${it.qtd}x ${it.nome}`).join(', ');
+    const proximo = PEDIDO_PROXIMO[p.status];
+    const acaoBtn = proximo
+      ? `<button onclick="avancarStatusPedido('${p._id}','${proximo}')" style="background:#1c1917;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;">${PEDIDO_ACAO_LABEL[p.status]}</button>`
+      : '';
+    const cancelarBtn = (p.status !== 'entregue' && p.status !== 'cancelado')
+      ? `<span onclick="cancelarPedido('${p._id}')" style="color:#b91c1c;font-size:12px;text-decoration:underline;cursor:pointer;margin-left:8px;">Cancelar</span>`
+      : '';
+    return `<div style="background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:700;color:#1c1917;">${p.clinicaNome || 'Clínica'}</div>
+        <span style="font-size:11px;padding:3px 8px;border-radius:4px;background:#f5f5f4;color:#57534e;">${PEDIDO_STATUS_LABEL[p.status]||p.status}</span>
+      </div>
+      <div style="font-size:12px;color:#78716c;margin-top:4px;">${itensTxt}</div>
+      <div style="font-size:13px;font-weight:600;color:#1c1917;margin-top:4px;">R$ ${(p.valorTotal||0).toFixed(2).replace('.', ',')}</div>
+      <div style="margin-top:8px;">${acaoBtn}${cancelarBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+async function avancarStatusPedido(id, novoStatus) {
+  try { await updateDoc(doc(db, 'pedidos', id), { status: novoStatus }); }
+  catch (e) { console.error('[Belezza] avancarStatusPedido:', e); }
+}
+window.avancarStatusPedido = avancarStatusPedido;
+
+async function cancelarPedido(id) {
+  if (!confirm('Cancelar este pedido?')) return;
+  try { await updateDoc(doc(db, 'pedidos', id), { status: 'cancelado' }); }
+  catch (e) { console.error('[Belezza] cancelarPedido:', e); }
+}
+window.cancelarPedido = cancelarPedido;
 window.trocarTabSvcImg     = trocarTabSvcImg;
 
 </script>
@@ -9981,6 +10196,13 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <input id="forn-clinica-busca" type="text" placeholder="Buscar clínica pelo nome..." oninput="filtrarClinicasForn(this.value)" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
     <div id="forn-clinicas-lista" style="display:flex;flex-direction:column;gap:8px;">
       <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando clínicas...</div>
+    </div>
+  </div>
+
+  <div style="padding:0 20px 20px 20px;">
+    <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Pedidos recebidos</div>
+    <div id="forn-pedidos-lista" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando pedidos...</div>
     </div>
   </div>
 </div>
