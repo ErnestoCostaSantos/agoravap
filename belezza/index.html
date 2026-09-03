@@ -1681,6 +1681,11 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       <div id="clinica-pedidos-lista">
         <div style="color:var(--tx3);font-size:13px;padding:8px 0">Carregando...</div>
       </div>
+
+      <div class="sec-lbl">Promoções dos fornecedores</div>
+      <div id="clinica-promos-forn-lista">
+        <div style="color:var(--tx3);font-size:13px;padding:8px 0">Carregando...</div>
+      </div>
     </div>
 
     <!-- ── CLIENTE ── -->
@@ -2241,6 +2246,7 @@ onAuthStateChanged(auth, async user => {
           if (window.iniciarListenerProdutosForn) window.iniciarListenerProdutosForn();
           if (window.iniciarListenerVinculosForn) window.iniciarListenerVinculosForn();
           if (window.iniciarListenerPedidosForn) window.iniciarListenerPedidosForn();
+          if (window.iniciarListenerPromosForn) window.iniciarListenerPromosForn();
         }, 200);
 
       } else {
@@ -9624,6 +9630,7 @@ function renderVinculosClinica(todos) {
   const pendentes = todos.filter(v => v.status === 'pendente');
   const aprovados = todos.filter(v => v.status === 'aprovado');
   window._vinculosAprovadosCache = aprovados; // usado por abrirCatalogoFornecedor
+  carregarPromosClinicaForn(aprovados);
 
   pendListEl.innerHTML = pendentes.length ? pendentes.map(v => `
     <div class="card" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -9894,6 +9901,208 @@ async function cancelarPedido(id) {
   catch (e) { console.error('[Belezza] cancelarPedido:', e); }
 }
 window.cancelarPedido = cancelarPedido;
+
+// ══════════════════════════════════════════════════════════════════════════
+// MÓDULO FORNECEDOR — Promoções
+// Coleção: /fornecedores/{fornecedorId}/promocoes/{promoId}
+// Visíveis só para as clínicas com vínculo aprovado com esse fornecedor.
+// ══════════════════════════════════════════════════════════════════════════
+let _promoFornTodos = [];
+let _unsubPromosForn = null;
+let _promoImgBase64Forn = '';
+let _promoEditIdForn = '';
+
+function iniciarListenerPromosForn() {
+  if (_unsubPromosForn) return;
+  const fid = cp?.fornecedorId;
+  if (!fid) return;
+  const ref = collection(db, 'fornecedores', fid, 'promocoes');
+  _unsubPromosForn = onSnapshot(ref, snap => {
+    _promoFornTodos = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    renderPromosFornGrid(_promoFornTodos);
+  }, err => console.warn('[Belezza] promoções fornecedor listener:', err));
+}
+window.iniciarListenerPromosForn = iniciarListenerPromosForn;
+
+function renderPromosFornGrid(lista) {
+  const grid = document.getElementById('forn-promos-grid');
+  if (!grid) return;
+  if (!lista.length) {
+    grid.innerHTML = '<div style="color:#a8a29e;font-size:13px;grid-column:1/-1;text-align:center;padding:24px 0;">Nenhuma promoção cadastrada ainda.</div>';
+    return;
+  }
+  grid.innerHTML = lista.map(p => {
+    const img = p.imagemBase64 || PROD_FALLBACK_IMG;
+    const badge = p.ativo === false
+      ? '<span style="background:#f5f5f4;color:#a8a29e;font-size:10px;padding:2px 6px;border-radius:4px;">Inativa</span>'
+      : '<span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 6px;border-radius:4px;">Ativa</span>';
+    return `<div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <img src="${img}" style="width:100%;height:110px;object-fit:cover;">
+      <div style="padding:10px;">
+        <div style="font-size:13px;font-weight:700;color:#1c1917;">${p.titulo||'Promoção'}</div>
+        ${p.validade ? `<div style="font-size:11px;color:#a8a29e;margin-top:2px;">Válida até ${p.validade.split('-').reverse().join('/')}</div>` : ''}
+        <div style="margin-top:6px;">${badge}</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <span onclick="editarPromoForn('${p._id}')" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">Editar</span>
+          <span onclick="removerPromoForn('${p._id}')" style="font-size:12px;color:#b91c1c;text-decoration:underline;cursor:pointer;">Remover</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function previewPromoFornImg(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const preview = document.getElementById('forn-promo-img-preview');
+  const removeBtn = document.getElementById('forn-promo-img-remove');
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.onload = () => {
+      const MAX = 900;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else       { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      _promoImgBase64Forn = canvas.toDataURL('image/jpeg', 0.72);
+      if (preview) { preview.src = _promoImgBase64Forn; preview.style.display = 'block'; }
+      if (removeBtn) removeBtn.style.display = 'inline';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+window.previewPromoFornImg = previewPromoFornImg;
+
+function removerPromoFornImg() {
+  _promoImgBase64Forn = '';
+  const preview = document.getElementById('forn-promo-img-preview');
+  const removeBtn = document.getElementById('forn-promo-img-remove');
+  if (preview) { preview.style.display = 'none'; preview.src = ''; }
+  if (removeBtn) removeBtn.style.display = 'none';
+}
+window.removerPromoFornImg = removerPromoFornImg;
+
+async function salvarPromoForn() {
+  const titulo   = (document.getElementById('forn-promo-titulo')?.value   || '').trim();
+  const desc     = (document.getElementById('forn-promo-desc')?.value     || '').trim();
+  const validade = document.getElementById('forn-promo-validade')?.value  || '';
+  const ativo    = document.getElementById('forn-promo-ativo')?.checked ?? true;
+  const erro     = document.getElementById('forn-promo-erro');
+  if (!titulo) { if (erro) erro.textContent = 'Título é obrigatório.'; return; }
+  if (erro) erro.textContent = '';
+  const fid = cp?.fornecedorId;
+  if (!fid) { if (erro) erro.textContent = 'Fornecedor não identificado.'; return; }
+  try {
+    const dados = { titulo, descricao: desc, validade, ativo, imagemBase64: _promoImgBase64Forn || '' };
+    if (_promoEditIdForn) {
+      await updateDoc(doc(db, 'fornecedores', fid, 'promocoes', _promoEditIdForn), dados);
+    } else {
+      await addDoc(collection(db, 'fornecedores', fid, 'promocoes'), { ...dados, criadoEm: serverTimestamp() });
+    }
+    _promoEditIdForn = '';
+    fecharFormPromoForn();
+  } catch (e) {
+    console.error('[Belezza] salvarPromoForn:', e);
+    if (erro) erro.textContent = 'Erro ao salvar. Tente novamente.';
+  }
+}
+window.salvarPromoForn = salvarPromoForn;
+
+function editarPromoForn(id) {
+  const p = _promoFornTodos.find(x => x._id === id);
+  if (!p) return;
+  abrirFormPromoForn();
+  _promoEditIdForn = id;
+  const titulo = document.getElementById('forn-promo-form-title');
+  if (titulo) titulo.textContent = 'Editar promoção';
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
+  set('forn-promo-titulo', p.titulo);
+  set('forn-promo-desc', p.descricao);
+  set('forn-promo-validade', p.validade);
+  const ativoEl = document.getElementById('forn-promo-ativo');
+  if (ativoEl) ativoEl.checked = p.ativo !== false;
+  if (p.imagemBase64) {
+    _promoImgBase64Forn = p.imagemBase64;
+    const preview = document.getElementById('forn-promo-img-preview');
+    const removeBtn = document.getElementById('forn-promo-img-remove');
+    if (preview) { preview.src = p.imagemBase64; preview.style.display = 'block'; }
+    if (removeBtn) removeBtn.style.display = 'inline';
+  }
+}
+window.editarPromoForn = editarPromoForn;
+
+async function removerPromoForn(id) {
+  if (!confirm('Remover esta promoção?')) return;
+  const fid = cp?.fornecedorId;
+  if (!fid) return;
+  try { await deleteDoc(doc(db, 'fornecedores', fid, 'promocoes', id)); }
+  catch (e) { console.error('[Belezza] removerPromoForn:', e); }
+}
+window.removerPromoForn = removerPromoForn;
+
+function abrirFormPromoForn() {
+  const wrap = document.getElementById('forn-promo-form-wrap');
+  if (!wrap) return;
+  _promoEditIdForn = '';
+  const titulo = document.getElementById('forn-promo-form-title');
+  if (titulo) titulo.textContent = 'Nova promoção';
+  ['forn-promo-titulo','forn-promo-desc','forn-promo-validade'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const ativoEl = document.getElementById('forn-promo-ativo');
+  if (ativoEl) ativoEl.checked = true;
+  const erro = document.getElementById('forn-promo-erro');
+  if (erro) erro.textContent = '';
+  removerPromoFornImg();
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.abrirFormPromoForn = abrirFormPromoForn;
+
+function fecharFormPromoForn() {
+  const wrap = document.getElementById('forn-promo-form-wrap');
+  if (wrap) wrap.style.display = 'none';
+}
+window.fecharFormPromoForn = fecharFormPromoForn;
+
+// ── Lado Proprietária: ver promoções ativas dos fornecedores vinculados ────
+async function carregarPromosClinicaForn(aprovados) {
+  const wrap = document.getElementById('clinica-promos-forn-lista');
+  if (!wrap) return;
+  if (!aprovados.length) {
+    wrap.innerHTML = '<div style="color:var(--tx3);font-size:13px;padding:8px 0">Nenhum fornecedor vinculado ainda.</div>';
+    return;
+  }
+  try {
+    const todas = [];
+    for (const v of aprovados) {
+      const snap = await getDocs(collection(db, 'fornecedores', v.fornecedorId, 'promocoes'));
+      snap.docs.forEach(d => {
+        const p = d.data();
+        if (p.ativo !== false) todas.push({ ...p, fornecedorNome: v.fornecedorNome });
+      });
+    }
+    if (!todas.length) {
+      wrap.innerHTML = '<div style="color:var(--tx3);font-size:13px;padding:8px 0">Nenhuma promoção ativa no momento.</div>';
+      return;
+    }
+    wrap.innerHTML = todas.map(p => `
+      <div class="card" style="margin-bottom:8px">
+        <div style="font-size:13px;font-weight:600;color:var(--tx)">${p.titulo || 'Promoção'}</div>
+        <div style="font-size:12px;color:var(--tx3)">${p.fornecedorNome || 'Fornecedor'}${p.validade ? ' · válida até ' + p.validade.split('-').reverse().join('/') : ''}</div>
+        ${p.descricao ? `<div style="font-size:12px;color:var(--tx2);margin-top:4px">${p.descricao}</div>` : ''}
+      </div>`).join('');
+  } catch (e) {
+    console.error('[Belezza] carregarPromosClinicaForn:', e);
+    wrap.innerHTML = '<div style="color:var(--pk600);font-size:13px;padding:8px 0">Erro ao carregar promoções.</div>';
+  }
+}
 window.trocarTabSvcImg     = trocarTabSvcImg;
 
 </script>
@@ -10266,6 +10475,50 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Pedidos recebidos</div>
     <div id="forn-pedidos-lista" style="display:flex;flex-direction:column;gap:10px;">
       <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando pedidos...</div>
+    </div>
+  </div>
+
+  <div style="padding:0 20px 20px 20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:#1c1917;">Promoções</div>
+      <button onclick="abrirFormPromoForn()" style="background:#f59e0b;color:#1c1917;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">+ Nova promoção</button>
+    </div>
+    <div style="font-size:12px;color:#a8a29e;margin-bottom:12px;">Visíveis só para as clínicas vinculadas a você.</div>
+
+    <div id="forn-promos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+      <div style="color:#a8a29e;font-size:13px;grid-column:1/-1;text-align:center;padding:24px 0;">Carregando promoções...</div>
+    </div>
+
+    <div id="forn-promo-form-wrap" style="display:none;margin-top:20px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <div id="forn-promo-form-title" style="font-size:14px;font-weight:700;color:#1c1917;margin-bottom:12px;">Nova promoção</div>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Título *</label>
+      <input id="forn-promo-titulo" type="text" maxlength="80" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Descrição</label>
+      <textarea id="forn-promo-desc" maxlength="400" rows="3" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;resize:vertical;"></textarea>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Válida até</label>
+      <input id="forn-promo-validade" type="date" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Imagem</label>
+      <input id="forn-promo-img-inp" type="file" accept="image/*" onchange="previewPromoFornImg(this)" style="margin-bottom:6px;">
+      <div>
+        <img id="forn-promo-img-preview" style="display:none;max-width:160px;border-radius:6px;margin-bottom:6px;">
+        <span id="forn-promo-img-remove" onclick="removerPromoFornImg()" style="display:none;color:#b91c1c;font-size:12px;cursor:pointer;">Remover imagem</span>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#57534e;margin:12px 0;">
+        <input id="forn-promo-ativo" type="checkbox" checked style="width:16px;height:16px;">
+        Ativa (visível para as clínicas)
+      </label>
+
+      <div id="forn-promo-erro" style="color:#b91c1c;font-size:12px;margin-bottom:10px;"></div>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="salvarPromoForn()" style="background:#1c1917;color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar</button>
+        <button onclick="fecharFormPromoForn()" style="background:#e7e5e4;color:#44403c;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
+      </div>
     </div>
   </div>
 </div>
