@@ -586,6 +586,7 @@ input[type="password"]::-ms-clear {
     <button class="nav-item" onclick="goTo('c-chat',this)"><i class="ti ti-message-circle"></i>Dúvidas</button>
     <div class="sb-sec">Configurações</div>
     <button class="nav-item" onclick="goTo('p-personalizacao',this)"><i class="ti ti-palette"></i>Personalização</button>
+    <button class="nav-item" onclick="goTo('p-fornecedores',this)"><i class="ti ti-truck-delivery"></i>Fornecedores</button>
   </div>
   <div class="sb-nav" id="sb-cli" style="display:none">
     <div class="sb-sec">Navegação</div>
@@ -1653,6 +1654,19 @@ function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvar
       </div>
     </div>
 
+    <!-- ── PROPRIETÁRIA · Fornecedores ── -->
+    <div class="pane" id="pane-p-fornecedores">
+      <div class="sec-lbl">Solicitações de vínculo</div>
+      <div id="forn-pendentes-lista" style="margin-bottom:18px">
+        <div style="color:var(--tx3);font-size:13px;padding:8px 0">Carregando...</div>
+      </div>
+
+      <div class="sec-lbl">Fornecedores vinculados</div>
+      <div id="forn-aprovados-lista">
+        <div style="color:var(--tx3);font-size:13px;padding:8px 0">Carregando...</div>
+      </div>
+    </div>
+
     <!-- ── CLIENTE ── -->
     <div class="pane" id="pane-c-servicos">
       <div class="sec-lbl">Nossos serviços</div>
@@ -2207,7 +2221,10 @@ onAuthStateChanged(auth, async user => {
         if (homeForn) homeForn.style.display = 'flex';
         if (appDiv) appDiv.style.display = 'none';
         _splashPendente = false;
-        setTimeout(() => { if (window.iniciarListenerProdutosForn) window.iniciarListenerProdutosForn(); }, 200);
+        setTimeout(() => {
+          if (window.iniciarListenerProdutosForn) window.iniciarListenerProdutosForn();
+          if (window.iniciarListenerVinculosForn) window.iniciarListenerVinculosForn();
+        }, 200);
 
       } else {
         // ── Rota Profissional/Admin → app principal ──
@@ -2978,7 +2995,7 @@ function closeHelp(){
 }
 function handleOvClick(e){if(e.target===document.getElementById('help-ov'))closeHelp();}
 
-const titulos={'p-dash':'Painel','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-servicos':'Serviços','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','p-personalizacao':'Personalização','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
+const titulos={'p-dash':'Painel','p-agenda':'Agenda','p-clientes':'Clientes','p-equipe':'Equipe','p-servicos':'Serviços','p-camp':'Campanhas WhatsApp','p-promos':'Promoções','p-personalizacao':'Personalização','p-fornecedores':'Fornecedores','c-servicos':'Serviços','c-promos':'Promoções','c-chat':'Dúvidas','c-agenda':'Agendamentos'};
 const actLbl={'p-dash':'Agendar','p-agenda':'Agendar','p-clientes':'Nova(o) cliente','p-equipe':'Add profissional','p-servicos':'Novo serviço','p-camp':'Nova campanha','p-promos':'Publicar promo'};
 let role='p';
 
@@ -2987,7 +3004,7 @@ function showPane(id){
   document.getElementById('pane-'+id)?.classList.add('active');
   document.getElementById('tb-t').textContent=titulos[id]||id;
   const lbl=actLbl[id];if(lbl)document.getElementById('tb-act-lbl').textContent=lbl;
-  document.getElementById('tb-act').style.display=(id.startsWith('c-')||id==='p-personalizacao'||id==='p-agenda'||id==='p-dash')?'none':'inline-flex';
+  document.getElementById('tb-act').style.display=(id.startsWith('c-')||id==='p-personalizacao'||id==='p-agenda'||id==='p-dash'||id==='p-fornecedores')?'none':'inline-flex';
 }
 function initDashboard(){
   // Modo solo: ajusta card "Equipe hoje"
@@ -3084,6 +3101,9 @@ function goTo(id,el){
   }
   if(id==='p-servicos'){
     setTimeout(()=>{ if(window.iniciarListenerServicos) window.iniciarListenerServicos(); }, 50);
+  }
+  if(id==='p-fornecedores'){
+    setTimeout(()=>{ if(window.iniciarListenerVinculosClinica) window.iniciarListenerVinculosClinica(); }, 50);
   }
   if(id==='c-agenda') setTimeout(initCalendario, 50);
   if(id==='c-promos')  setTimeout(() => { if(window.iniciarListenerPromos && !unsubPromos) window.iniciarListenerPromos(); }, 50);
@@ -9477,6 +9497,143 @@ function fecharFormProduto() {
   if (wrap) wrap.style.display = 'none';
 }
 window.fecharFormProduto = fecharFormProduto;
+
+// ══════════════════════════════════════════════════════════════════════════
+// MÓDULO FORNECEDOR — Vínculo Fornecedor ↔ Clínica
+// Coleção: /vinculos/{vinculoId} — { clinicaId, clinicaNome, fornecedorId,
+// fornecedorNome, status: 'pendente'|'aprovado'|'recusado', criadoEm }
+// Fornecedor busca a clínica e solicita; Proprietária aprova/recusa.
+// ══════════════════════════════════════════════════════════════════════════
+let _clinicasTodas = [];
+let _vinculosPorClinica = {}; // clinicaId -> status (visão do Fornecedor logado)
+let _unsubVinculosForn = null;
+let _unsubVinculosClinica = null;
+
+async function carregarClinicasForn() {
+  try {
+    const snap = await getDocs(collection(db, 'clinicas'));
+    _clinicasTodas = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+  } catch (e) {
+    console.warn('[Belezza] carregarClinicasForn:', e);
+    _clinicasTodas = [];
+  }
+  renderClinicasForn(_clinicasTodas);
+}
+
+function iniciarListenerVinculosForn() {
+  if (_unsubVinculosForn) return;
+  const fid = cp?.fornecedorId;
+  if (!fid) return;
+  carregarClinicasForn();
+  const q = query(collection(db, 'vinculos'), where('fornecedorId', '==', fid));
+  _unsubVinculosForn = onSnapshot(q, snap => {
+    _vinculosPorClinica = {};
+    snap.docs.forEach(d => { _vinculosPorClinica[d.data().clinicaId] = d.data().status; });
+    renderClinicasForn(_clinicasTodas);
+  }, err => console.warn('[Belezza] vínculos fornecedor listener:', err));
+}
+window.iniciarListenerVinculosForn = iniciarListenerVinculosForn;
+
+function renderClinicasForn(lista) {
+  const wrap = document.getElementById('forn-clinicas-lista');
+  if (!wrap) return;
+  if (!lista.length) {
+    wrap.innerHTML = '<div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Nenhuma clínica encontrada.</div>';
+    return;
+  }
+  wrap.innerHTML = lista.map(c => {
+    const status = _vinculosPorClinica[c._id];
+    let acaoHtml;
+    if (status === 'aprovado') {
+      acaoHtml = '<span style="background:#dcfce7;color:#166534;font-size:11px;padding:3px 8px;border-radius:4px;">Vinculado</span>';
+    } else if (status === 'pendente') {
+      acaoHtml = '<span style="background:#fef3c7;color:#92400e;font-size:11px;padding:3px 8px;border-radius:4px;">Aguardando aprovação</span>';
+    } else if (status === 'recusado') {
+      acaoHtml = '<span style="background:#fee2e2;color:#991b1b;font-size:11px;padding:3px 8px;border-radius:4px;">Recusado</span>';
+    } else {
+      acaoHtml = `<button onclick="solicitarVinculo('${c._id}')" style="background:#1c1917;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;">Solicitar vínculo</button>`;
+    }
+    return `<div style="background:#fff;border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+      <div style="font-size:13px;font-weight:600;color:#1c1917;">${c.nomeEstab || c.nome || 'Clínica'}</div>
+      ${acaoHtml}
+    </div>`;
+  }).join('');
+}
+
+function filtrarClinicasForn(termo) {
+  const norm = (termo || '').toLowerCase().trim();
+  const filtrado = norm
+    ? _clinicasTodas.filter(c => (c.nomeEstab || c.nome || '').toLowerCase().includes(norm))
+    : _clinicasTodas;
+  renderClinicasForn(filtrado);
+}
+window.filtrarClinicasForn = filtrarClinicasForn;
+
+async function solicitarVinculo(clinicaId) {
+  const fid = cp?.fornecedorId;
+  if (!fid) return;
+  const clinica = _clinicasTodas.find(c => c._id === clinicaId);
+  try {
+    await addDoc(collection(db, 'vinculos'), {
+      clinicaId,
+      clinicaNome: clinica?.nomeEstab || clinica?.nome || '',
+      fornecedorId: fid,
+      fornecedorNome: cp.name || '',
+      status: 'pendente',
+      criadoEm: serverTimestamp(),
+    });
+  } catch (e) { console.error('[Belezza] solicitarVinculo:', e); }
+}
+window.solicitarVinculo = solicitarVinculo;
+
+// ── Lado Proprietária: ver/aprovar solicitações de vínculo ─────────────────
+function iniciarListenerVinculosClinica() {
+  if (_unsubVinculosClinica) return;
+  const cid = clinicaAtual();
+  const q = query(collection(db, 'vinculos'), where('clinicaId', '==', cid));
+  _unsubVinculosClinica = onSnapshot(q, snap => {
+    const todos = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    renderVinculosClinica(todos);
+  }, err => console.warn('[Belezza] vínculos clínica listener:', err));
+}
+window.iniciarListenerVinculosClinica = iniciarListenerVinculosClinica;
+
+function renderVinculosClinica(todos) {
+  const pendListEl = document.getElementById('forn-pendentes-lista');
+  const aprovListEl = document.getElementById('forn-aprovados-lista');
+  if (!pendListEl || !aprovListEl) return;
+
+  const pendentes = todos.filter(v => v.status === 'pendente');
+  const aprovados = todos.filter(v => v.status === 'aprovado');
+
+  pendListEl.innerHTML = pendentes.length ? pendentes.map(v => `
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:13px;font-weight:600;color:var(--tx)">${v.fornecedorNome || 'Fornecedor'}</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn pk" style="padding:6px 12px;font-size:12px" onclick="aprovarVinculo('${v._id}')">Aprovar</button>
+        <button class="btn" style="padding:6px 12px;font-size:12px" onclick="recusarVinculo('${v._id}')">Recusar</button>
+      </div>
+    </div>`).join('') : '<div style="color:var(--tx3);font-size:13px;padding:8px 0">Nenhuma solicitação pendente.</div>';
+
+  aprovListEl.innerHTML = aprovados.length ? aprovados.map(v => `
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:13px;font-weight:600;color:var(--tx)">${v.fornecedorNome || 'Fornecedor'}</div>
+      <span style="background:#dcfce7;color:#166534;font-size:11px;padding:3px 8px;border-radius:4px;">Vinculado</span>
+    </div>`).join('') : '<div style="color:var(--tx3);font-size:13px;padding:8px 0">Nenhum fornecedor vinculado ainda.</div>';
+}
+
+async function aprovarVinculo(id) {
+  try { await updateDoc(doc(db, 'vinculos', id), { status: 'aprovado' }); }
+  catch (e) { console.error('[Belezza] aprovarVinculo:', e); }
+}
+window.aprovarVinculo = aprovarVinculo;
+
+async function recusarVinculo(id) {
+  if (!confirm('Recusar esta solicitação?')) return;
+  try { await updateDoc(doc(db, 'vinculos', id), { status: 'recusado' }); }
+  catch (e) { console.error('[Belezza] recusarVinculo:', e); }
+}
+window.recusarVinculo = recusarVinculo;
 window.trocarTabSvcImg     = trocarTabSvcImg;
 
 </script>
@@ -9816,6 +9973,14 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         <button onclick="salvarProduto()" style="background:#1c1917;color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar</button>
         <button onclick="fecharFormProduto()" style="background:#e7e5e4;color:#44403c;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
       </div>
+    </div>
+  </div>
+
+  <div style="padding:0 20px 20px 20px;">
+    <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Clínicas</div>
+    <input id="forn-clinica-busca" type="text" placeholder="Buscar clínica pelo nome..." oninput="filtrarClinicasForn(this.value)" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
+    <div id="forn-clinicas-lista" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando clínicas...</div>
     </div>
   </div>
 </div>
