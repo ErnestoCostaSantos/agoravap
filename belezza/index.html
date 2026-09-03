@@ -2207,8 +2207,7 @@ onAuthStateChanged(auth, async user => {
         if (homeForn) homeForn.style.display = 'flex';
         if (appDiv) appDiv.style.display = 'none';
         _splashPendente = false;
-        // Listeners do módulo Fornecedor entram aqui nas próximas etapas
-        // (catálogo, vínculos, pedidos, promoções)
+        setTimeout(() => { if (window.iniciarListenerProdutosForn) window.iniciarListenerProdutosForn(); }, 200);
 
       } else {
         // ── Rota Profissional/Admin → app principal ──
@@ -9298,6 +9297,186 @@ window.abrirFormSvc = abrirFormSvc;
 window.fecharFormSvc= fecharFormSvc;
 window.renderAdminCatChips = renderAdminCatChips;
 window.renderSvcImgPicker  = renderSvcImgPicker;
+
+// ══════════════════════════════════════════════════════════════════════════
+// MÓDULO FORNECEDOR — Catálogo de produtos
+// Coleção: /fornecedores/{fornecedorId}/produtos/{produtoId}
+// Isolado do restante do app — só entra em jogo quando cp.role === 'fornecedor'.
+// ══════════════════════════════════════════════════════════════════════════
+let _prodFornTodos = [];
+let _unsubProdutosForn = null;
+let _prodImgBase64 = '';
+let _prodEditId = '';
+
+const PROD_FALLBACK_IMG = SVC_FALLBACK_IMG; // reaproveita o placeholder já existente
+
+function iniciarListenerProdutosForn() {
+  if (_unsubProdutosForn) return; // já rodando
+  const fid = cp?.fornecedorId;
+  if (!fid) { console.warn('[Belezza] fornecedorId ausente em cp'); return; }
+  const ref = collection(db, 'fornecedores', fid, 'produtos');
+  _unsubProdutosForn = onSnapshot(ref, snap => {
+    _prodFornTodos = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    renderProdutosGrid(_prodFornTodos);
+  }, err => {
+    console.warn('[Belezza] produtos fornecedor listener:', err);
+    const grid = document.getElementById('forn-produtos-grid');
+    if (grid) grid.innerHTML = '<div style="color:#a8a29e;font-size:13px;grid-column:1/-1;text-align:center;padding:24px 0;">Erro ao carregar produtos.</div>';
+  });
+}
+window.iniciarListenerProdutosForn = iniciarListenerProdutosForn;
+
+function renderProdutosGrid(lista) {
+  const grid = document.getElementById('forn-produtos-grid');
+  if (!grid) return;
+  if (!lista.length) {
+    grid.innerHTML = '<div style="color:#a8a29e;font-size:13px;grid-column:1/-1;text-align:center;padding:24px 0;">Nenhum produto cadastrado ainda.</div>';
+    return;
+  }
+  grid.innerHTML = lista.map(p => {
+    const img = p.imagemBase64 || PROD_FALLBACK_IMG;
+    const precoTxt = p.preco ? `R$ ${p.preco}` : 'Consulte o valor';
+    const dispBadge = p.disponivel === false
+      ? '<span style="background:#f5f5f4;color:#a8a29e;font-size:10px;padding:2px 6px;border-radius:4px;">Indisponível</span>'
+      : '<span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 6px;border-radius:4px;">Disponível</span>';
+    return `<div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <img src="${img}" style="width:100%;height:110px;object-fit:cover;">
+      <div style="padding:10px;">
+        <div style="font-size:13px;font-weight:700;color:#1c1917;">${p.nome||'Produto'}</div>
+        ${p.categoria ? `<div style="font-size:11px;color:#a8a29e;margin-top:2px;">${p.categoria}</div>` : ''}
+        <div style="font-size:13px;color:#57534e;margin-top:6px;">${precoTxt}</div>
+        <div style="margin-top:6px;">${dispBadge}</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <span onclick="editarProduto('${p._id}')" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">Editar</span>
+          <span onclick="removerProduto('${p._id}')" style="font-size:12px;color:#b91c1c;text-decoration:underline;cursor:pointer;">Remover</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function previewProdutoImg(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const preview = document.getElementById('forn-prod-img-preview');
+  const removeBtn = document.getElementById('forn-prod-img-remove');
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.onload = () => {
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else       { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      _prodImgBase64 = canvas.toDataURL('image/jpeg', 0.72);
+      if (preview) { preview.src = _prodImgBase64; preview.style.display = 'block'; }
+      if (removeBtn) removeBtn.style.display = 'inline';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+window.previewProdutoImg = previewProdutoImg;
+
+function removerProdutoImg() {
+  _prodImgBase64 = '';
+  const preview = document.getElementById('forn-prod-img-preview');
+  const removeBtn = document.getElementById('forn-prod-img-remove');
+  if (preview) { preview.style.display = 'none'; preview.src = ''; }
+  if (removeBtn) removeBtn.style.display = 'none';
+}
+window.removerProdutoImg = removerProdutoImg;
+
+async function salvarProduto() {
+  const nome  = (document.getElementById('forn-prod-nome')?.value  || '').trim();
+  const desc  = (document.getElementById('forn-prod-desc')?.value  || '').trim();
+  const preco = (document.getElementById('forn-prod-preco')?.value || '').trim();
+  const cat   = (document.getElementById('forn-prod-cat')?.value   || '').trim();
+  const disp  = document.getElementById('forn-prod-disp')?.checked ?? true;
+  const erro  = document.getElementById('forn-prod-erro');
+  if (!nome) { if (erro) erro.textContent = 'Nome é obrigatório.'; return; }
+  if (erro) erro.textContent = '';
+  const fid = cp?.fornecedorId;
+  if (!fid) { if (erro) erro.textContent = 'Fornecedor não identificado.'; return; }
+  try {
+    const dados = { nome, descricao: desc, preco, categoria: cat, disponivel: disp, imagemBase64: _prodImgBase64 || '' };
+    if (_prodEditId) {
+      await updateDoc(doc(db, 'fornecedores', fid, 'produtos', _prodEditId), dados);
+    } else {
+      await addDoc(collection(db, 'fornecedores', fid, 'produtos'), { ...dados, criadoEm: serverTimestamp() });
+    }
+    _prodEditId = '';
+    fecharFormProduto();
+  } catch (e) {
+    console.error('[Belezza] salvarProduto:', e);
+    if (erro) erro.textContent = 'Erro ao salvar. Tente novamente.';
+  }
+}
+window.salvarProduto = salvarProduto;
+
+function editarProduto(id) {
+  const p = _prodFornTodos.find(x => x._id === id);
+  if (!p) return;
+  abrirFormProduto();
+  _prodEditId = id;
+  const titulo = document.getElementById('forn-produto-form-title');
+  if (titulo) titulo.textContent = 'Editar produto';
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
+  set('forn-prod-nome', p.nome);
+  set('forn-prod-desc', p.descricao);
+  set('forn-prod-preco', p.preco);
+  set('forn-prod-cat', p.categoria);
+  const dispEl = document.getElementById('forn-prod-disp');
+  if (dispEl) dispEl.checked = p.disponivel !== false;
+  if (p.imagemBase64) {
+    _prodImgBase64 = p.imagemBase64;
+    const preview = document.getElementById('forn-prod-img-preview');
+    const removeBtn = document.getElementById('forn-prod-img-remove');
+    if (preview) { preview.src = p.imagemBase64; preview.style.display = 'block'; }
+    if (removeBtn) removeBtn.style.display = 'inline';
+  }
+}
+window.editarProduto = editarProduto;
+
+async function removerProduto(id) {
+  if (!confirm('Remover este produto?')) return;
+  const fid = cp?.fornecedorId;
+  if (!fid) return;
+  try {
+    await deleteDoc(doc(db, 'fornecedores', fid, 'produtos', id));
+  } catch (e) { console.error('[Belezza] removerProduto:', e); }
+}
+window.removerProduto = removerProduto;
+
+function abrirFormProduto() {
+  const wrap = document.getElementById('forn-produto-form-wrap');
+  if (!wrap) return;
+  _prodEditId = '';
+  const titulo = document.getElementById('forn-produto-form-title');
+  if (titulo) titulo.textContent = 'Novo produto';
+  ['forn-prod-nome','forn-prod-desc','forn-prod-preco','forn-prod-cat'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const dispEl = document.getElementById('forn-prod-disp');
+  if (dispEl) dispEl.checked = true;
+  const erro = document.getElementById('forn-prod-erro');
+  if (erro) erro.textContent = '';
+  removerProdutoImg();
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.abrirFormProduto = abrirFormProduto;
+
+function fecharFormProduto() {
+  const wrap = document.getElementById('forn-produto-form-wrap');
+  if (wrap) wrap.style.display = 'none';
+}
+window.fecharFormProduto = fecharFormProduto;
 window.trocarTabSvcImg     = trocarTabSvcImg;
 
 </script>
@@ -9586,8 +9765,58 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     </div>
     <button onclick="sairForn()" style="background:#333;border:none;color:#fff;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;">Sair</button>
   </div>
-  <div style="padding:24px 20px;color:#57534e;font-size:14px;">
-    Painel do Fornecedor em construção — catálogo, vínculos com clínicas e pedidos entram aqui nas próximas etapas.
+
+  <div style="padding:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:#1c1917;">Catálogo de produtos</div>
+      <button onclick="abrirFormProduto()" style="background:#f59e0b;color:#1c1917;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">+ Novo produto</button>
+    </div>
+
+    <!-- Grid de produtos -->
+    <div id="forn-produtos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
+      <div style="color:#a8a29e;font-size:13px;grid-column:1/-1;text-align:center;padding:24px 0;">Carregando produtos...</div>
+    </div>
+
+    <!-- Formulário Novo/Editar produto -->
+    <div id="forn-produto-form-wrap" style="display:none;margin-top:20px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <div id="forn-produto-form-title" style="font-size:14px;font-weight:700;color:#1c1917;margin-bottom:12px;">Novo produto</div>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Nome *</label>
+      <input id="forn-prod-nome" type="text" maxlength="80" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Descrição</label>
+      <textarea id="forn-prod-desc" maxlength="400" rows="3" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:12px;box-sizing:border-box;resize:vertical;"></textarea>
+
+      <div style="display:flex;gap:12px;margin-bottom:12px;">
+        <div style="flex:1;">
+          <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Preço (R$)</label>
+          <input id="forn-prod-preco" type="text" inputmode="decimal" placeholder="0,00" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+        </div>
+        <div style="flex:1;">
+          <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Categoria</label>
+          <input id="forn-prod-cat" type="text" placeholder="Ex: Skincare" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+        </div>
+      </div>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Foto do produto</label>
+      <input id="forn-prod-img-inp" type="file" accept="image/*" onchange="previewProdutoImg(this)" style="margin-bottom:6px;">
+      <div>
+        <img id="forn-prod-img-preview" style="display:none;max-width:120px;border-radius:6px;margin-bottom:6px;">
+        <span id="forn-prod-img-remove" onclick="removerProdutoImg()" style="display:none;color:#b91c1c;font-size:12px;cursor:pointer;">Remover foto</span>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#57534e;margin:12px 0;">
+        <input id="forn-prod-disp" type="checkbox" checked style="width:16px;height:16px;">
+        Disponível no catálogo
+      </label>
+
+      <div id="forn-prod-erro" style="color:#b91c1c;font-size:12px;margin-bottom:10px;"></div>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="salvarProduto()" style="background:#1c1917;color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar</button>
+        <button onclick="fecharFormProduto()" style="background:#e7e5e4;color:#44403c;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
+      </div>
+    </div>
   </div>
 </div>
 <!-- HOME CLIENTE (após login) -->
