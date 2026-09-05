@@ -2315,6 +2315,7 @@ onAuthStateChanged(auth, async user => {
           if (window.iniciarListenerVinculosForn) window.iniciarListenerVinculosForn();
           if (window.iniciarListenerClientesForn) window.iniciarListenerClientesForn();
           if (window.iniciarListenerPedidosForn) window.iniciarListenerPedidosForn();
+          if (window.iniciarListenerPedidosPublicosForn) window.iniciarListenerPedidosPublicosForn();
           if (window.iniciarListenerPromosForn) window.iniciarListenerPromosForn();
         }, 200);
 
@@ -10618,6 +10619,50 @@ function renderPedidosForn(lista) {
   }).join('');
 }
 
+// ── Pedidos vindos da página pública do catálogo (QR Code, sem login) ─────
+let _unsubPedidosPublicosForn = null;
+function iniciarListenerPedidosPublicosForn() {
+  if (_unsubPedidosPublicosForn) return;
+  const fid = cp?.fornecedorId;
+  if (!fid) return;
+  const q = query(collection(db, 'fornecedores', fid, 'pedidos_publicos'), orderBy('criadoEm', 'desc'));
+  _unsubPedidosPublicosForn = onSnapshot(q, snap => {
+    const lista = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    renderPedidosPublicosForn(lista);
+  }, err => console.warn('[Belezza] pedidos_publicos listener:', err));
+}
+window.iniciarListenerPedidosPublicosForn = iniciarListenerPedidosPublicosForn;
+
+function renderPedidosPublicosForn(lista) {
+  const wrap = document.getElementById('forn-pedidos-publicos-lista');
+  if (!wrap) return;
+  if (!lista.length) {
+    wrap.innerHTML = '<div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Nenhum pedido pelo catálogo público ainda.</div>';
+    return;
+  }
+  wrap.innerHTML = lista.map(p => {
+    const itensTxt = (p.itens || []).map(it => `${it.qtd}x ${it.nome}`).join(', ');
+    const dataTxt = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleString('pt-BR') : '';
+    const numWpp = (p.whatsapp || '').replace(/\D/g, '');
+    const nomeCurto = (p.nomeResponsavel || 'cliente').split(' ')[0];
+    const valorFmt = (p.valorTotal || 0).toFixed(2).replace('.', ',');
+    const msg = `Olá, ${nomeCurto}! Recebemos seu pedido inicial (R$ ${valorFmt}, pagamento via ${p.formaPagamento || 'a combinar'}). Em breve retornamos com o valor final, já incluindo frete e eventuais promoções. Obrigado!`;
+    const wppBtn = numWpp
+      ? `<button onclick="window.open('https://wa.me/55${numWpp}?text=${encodeURIComponent(msg)}','_blank')" style="background:#1c1917;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;"><i class="ti ti-brand-whatsapp"></i> Avisar cliente via WhatsApp</button>`
+      : '';
+    return `<div style="background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:700;color:#1c1917;">${p.nomeResponsavel || 'Cliente'}</div>
+        <span style="font-size:11px;padding:3px 8px;border-radius:4px;background:#f5f5f4;color:#57534e;">${p.formaPagamento || ''}</span>
+      </div>
+      <div style="font-size:12px;color:#78716c;margin-top:4px;">${itensTxt}</div>
+      <div style="font-size:11px;color:#a8a29e;margin-top:2px;">${p.whatsapp || ''} · ${dataTxt}</div>
+      <div style="font-size:13px;font-weight:600;color:#1c1917;margin-top:4px;">R$ ${valorFmt}</div>
+      <div style="margin-top:8px;">${wppBtn}</div>
+    </div>`;
+  }).join('');
+}
+
 async function avancarStatusPedido(id, novoStatus) {
   try { await updateDoc(doc(db, 'pedidos', id), { status: novoStatus }); }
   catch (e) { console.error('[Belezza] avancarStatusPedido:', e); }
@@ -11466,6 +11511,11 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Pedidos recebidos</div>
     <div id="forn-pedidos-lista" style="display:flex;flex-direction:column;gap:10px;">
       <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando pedidos...</div>
+    </div>
+
+    <div style="font-size:15px;font-weight:700;color:#1c1917;margin:24px 0 12px;">Pedidos do catálogo (QR Code, sem login)</div>
+    <div id="forn-pedidos-publicos-lista" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando...</div>
     </div>
   </div>
 
