@@ -471,6 +471,33 @@ input[type="password"]::-ms-clear {
 .catpub-kit-card details{font-size:13px;color:var(--tx2);margin-top:8px;}
 .catpub-cta{text-align:center;background:var(--pk50);border-radius:var(--rl);padding:20px 16px;margin:16px;}
 .catpub-btn-cta{display:inline-block;background:var(--bg);border:1px solid var(--pk400);border-radius:var(--r);padding:8px 20px;color:var(--pk600);text-decoration:none;font-size:14px;margin-top:8px;}
+/* Lista de produtos estilo carrinho (uma linha por produto) */
+.catpub-busca-wrap{margin:0 16px 12px;}
+.catpub-busca-wrap input{width:100%;padding:10px 12px;border:1px solid var(--br2);border-radius:var(--r);font-size:14px;box-sizing:border-box;background:var(--bg);color:var(--tx);}
+.catpub-lista{margin:0 16px;}
+.catpub-produto-row{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);padding:12px;margin-bottom:10px;}
+.catpub-row-foto{width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;}
+.catpub-row-foto-vazia{background:var(--bg3);}
+.catpub-row-info{flex:1;min-width:0;}
+.catpub-row-info h3{font-size:14px;margin:0 0 2px;}
+.catpub-row-info p{font-size:12px;color:var(--tx2);margin:0 0 6px;}
+.catpub-row-precos{display:flex;flex-direction:column;gap:1px;font-size:12px;color:var(--tx2);}
+.catpub-row-qtd{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
+.catpub-row-qtd label{font-size:10px;color:var(--tx3);text-transform:uppercase;}
+.catpub-row-qtd input{width:56px;padding:6px;border:1px solid var(--br2);border-radius:var(--r);font-size:14px;text-align:center;}
+/* Resumo da compra e fluxo de finalização */
+.catpub-resumo{background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);margin:16px;padding:16px;}
+.catpub-resumo h2{font-size:16px;margin:0 0 10px;}
+.catpub-resumo-item{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--br);}
+.catpub-resumo-total{display:flex;justify-content:space-between;font-size:15px;font-weight:600;margin-top:10px;padding-top:10px;border-top:1px solid var(--br2);}
+.catpub-pergunta{margin-top:16px;padding-top:16px;border-top:1px solid var(--br);}
+.catpub-pergunta p{font-size:14px;margin:0 0 10px;}
+.catpub-input{width:100%;padding:9px 10px;border:1px solid var(--br2);border-radius:var(--r);font-size:14px;margin-bottom:8px;box-sizing:border-box;}
+.catpub-erro{font-size:12px;color:var(--pk600);margin-bottom:8px;}
+.catpub-btns{display:flex;gap:10px;}
+.catpub-btns-col{flex-direction:column;}
+.catpub-btn-primario{background:var(--pk600);border:none;color:#fff;padding:10px 20px;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;}
+.catpub-btn-secundario{background:var(--bg);border:1px solid var(--br2);color:var(--tx);padding:10px 20px;border-radius:var(--r);font-size:14px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -10133,12 +10160,34 @@ async function registrarVisualizacaoCatalogo(fornecedorId) {
 }
 
 // ── Catálogo público do Fornecedor (via QR Code, sem login) ────────────────
+// ── Carrinho da página pública do catálogo (checkout via QR Code) ─────────
+let _catpubCarrinho = {};       // produtoId -> {nome, qtd, precoUnit, subtotal}
+let _catpubFornecedorId = '';
+let _catpubContato = { nome: '', whatsapp: '' };
+let _catpubProdutosTodos = [];  // cache em memória pra filtrar sem refazer a leitura
+
 async function renderCatalogoPublico(fornecedorId, nomeFornecedor) {
+  _catpubFornecedorId = fornecedorId;
+  _catpubCarrinho = {};
+  _catpubContato = { nome: '', whatsapp: '' };
+
   const tela = document.getElementById('tela-catalogo-publico');
   if (tela) tela.style.display = 'block';
   const nomeEl = document.getElementById('catpub-nome-fornecedor');
   if (nomeEl) nomeEl.textContent = nomeFornecedor || 'Catálogo';
   registrarVisualizacaoCatalogo(fornecedorId); // fire-and-forget, não bloqueia a renderização
+
+  // Reseta o fluxo de finalização pra estado inicial (caso já tenha rodado antes)
+  ['catpub-resumo'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+  const perguntaFinal = document.getElementById('catpub-pergunta-final');
+  if (perguntaFinal) perguntaFinal.style.display = 'block';
+  ['catpub-form-contato', 'catpub-pergunta-pagamento', 'catpub-final-obrigado'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  const contatoErro = document.getElementById('catpub-contato-erro');
+  if (contatoErro) contatoErro.textContent = '';
+  const buscaInput = document.getElementById('catpub-busca');
+  if (buscaInput) buscaInput.value = '';
 
   const logoEl = document.getElementById('catpub-logo');
   if (logoEl) {
@@ -10152,71 +10201,158 @@ async function renderCatalogoPublico(fornecedorId, nomeFornecedor) {
   if (container) container.innerHTML = '<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 0">Carregando catálogo...</div>';
 
   try {
-    const [snapProd, snapKits] = await Promise.all([
-      getDocs(collection(db, 'fornecedores', fornecedorId, 'produtos')),
-      getDocs(collection(db, 'fornecedores', fornecedorId, 'kits')),
-    ]);
-    const produtos = snapProd.docs.map(d => ({ ...d.data(), _id: d.id })).filter(p => p.disponivel !== false);
-    const kits     = snapKits.docs.map(d => ({ ...d.data(), _id: d.id }));
-
-    if (!container) return;
-    container.innerHTML = '';
-
-    LINHAS_FORNECEDOR.forEach(linha => {
-      const doLinha = produtos.filter(p => p.categoria === linha);
-      if (!doLinha.length) return;
-      const secao = document.createElement('section');
-      secao.className = 'catpub-linha';
-      secao.innerHTML = `<h2>${linha}</h2><div class="catpub-linhas-grid"></div>`;
-      const grid = secao.querySelector('.catpub-linhas-grid');
-      doLinha.forEach(p => {
-        const foto = p.imagemBase64 ? `<img src="${p.imagemBase64}" alt="${p.nome || ''}" class="catpub-produto-foto" loading="lazy">` : '';
-        const card = document.createElement('div');
-        card.className = 'catpub-produto-card';
-        card.innerHTML = `${foto}<div>
-          <h3>${p.nome || 'Produto'}</h3>
-          <p>${p.descricao || ''}</p>
-          ${fmtPrecoTiersHTML(p.preco)}
-        </div>`;
-        grid.appendChild(card);
-      });
-      container.appendChild(secao);
-    });
-
-    if (kits.length) {
-      const secao = document.createElement('section');
-      secao.className = 'catpub-linha';
-      secao.innerHTML = '<h2>Kits</h2><div class="catpub-linhas-grid"></div>';
-      const grid = secao.querySelector('.catpub-linhas-grid');
-      kits.forEach(k => {
-        const t = calcPrecoKitFromProdutos(k, produtos);
-        const f = v => v.toFixed(2).replace('.', ',');
-        const tipoLabel = k.tipo === 'homecare' ? 'Home care' : 'Profissional';
-        const foto = k.imagemBase64 ? `<img src="${k.imagemBase64}" alt="${k.nome || ''}" class="catpub-kit-foto" loading="lazy">` : '';
-        const card = document.createElement('div');
-        card.className = 'catpub-kit-card';
-        card.innerHTML = `${foto}
-          <h3>${k.nome || 'Kit'} <small>(${tipoLabel})</small></h3>
-          <div class="catpub-precos">
-            <span>Tabela: R$ ${f(t.cheia)}</span>
-            <span>-30%: R$ ${f(t.p30)}</span>
-            <span>-35%: R$ ${f(t.p35)}</span>
-          </div>
-          ${k.protocolo ? `<details><summary>Protocolo de uso</summary><p>${k.protocolo}</p></details>` : ''}`;
-        grid.appendChild(card);
-      });
-      container.appendChild(secao);
-    }
-
-    if (!produtos.length && !kits.length) {
-      container.innerHTML = '<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 0">Este fornecedor ainda não cadastrou produtos.</div>';
-    }
+    const snapProd = await getDocs(collection(db, 'fornecedores', fornecedorId, 'produtos'));
+    _catpubProdutosTodos = snapProd.docs.map(d => ({ ...d.data(), _id: d.id })).filter(p => p.disponivel !== false);
+    catpubRenderListaProdutos(_catpubProdutosTodos);
   } catch (e) {
     console.error('[Belezza] renderCatalogoPublico:', e);
     if (container) container.innerHTML = '<div style="text-align:center;color:var(--pk600);font-size:13px;padding:24px 0">Erro ao carregar o catálogo.</div>';
   }
 }
 if (_isCatalogoPublico) renderCatalogoPublico(_fornecedorIdPub, _nomeCatalogoPub);
+
+// Filtra por nome (sem acento, sem case) a cada tecla digitada na busca.
+function catpubFiltrarProdutos(termo) {
+  const alvo = (termo || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const filtrados = !alvo ? _catpubProdutosTodos : _catpubProdutosTodos.filter(p =>
+    (p.nome || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(alvo)
+  );
+  catpubRenderListaProdutos(filtrados, !!alvo);
+}
+window.catpubFiltrarProdutos = catpubFiltrarProdutos;
+
+function catpubRenderListaProdutos(produtos, ehBusca) {
+  const container = document.getElementById('catpub-linhas-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!_catpubProdutosTodos.length) {
+    container.innerHTML = '<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 0">Este fornecedor ainda não cadastrou produtos.</div>';
+    return;
+  }
+  if (!produtos.length) {
+    container.innerHTML = '<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 0">Nenhum produto encontrado' + (ehBusca ? ' pra essa busca.' : '.') + '</div>';
+    return;
+  }
+
+  const lista = document.createElement('div');
+  lista.className = 'catpub-lista';
+  const f = v => v.toFixed(2).replace('.', ',');
+
+  produtos.forEach(p => {
+    const precoCheio = parseFloat(String(p.preco || '0').replace(',', '.')) || 0;
+    const profissional = precoCheio * 0.7;
+    const trio = precoCheio * 0.65;
+    const foto = p.imagemBase64
+      ? `<img src="${p.imagemBase64}" alt="${p.nome || ''}" class="catpub-row-foto" loading="lazy">`
+      : '<div class="catpub-row-foto catpub-row-foto-vazia"></div>';
+    const nomeSeguro = (p.nome || 'Produto').replace(/'/g, "\\'");
+    const qtdAtual = _catpubCarrinho[p._id]?.qtd || 0;
+    const row = document.createElement('div');
+    row.className = 'catpub-produto-row';
+    row.innerHTML = `${foto}
+      <div class="catpub-row-info">
+        <h3>${p.nome || 'Produto'}</h3>
+        <p>${p.descricao || ''}</p>
+        <div class="catpub-row-precos">
+          <span>Profissional: <b>R$ ${f(profissional)}</b></span>
+          <span>Trio: <b>R$ ${f(trio)}</b></span>
+        </div>
+      </div>
+      <div class="catpub-row-qtd">
+        <label>Qtd.</label>
+        <input type="number" min="0" value="${qtdAtual}" inputmode="numeric"
+          onchange="catpubAtualizarQtd('${p._id}','${nomeSeguro}',${precoCheio},this.value)">
+      </div>`;
+    lista.appendChild(row);
+  });
+  container.appendChild(lista);
+}
+if (_isCatalogoPublico) renderCatalogoPublico(_fornecedorIdPub, _nomeCatalogoPub);
+
+// Quantidade decide a faixa de preço: 1-2 un = Profissional (-30%), 3+ un = Trio (-35%)
+function catpubAtualizarQtd(produtoId, nome, precoCheio, qtdStr) {
+  const qtd = Math.max(0, parseInt(qtdStr, 10) || 0);
+  if (qtd <= 0) {
+    delete _catpubCarrinho[produtoId];
+  } else {
+    const unit = qtd >= 3 ? precoCheio * 0.65 : precoCheio * 0.7;
+    _catpubCarrinho[produtoId] = { nome, qtd, precoUnit: unit, subtotal: unit * qtd };
+  }
+  catpubRenderResumo();
+}
+window.catpubAtualizarQtd = catpubAtualizarQtd;
+
+function catpubRenderResumo() {
+  const resumo = document.getElementById('catpub-resumo');
+  const itensEl = document.getElementById('catpub-resumo-itens');
+  const totalEl = document.getElementById('catpub-resumo-total-valor');
+  const itens = Object.values(_catpubCarrinho);
+  const f = v => v.toFixed(2).replace('.', ',');
+  if (!itens.length) {
+    if (resumo) resumo.style.display = 'none';
+    return;
+  }
+  if (resumo) resumo.style.display = 'block';
+  if (itensEl) {
+    itensEl.innerHTML = itens.map(it => `
+      <div class="catpub-resumo-item">
+        <span>${it.qtd}x ${it.nome}</span>
+        <span>R$ ${f(it.subtotal)}</span>
+      </div>`).join('');
+  }
+  const total = itens.reduce((s, it) => s + it.subtotal, 0);
+  if (totalEl) totalEl.textContent = 'R$ ' + f(total);
+}
+
+function catpubPedidoFinalizado(sim) {
+  if (!sim) return; // "Não" — ela continua comprando, nada muda
+  const perguntaFinal = document.getElementById('catpub-pergunta-final');
+  const formContato = document.getElementById('catpub-form-contato');
+  if (perguntaFinal) perguntaFinal.style.display = 'none';
+  if (formContato) formContato.style.display = 'block';
+}
+window.catpubPedidoFinalizado = catpubPedidoFinalizado;
+
+function catpubConfirmarContato() {
+  const nome = (document.getElementById('catpub-contato-nome')?.value || '').trim();
+  const whatsapp = (document.getElementById('catpub-contato-whatsapp')?.value || '').trim();
+  const erro = document.getElementById('catpub-contato-erro');
+  if (!nome || !whatsapp) {
+    if (erro) erro.textContent = 'Preencha nome e WhatsApp pra continuar.';
+    return;
+  }
+  if (erro) erro.textContent = '';
+  _catpubContato = { nome, whatsapp };
+  const formContato = document.getElementById('catpub-form-contato');
+  const pagamento = document.getElementById('catpub-pergunta-pagamento');
+  if (formContato) formContato.style.display = 'none';
+  if (pagamento) pagamento.style.display = 'block';
+}
+window.catpubConfirmarContato = catpubConfirmarContato;
+
+async function catpubEscolherPagamento(forma) {
+  const pagamento = document.getElementById('catpub-pergunta-pagamento');
+  const obrigado = document.getElementById('catpub-final-obrigado');
+  const itens = Object.values(_catpubCarrinho);
+  const total = itens.reduce((s, it) => s + it.subtotal, 0);
+  try {
+    await addDoc(collection(db, 'fornecedores', _catpubFornecedorId, 'pedidos_publicos'), {
+      itens: itens.map(it => ({ nome: it.nome, qtd: it.qtd, precoUnit: it.precoUnit, subtotal: it.subtotal })),
+      valorTotal: total,
+      nomeResponsavel: _catpubContato.nome,
+      whatsapp: _catpubContato.whatsapp,
+      formaPagamento: forma,
+      status: 'novo',
+      criadoEm: serverTimestamp(),
+    });
+  } catch (e) {
+    console.error('[Belezza] catpubEscolherPagamento:', e);
+  }
+  if (pagamento) pagamento.style.display = 'none';
+  if (obrigado) obrigado.style.display = 'block';
+}
+window.catpubEscolherPagamento = catpubEscolherPagamento;
 
 async function abrirCatalogoFornecedor(fornecedorId) {
   const v = (window._vinculosAprovadosCache || []).find(x => x.fornecedorId === fornecedorId);
@@ -12820,7 +12956,46 @@ window._avUrl             = _avUrl;
     <p class="catpub-label">Catálogo de</p>
     <h1 id="catpub-nome-fornecedor">Catálogo</h1>
   </div>
+  <div class="catpub-busca-wrap">
+    <input id="catpub-busca" type="text" class="catpub-input" placeholder="Buscar produto pelo nome..." oninput="catpubFiltrarProdutos(this.value)">
+  </div>
   <div id="catpub-linhas-container"></div>
+
+  <div id="catpub-resumo" class="catpub-resumo" style="display:none;">
+    <h2>Resumo da compra</h2>
+    <div id="catpub-resumo-itens"></div>
+    <div class="catpub-resumo-total">Total: <span id="catpub-resumo-total-valor">R$ 0,00</span></div>
+
+    <div id="catpub-pergunta-final" class="catpub-pergunta">
+      <p>Pedido finalizado?</p>
+      <div class="catpub-btns">
+        <button class="catpub-btn-primario" onclick="catpubPedidoFinalizado(true)">Sim</button>
+        <button class="catpub-btn-secundario" onclick="catpubPedidoFinalizado(false)">Não</button>
+      </div>
+    </div>
+
+    <div id="catpub-form-contato" class="catpub-pergunta" style="display:none;">
+      <p>Pra quem devemos enviar o retorno com o pedido final?</p>
+      <input id="catpub-contato-nome" type="text" class="catpub-input" placeholder="Nome da responsável">
+      <input id="catpub-contato-whatsapp" type="text" class="catpub-input" placeholder="WhatsApp (DDD + número)">
+      <div id="catpub-contato-erro" class="catpub-erro"></div>
+      <button class="catpub-btn-primario" onclick="catpubConfirmarContato()">Continuar</button>
+    </div>
+
+    <div id="catpub-pergunta-pagamento" class="catpub-pergunta" style="display:none;">
+      <p>Como deseja pagar?</p>
+      <div class="catpub-btns catpub-btns-col">
+        <button class="catpub-btn-secundario" onclick="catpubEscolherPagamento('Pix')">Pix</button>
+        <button class="catpub-btn-secundario" onclick="catpubEscolherPagamento('Cartão')">Cartão</button>
+        <button class="catpub-btn-secundario" onclick="catpubEscolherPagamento('Boleto (sujeito a análise)')">Boleto (sujeito a análise)</button>
+      </div>
+    </div>
+
+    <div id="catpub-final-obrigado" class="catpub-pergunta" style="display:none;">
+      <p>Aguarde que em breve você receberá seu pedido final com frete e eventuais promoções. Obrigado!</p>
+    </div>
+  </div>
+
   <div class="catpub-cta">
     <p>Gostou do catálogo? Baixe o app <strong>Me Cuidar</strong> e peça direto pelo aplicativo.</p>
     <a href="https://mecuidar.app.br" class="catpub-btn-cta">Conhecer o Me Cuidar</a>
