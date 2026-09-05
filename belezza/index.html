@@ -9659,6 +9659,21 @@ function iniciarListenerProdutosForn() {
 }
 window.iniciarListenerProdutosForn = iniciarListenerProdutosForn;
 
+function abrirImgLightbox(src) {
+  if (!src) return;
+  const overlay = document.getElementById('img-lightbox-overlay');
+  const img = document.getElementById('img-lightbox-img');
+  if (img) img.src = src;
+  if (overlay) overlay.style.display = 'flex';
+}
+window.abrirImgLightbox = abrirImgLightbox;
+
+function fecharImgLightbox() {
+  const overlay = document.getElementById('img-lightbox-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+window.fecharImgLightbox = fecharImgLightbox;
+
 function filtrarProdutosForn(termo) {
   const alvo = (termo || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const filtrados = !alvo ? _prodFornTodos : _prodFornTodos.filter(p =>
@@ -9686,7 +9701,7 @@ function renderProdutosGrid(lista, ehBusca) {
       ? '<span style="background:#f5f5f4;color:#a8a29e;font-size:10px;padding:2px 6px;border-radius:4px;">Indisponível</span>'
       : '<span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 6px;border-radius:4px;">Disponível</span>';
     return `<div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
-      <img src="${img}" style="width:100%;height:110px;object-fit:cover;">
+      <img src="${img}" style="width:100%;height:110px;object-fit:cover;cursor:pointer;" onclick="abrirImgLightbox('${img}')">
       <div style="padding:10px;">
         <div style="font-size:13px;font-weight:700;color:#1c1917;">${p.nome||'Produto'}</div>
         ${p.categoria ? `<div style="font-size:11px;color:#a8a29e;margin-top:2px;">${p.categoria}</div>` : ''}
@@ -9910,7 +9925,7 @@ function renderKitsGrid(lista) {
     const qtdProd = (k.produtoIds || []).length;
     const kitImg = k.imagemBase64 || PROD_FALLBACK_IMG;
     return `<div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
-      <img src="${kitImg}" style="width:100%;height:110px;object-fit:cover;">
+      <img src="${kitImg}" style="width:100%;height:110px;object-fit:cover;cursor:pointer;" onclick="abrirImgLightbox('${kitImg}')">
       <div style="padding:14px;">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <div style="font-size:13px;font-weight:700;color:#1c1917;">${k.nome || 'Kit'}</div>
@@ -10322,7 +10337,7 @@ function catpubRenderListaProdutos(produtos, ehBusca) {
     const profissional = precoCheio * 0.7;
     const trio = precoCheio * 0.65;
     const foto = p.imagemBase64
-      ? `<img src="${p.imagemBase64}" alt="${p.nome || ''}" class="catpub-row-foto" loading="lazy">`
+      ? `<img src="${p.imagemBase64}" alt="${p.nome || ''}" class="catpub-row-foto" loading="lazy" onclick="abrirImgLightbox('${p.imagemBase64}')" style="cursor:pointer;">`
       : '<div class="catpub-row-foto catpub-row-foto-vazia"></div>';
     const nomeSeguro = (p.nome || 'Produto').replace(/'/g, "\\'");
     const qtdAtual = _catpubCarrinho[p._id]?.qtd || 0;
@@ -10917,7 +10932,7 @@ function renderPromosFornGrid(lista) {
       ? '<span style="background:#f5f5f4;color:#a8a29e;font-size:10px;padding:2px 6px;border-radius:4px;">Inativa</span>'
       : '<span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 6px;border-radius:4px;">Ativa</span>';
     return `<div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
-      <img src="${img}" style="width:100%;height:110px;object-fit:cover;">
+      <img src="${img}" style="width:100%;height:110px;object-fit:cover;cursor:pointer;" onclick="abrirImgLightbox('${img}')">
       <div style="padding:10px;">
         <div style="font-size:13px;font-weight:700;color:#1c1917;">${p.titulo||'Promoção'}</div>
         ${p.validade ? `<div style="font-size:11px;color:#a8a29e;margin-top:2px;">Válida até ${p.validade.split('-').reverse().join('/')}</div>` : ''}
@@ -13207,6 +13222,11 @@ window._avUrl             = _avUrl;
     <p>Gostou do catálogo? Baixe o app <strong>Me Cuidar</strong> e peça direto pelo aplicativo.</p>
     <a href="https://mecuidar.app.br" class="catpub-btn-cta">Conhecer o Me Cuidar</a>
   </div>
+</div>
+
+<!-- ── Lightbox genérico: clique em qualquer foto de produto/kit/promoção pra ver em tamanho grande ── -->
+<div id="img-lightbox-overlay" onclick="fecharImgLightbox()" style="display:none;position:fixed;inset:0;z-index:999998;background:rgba(0,0,0,.85);align-items:center;justify-content:center;padding:20px;">
+  <img id="img-lightbox-img" style="max-width:100%;max-height:100%;border-radius:8px;object-fit:contain;">
 </div>
 
 </body>
