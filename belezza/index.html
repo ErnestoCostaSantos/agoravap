@@ -2100,7 +2100,7 @@ import { getAuth, signInWithEmailAndPassword,
 import { getFirestore, doc, getDoc, getDocs, setDoc,
          collection, collectionGroup, query, where, orderBy,
          onSnapshot, addDoc, updateDoc, deleteDoc,
-         increment,
+         increment, writeBatch,
          serverTimestamp }                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 // ── Configuração ──────────────────────────────────────────────────────────
@@ -9557,6 +9557,67 @@ function toggleBuscaClinicaForn() {
 }
 window.toggleBuscaClinicaForn = toggleBuscaClinicaForn;
 
+const PROD_LINHAS_VALIDAS = ['Facial', 'Corporal', 'Olhos', 'Capilar', 'Diversas'];
+
+function toggleImportarProdutos() {
+  const wrap = document.getElementById('forn-importar-wrap');
+  if (!wrap) return;
+  wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+}
+window.toggleImportarProdutos = toggleImportarProdutos;
+
+async function importarProdutosForn() {
+  const fid = cp?.fornecedorId;
+  const status = document.getElementById('forn-importar-status');
+  const textarea = document.getElementById('forn-importar-texto');
+  if (!fid) { if (status) status.textContent = 'Fornecedor não identificado.'; return; }
+  const linhas = (textarea?.value || '').split('\n').map(l => l.trim()).filter(Boolean);
+  if (!linhas.length) { if (status) status.textContent = 'Nada pra importar.'; return; }
+
+  const validos = [];
+  const invalidos = [];
+  linhas.forEach((linha, i) => {
+    const partes = linha.split(';').map(p => p.trim());
+    const [nome, precoTxt, categoria] = partes;
+    const preco = parseFloat(String(precoTxt || '').replace(',', '.'));
+    if (!nome || isNaN(preco) || !PROD_LINHAS_VALIDAS.includes(categoria)) {
+      invalidos.push(i + 1);
+      return;
+    }
+    validos.push({ nome, preco, categoria });
+  });
+
+  if (!validos.length) {
+    if (status) status.textContent = 'Nenhuma linha válida encontrada. Formato esperado: nome;preço;linha.';
+    return;
+  }
+
+  if (status) status.textContent = `Importando ${validos.length} produto(s)...`;
+  try {
+    const batch = writeBatch(db);
+    validos.forEach(p => {
+      const ref = doc(collection(db, 'fornecedores', fid, 'produtos'));
+      batch.set(ref, {
+        nome: p.nome,
+        descricao: '',
+        preco: p.preco,
+        categoria: p.categoria,
+        disponivel: true,
+        imagemBase64: '',
+      });
+    });
+    await batch.commit();
+    let msg = `${validos.length} produto(s) importado(s) com sucesso!`;
+    if (invalidos.length) msg += ` (linha(s) ${invalidos.join(', ')} ignorada(s) por formato inválido)`;
+    if (status) status.textContent = msg;
+    if (textarea) textarea.value = '';
+  } catch (e) {
+    console.error('[Belezza] importarProdutosForn:', e);
+    if (status) status.textContent = 'Erro ao importar. Veja o console pra detalhes.';
+  }
+}
+window.importarProdutosForn = importarProdutosForn;
+
 const PROD_FALLBACK_IMG = SVC_FALLBACK_IMG; // reaproveita o placeholder já existente
 
 // Taxonomia fixa de Linhas do Catálogo Fornecedor.
@@ -11332,7 +11393,86 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
   <div id="forn-tab-catalogo" class="forn-tab-panel" style="display:none;padding:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div style="font-size:15px;font-weight:700;color:#1c1917;">Catálogo de produtos</div>
-      <button onclick="abrirFormProduto()" style="background:#f59e0b;color:#1c1917;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">+ Novo produto</button>
+      <div style="display:flex;gap:8px;">
+        <button onclick="toggleImportarProdutos()" style="background:#e7e5e4;color:#1c1917;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Importar produtos</button>
+        <button onclick="abrirFormProduto()" style="background:#f59e0b;color:#1c1917;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">+ Novo produto</button>
+      </div>
+    </div>
+
+    <!-- Importação em lote: uma linha por produto, formato nome;preco;categoria -->
+    <div id="forn-importar-wrap" style="display:none;margin-bottom:20px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <div style="font-size:14px;font-weight:700;color:#1c1917;margin-bottom:8px;">Importar produtos em lote</div>
+      <div style="font-size:12px;color:#78716c;margin-bottom:10px;">Uma linha por produto, no formato <code>nome;preço;linha</code>. Linhas aceitas: Facial, Corporal, Olhos, Capilar, Diversas. Revise/edite antes de importar.</div>
+      <textarea id="forn-importar-texto" rows="14" style="width:100%;padding:10px;border:1px solid #e7e5e4;border-radius:6px;font-size:12px;font-family:monospace;box-sizing:border-box;resize:vertical;">Gel Anti-Acne 35g;65.10;Facial
+Máscara Secativa 50g;60.20;Facial
+Máscara Calmante e Antisséptica 60ml;82.50;Facial
+Serum Pro-Equilibrio Probiótica 35ml;132.00;Facial
+Balm EXO 3D 30ml;228.80;Facial
+Creme Firmador e Preenchedor 50g;77.10;Facial
+Creme Firmador e Preenchedor 150g;132.20;Facial
+Fluído Rejuvenescedor e Firmador Dmae 10% 30g;196.70;Facial
+Gel de Colágeno 50g;95.40;Facial
+Gel de Colágeno Firmador 250g;136.80;Facial
+Máscara Energizante c/ Quartzo e Hibisco 240g;136.10;Facial
+Mascara Facial Tensora e Energizante 60g;95.20;Facial
+Máscara Preenchedora e Rejuvenescedora 60g;83.00;Facial
+Masque Pépite D'or 60g;115.30;Facial
+Serun White Gold 150ml;82.60;Facial
+Serum Preenchedor e Rejuvenescedor 30ml;105.50;Facial
+Skin Hidragold 30ml;104.90;Facial
+Creme Tonific Elastin C - Massagem Facial 140g;88.30;Facial
+Loção Revitalize Elastin C 140ml;92.40;Facial
+Mask Radiance Elastin C6 60g;90.00;Facial
+Mousse Purific Elastin C 150ml;137.10;Facial
+Nanolift C-Pure 15% 30g;171.70;Facial
+Serum Intensive Elastin C5 35ml;131.60;Facial
+HYG 5+ 30ml;102.90;Facial
+Renove Lips 5g;88.30;Facial
+Balm Renov Eyes 15g;148.20;Olhos
+Mousse Meta Sculpter 1kg;169.40;Corporal
+Balm Redensificador 30ml;113.90;Facial
+Peeling Enzimático 30ml;112.10;Facial
+Nano Resveratrol 10% 30ml;118.10;Facial
+Mousse Iluminador 150ml;147.20;Corporal
+Mousse Glicolic Skin 150ml;184.30;Corporal
+Emulsão Emoliente Amolecedora de Comedões 500g;115.30;Facial
+Emulsão Emoliente Amolecedora de Comedões 125g;70.40;Facial
+Creme Esfoliante Esfoliactpeel 140ml;57.10;Corporal
+Creme Esfoliante Esfoliactpeel 250g;87.80;Corporal
+Loção Hidratante Hidrapeel 250ml;71.70;Corporal
+Acqua Dermacare Água Micelar 110ml;73.50;Facial
+Água Thermal 250ml;98.60;Facial
+Emulsão de Limpeza 140ml;61.20;Facial
+Emulsão de Limpeza 250ml;88.30;Facial
+Sabonete Líquido 250ml;105.20;Facial
+Sabonete Líquido 135ml;64.20;Facial
+Wash Clean 140ml;86.20;Facial
+Creme Hidratante 4D 250g;67.50;Corporal
+Creme de Massagem e Hidratação Corporal 250g;52.70;Corporal
+Creme de Massagem Relaxante 1kg;134.50;Corporal
+Sabonete em Óleo 140ml;91.40;Corporal
+Impact Clair PRO - Serum Clareador 50ml;228.50;Facial
+CC Cream Magic Mask FPS 50 50g - Bege Claro;148.50;Facial
+CC Cream Magic Mask FPS 50 50g - Bege Médio;148.50;Facial
+CC Cream Magic Mask FPS 50 50g - Bronze;148.50;Facial
+Pro-D Anti OX FPS 50 50g;139.50;Facial
+Pro-D Anti-oleosidade FPS 50 50g;139.50;Facial
+Stick Magic Peel 16g - Natural;156.50;Facial
+Stick Magic Peel 16g - Bege;156.50;Facial
+Stick Magic Peel 16g - Chocolate;156.50;Facial
+Gel Lipolítico c/ Cafeína 250g;81.20;Corporal
+Loção Tônica Calmante 140ml;64.20;Facial
+Loção Tônica Calmante 250ml;97.10;Facial
+Loção Tônica Collagen Peel 140ml;77.30;Facial
+Loção Pro Equilíbrio Probiótica 140ml;86.90;Facial
+Body Splash Acqua 200ml;47.70;Corporal
+Body Splash Sweet Charme 200ml;47.70;Corporal
+Desodorante 0% Alumínio c/ Niacinamida 55g;39.40;Corporal</textarea>
+      <div id="forn-importar-status" style="font-size:12px;color:#57534e;margin:8px 0;"></div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="importarProdutosForn()" style="background:#1c1917;color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Importar</button>
+        <button onclick="toggleImportarProdutos()" style="background:#e7e5e4;color:#44403c;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
+      </div>
     </div>
 
     <!-- Grid de produtos -->
