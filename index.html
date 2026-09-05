@@ -1528,12 +1528,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <!-- 2.7 CARTEIRA DE CLIENTES -->
         <div class="help-section">
           <h3>2.7 Módulo Carteira de Clientes</h3>
-          <p>Cada vendedor mantém sua própria carteira de clientes dentro do AgoraVAP!, com busca, filtros, cadastro manual e importação em massa.</p>
+          <p>Cada vendedor mantém sua própria carteira de clientes dentro do AgoraVAP!, com busca, filtros, cadastro manual, importação em massa e um histórico de relacionamento integrado ao módulo CRM.</p>
           <ul>
-            <li><b>Campos do cliente</b> — Nome, Telefone, Segmento (6 opções), Responsável, Cidade, Bairro, Resultado do Último Contato (5 opções), Data do Último Contato, Data da Última Compra (formato DD/MM/AAAA com máscara automática) e Observações</li>
+            <li><b>Campos do cliente</b> — Nome, Telefone, Segmento (6 opções), Responsável, Cidade, Bairro, Data da Última Compra (formato DD/MM/AAAA com máscara automática) e Observações. <b>Resultado do Último Contato</b> e <b>Data do Último Contato</b> só ficam disponíveis para edição enquanto o cliente não tem nenhum lançamento no histórico do CRM — assim que o primeiro lançamento é feito, esses dois campos somem da edição e passam a ser calculados automaticamente (veja abaixo)</li>
             <li><b>Status Ativo/Inativo</b> — Calculado automaticamente: um cliente fica <b>Inativo</b> quando a Data da Última Compra está há mais de 6 meses; sem necessidade de marcar manualmente</li>
             <li><b>Busca e filtros</b> — Por nome/responsável, Segmento, Status (Ativo/Inativo) e Resultado do Último Contato</li>
-            <li><b>Adicionar / Editar / Excluir</b> — Cadastro manual pelo formulário, ou clique no cliente da lista para editar</li>
+            <li><b>Adicionar / Editar / Excluir</b> — Cadastro manual pelo formulário, ou clique em Editar na lista</li>
+            <li><b>Histórico de Relacionamento (CRM)</b> — Dois atalhos na coluna Ações de cada cliente: 🕘 <b>Histórico</b> abre o módulo CRM já filtrado nos lançamentos daquele cliente (do mais recente para o mais antigo), com um aviso "Histórico de: [nome]" e um botão "Ver todos os lançamentos" que sai desse modo e volta à visão geral do CRM — não volta para a Carteira, isso é feito pelo menu superior; 📝 <b>Lançar</b> abre um Novo Lançamento no CRM já vinculado a esse cliente, com Empresa/Responsável/Telefone/Segmento pré-preenchidos. O "Resultado do Último Contato" mostrado na lista passa a refletir automaticamente o lançamento mais recente do histórico assim que existir um, e quando esse resultado é "Vendeu" a Data da Última Compra é atualizada sozinha</li>
             <li><b>Botão WhatsApp</b> — Abre conversa direta com o cliente a partir do telefone cadastrado</li>
             <li><b>Importar Contatos</b> — Botão que abre um modal com três formas de importação em massa:
               <ul style="margin-top:6px">
@@ -1541,7 +1542,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
                 <li><b>Planilha/CSV</b> — Envie um arquivo .csv com colunas de Nome e Telefone (aceita variações como WhatsApp, Celular, Fone)</li>
                 <li><b>Arquivo VCF</b> — Envie um arquivo .vcf exportado de qualquer agenda de contatos (Google, iPhone, Outlook etc.)</li>
               </ul>
-              Em qualquer uma das três formas, o sistema mostra uma prévia com os contatos encontrados antes de importar — todos vêm marcados por padrão, e dá pra desmarcar individualmente. Contatos duplicados (mesmo telefone já cadastrado) são ignorados automaticamente. Contatos sem um número de celular reconhecível também são ignorados, sem travar a importação dos demais.
+              Em qualquer uma das três formas, o sistema mostra uma prévia com os contatos encontrados antes de importar — todos vêm marcados por padrão, e dá pra desmarcar individualmente. Só o <b>Nome</b> é obrigatório: contatos sem telefone, com telefone fixo, ou com um número em formato não reconhecido também são importados normalmente (o telefone entra do jeito que veio, para edição posterior). Contatos com o mesmo telefone já cadastrado na Carteira são ignorados automaticamente (a tela mostra quantos). <b>Master e Super Admin</b> veem ainda dois campos extras: "Importar para o vendedor" (escolhe para quem os contatos serão vinculados, em vez de sempre o próprio usuário logado) e "Observação" (opcional, aplica o mesmo texto às Observações de todos os clientes daquele lote — útil para marcar a origem, ex: "Migrado do ERP antigo")
             </li>
           </ul>
           <div class="help-tip">Quem vê o quê na Carteira: Vendedor e Líder enxergam apenas a própria carteira. Apenas o perfil <b>Master</b> (e o Super Admin) tem acesso à carteira de todos os vendedores da empresa, com filtro por vendedor e botão "Limpar Carteira" para reiniciar a de um vendedor específico.</div>
@@ -1551,12 +1552,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <!-- 2.8 CRM -->
         <div class="help-section">
           <h3>2.8 Módulo CRM</h3>
-          <p>Registro diário de acompanhamento, prospecção e follow-up de contatos comerciais, com totalização diária/mensal e um sistema de lembretes de "Próximo Contato".</p>
+          <p>Registro diário de acompanhamento, prospecção e follow-up de contatos comerciais, com totalização diária/mensal, um sistema de lembretes de "Próximo Contato", relatórios extensíveis e vínculo direto com a Carteira de Clientes.</p>
           <ul>
             <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Outros — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, Fez Cotação, Vendeu, Ctto Inválido) e Próximo Contato</li>
+            <li><b>Vínculo automático com a Carteira</b> — Se o texto digitado em Empresa bater com um cliente já cadastrado, o lançamento vincula automaticamente: aparece o aviso "🔗 Vinculado à Carteira de Clientes", e Responsável/Telefone/Segmento são preenchidos a partir do cadastro do cliente. Esse lançamento passa a contar no histórico do cliente (veja 2.7). Para registrar como lançamento avulso, fora da Carteira (por exemplo uma prospecção de empresa nova), clique em "Desvincular" no próprio aviso. Quando o Resultado é "Vendeu" e há vínculo, a Data da Última Compra do cliente é atualizada automaticamente</li>
             <li><b>Próximo Contato</b> — Pode ser digitado ou escolhido num calendário; é a data usada pelo lembrete de pendências (veja abaixo)</li>
-            <li><b>Totais e filtros</b> — Contadores "Hoje" e "Este Mês" no topo; filtros por Mês, Resultado e (Líder/Master/SuperAdmin) por Vendedor</li>
+            <li><b>Totais e filtros</b> — Contadores "Hoje" e "Este Mês" no topo (ambos respeitam os mesmos filtros de Vendedor e Resultado aplicados na tela, para os números ficarem sempre consistentes entre si); filtros por Mês, Resultado e (Líder/Master/SuperAdmin) por Vendedor</li>
             <li><b>Gráfico "Resultado do Mês por Vendedor"</b> — Visível para Líder/Master/SuperAdmin, mostra a distribuição de Resultados por vendedor no mês selecionado, considerando apenas lançamentos do Tipo <b>Prospecção</b> (lançamentos de Acompanhamento ou Outros não entram nesse gráfico)</li>
+            <li><b>📊 Relatórios</b> — Botão que abre um modal com relatórios do CRM, com uma lista de tipos que cresce ao longo do tempo. Hoje com dois: <b>Ativos/Inativos</b> (período em meses configurável, padrão 3 — independente dos 6 meses fixos do status Ativo/Inativo da Carteira) e <b>Resultados por Vendedor</b> (por mês). Master e Super Admin filtram por vendedor no primeiro; Líder, Master e Super Admin no segundo. Botão "Baixar PDF" imprime o relatório aberto no momento</li>
             <li><b>Baixar PDF do mês</b> — Gera um relatório para impressão com todos os lançamentos do mês/filtros selecionados, de qualquer Tipo</li>
           </ul>
           <h4 style="margin:10px 0 4px">Pop-up de Pendências de Hoje</h4>
