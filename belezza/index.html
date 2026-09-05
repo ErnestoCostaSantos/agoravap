@@ -9414,6 +9414,7 @@ let _prodFornTodos = [];
 let _unsubProdutosForn = null;
 let _prodImgBase64 = '';
 let _prodEditId = '';
+let _logoFornBase64 = '';
 
 // Navegação por abas do painel do Fornecedor (Dashboard/Catálogo/Clientes/Pedidos/Promoções).
 function toggleFornSidebar(){
@@ -9443,6 +9444,49 @@ function switchFornTab(tab) {
 }
 window.switchFornTab = switchFornTab;
 
+function previewLogoForn(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const preview = document.getElementById('forn-logo-preview');
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.onload = () => {
+      const MAX = 400;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else       { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      _logoFornBase64 = canvas.toDataURL('image/png');
+      if (preview) { preview.src = _logoFornBase64; preview.style.display = 'block'; }
+      const status = document.getElementById('forn-logo-status');
+      if (status) status.textContent = '';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+window.previewLogoForn = previewLogoForn;
+
+async function salvarLogoForn() {
+  const fid = cp?.fornecedorId;
+  const status = document.getElementById('forn-logo-status');
+  if (!fid) { if (status) status.textContent = 'Fornecedor não identificado.'; return; }
+  if (!_logoFornBase64) { if (status) status.textContent = 'Escolha uma imagem primeiro.'; return; }
+  try {
+    await setDoc(doc(db, 'fornecedores', fid), { logoBase64: _logoFornBase64 }, { merge: true });
+    if (status) status.textContent = 'Logo salvo!';
+  } catch (e) {
+    console.error('[Belezza] salvarLogoForn:', e);
+    if (status) status.textContent = 'Erro ao salvar o logo.';
+  }
+}
+window.salvarLogoForn = salvarLogoForn;
+
 function gerarQRCodeFornecedor() {
   const fid = cp?.fornecedorId;
   const alvo = document.getElementById('qrcode-fornecedor-container');
@@ -9466,6 +9510,14 @@ function gerarQRCodeFornecedor() {
       console.warn('[Belezza] leitura fornecedores_stats:', e);
       visEl.textContent = 'Erro ao carregar: ' + (e.code || e.message || 'desconhecido');
     });
+  }
+
+  const logoPreview = document.getElementById('forn-logo-preview');
+  if (logoPreview) {
+    getDoc(doc(db, 'fornecedores', fid)).then(snap => {
+      const logo = snap.exists() ? snap.data().logoBase64 : '';
+      if (logo) { _logoFornBase64 = logo; logoPreview.src = logo; logoPreview.style.display = 'block'; }
+    }).catch(e => console.warn('[Belezza] leitura logo fornecedor:', e));
   }
 }
 window.gerarQRCodeFornecedor = gerarQRCodeFornecedor;
@@ -10087,6 +10139,14 @@ async function renderCatalogoPublico(fornecedorId, nomeFornecedor) {
   const nomeEl = document.getElementById('catpub-nome-fornecedor');
   if (nomeEl) nomeEl.textContent = nomeFornecedor || 'Catálogo';
   registrarVisualizacaoCatalogo(fornecedorId); // fire-and-forget, não bloqueia a renderização
+
+  const logoEl = document.getElementById('catpub-logo');
+  if (logoEl) {
+    getDoc(doc(db, 'fornecedores', fornecedorId)).then(snap => {
+      const logo = snap.exists() ? snap.data().logoBase64 : '';
+      if (logo) { logoEl.src = logo; logoEl.style.display = 'inline-block'; }
+    }).catch(e => console.warn('[Belezza] leitura logo catálogo público:', e));
+  }
 
   const container = document.getElementById('catpub-linhas-container');
   if (container) container.innerHTML = '<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 0">Carregando catálogo...</div>';
@@ -11323,6 +11383,17 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <div id="qrcode-fornecedor-container" style="width:220px;height:220px;background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;"></div>
     <div id="qrcode-fornecedor-views" style="font-size:12px;color:#57534e;margin-top:10px;font-weight:600;"></div>
     <div id="qrcode-fornecedor-link" style="font-size:11px;color:#a8a29e;margin-top:4px;word-break:break-all;max-width:320px;"></div>
+
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e7e5e4;max-width:420px;">
+      <div style="font-size:13px;font-weight:700;color:#1c1917;margin-bottom:6px;">Logo do catálogo</div>
+      <div style="font-size:12px;color:#a8a29e;margin-bottom:10px;">Aparece no topo da página pública, acima do nome.</div>
+      <input id="forn-logo-inp" type="file" accept="image/*" onchange="previewLogoForn(this)" style="margin-bottom:8px;">
+      <div>
+        <img id="forn-logo-preview" style="display:none;max-width:120px;max-height:120px;border-radius:8px;margin-bottom:8px;">
+      </div>
+      <button onclick="salvarLogoForn()" style="background:#1c1917;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar logo</button>
+      <div id="forn-logo-status" style="font-size:12px;color:#57534e;margin-top:6px;"></div>
+    </div>
   </div>
 
     </div>
@@ -12745,6 +12816,7 @@ window._avUrl             = _avUrl;
 <!-- ── Catálogo público do Fornecedor (acesso via QR Code, sem login) ─────── -->
 <div id="tela-catalogo-publico" style="display:none;">
   <div class="catpub-topo">
+    <img id="catpub-logo" style="display:none;max-width:120px;max-height:120px;border-radius:12px;margin-bottom:12px;" alt="">
     <p class="catpub-label">Catálogo de</p>
     <h1 id="catpub-nome-fornecedor">Catálogo</h1>
   </div>
