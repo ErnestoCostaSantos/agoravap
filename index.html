@@ -7456,12 +7456,12 @@ function renderCarteiraLista(){
         <td><span class="badge ${resultBadgeClass}" ${rcStyle}>${rc||'—'}</span>${rcData?`<br><span style="font-size:.7rem;color:var(--gray)">${fD(rcData)}</span>`:''}</td>
         <td>${stBadge}</td>
         ${veTodaEmpresa?`<td style="font-size:.75rem">${cartNomeVendedor(c.uid)}</td>`:''}
-        <td><div class="act">
-          <button class="btn-xs bx-wpp" data-id="${c.id}" style="border-color:var(--gl);color:var(--g)" title="WhatsApp">💬</button>
+        <td style="white-space:nowrap"><div class="act">
+          <button class="btn-xs bx-wpp" data-id="${c.id}" style="border-color:var(--gl);color:var(--g);display:inline-flex;align-items:center;justify-content:center" title="WhatsApp"><svg viewBox="0 0 32 32" width="13" height="13" fill="currentColor" style="display:block"><path d="M16.001 3C9.373 3 4 8.373 4 15c0 2.386.703 4.605 1.918 6.475L4 29l7.72-1.884A11.94 11.94 0 0 0 16 27c6.627 0 12-5.373 12-12S22.628 3 16.001 3zm0 21.818a9.77 9.77 0 0 1-4.99-1.37l-.358-.213-4.583 1.119 1.197-4.463-.233-.371A9.8 9.8 0 0 1 5.18 15c0-5.964 4.855-10.818 10.82-10.818S26.82 9.036 26.82 15 21.966 24.818 16.001 24.818zm5.36-7.354c-.294-.147-1.74-.859-2.01-.957-.27-.098-.467-.147-.664.147-.196.294-.76.957-.932 1.152-.171.196-.343.22-.637.073-.294-.147-1.24-.457-2.362-1.457-.873-.779-1.463-1.741-1.635-2.035-.171-.294-.018-.453.129-.6.132-.132.294-.343.441-.514.147-.171.196-.294.294-.49.098-.196.049-.367-.024-.514-.073-.147-.664-1.6-.91-2.192-.24-.577-.484-.499-.664-.508l-.566-.01c-.196 0-.514.073-.784.367-.27.294-1.03 1.007-1.03 2.454 0 1.447 1.054 2.847 1.201 3.043.147.196 2.075 3.167 5.03 4.44.703.303 1.251.484 1.678.62.705.224 1.347.192 1.854.117.566-.084 1.74-.712 1.986-1.4.245-.688.245-1.278.171-1.4-.073-.122-.27-.196-.564-.343z"/></svg></button>
           <button class="btn-xs bx-hist" data-id="${c.id}" style="border-color:#BFE8CC;color:#1B7A3D" title="Ver histórico de relacionamento">🕘</button>
           <button class="btn-xs bx-lancar" data-id="${c.id}" style="border-color:#BFE8CC;color:#1B7A3D" title="Novo lançamento no histórico">📝</button>
-          <button class="btn-xs bx-edit" data-id="${c.id}" style="border-color:var(--border);color:var(--gray)">Editar</button>
-          <button class="btn-xs bx-del" data-id="${c.id}" style="border-color:var(--rl);color:var(--r)">Excluir</button>
+          <button class="btn-xs bx-edit" data-id="${c.id}" style="border-color:var(--border);color:var(--gray)" title="Editar cliente">✏️</button>
+          <button class="btn-xs bx-del" data-id="${c.id}" style="border-color:var(--rl);color:var(--r)" title="Excluir cliente">🗑️</button>
         </div></td>
       </tr>`;
     }).join('')}</tbody>
