@@ -7637,12 +7637,13 @@ async function cartSelecionarContatos(){
   try {
     const contatos = await navigator.contacts.select(['name','tel'], {multiple:true});
     if(!contatos.length) return;
-    const lista = contatos
-      .map(c => ({ nome: (c.name&&c.name[0])||'(sem nome)', telefone: _cartNormalizarTel((c.tel&&c.tel[0])||'') }))
-      .filter(c => c.telefone);
-    const ignorados = contatos.length - lista.length;
-    if(!lista.length){ _cartImpErro('nativo', 'Nenhum contato com celular válido encontrado.'); return; }
-    _cartImpPreview('nativo', lista, ignorados);
+    // Mantém todos os contatos com nome, mesmo sem celular ou com telefone fixo —
+    // quem não bater no formato BR reconhecido entra como veio, editável depois.
+    const lista = contatos.map(c => {
+      const rawTel = (c.tel && c.tel[0]) || '';
+      return { nome: (c.name&&c.name[0])||'(sem nome)', telefone: _cartNormalizarTel(rawTel) || rawTel.trim() };
+    });
+    _cartImpPreview('nativo', lista);
   } catch(err){
     console.error('[Carteira] Contact Picker:', err);
     if(err.name !== 'AbortError') toast('Não foi possível acessar os contatos.');
@@ -7650,13 +7651,14 @@ async function cartSelecionarContatos(){
 }
 $('cart-imp-selecionar') && ($('cart-imp-selecionar').onclick = cartSelecionarContatos);
 
-// ── Normaliza telefone: só aceita celular BR com 9 dígitos ──
+// Normaliza telefone: aceita celular BR (11 dígitos, com o 9) e fixo BR (10 dígitos)
 function _cartNormalizarTel(raw){
   let n = (raw||'').replace(/[^\d+]/g,'');
   n = n.replace(/^\+55/,'');
   n = n.replace(/^55(\d{10,11})$/,'$1');
   n = n.replace(/^0/,'');
   if(n.length===11 && n[2]==='9') return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
+  if(n.length===10) return `(${n.slice(0,2)}) ${n.slice(2,6)}-${n.slice(6)}`;
   return '';
 }
 
@@ -7678,16 +7680,16 @@ window.cartImportarCSV = function(input){
         _cartImpErro('csv', `Colunas não encontradas. Cabeçalho detectado: "${header.join(' | ')}". O arquivo precisa ter colunas com "Nome" e "Telefone" (ou WhatsApp/Celular).`);
         return;
       }
-      const contatos = []; let ignorados = 0;
+      const contatos = [];
       for(let i=1;i<linhas.length;i++){
         const cols = linhas[i].split(sep).map(c=>c.replace(/^["']|["']$/g,'').trim());
         const nome = cols[iNome] || '';
-        const tel  = _cartNormalizarTel(cols[iTel] || '');
-        if(nome && tel) contatos.push({nome, telefone: tel});
-        else if(nome && (cols[iTel]||'').trim()) ignorados++;
+        const telRaw = cols[iTel] || '';
+        if(!nome) continue; // sem nome não dá pra criar cliente
+        contatos.push({ nome, telefone: _cartNormalizarTel(telRaw) || telRaw });
       }
-      if(!contatos.length){ _cartImpErro('csv','Nenhum contato com celular válido encontrado no arquivo.'); return; }
-      _cartImpPreview('csv', contatos, ignorados);
+      if(!contatos.length){ _cartImpErro('csv','Nenhuma linha com nome encontrada no arquivo.'); return; }
+      _cartImpPreview('csv', contatos);
     } catch(err){ _cartImpErro('csv', 'Erro ao ler o arquivo: '+err.message); }
   };
   reader.readAsText(file, 'UTF-8');
@@ -7703,7 +7705,7 @@ window.cartImportarVCF = function(input){
     try {
       const texto = e.target.result;
       const blocos = texto.split(/BEGIN:VCARD/i).filter(b=>b.includes('END:VCARD'));
-      const contatos = []; let ignorados = 0;
+      const contatos = [];
       blocos.forEach(bloco => {
         let nome = '';
         const fnMatch = bloco.match(/^FN(?:;[^:]*)?:(.+)$/im);
@@ -7712,14 +7714,15 @@ window.cartImportarVCF = function(input){
           const nMatch = bloco.match(/^N(?:;[^:]*)?:(.+)$/im);
           if(nMatch){ const partes = nMatch[1].split(';').map(p=>p.trim()).filter(Boolean); nome = partes.slice(0,2).reverse().join(' '); }
         }
+        if(!nome) return; // sem nome não dá pra criar cliente
         const telMatches = [...bloco.matchAll(/^TEL(?:;[^:]*)?:(.+)$/gim)];
         let tel = '';
         for(const m of telMatches){ const t=_cartNormalizarTel(m[1].trim()); if(t){ tel=t; break; } }
-        if(nome && tel) contatos.push({nome, telefone: tel});
-        else if(nome && telMatches.length>0) ignorados++;
+        if(!tel && telMatches.length) tel = telMatches[0][1].trim(); // formato não reconhecido, mantém como veio
+        contatos.push({nome, telefone: tel});
       });
-      if(!contatos.length){ _cartImpErro('vcf','Nenhum contato com celular válido encontrado no arquivo.'); return; }
-      _cartImpPreview('vcf', contatos, ignorados);
+      if(!contatos.length){ _cartImpErro('vcf','Nenhum contato com nome encontrado no arquivo.'); return; }
+      _cartImpPreview('vcf', contatos);
     } catch(err){ _cartImpErro('vcf', 'Erro ao ler o arquivo: '+err.message); }
   };
   reader.readAsText(file, 'UTF-8');
@@ -7728,13 +7731,13 @@ window.cartImportarVCF = function(input){
 // ── Preview/checklist compartilhado pelas 3 abas ─────────────
 function _cartEscHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function _cartImpPreview(tipo, contatos, ignorados){
-  ignorados = ignorados || 0;
+function _cartImpPreview(tipo, contatos){
   const div = $('cart-imp-preview-'+tipo); if(!div) return;
+  const semTel = contatos.filter(c=>!c.telefone).length;
   div.style.display = '';
   div.innerHTML = `
     <div style="font-size:.75rem;font-weight:700;color:var(--g);margin-bottom:4px">✓ ${contatos.length} contato${contatos.length>1?'s':''} encontrado${contatos.length>1?'s':''}</div>
-    ${ignorados>0 ? `<div style="font-size:.72rem;color:var(--gray);margin-bottom:6px">ℹ️ ${ignorados} ignorado${ignorados>1?'s':''} (não parece celular)</div>` : ''}
+    ${semTel>0 ? `<div style="font-size:.72rem;color:var(--gray);margin-bottom:6px">ℹ️ ${semTel} sem telefone — pode completar depois no app</div>` : ''}
     <div style="border:1px solid var(--border);border-radius:var(--rsm);overflow:hidden;margin-bottom:.6rem;max-height:260px;overflow-y:auto">
       <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--grayl);font-size:.72rem;font-weight:700">
         <input type="checkbox" id="_cimp-todos-${tipo}" checked onchange="window._cartImpToggleTodos('${tipo}')" style="width:15px;height:15px">
@@ -7744,7 +7747,7 @@ function _cartImpPreview(tipo, contatos, ignorados){
         <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border);font-size:.78rem">
           <input type="checkbox" class="_cimp-chk-${tipo}" data-i="${i}" checked onchange="window._cartImpAtualizarContagem('${tipo}')" style="width:15px;height:15px">
           <span style="flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_cartEscHtml(c.nome)}</span>
-          <span style="color:var(--gray);white-space:nowrap">${c.telefone}</span>
+          <span style="color:var(--gray);white-space:nowrap">${c.telefone || '— sem telefone'}</span>
         </div>`).join('')}
     </div>
     <div style="display:flex;gap:8px">
@@ -7794,17 +7797,18 @@ window._cartImpConfirmar = async function(tipo){
   const div = $('cart-imp-preview-'+tipo);
   if(div) div.innerHTML = `<div style="text-align:center;padding:14px;font-size:.85rem;color:var(--gray)">Importando ${contatos.length} cliente(s)…</div>`;
 
-  const existentes = new Set(_cartClientes.map(c => (c.telefone||'').replace(/\D/g,'')));
+  const existentes = new Set(_cartClientes.map(c => (c.telefone||'').replace(/\D/g,'')).filter(Boolean));
   let importados = 0, duplicados = 0;
   try {
     const batch = writeBatch(db);
     contatos.forEach(c => {
-      const telNorm = c.telefone.replace(/\D/g,'');
-      if(existentes.has(telNorm)){ duplicados++; return; }
-      existentes.add(telNorm);
+      const telNorm = (c.telefone||'').replace(/\D/g,'');
+      // Duplicidade só é checada quando há telefone — sem telefone, não dá pra saber se é repetido
+      if(telNorm && existentes.has(telNorm)){ duplicados++; return; }
+      if(telNorm) existentes.add(telNorm);
       const ref = doc(collection(db,'carteira_clientes'));
       batch.set(ref, {
-        nome: c.nome, telefone: c.telefone,
+        nome: c.nome, telefone: c.telefone||'',
         segmento: 'Outros', responsavel: '', cidade: '', bairro: '',
         resultadoUltimoContato: 'Inicial', dataUltimoContato: '', dataUltimaCompra: '',
         observacoes: '', origem: 'importado', uid: cu.uid, companyId: CID,
