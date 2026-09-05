@@ -6950,6 +6950,18 @@ function vapProspFiltroVendedorPreencher(){
   }
 }
 
+// Aplica os filtros de Vendedor e Resultado da tela (não o de Mês) a uma lista —
+// usado tanto no total "Este Mês" quanto no "Hoje", pra ficarem sempre consistentes entre si.
+function vapProspAplicarFiltrosVendResultado(lista){
+  const filtroVend = $('prosp-filtro-vendedor')?.value || '';
+  const filtroResultado = $('prosp-filtro-resultado')?.value || '';
+  return lista.filter(p=>{
+    if(filtroVend && p.uid!==filtroVend) return false;
+    if(filtroResultado && p.resultado!==filtroResultado) return false;
+    return true;
+  });
+}
+
 function vapProspListaDoMes(){
   // Modo "histórico de um cliente": todo o histórico dele, sem recorte de mês/filtros.
   if(_crmFiltroClienteId){
@@ -6957,14 +6969,8 @@ function vapProspListaDoMes(){
       .sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
   }
   const ym = $('prosp-filtro-mes')?.value || '';
-  const filtroVend = $('prosp-filtro-vendedor')?.value || '';
-  const filtroResultado = $('prosp-filtro-resultado')?.value || '';
-  return _prospLista.filter(p=>{
-    if(ym && !(p.criadoEm||'').startsWith(ym)) return false;
-    if(filtroVend && p.uid!==filtroVend) return false;
-    if(filtroResultado && p.resultado!==filtroResultado) return false;
-    return true;
-  });
+  const doMes = _prospLista.filter(p => !ym || (p.criadoEm||'').startsWith(ym));
+  return vapProspAplicarFiltrosVendResultado(doMes);
 }
 
 // Retorna o lançamento de histórico mais recente vinculado a um cliente da Carteira (ou null)
@@ -7007,7 +7013,10 @@ window.vapLimparFiltroClienteCRM = vapLimparFiltroClienteCRM;
 
 function vapProspRenderTotais(){
   const hojeISO = tod();
-  const hojeQtd = _prospLista.filter(p=>(p.criadoEm||'').startsWith(hojeISO)).length;
+  const hojeBase = _prospLista.filter(p=>(p.criadoEm||'').startsWith(hojeISO));
+  const hojeQtd = _crmFiltroClienteId
+    ? hojeBase.filter(p=>p.clienteId===_crmFiltroClienteId).length
+    : vapProspAplicarFiltrosVendResultado(hojeBase).length;
   const mesLista = vapProspListaDoMes();
   $('prosp-total-hoje').textContent = hojeQtd;
   $('prosp-total-mes').textContent = mesLista.length;
