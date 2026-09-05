@@ -876,7 +876,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
 
       <div class="chart-card" id="prosp-chart-card" style="display:none">
-        <div class="chart-title">Prospecção do Mês por Vendedor</div>
+        <div class="chart-title">Resultado do Mês por Vendedor</div>
         <canvas id="prosp-ch-resumo" height="220"></canvas>
       </div>
 
@@ -1556,7 +1556,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Outros — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, Fez Cotação, Vendeu, Ctto Inválido) e Próximo Contato</li>
             <li><b>Próximo Contato</b> — Pode ser digitado ou escolhido num calendário; é a data usada pelo lembrete de pendências (veja abaixo)</li>
             <li><b>Totais e filtros</b> — Contadores "Hoje" e "Este Mês" no topo; filtros por Mês, Resultado e (Líder/Master/SuperAdmin) por Vendedor</li>
-            <li><b>Gráfico "Prospecção do Mês por Vendedor"</b> — Visível para Líder/Master/SuperAdmin, mostra a distribuição de Resultados por vendedor no mês selecionado, considerando apenas lançamentos do Tipo <b>Prospecção</b> (lançamentos de Acompanhamento ou Outros não entram nesse gráfico)</li>
+            <li><b>Gráfico "Resultado do Mês por Vendedor"</b> — Visível para Líder/Master/SuperAdmin, mostra a distribuição de Resultados por vendedor no mês selecionado, considerando apenas lançamentos do Tipo <b>Prospecção</b> (lançamentos de Acompanhamento ou Outros não entram nesse gráfico)</li>
             <li><b>Baixar PDF do mês</b> — Gera um relatório para impressão com todos os lançamentos do mês/filtros selecionados, de qualquer Tipo</li>
           </ul>
           <h4 style="margin:10px 0 4px">Pop-up de Pendências de Hoje</h4>
@@ -1954,7 +1954,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       <div class="field"><label>Cidade</label><input type="text" id="cart-cli-cidade" placeholder="Cidade"/></div>
       <div class="field"><label>Bairro</label><input type="text" id="cart-cli-bairro" placeholder="Bairro"/></div>
     </div>
-    <div class="fgrid fg2">
+    <div class="fgrid fg2" id="cart-cli-wrap-resultado">
       <div class="field"><label>Resultado do último contato</label>
         <select id="cart-cli-resultado" style="width:100%">
           <option value="Inicial">Inicial</option>
@@ -1965,6 +1965,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         </select>
       </div>
       <div class="field"><label>Data do último contato</label><input type="text" inputmode="numeric" id="cart-cli-data-contato" placeholder="DD/MM/AAAA" maxlength="10" style="width:100%" oninput="window.cartDataMask(this)"/></div>
+    </div>
+    <div id="cart-cli-aviso-hist" style="display:none;font-size:.78rem;background:#EEF9F1;color:#1B7A3D;border:1px solid #BFE8CC;border-radius:6px;padding:8px 12px;margin:-.35rem 0 .6rem">
+      Este cliente já tem histórico no CRM — o "Resultado do último contato" é calculado por lá a partir de agora. Use o botão 🕘 Histórico na lista da Carteira pra ver ou lançar uma nova interação.
     </div>
     <div class="fgrid fg1" id="cart-cli-wrap-compra">
       <div class="field"><label>Data da última compra <span style="font-weight:400;color:var(--gray)">(preencha quando o resultado for "Pedido" — define o status Ativo/Inativo)</span></label><input type="text" inputmode="numeric" id="cart-cli-data-compra" placeholder="DD/MM/AAAA" maxlength="10" style="width:100%" oninput="window.cartDataMask(this)"/></div>
@@ -7486,6 +7489,11 @@ function abrirModalCarteiraCliente(id){
     $('cart-cli-data-contato').value = cartISOtoBR(c.dataUltimoContato);
     $('cart-cli-data-compra').value = cartISOtoBR(c.dataUltimaCompra);
     $('cart-cli-obs').value = c.observacoes || '';
+    // Cliente com histórico no CRM: o "Resultado do último contato" passa a ser
+    // calculado por lá — esconde o campo manual pra não confundir/duplicar.
+    const temHistorico = !!cartUltimoHistorico(c.id);
+    $('cart-cli-wrap-resultado').style.display = temHistorico ? 'none' : '';
+    $('cart-cli-aviso-hist').style.display = temHistorico ? 'block' : 'none';
   } else {
     $('cart-cli-id').value = '';
     $('cart-cli-origem').value = 'manual';
@@ -7499,6 +7507,9 @@ function abrirModalCarteiraCliente(id){
     $('cart-cli-data-contato').value = cartISOtoBR(tod());
     $('cart-cli-data-compra').value = '';
     $('cart-cli-obs').value = '';
+    // Cliente novo — nunca tem histórico ainda, sempre mostra o campo manual.
+    $('cart-cli-wrap-resultado').style.display = '';
+    $('cart-cli-aviso-hist').style.display = 'none';
   }
   openModal('modal-carteira-cliente');
 }
