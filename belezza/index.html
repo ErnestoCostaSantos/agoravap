@@ -9576,12 +9576,14 @@ async function importarProdutosForn() {
 
   const validos = [];
   const invalidos = [];
+  const linhasInvalidasTexto = [];
   linhas.forEach((linha, i) => {
     const partes = linha.split(';').map(p => p.trim());
     const [nome, precoTxt, categoria] = partes;
     const preco = parseFloat(String(precoTxt || '').replace(',', '.'));
     if (!nome || isNaN(preco) || !PROD_LINHAS_VALIDAS.includes(categoria)) {
       invalidos.push(i + 1);
+      linhasInvalidasTexto.push(linha);
       return;
     }
     validos.push({ nome, preco, categoria });
@@ -9608,9 +9610,9 @@ async function importarProdutosForn() {
     });
     await batch.commit();
     let msg = `${validos.length} produto(s) importado(s) com sucesso!`;
-    if (invalidos.length) msg += ` (linha(s) ${invalidos.join(', ')} ignorada(s) por formato inválido)`;
+    if (invalidos.length) msg += ` Corrija a(s) linha(s) restante(s) na caixa (formato inválido) e importe de novo se quiser incluí-las.`;
     if (status) status.textContent = msg;
-    if (textarea) textarea.value = '';
+    if (textarea) textarea.value = linhasInvalidasTexto.join('\n');
   } catch (e) {
     console.error('[Belezza] importarProdutosForn:', e);
     if (status) status.textContent = 'Erro ao importar. Veja o console pra detalhes.';
