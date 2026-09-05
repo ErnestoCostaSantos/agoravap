@@ -842,15 +842,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <div class="fcard-title" style="margin:0"><span class="bar" style="background:#22C55E"></span>CRM</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn-sec" id="btn-prosp-pendencias">🔔 Pendências de Hoje</button>
+            <button class="btn-sec" id="btn-crm-relatorios">📊 Relatórios</button>
             <button class="btn-sec" id="btn-prosp-pdf">🖨️ Baixar PDF do mês</button>
             <button class="btn-save" id="btn-prosp-add" style="background:#22C55E">+ Novo Lançamento</button>
           </div>
         </div>
-        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+        <div id="prosp-filtro-cliente-banner" style="display:none;background:#EEF9F1;border:1px solid #BFE8CC;border-radius:8px;padding:8px 12px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div style="font-size:.85rem;color:#1B7A3D">Histórico de: <b id="prosp-filtro-cliente-nome"></b></div>
+          <button class="btn-sec" id="prosp-filtro-cliente-voltar" style="border-color:#1B7A3D;color:#1B7A3D">← Ver todos os lançamentos</button>
+        </div>
+        <div id="prosp-totais-wrap" style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.75rem">
           <div><div style="font-size:.72rem;color:var(--gray)">Hoje</div><div id="prosp-total-hoje" style="font-size:1.3rem;font-weight:700;color:#22C55E">0</div></div>
           <div><div style="font-size:.72rem;color:var(--gray)">Este Mês</div><div id="prosp-total-mes" style="font-size:1.3rem;font-weight:700;color:#22C55E">0</div></div>
         </div>
-        <div class="fgrid fg3">
+        <div class="fgrid fg3" id="prosp-filtros-wrap">
           <div class="field"><label>Mês</label><select id="prosp-filtro-mes" style="width:100%"></select></div>
           <div class="field"><label>Resultado</label>
             <select id="prosp-filtro-resultado" style="width:100%">
@@ -1979,9 +1984,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     <div class="modal-hdr"><div class="modal-title" id="prosp-modal-title">Novo Lançamento</div><button class="btn-close" id="prosp-modal-close">×</button></div>
     <input type="hidden" id="prosp-id"/>
     <input type="hidden" id="prosp-tipo" value="Prospecção"/>
+    <input type="hidden" id="prosp-cliente-id"/>
     <div class="fgrid fg2">
-      <div class="field"><label>Empresa *</label><input type="text" id="prosp-empresa" placeholder="Nome da empresa" style="width:100%"/></div>
+      <div class="field"><label>Empresa *</label><input type="text" id="prosp-empresa" placeholder="Nome da empresa" style="width:100%" list="prosp-cliente-datalist" autocomplete="off"/><datalist id="prosp-cliente-datalist"></datalist></div>
       <div class="field"><label>Responsável</label><input type="text" id="prosp-responsavel" placeholder="Nome do responsável" style="width:100%"/></div>
+    </div>
+    <div id="prosp-vinculo-info" style="display:none;font-size:.75rem;background:#EEF9F1;color:#1B7A3D;border:1px solid #BFE8CC;border-radius:6px;padding:6px 10px;margin:-.35rem 0 .6rem">
+      🔗 Vinculado à Carteira de Clientes — este lançamento entra no histórico do cliente. <a href="#" id="prosp-desvincular" style="color:#1B7A3D;font-weight:600">Desvincular</a>
     </div>
     <div class="fgrid fg1">
       <div class="field"><label>Tipo</label>
@@ -2027,6 +2036,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
     </div>
     <div class="ffooter"><button class="btn-sec" id="prosp-modal-cancel">Cancelar</button><button class="btn-save" id="btn-prosp-save" style="background:#22C55E">Salvar Lançamento</button></div>
+  </div>
+</div>
+
+<!-- MODAL CRM — Relatórios (extensível: novos tipos entram só na lista CRM_REPORT_TYPES) -->
+<div class="modal-ov" id="modal-crm-relatorios">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-hdr"><div class="modal-title">Relatórios do CRM</div><button class="btn-close" id="rel-modal-close">×</button></div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Relatório</label><select id="rel-tipo" style="width:100%"></select></div>
+      <div class="field" id="rel-filtro-vendedor-wrap" style="display:none">
+        <label>Vendedor</label><select id="rel-filtro-vendedor-sel" style="width:100%"></select>
+      </div>
+    </div>
+    <div class="fgrid fg2">
+      <div class="field" id="rel-filtro-periodo-wrap" style="display:none">
+        <label>Considerar compra nos últimos (meses)</label>
+        <input type="number" id="rel-filtro-periodo" min="1" max="24" value="3" style="width:100%"/>
+      </div>
+      <div class="field" id="rel-filtro-mes-wrap" style="display:none">
+        <label>Mês</label><select id="rel-filtro-mes-sel" style="width:100%"></select>
+      </div>
+    </div>
+    <div id="rel-resultado" style="margin-top:.5rem"></div>
+    <div class="ffooter"><button class="btn-sec" id="rel-modal-fechar">Fechar</button><button class="btn-save" id="btn-rel-pdf">🖨️ Baixar PDF</button></div>
   </div>
 </div>
 
@@ -6602,6 +6635,17 @@ function cartStatus(cli){
   return d >= limite ? 'ativo' : 'inativo';
 }
 
+// Mesma lógica, mas com período configurável — usado nos Relatórios do CRM
+// (não altera o badge Ativo/Inativo da Carteira, que continua fixo em 6 meses)
+function cartStatusComPeriodo(cli, meses){
+  if(!cli.dataUltimaCompra) return 'inativo';
+  const d = new Date(cli.dataUltimaCompra + 'T00:00:00');
+  if(isNaN(d.getTime())) return 'inativo';
+  const limite = new Date();
+  limite.setMonth(limite.getMonth() - meses);
+  return d >= limite ? 'ativo' : 'inativo';
+}
+
 function cartNomeVendedor(uid){
   const u = _users.find(x=>x.id===uid);
   return u ? u.name : '—';
@@ -6677,6 +6721,11 @@ window.vapIniciarListenerCarteira = vapIniciarListenerCarteira;
 // ══════════════════════════════════════════════════════════
 let _prospLista = [];
 let unProspeccoes = null;
+// Quando setado (via "Ver histórico" na Carteira), o CRM entra em modo
+// "histórico de um cliente": mostra só os lançamentos vinculados a esse cliente,
+// ignorando os filtros de Mês/Vendedor/Resultado e escondendo totais/gráfico.
+let _crmFiltroClienteId = null;
+let _crmFiltroClienteNome = '';
 const PROSP_SEGMENTOS = ['Revenda','Centro Automotivo','Transportadora','Posto de Troca','Posto de Gasolina','Outros'];
 const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido'];
 const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444'};
@@ -6726,10 +6775,11 @@ async function vapProspSalvar(){
   const local = $('prosp-local').value.trim();
   const resultado = $('prosp-resultado').value;
   const proximoContato = $('prosp-proximo').value || ''; // input type=date já entrega YYYY-MM-DD
+  const clienteId = $('prosp-cliente-id')?.value || '';
   if(!empresa){ toast('Informe a empresa.'); return; }
   const payload = {
     companyId: CID, uid: cu.uid, vendedorNome: cp?.name || cu?.displayName || '—',
-    empresa, responsavel, tipo, segmento, telefone, localSaturacao: local, resultado, proximoContato
+    empresa, responsavel, tipo, segmento, telefone, localSaturacao: local, resultado, proximoContato, clienteId
   };
   try{
     if(id){
@@ -6740,6 +6790,12 @@ async function vapProspSalvar(){
       await addDoc(collection(db,'prospeccoes'), payload);
       toast('Lançamento registrado!');
     }
+    // Vinculado a um cliente da Carteira + resultado "Vendeu": atualiza a Data da
+    // última compra do cliente, para o status Ativo/Inativo continuar refletindo a realidade.
+    if(clienteId && resultado === 'Vendeu'){
+      try{ await updateDoc(doc(db,'carteira_clientes',clienteId), { dataUltimaCompra: tod() }); }
+      catch(e){ console.warn('[CRM] não foi possível atualizar a última compra do cliente:', e); }
+    }
     closeModal('modal-prospeccao');
     vapProspLimparForm();
   } catch(e){
@@ -6749,11 +6805,45 @@ async function vapProspSalvar(){
 }
 window.vapProspSalvar = vapProspSalvar;
 
+// Preenche o <datalist> de sugestão de empresa com os clientes da Carteira
+// visíveis para o usuário atual (mesmo escopo já usado pela Carteira/CRM).
+function vapProspAtualizarDatalistClientes(){
+  const dl = $('prosp-cliente-datalist'); if(!dl) return;
+  dl.innerHTML = _cartClientes.map(c=>`<option value="${(c.nome||'').replace(/"/g,'')}">`).join('');
+}
+window.vapProspAtualizarDatalistClientes = vapProspAtualizarDatalistClientes;
+
+// Mostra/esconde o aviso "vinculado à Carteira" conforme prosp-cliente-id
+function vapProspAtualizarVinculoInfo(){
+  const info = $('prosp-vinculo-info');
+  if(info) info.style.display = $('prosp-cliente-id')?.value ? 'flex' : 'none';
+}
+
+// Ao digitar/selecionar em Empresa: se o texto bater com um cliente da Carteira
+// (mesmo escopo do usuário), vincula automaticamente e preenche os demais campos.
+// Se não bater com nenhum, trata como lançamento avulso (fora da Carteira), como antes.
+function vapProspChecarVinculoEmpresa(){
+  const nome = ($('prosp-empresa').value||'').trim().toLowerCase();
+  const c = nome ? _cartClientes.find(x=>(x.nome||'').trim().toLowerCase()===nome) : null;
+  if(c){
+    $('prosp-cliente-id').value = c.id;
+    if(c.responsavel) $('prosp-responsavel').value = c.responsavel;
+    if(c.telefone) $('prosp-telefone').value = c.telefone;
+    if(c.segmento) $('prosp-segmento').value = c.segmento;
+  } else {
+    $('prosp-cliente-id').value = '';
+  }
+  vapProspAtualizarVinculoInfo();
+}
+window.vapProspChecarVinculoEmpresa = vapProspChecarVinculoEmpresa;
+
 function vapProspLimparForm(){
   $('prosp-id').value=''; $('prosp-empresa').value=''; $('prosp-responsavel').value='';
+  $('prosp-cliente-id').value='';
   $('prosp-segmento').value=PROSP_SEGMENTOS[0]; $('prosp-telefone').value=''; $('prosp-local').value='';
   $('prosp-resultado').value=PROSP_RESULTADOS[0]; $('prosp-proximo').value='';
   atualizarProspProximoFmt();
+  vapProspAtualizarVinculoInfo();
   vapProspSelecionarTipo(PROSP_TIPOS[1]); // default: Prospecção
   $('prosp-modal-title').textContent='Novo Lançamento';
   $('btn-prosp-save').textContent='Salvar Lançamento';
@@ -6762,17 +6852,37 @@ window.vapProspLimparForm = vapProspLimparForm;
 
 function vapProspAbrirNovo(){
   vapProspLimparForm();
+  vapProspAtualizarDatalistClientes();
   openModal('modal-prospeccao');
 }
 window.vapProspAbrirNovo = vapProspAbrirNovo;
 
+// Abre "Novo Lançamento" já vinculado a um cliente específico da Carteira
+// (atalho a partir do botão "Lançar" na lista da Carteira).
+function vapProspNovoParaCliente(c){
+  vapProspLimparForm();
+  vapProspAtualizarDatalistClientes();
+  $('prosp-cliente-id').value = c.id;
+  $('prosp-empresa').value = c.nome || '';
+  $('prosp-responsavel').value = c.responsavel || '';
+  $('prosp-telefone').value = c.telefone || '';
+  if(c.segmento) $('prosp-segmento').value = c.segmento;
+  vapProspSelecionarTipo('Acompanhamento');
+  vapProspAtualizarVinculoInfo();
+  openModal('modal-prospeccao');
+}
+window.vapProspNovoParaCliente = vapProspNovoParaCliente;
+
 function vapProspEditar(id){
   const p = _prospLista.find(x=>x.id===id); if(!p) return;
+  vapProspAtualizarDatalistClientes();
   $('prosp-id').value=p.id; $('prosp-empresa').value=p.empresa||''; $('prosp-responsavel').value=p.responsavel||'';
+  $('prosp-cliente-id').value = p.clienteId || '';
   $('prosp-segmento').value=p.segmento||PROSP_SEGMENTOS[0]; $('prosp-telefone').value=p.telefone||'';
   $('prosp-local').value=p.localSaturacao||''; $('prosp-resultado').value=p.resultado||PROSP_RESULTADOS[0];
   $('prosp-proximo').value=p.proximoContato||'';
   atualizarProspProximoFmt();
+  vapProspAtualizarVinculoInfo();
   vapProspSelecionarTipo(p.tipo||PROSP_TIPOS[1]);
   $('prosp-modal-title').textContent='Editar Lançamento';
   $('btn-prosp-save').textContent='Atualizar Lançamento';
@@ -6799,6 +6909,9 @@ function vapIniciarListenerProspeccao(){
     _prospLista = snap.docs.map(d=>({id:d.id, ...d.data()}));
     vapProspAtualizarFiltroMes();
     vapProspRenderTudo();
+    // A Carteira exibe o "Resultado do último contato" a partir do histórico do CRM —
+    // atualiza o card dela também, se já estiver carregado.
+    if(typeof renderCarteiraLista === 'function') renderCarteiraLista();
   }, err => {
     console.error('[Prospecção] Erro no listener:', err);
     // Se o erro for de índice ausente, o Firestore imprime no console o link para criá-lo.
@@ -6835,6 +6948,11 @@ function vapProspFiltroVendedorPreencher(){
 }
 
 function vapProspListaDoMes(){
+  // Modo "histórico de um cliente": todo o histórico dele, sem recorte de mês/filtros.
+  if(_crmFiltroClienteId){
+    return _prospLista.filter(p=>p.clienteId===_crmFiltroClienteId)
+      .sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
+  }
   const ym = $('prosp-filtro-mes')?.value || '';
   const filtroVend = $('prosp-filtro-vendedor')?.value || '';
   const filtroResultado = $('prosp-filtro-resultado')?.value || '';
@@ -6846,12 +6964,43 @@ function vapProspListaDoMes(){
   });
 }
 
+// Retorna o lançamento de histórico mais recente vinculado a um cliente da Carteira (ou null)
+function cartUltimoHistorico(clienteId){
+  const lista = _prospLista.filter(p=>p.clienteId===clienteId);
+  if(!lista.length) return null;
+  return lista.slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''))[0];
+}
+window.cartUltimoHistorico = cartUltimoHistorico;
+
 function vapProspRenderTudo(){
   vapProspFiltroVendedorPreencher();
+  const banner = $('prosp-filtro-cliente-banner');
+  const emModoCliente = !!_crmFiltroClienteId;
+  if(banner) banner.style.display = emModoCliente ? 'flex' : 'none';
+  if(emModoCliente && $('prosp-filtro-cliente-nome')) $('prosp-filtro-cliente-nome').textContent = _crmFiltroClienteNome;
+  if($('prosp-totais-wrap')) $('prosp-totais-wrap').style.display = emModoCliente ? 'none' : 'flex';
+  if($('prosp-filtros-wrap')) $('prosp-filtros-wrap').style.display = emModoCliente ? 'none' : '';
+  if($('prosp-chart-card') && emModoCliente) $('prosp-chart-card').style.display = 'none';
   vapProspRenderTotais();
   vapProspRenderLista();
-  vapProspRenderGrafico();
+  if(!emModoCliente) vapProspRenderGrafico();
 }
+
+// Chamado pela Carteira ("Ver histórico") — abre o CRM já filtrado num cliente
+function vapAbrirHistoricoCliente(clienteId, nome){
+  _crmFiltroClienteId = clienteId;
+  _crmFiltroClienteNome = nome || '';
+  if(typeof window.switchTab === 'function') window.switchTab('prospeccao');
+  vapProspRenderTudo();
+}
+window.vapAbrirHistoricoCliente = vapAbrirHistoricoCliente;
+
+function vapLimparFiltroClienteCRM(){
+  _crmFiltroClienteId = null;
+  _crmFiltroClienteNome = '';
+  vapProspRenderTudo();
+}
+window.vapLimparFiltroClienteCRM = vapLimparFiltroClienteCRM;
 
 function vapProspRenderTotais(){
   const hojeISO = tod();
@@ -6962,6 +7111,18 @@ function vapInitProspeccaoUI(){
   $('prosp-filtro-resultado') && ($('prosp-filtro-resultado').onchange = vapProspRenderTudo);
   $('prosp-proximo') && ($('prosp-proximo').onchange = () => atualizarProspProximoFmt());
   $('prosp-telefone') && ($('prosp-telefone').oninput = () => cartMaskTelefone($('prosp-telefone')));
+  $('prosp-filtro-cliente-voltar') && ($('prosp-filtro-cliente-voltar').onclick = vapLimparFiltroClienteCRM);
+  $('prosp-empresa') && ($('prosp-empresa').oninput = vapProspChecarVinculoEmpresa);
+  $('prosp-desvincular') && ($('prosp-desvincular').onclick = (e) => {
+    e.preventDefault();
+    $('prosp-cliente-id').value = '';
+    vapProspAtualizarVinculoInfo();
+  });
+  $('btn-crm-relatorios') && ($('btn-crm-relatorios').onclick = vapRelAbrir);
+  $('rel-modal-close') && ($('rel-modal-close').onclick = () => closeModal('modal-crm-relatorios'));
+  $('rel-modal-fechar') && ($('rel-modal-fechar').onclick = () => closeModal('modal-crm-relatorios'));
+  $('rel-filtro-periodo') && ($('rel-filtro-periodo').oninput = vapRelRenderizar);
+  $('btn-rel-pdf') && ($('btn-rel-pdf').onclick = vapRelBaixarPDF);
 }
 window.vapInitProspeccaoUI = vapInitProspeccaoUI;
 
@@ -7069,6 +7230,163 @@ function vapVerificarPopupCRM(){
 window.vapVerificarPopupCRM = vapVerificarPopupCRM;
 
 // ── Renderização da lista/tabela com filtros ────────────────
+// ══════════════════════════════════════════════════════════
+//  RELATÓRIOS DO CRM (extensível)
+//  Para adicionar um novo relatório: (1) acrescente um item em
+//  CRM_REPORT_TYPES, (2) escreva a função vapRelHtml<Nome>() que
+//  devolve o HTML da tabela, (3) ligue os dois em vapRelRenderizar()
+//  e, se precisar de filtro próprio, em vapRelAtualizarFiltrosVisiveis().
+// ══════════════════════════════════════════════════════════
+const CRM_REPORT_TYPES = [
+  {id:'ativos-inativos', label:'Ativos / Inativos'},
+  {id:'resultados-vendedor', label:'Resultados por Vendedor'}
+];
+
+// Em quais relatórios o filtro de Vendedor aparece, e para quem — depende do
+// escopo dos dados de cada relatório (Carteira: líder só vê a própria; CRM: líder vê a empresa toda)
+function vapRelVendedorVisivel(tipo){
+  if(tipo==='ativos-inativos') return cp?.role==='master' || cp?.role==='superadmin';
+  if(tipo==='resultados-vendedor') return cp?.role==='lider' || cp?.role==='master' || cp?.role==='superadmin';
+  return false;
+}
+
+function vapRelPopularTipos(){
+  const sel = $('rel-tipo'); if(!sel || sel.dataset.built) return;
+  sel.innerHTML = CRM_REPORT_TYPES.map(r=>`<option value="${r.id}">${r.label}</option>`).join('');
+  sel.dataset.built = '1';
+  sel.onchange = () => { vapRelAtualizarFiltrosVisiveis(); vapRelRenderizar(); };
+}
+
+function vapRelPopularFiltroMes(){
+  const sel = $('rel-filtro-mes-sel'); if(!sel || sel.dataset.built) return;
+  const hoje = new Date();
+  let opts = '';
+  for(let i=0;i<12;i++){
+    const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
+    const ym = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const label = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+    opts += `<option value="${ym}">${label.charAt(0).toUpperCase()+label.slice(1)}</option>`;
+  }
+  sel.innerHTML = opts;
+  sel.dataset.built = '1';
+  sel.onchange = vapRelRenderizar;
+}
+
+function vapRelPopularFiltroVendedor(){
+  const sel = $('rel-filtro-vendedor-sel'); if(!sel || sel.dataset.built) return;
+  sel.innerHTML = '<option value="">Todos os vendedores</option>' + _users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+  sel.dataset.built = '1';
+  sel.onchange = vapRelRenderizar;
+}
+
+function vapRelAtualizarFiltrosVisiveis(){
+  const tipo = $('rel-tipo')?.value || CRM_REPORT_TYPES[0].id;
+  $('rel-filtro-periodo-wrap').style.display = tipo==='ativos-inativos' ? 'block' : 'none';
+  $('rel-filtro-mes-wrap').style.display = tipo==='resultados-vendedor' ? 'block' : 'none';
+  $('rel-filtro-vendedor-wrap').style.display = vapRelVendedorVisivel(tipo) ? 'block' : 'none';
+}
+
+// ── Relatório: Ativos / Inativos (período configurável, padrão 3 meses) ──
+function vapRelHtmlAtivosInativos(){
+  const meses = parseInt($('rel-filtro-periodo')?.value, 10) || 3;
+  const fVend = vapRelVendedorVisivel('ativos-inativos') ? ($('rel-filtro-vendedor-sel')?.value || '') : '';
+  let lista = _cartClientes;
+  if(fVend) lista = lista.filter(c=>c.uid===fVend);
+  if(!lista.length) return '<div class="empty">Nenhum cliente encontrado.</div>';
+
+  const porVend = {};
+  lista.forEach(c=>{
+    const nome = cartNomeVendedor(c.uid) || '—';
+    if(!porVend[nome]) porVend[nome] = {ativo:0, inativo:0};
+    porVend[nome][cartStatusComPeriodo(c, meses)]++;
+  });
+  const linhas = Object.keys(porVend).sort().map(nome=>{
+    const {ativo=0, inativo=0} = porVend[nome];
+    const total = ativo+inativo;
+    const pct = total ? Math.round(ativo/total*100) : 0;
+    return `<tr><td>${nome}</td><td>${ativo}</td><td>${inativo}</td><td>${total}</td><td>${pct}%</td></tr>`;
+  }).join('');
+  const totAtivo = lista.filter(c=>cartStatusComPeriodo(c, meses)==='ativo').length;
+
+  return `
+    <div style="margin-bottom:.6rem;font-size:.82rem;color:var(--gray)">Considerando compra nos últimos ${meses} mês(es) como Ativo — total: ${lista.length} cliente(s), ${totAtivo} ativo(s), ${lista.length-totAtivo} inativo(s).</div>
+    <div style="overflow-x:auto"><table class="adm-table">
+      <thead><tr><th>Vendedor</th><th>Ativos</th><th>Inativos</th><th>Total</th><th>% Ativos</th></tr></thead>
+      <tbody>${linhas}</tbody>
+    </table></div>`;
+}
+
+// ── Relatório: Resultados por Vendedor (mês) ──────────────
+function vapRelHtmlResultadosVendedor(){
+  const ym = $('rel-filtro-mes-sel')?.value || '';
+  const fVend = vapRelVendedorVisivel('resultados-vendedor') ? ($('rel-filtro-vendedor-sel')?.value || '') : '';
+  let lista = _prospLista.filter(p => !ym || (p.criadoEm||'').startsWith(ym));
+  if(fVend) lista = lista.filter(p=>p.uid===fVend);
+  if(!lista.length) return '<div class="empty">Nenhum lançamento no período.</div>';
+
+  const porVend = {};
+  lista.forEach(p=>{
+    const nome = p.vendedorNome || prospNomeVendedor(p.uid);
+    if(!porVend[nome]) porVend[nome] = {};
+    porVend[nome][p.resultado] = (porVend[nome][p.resultado]||0) + 1;
+  });
+  const vendedores = Object.keys(porVend).sort();
+  const head = PROSP_RESULTADOS.map(r=>`<th>${r}</th>`).join('');
+  const linhas = vendedores.map(nome=>{
+    const row = PROSP_RESULTADOS.map(r=>`<td>${porVend[nome][r]||0}</td>`).join('');
+    const total = PROSP_RESULTADOS.reduce((s,r)=>s+(porVend[nome][r]||0), 0);
+    return `<tr><td>${nome}</td>${row}<td><b>${total}</b></td></tr>`;
+  }).join('');
+
+  return `<div style="overflow-x:auto"><table class="adm-table">
+    <thead><tr><th>Vendedor</th>${head}<th>Total</th></tr></thead>
+    <tbody>${linhas}</tbody>
+  </table></div>`;
+}
+
+// Despacho central — plugue novos relatórios aqui
+function vapRelRenderizar(){
+  const tipo = $('rel-tipo')?.value || CRM_REPORT_TYPES[0].id;
+  const el = $('rel-resultado'); if(!el) return;
+  if(tipo==='ativos-inativos') el.innerHTML = vapRelHtmlAtivosInativos();
+  else if(tipo==='resultados-vendedor') el.innerHTML = vapRelHtmlResultadosVendedor();
+  else el.innerHTML = '<div class="empty">Relatório não implementado.</div>';
+}
+window.vapRelRenderizar = vapRelRenderizar;
+
+function vapRelAbrir(){
+  vapRelPopularTipos();
+  vapRelPopularFiltroMes();
+  vapRelPopularFiltroVendedor();
+  vapRelAtualizarFiltrosVisiveis();
+  vapRelRenderizar();
+  openModal('modal-crm-relatorios');
+}
+window.vapRelAbrir = vapRelAbrir;
+
+// PDF do relatório aberto — mesmo padrão de impressão do navegador já usado no CRM
+function vapRelBaixarPDF(){
+  const label = $('rel-tipo')?.selectedOptions?.[0]?.textContent || 'Relatório do CRM';
+  const conteudo = $('rel-resultado')?.innerHTML || '';
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html><head><title>${label}</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:20px}
+      h1{font-size:18px}
+      table{width:100%;border-collapse:collapse;font-size:11px}
+      th,td{border:1px solid #ccc;padding:4px 6px;text-align:left}
+      th{background:#f2f2f2}
+    </style></head><body>
+    <h1>${label}</h1>
+    ${conteudo}
+    </body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(()=>win.print(), 400);
+}
+window.vapRelBaixarPDF = vapRelBaixarPDF;
+
 function renderCarteiraLista(){
   const wrap = $('cart-list'); if(!wrap) return;
   const veTodaEmpresa = cp?.role==='master' || cp?.role==='superadmin';
@@ -7101,18 +7419,30 @@ function renderCarteiraLista(){
     <tbody>${lista.map(c => {
       const st = cartStatus(c);
       const stBadge = st==='ativo' ? '<span class="badge bg-green">Ativo</span>' : '<span class="badge bg-gray">Inativo</span>';
-      const rc = c.resultadoUltimoContato;
-      const resultBadgeClass = rc==='Pedido' ? 'bg-green' : rc==='Cotação' ? 'bg-teal' : rc==='Aguardando' ? 'bg-amber' : rc==='Sem contato' ? 'bg-red' : 'bg-gray';
+      // "Resultado do último contato": se há histórico de CRM vinculado, usa o lançamento mais
+      // recente (fonte da verdade); senão cai no campo manual antigo (clientes sem histórico ainda).
+      const ultHist = cartUltimoHistorico(c.id);
+      let rc, rcData, resultBadgeClass;
+      if(ultHist){
+        rc = ultHist.resultado; rcData = ultHist.criadoEm ? ultHist.criadoEm.slice(0,10) : '';
+        resultBadgeClass = ''; // usa cor própria do CRM (PROSP_CORES) abaixo
+      } else {
+        rc = c.resultadoUltimoContato; rcData = c.dataUltimoContato;
+        resultBadgeClass = rc==='Pedido' ? 'bg-green' : rc==='Cotação' ? 'bg-teal' : rc==='Aguardando' ? 'bg-amber' : rc==='Sem contato' ? 'bg-red' : 'bg-gray';
+      }
+      const rcStyle = ultHist ? `style="background:${(PROSP_CORES[rc]||'#999')}22;color:${PROSP_CORES[rc]||'#666'}"` : '';
       return `<tr>
         <td><b>${c.nome||''}</b>${c.responsavel?`<br><span style="font-size:.72rem;color:var(--gray)">${c.responsavel}</span>`:''}</td>
         <td>${c.telefone||'—'}</td>
         <td>${c.segmento||'—'}</td>
         <td>${[c.cidade,c.bairro].filter(Boolean).join(' / ')||'—'}</td>
-        <td><span class="badge ${resultBadgeClass}">${rc||'—'}</span>${c.dataUltimoContato?`<br><span style="font-size:.7rem;color:var(--gray)">${fD(c.dataUltimoContato)}</span>`:''}</td>
+        <td><span class="badge ${resultBadgeClass}" ${rcStyle}>${rc||'—'}</span>${rcData?`<br><span style="font-size:.7rem;color:var(--gray)">${fD(rcData)}</span>`:''}</td>
         <td>${stBadge}</td>
         ${veTodaEmpresa?`<td style="font-size:.75rem">${cartNomeVendedor(c.uid)}</td>`:''}
         <td><div class="act">
           <button class="btn-xs bx-wpp" data-id="${c.id}" style="border-color:var(--gl);color:var(--g)" title="WhatsApp">💬</button>
+          <button class="btn-xs bx-hist" data-id="${c.id}" style="border-color:#BFE8CC;color:#1B7A3D" title="Ver histórico de relacionamento">🕘</button>
+          <button class="btn-xs bx-lancar" data-id="${c.id}" style="border-color:#BFE8CC;color:#1B7A3D" title="Novo lançamento no histórico">📝</button>
           <button class="btn-xs bx-edit" data-id="${c.id}" style="border-color:var(--border);color:var(--gray)">Editar</button>
           <button class="btn-xs bx-del" data-id="${c.id}" style="border-color:var(--rl);color:var(--r)">Excluir</button>
         </div></td>
@@ -7122,6 +7452,12 @@ function renderCarteiraLista(){
 
   wrap.querySelectorAll('.bx-wpp').forEach(b=>b.onclick=()=>{
     const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapAbrirWppTelefone(c.telefone, c.nome);
+  });
+  wrap.querySelectorAll('.bx-hist').forEach(b=>b.onclick=()=>{
+    const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapAbrirHistoricoCliente(c.id, c.nome);
+  });
+  wrap.querySelectorAll('.bx-lancar').forEach(b=>b.onclick=()=>{
+    const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapProspNovoParaCliente(c);
   });
   wrap.querySelectorAll('.bx-edit').forEach(b=>b.onclick=()=>abrirModalCarteiraCliente(b.dataset.id));
   wrap.querySelectorAll('.bx-del').forEach(b=>b.onclick=()=>excluirCarteiraCliente(b.dataset.id));
