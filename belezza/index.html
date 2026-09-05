@@ -9647,8 +9647,9 @@ function iniciarListenerProdutosForn() {
   if (!fid) { console.warn('[Belezza] fornecedorId ausente em cp'); return; }
   const ref = collection(db, 'fornecedores', fid, 'produtos');
   _unsubProdutosForn = onSnapshot(ref, snap => {
-    _prodFornTodos = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
-    renderProdutosGrid(_prodFornTodos);
+    _prodFornTodos = snap.docs.map(d => ({ ...d.data(), _id: d.id }))
+      .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+    filtrarProdutosForn(document.getElementById('forn-produtos-busca')?.value || '');
     if (window.renderKitsGrid) renderKitsGrid(_kitsFornTodos);
   }, err => {
     console.warn('[Belezza] produtos fornecedor listener:', err);
@@ -9658,11 +9659,24 @@ function iniciarListenerProdutosForn() {
 }
 window.iniciarListenerProdutosForn = iniciarListenerProdutosForn;
 
-function renderProdutosGrid(lista) {
+function filtrarProdutosForn(termo) {
+  const alvo = (termo || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const filtrados = !alvo ? _prodFornTodos : _prodFornTodos.filter(p =>
+    (p.nome || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(alvo)
+  );
+  renderProdutosGrid(filtrados, !!alvo);
+}
+window.filtrarProdutosForn = filtrarProdutosForn;
+
+function renderProdutosGrid(lista, ehBusca) {
   const grid = document.getElementById('forn-produtos-grid');
   if (!grid) return;
-  if (!lista.length) {
+  if (!_prodFornTodos.length) {
     grid.innerHTML = '<div style="color:#a8a29e;font-size:13px;grid-column:1/-1;text-align:center;padding:24px 0;">Nenhum produto cadastrado ainda.</div>';
+    return;
+  }
+  if (!lista.length) {
+    grid.innerHTML = '<div style="color:#a8a29e;font-size:13px;grid-column:1/-1;text-align:center;padding:24px 0;">Nenhum produto encontrado' + (ehBusca ? ' pra essa busca.' : '.') + '</div>';
     return;
   }
   grid.innerHTML = lista.map(p => {
@@ -11478,6 +11492,7 @@ Desodorante 0% Alumínio c/ Niacinamida 55g;39.40;Corporal</textarea>
     </div>
 
     <!-- Grid de produtos -->
+    <input id="forn-produtos-busca" type="text" placeholder="Buscar produto pelo nome..." oninput="filtrarProdutosForn(this.value)" style="width:100%;max-width:320px;padding:9px 12px;border:1px solid #e7e5e4;border-radius:6px;font-size:13px;margin-bottom:14px;box-sizing:border-box;">
     <div id="forn-produtos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
       <div style="color:#a8a29e;font-size:13px;grid-column:1/-1;text-align:center;padding:24px 0;">Carregando produtos...</div>
     </div>
