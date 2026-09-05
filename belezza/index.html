@@ -9462,7 +9462,10 @@ function gerarQRCodeFornecedor() {
     getDoc(doc(db, 'fornecedores_stats', fid)).then(snap => {
       const n = snap.exists() ? (snap.data().visualizacoes || 0) : 0;
       visEl.textContent = n === 1 ? '1 visualização até agora' : `${n} visualizações até agora`;
-    }).catch(() => { visEl.textContent = ''; });
+    }).catch(e => {
+      console.warn('[Belezza] leitura fornecedores_stats:', e);
+      visEl.textContent = 'Erro ao carregar: ' + (e.code || e.message || 'desconhecido');
+    });
   }
 }
 window.gerarQRCodeFornecedor = gerarQRCodeFornecedor;
