@@ -2071,6 +2071,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   <div class="modal" style="max-width:520px">
     <div class="modal-hdr"><div class="modal-title">Importar Contatos</div><button class="btn-close" id="cart-imp-close">×</button></div>
 
+    <div class="fgrid fg2" id="cart-imp-vendedor-wrap" style="display:none">
+      <div class="field"><label>Importar para o vendedor</label><select id="cart-imp-vendedor-sel" style="width:100%"></select></div>
+      <div class="field"><label>Observação (opcional, aplicada a todos)</label><input type="text" id="cart-imp-obs-padrao" placeholder="Ex: Migrado do ERP antigo" style="width:100%"/></div>
+    </div>
+
     <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:var(--rsm);overflow:hidden;margin-bottom:.75rem">
       <button id="cart-imp-tab-nativo" onclick="window.cartSetImportTab('nativo')" style="flex:1;padding:8px 4px;border:none;cursor:pointer;font-size:.72rem;font-weight:700;background:var(--rl);color:#C53030">📇 Agenda</button>
       <button id="cart-imp-tab-csv" onclick="window.cartSetImportTab('csv')" style="flex:1;padding:8px 4px;border:none;cursor:pointer;font-size:.72rem;font-weight:600;background:transparent;color:var(--gray);border-left:1px solid var(--border)">📊 Planilha/CSV</button>
@@ -7615,6 +7620,22 @@ function abrirModalImportar(){
   const suportado = ('contacts' in navigator) && ('ContactsManager' in window);
   $('cart-imp-unsupported').style.display = suportado ? 'none' : 'block';
   $('cart-imp-selecionar').style.display  = suportado ? 'block' : 'none';
+
+  // Master/SuperAdmin podem escolher pra qual vendedor a importação vai — o padrão
+  // (Contact Picker/CSV/VCF gravando com o próprio uid) continua valendo pros demais perfis.
+  const podeEscolherVendedor = cp?.role==='master' || cp?.role==='superadmin';
+  const wrap = $('cart-imp-vendedor-wrap');
+  if(wrap) wrap.style.display = podeEscolherVendedor ? 'flex' : 'none';
+  if(podeEscolherVendedor){
+    const sel = $('cart-imp-vendedor-sel');
+    if(sel && !sel.dataset.built){
+      sel.innerHTML = `<option value="${cu.uid}">Eu mesmo (${cp?.name||'—'})</option>` +
+        _users.filter(u=>u.id!==cu.uid).map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+      sel.dataset.built = '1';
+    }
+  }
+  if($('cart-imp-obs-padrao')) $('cart-imp-obs-padrao').value = '';
+
   openModal('modal-carteira-importar');
 }
 window.abrirModalImportar = abrirModalImportar;
@@ -7797,6 +7818,10 @@ window._cartImpConfirmar = async function(tipo){
   const div = $('cart-imp-preview-'+tipo);
   if(div) div.innerHTML = `<div style="text-align:center;padding:14px;font-size:.85rem;color:var(--gray)">Importando ${contatos.length} cliente(s)…</div>`;
 
+  const podeEscolherVendedor = cp?.role==='master' || cp?.role==='superadmin';
+  const uidAlvo = (podeEscolherVendedor && $('cart-imp-vendedor-sel')?.value) || cu.uid;
+  const obsPadrao = ($('cart-imp-obs-padrao')?.value || '').trim();
+
   const existentes = new Set(_cartClientes.map(c => (c.telefone||'').replace(/\D/g,'')).filter(Boolean));
   let importados = 0, duplicados = 0;
   try {
@@ -7811,7 +7836,7 @@ window._cartImpConfirmar = async function(tipo){
         nome: c.nome, telefone: c.telefone||'',
         segmento: 'Outros', responsavel: '', cidade: '', bairro: '',
         resultadoUltimoContato: 'Inicial', dataUltimoContato: '', dataUltimaCompra: '',
-        observacoes: '', origem: 'importado', uid: cu.uid, companyId: CID,
+        observacoes: obsPadrao, origem: 'importado', uid: uidAlvo, companyId: CID,
         criadoEm: new Date().toISOString()
       });
       importados++;
