@@ -19,6 +19,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" media="print" onload="this.media='all';this.onload=null" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
 :root{
   --pk50:#FBEAF0;--pk100:#F4C0D1;--pk400:#D4537E;--pk600:#993556;--pk800:#72243E;
@@ -451,6 +452,25 @@ input[type="password"]::-ms-clear {
 }
 #ag-servico optgroup{ font-size:11px; font-weight:700; }
 #ag-servico option{ font-size:12px; font-weight:400; }
+
+/* Catálogo público do Fornecedor (acesso via QR Code, sem login) */
+.catpub-topo{text-align:center;padding:20px 16px;background:var(--pk50);border-radius:var(--rl);margin:16px;}
+.catpub-label{font-size:13px;color:var(--pk600);margin:0 0 4px;}
+#catpub-nome-fornecedor{margin:0;font-size:22px;}
+.catpub-linha{margin:0 16px 24px;}
+.catpub-linha h2{font-size:18px;margin:0 0 8px;}
+.catpub-linhas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
+.catpub-produto-card,.catpub-kit-card{background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);overflow:hidden;}
+.catpub-produto-foto,.catpub-kit-foto{width:100%;height:120px;object-fit:cover;display:block;}
+.catpub-produto-card>div,.catpub-kit-card{padding:12px;}
+.catpub-produto-card h3,.catpub-kit-card h3{font-size:15px;margin:0 0 4px;}
+.catpub-produto-card p{font-size:13px;color:var(--tx2);margin:0 0 8px;}
+.catpub-precos{display:flex;flex-direction:column;gap:2px;font-size:13px;}
+.catpub-precos span:first-child{font-weight:600;}
+.catpub-precos span:not(:first-child){color:var(--tx3);}
+.catpub-kit-card details{font-size:13px;color:var(--tx2);margin-top:8px;}
+.catpub-cta{text-align:center;background:var(--pk50);border-radius:var(--rl);padding:20px 16px;margin:16px;}
+.catpub-btn-cta{display:inline-block;background:var(--bg);border:1px solid var(--pk400);border-radius:var(--r);padding:8px 20px;color:var(--pk600);text-decoration:none;font-size:14px;margin-top:8px;}
 </style>
 </head>
 <body>
@@ -2084,6 +2104,19 @@ let cu = null;   // current user (Firebase Auth)
 let cp = null;   // current profile (Firestore /users/{uid})
 let _clinicaIdConvite = null; // clinicaId vindo de ?convite=1&c={clinicaId} (cadastro self-service)
 
+// ── Rota pública: catálogo do Fornecedor via QR Code (sem login) ──────────
+// URL gerada pelo próprio Fornecedor: ?catalogo=1&f={fornecedorId}&nome={nome}
+const _paramsCatalogoPub = new URLSearchParams(location.search);
+const _fornecedorIdPub   = _paramsCatalogoPub.get('f');
+const _nomeCatalogoPub   = _paramsCatalogoPub.get('nome') || '';
+const _isCatalogoPublico = _paramsCatalogoPub.get('catalogo') === '1' && !!_fornecedorIdPub;
+if (_isCatalogoPublico) {
+  const appDivPub = document.querySelector('.app');
+  if (appDivPub) appDivPub.style.display = 'none';
+  const loginPub = document.getElementById('login-cli-screen');
+  if (loginPub) loginPub.style.display = 'none';
+}
+
 // ── Inatividade (10 minutos) ──────────────────────────────────────────────
 const INACTIVITY_MS = 10 * 60 * 1000;
 let _inactTimer;
@@ -2101,6 +2134,9 @@ function resetInactivityTimer() {
 // ── Auth: controlador central ─────────────────────────────────────────────
 // onAuthStateChanged registrado IMEDIATAMENTE — não depende de setPersistence
 onAuthStateChanged(auth, async user => {
+  // Visitante na página pública do catálogo (QR Code) — não passa pelo login/app normal.
+  if (_isCatalogoPublico) return;
+
   const appDiv = document.querySelector('.app');
 
   if (user) {
@@ -9390,8 +9426,24 @@ function switchFornTab(tab) {
   });
   const contentWrap = document.getElementById('forn-tab-' + tab)?.parentElement;
   if (contentWrap) contentWrap.scrollTop = 0;
+  if (tab === 'qrcode' && window.gerarQRCodeFornecedor) window.gerarQRCodeFornecedor();
 }
 window.switchFornTab = switchFornTab;
+
+function gerarQRCodeFornecedor() {
+  const fid = cp?.fornecedorId;
+  const alvo = document.getElementById('qrcode-fornecedor-container');
+  if (!fid || !alvo) return;
+  const nome = encodeURIComponent(cp.name || '');
+  const url = `https://mecuidar.app.br/?catalogo=1&f=${fid}&nome=${nome}`;
+  alvo.innerHTML = '';
+  if (window.QRCode) {
+    new QRCode(alvo, { text: url, width: 220, height: 220 });
+  }
+  const linkEl = document.getElementById('qrcode-fornecedor-link');
+  if (linkEl) linkEl.textContent = url;
+}
+window.gerarQRCodeFornecedor = gerarQRCodeFornecedor;
 
 function toggleBuscaClinicaForn() {
   const wrap = document.getElementById('forn-busca-clinica-wrap');
@@ -9992,6 +10044,83 @@ function calcPrecoKitFromProdutos(kit, produtosLista) {
   }, 0);
   return calcPrecoTiers(soma);
 }
+
+// ── Catálogo público do Fornecedor (via QR Code, sem login) ────────────────
+async function renderCatalogoPublico(fornecedorId, nomeFornecedor) {
+  const tela = document.getElementById('tela-catalogo-publico');
+  if (tela) tela.style.display = 'block';
+  const nomeEl = document.getElementById('catpub-nome-fornecedor');
+  if (nomeEl) nomeEl.textContent = nomeFornecedor || 'Catálogo';
+
+  const container = document.getElementById('catpub-linhas-container');
+  if (container) container.innerHTML = '<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 0">Carregando catálogo...</div>';
+
+  try {
+    const [snapProd, snapKits] = await Promise.all([
+      getDocs(collection(db, 'fornecedores', fornecedorId, 'produtos')),
+      getDocs(collection(db, 'fornecedores', fornecedorId, 'kits')),
+    ]);
+    const produtos = snapProd.docs.map(d => ({ ...d.data(), _id: d.id })).filter(p => p.disponivel !== false);
+    const kits     = snapKits.docs.map(d => ({ ...d.data(), _id: d.id }));
+
+    if (!container) return;
+    container.innerHTML = '';
+
+    LINHAS_FORNECEDOR.forEach(linha => {
+      const doLinha = produtos.filter(p => p.categoria === linha);
+      if (!doLinha.length) return;
+      const secao = document.createElement('section');
+      secao.className = 'catpub-linha';
+      secao.innerHTML = `<h2>${linha}</h2><div class="catpub-linhas-grid"></div>`;
+      const grid = secao.querySelector('.catpub-linhas-grid');
+      doLinha.forEach(p => {
+        const foto = p.imagemBase64 ? `<img src="${p.imagemBase64}" alt="${p.nome || ''}" class="catpub-produto-foto" loading="lazy">` : '';
+        const card = document.createElement('div');
+        card.className = 'catpub-produto-card';
+        card.innerHTML = `${foto}<div>
+          <h3>${p.nome || 'Produto'}</h3>
+          <p>${p.descricao || ''}</p>
+          ${fmtPrecoTiersHTML(p.preco)}
+        </div>`;
+        grid.appendChild(card);
+      });
+      container.appendChild(secao);
+    });
+
+    if (kits.length) {
+      const secao = document.createElement('section');
+      secao.className = 'catpub-linha';
+      secao.innerHTML = '<h2>Kits</h2><div class="catpub-linhas-grid"></div>';
+      const grid = secao.querySelector('.catpub-linhas-grid');
+      kits.forEach(k => {
+        const t = calcPrecoKitFromProdutos(k, produtos);
+        const f = v => v.toFixed(2).replace('.', ',');
+        const tipoLabel = k.tipo === 'homecare' ? 'Home care' : 'Profissional';
+        const foto = k.imagemBase64 ? `<img src="${k.imagemBase64}" alt="${k.nome || ''}" class="catpub-kit-foto" loading="lazy">` : '';
+        const card = document.createElement('div');
+        card.className = 'catpub-kit-card';
+        card.innerHTML = `${foto}
+          <h3>${k.nome || 'Kit'} <small>(${tipoLabel})</small></h3>
+          <div class="catpub-precos">
+            <span>Tabela: R$ ${f(t.cheia)}</span>
+            <span>-30%: R$ ${f(t.p30)}</span>
+            <span>-35%: R$ ${f(t.p35)}</span>
+          </div>
+          ${k.protocolo ? `<details><summary>Protocolo de uso</summary><p>${k.protocolo}</p></details>` : ''}`;
+        grid.appendChild(card);
+      });
+      container.appendChild(secao);
+    }
+
+    if (!produtos.length && !kits.length) {
+      container.innerHTML = '<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 0">Este fornecedor ainda não cadastrou produtos.</div>';
+    }
+  } catch (e) {
+    console.error('[Belezza] renderCatalogoPublico:', e);
+    if (container) container.innerHTML = '<div style="text-align:center;color:var(--pk600);font-size:13px;padding:24px 0">Erro ao carregar o catálogo.</div>';
+  }
+}
+if (_isCatalogoPublico) renderCatalogoPublico(_fornecedorIdPub, _nomeCatalogoPub);
 
 async function abrirCatalogoFornecedor(fornecedorId) {
   const v = (window._vinculosAprovadosCache || []).find(x => x.fornecedorId === fornecedorId);
@@ -10897,6 +11026,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <div class="forn-nav-item" data-tab="clientes" onclick="switchFornTab('clientes')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Clientes</div>
       <div class="forn-nav-item" data-tab="pedidos" onclick="switchFornTab('pedidos')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Pedidos</div>
       <div class="forn-nav-item" data-tab="promocoes" onclick="switchFornTab('promocoes')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Promoções</div>
+      <div class="forn-nav-item" data-tab="qrcode" onclick="switchFornTab('qrcode')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Meu QR Code</div>
     </nav>
     <div style="flex:1;overflow:auto;min-width:0;">
 
@@ -11148,6 +11278,14 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       </div>
     </div>
   </div>
+
+  <div id="forn-tab-qrcode" class="forn-tab-panel" style="display:none;padding:20px;">
+    <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:6px;">Meu QR Code</div>
+    <div style="font-size:12px;color:#a8a29e;margin-bottom:16px;max-width:420px;">Compartilhe este QR Code com clínicas que ainda não usam o Me Cuidar. Ao escanear, elas veem seu catálogo (produtos, kits e preços) direto no navegador, sem precisar de login.</div>
+    <div id="qrcode-fornecedor-container" style="width:220px;height:220px;background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;"></div>
+    <div id="qrcode-fornecedor-link" style="font-size:11px;color:#a8a29e;margin-top:10px;word-break:break-all;max-width:320px;"></div>
+  </div>
+
     </div>
   </div>
 </div>
@@ -12562,6 +12700,19 @@ window._avUrl             = _avUrl;
     </div>
     <!-- Botão -->
     <button id="sa-btn-criar" onclick="saCriarClinica()" style="width:100%;background:#f59e0b;color:#1c1917;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Criar Clínica</button>
+  </div>
+</div>
+
+<!-- ── Catálogo público do Fornecedor (acesso via QR Code, sem login) ─────── -->
+<div id="tela-catalogo-publico" style="display:none;">
+  <div class="catpub-topo">
+    <p class="catpub-label">Catálogo de</p>
+    <h1 id="catpub-nome-fornecedor">Catálogo</h1>
+  </div>
+  <div id="catpub-linhas-container"></div>
+  <div class="catpub-cta">
+    <p>Gostou do catálogo? Baixe o app <strong>Me Cuidar</strong> e peça direto pelo aplicativo.</p>
+    <a href="https://mecuidar.app.br" class="catpub-btn-cta">Conhecer o Me Cuidar</a>
   </div>
 </div>
 
