@@ -4595,29 +4595,9 @@ function abrirAgendaPromo(nome){
 const _origGoTo = window.goTo;
 
 // ── Dados de clientes em memória ──────────────────────────────────────────
-// Exemplos fixos usados apenas como fallback no ambiente de teste (Studio Luna)
-// quando a coleção /clientes ainda não tem documentos no Firestore.
-const _clientesExemploFixo = [
-  {id:'mariana', nome:'Mariana Costa', sexo:'F', wpp:'(11) 91234-5678', email:'mariana@email.com',
-   nasc:'1990-03-15', origem:'Instagram', interesse:'Botox, Preenchimento', alergias:'',
-   obs:'Prefere horários da manhã', visitas:5, valor:820, ultimaVisita:'15/05/2026',
-   ultimoSvc:'Botox', prof:'Fernanda R.', top:true, score:4.8,
-   avatar:'https://api.dicebear.com/9.x/lorelei/svg?seed=MarianaRosa&backgroundColor=e1f5ee'},
-  {id:'anapaula', nome:'Ana Paula Ferreira', sexo:'F', wpp:'(11) 98765-4321', email:'anapaula@email.com',
-   nasc:'1985-07-22', origem:'Indicação de amiga', interesse:'Limpeza de pele', alergias:'látex',
-   obs:'', visitas:3, valor:540, ultimaVisita:'28/05/2026',
-   ultimoSvc:'Limpeza de pele', prof:'Carla M.', top:true, score:3.2,
-   avatar:'https://api.dicebear.com/9.x/lorelei/svg?seed=AnaFlor&backgroundColor=fbeaf0'},
-  {id:'leticia', nome:'Leticia Barros', sexo:'F', wpp:'(11) 97890-1234', email:'leticia@email.com',
-   nasc:'1995-11-08', origem:'Google', interesse:'Design de sobrancelha', alergias:'',
-   obs:'', visitas:2, valor:280, ultimaVisita:'02/05/2026',
-   ultimoSvc:'Design sobrancelha', prof:'Juliana S.', top:false, score:1.9,
-   avatar:'https://api.dicebear.com/9.x/lorelei/svg?seed=LeticiaBarros&backgroundColor=eeedfe'},
-];
-
-// clientesDB começa com os exemplos fixos (visível antes do Firestore responder)
-// e é substituído pelo conteúdo real de /clientes assim que o listener carregar.
-let clientesDB = _clientesExemploFixo.slice();
+// Populado exclusivamente pelo listener real de /clientes (Firestore) —
+// começa vazio, sem exemplos fixos, mesmo antes do listener responder.
+let clientesDB = [];
 window.clientesDB = clientesDB; // expõe para módulo CRM desde o início
 
 // ── Ordenação, busca e paginação da lista de Clientes ──────────────────────
@@ -4845,12 +4825,7 @@ function iniciarListenerClientes(){
   );
   unsubClientes = onSnapshot(q, snap => {
     const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if(docs.length === 0 && clinicaAtual() === 'belezza-50e76'){
-      // Ambiente de teste sem dados reais ainda — mantém os 3 exemplos fixos
-      clientesDB = _clientesExemploFixo.slice();
-    } else {
-      clientesDB = docs;
-    }
+    clientesDB = docs;
     window.clientesDB = clientesDB;
     renderClientesLista();
   }, err => {
@@ -4859,7 +4834,7 @@ function iniciarListenerClientes(){
 }
 window.iniciarListenerClientes = iniciarListenerClientes;
 
-// Renderização inicial (mostra os exemplos fixos até o listener do Firestore responder)
+// Renderização inicial (lista vazia até o listener do Firestore responder)
 renderClientesLista();
 
 function filtrarClientes(q){
@@ -5689,12 +5664,9 @@ function iniciarListenerEquipe() {
 
   unsubEquipe = onSnapshot(profRef, snap => {
     if (snap.empty) {
-      // Nenhuma profissional no Firestore — limpa apenas para clínicas reais
-      if (clinicaAtual() !== 'belezza-50e76') {
-        equipeDB = [];
-        window.equipeDB = equipeDB;
-        aplicarModoSolo();
-      }
+      equipeDB = [];
+      window.equipeDB = equipeDB;
+      aplicarModoSolo();
       return;
     }
 
@@ -7242,24 +7214,7 @@ function nomeSolo() {
 window.modoSolo = modoSolo;
 window.nomeSolo = nomeSolo;
 
-let equipeDB = [
-  {id:'carla', nome:'Carla Mendes', wpp:'(11) 91111-1111', sexo:'F',
-   espec:'Estética facial · Dermato', disp:['Seg','Ter','Qua','Qui','Sex'],
-   ticket:340, avaliacao:4.9, domicilio:false, obs:'', ativa:true, agMes:18,
-   seed:'CarlaLuna', bgColor:'fbeaf0'},
-  {id:'fernanda', nome:'Fernanda Rocha', wpp:'(11) 92222-2222', sexo:'F',
-   espec:'Dermato estética · Botox', disp:['Seg','Qua','Qui','Sex'],
-   ticket:410, avaliacao:4.8, domicilio:true, obs:'', ativa:true, agMes:15,
-   seed:'FernandaR', bgColor:'e1f5ee'},
-  {id:'juliana', nome:'Juliana Santos', wpp:'(11) 93333-3333', sexo:'F',
-   espec:'Design · Micropigmentação', disp:['Ter','Qui','Sex','Sab'],
-   ticket:280, avaliacao:5.0, domicilio:false, obs:'Folga às segundas', ativa:false, agMes:9,
-   seed:'JulianaS', bgColor:'eeedfe'},
-  {id:'beatriz', nome:'Beatriz Lima', wpp:'(11) 94444-4444', sexo:'F',
-   espec:'Massoterapia · Relaxamento', disp:['Seg','Ter','Qua','Qui','Sex','Sab'],
-   ticket:180, avaliacao:4.7, domicilio:true, obs:'', ativa:true, agMes:12,
-   seed:'BeatrizL', bgColor:'faece7'},
-];
+let equipeDB = [];
 
 function renderEquipe(lista){
   const el = document.getElementById('equipe-lista');
@@ -10570,7 +10525,7 @@ function _tourNovoIniciarPiscada() {
   _tourNovoImgTimer = setInterval(() => {
     _tourNovoImgToggle = 1 - _tourNovoImgToggle;
     img.src = _tourNovoImgToggle ? TOUR_NOVO_MASCOTE_2 : TOUR_NOVO_MASCOTE_1;
-  }, 450);
+  }, 900);
 }
 function _tourNovoPararPiscada() {
   if (_tourNovoImgTimer) clearInterval(_tourNovoImgTimer);
@@ -10589,12 +10544,16 @@ async function catpubCriarContaMeCuidar() {
   }
   if (btn) { btn.disabled = true; btn.textContent = 'Criando seu acesso...'; }
   try {
-    let clinicaId = whatsapp;
+    const clinicaId = whatsapp;
     const jaExiste = await getDoc(doc(db, 'clinicas', clinicaId));
-    if (jaExiste.exists()) clinicaId = whatsapp + '-' + Math.floor(100 + Math.random() * 900);
+    if (jaExiste.exists()) {
+      alert('Esse WhatsApp já tem conta cadastrada no Me Cuidar. Faça login normalmente em mecuidar.app.br.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Criar meu acesso grátis agora'; }
+      return;
+    }
 
     const senha = String(Math.floor(100000 + Math.random() * 900000));
-    const emailLogin = whatsapp + '@cli.mecuidar.app';
+    const emailLogin = clinicaId + '@cli.mecuidar.app';
     const hoje = new Date();
     const dataInicio = hoje.toLocaleDateString('pt-BR');
     const trialData = new Date(hoje.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -10725,16 +10684,32 @@ function tourNovoFinalizar() {
   if (overlay) overlay.style.display = 'none';
   const final = document.getElementById('tour-novo-final');
   const finalImg = document.getElementById('tour-novo-final-img');
+  const finalImg2 = document.getElementById('tour-novo-final-img-2');
   const finalTxt = document.getElementById('tour-novo-final-texto');
   if (finalImg) finalImg.src = TOUR_NOVO_MASCOTE_2;
+  if (finalImg2) finalImg2.src = TOUR_NOVO_MASCOTE_1;
   if (finalTxt) finalTxt.textContent = (_tourNovoTextos && _tourNovoTextos.final) || TOUR_NOVO_TEXTOS_PADRAO.final;
   if (final) final.style.display = 'flex';
+}
+
+function tourNovoRepetir() {
+  const final = document.getElementById('tour-novo-final');
+  if (final) final.style.display = 'none';
+  tourNovoIniciar();
+}
+
+function tourNovoIrPainel() {
+  const final = document.getElementById('tour-novo-final');
+  if (final) final.style.display = 'none';
+  if (window.goTo) goTo('p-dash');
 }
 
 window.tourNovoIniciar   = tourNovoIniciar;
 window.tourNovoProximo   = tourNovoProximo;
 window.tourNovoPular     = tourNovoPular;
 window.tourNovoFinalizar = tourNovoFinalizar;
+window.tourNovoRepetir   = tourNovoRepetir;
+window.tourNovoIrPainel  = tourNovoIrPainel;
 
 // ── SuperAdmin: editar os textos do tour ────────────────────────────────────
 async function tourNovoAbrirEdicao() {
@@ -13598,9 +13573,18 @@ window._avUrl             = _avUrl;
   <div style="background:#fff;border-radius:18px;max-width:360px;width:100%;padding:24px 22px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.25)">
     <img id="tour-novo-final-img" src="" alt="Mascote" style="width:74px;height:74px;border-radius:50%;object-fit:cover;margin:0 auto 12px;border:2px solid #f4b8ce">
     <div style="font-size:16px;font-weight:700;color:#3d1a50;margin-bottom:8px">Prontinho! 🎉</div>
-    <div id="tour-novo-final-texto" style="font-size:13.5px;line-height:1.55;color:#6b5570;margin-bottom:18px">—</div>
-    <button onclick="document.getElementById('tour-novo-final').style.display='none'" style="width:100%;background:#6b2d8b;color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px">Ir para o Painel</button>
-    <a href="https://wa.me/5511932308150?text=Ol%C3%A1!%20Acabei%20de%20conhecer%20o%20Me%20Cuidar%20e%20quero%20saber%20mais!" target="_blank" style="display:block;width:100%;box-sizing:border-box;background:#25D366;color:#fff;text-decoration:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700">💬 Falar no WhatsApp</a>
+    <div id="tour-novo-final-texto" style="font-size:13.5px;line-height:1.55;color:#6b5570;margin-bottom:16px">—</div>
+
+    <div style="background:#fdf0f8;border:1px solid #f4b8ce;border-radius:12px;padding:14px;margin-bottom:18px;display:flex;align-items:center;gap:10px;text-align:left">
+      <img src="" id="tour-novo-final-img-2" alt="Mascote" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1.5px solid #f4b8ce">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;color:#6b5570;margin-bottom:6px">Alguma dúvida? Fale comigo!</div>
+        <a href="https://wa.me/5511932308150?text=Ol%C3%A1!%20Acabei%20de%20conhecer%20o%20Me%20Cuidar%20e%20quero%20saber%20mais!" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#25D366;color:#fff;text-decoration:none;padding:8px 14px;border-radius:20px;font-size:12.5px;font-weight:700">💬 Entre em contato</a>
+      </div>
+    </div>
+
+    <button onclick="tourNovoIrPainel()" style="width:100%;background:#6b2d8b;color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px">Ir para o Painel</button>
+    <button onclick="tourNovoRepetir()" style="width:100%;background:none;color:#6b2d8b;border:1.5px solid #6b2d8b;padding:11px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">Quero olhar as telas de novo</button>
   </div>
 </div>
 
