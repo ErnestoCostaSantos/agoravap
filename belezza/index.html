@@ -10620,8 +10620,8 @@ async function catpubCriarContaMeCuidar() {
       clinicaId, clinicaNome: nome,
       fornecedorId: _catpubFornecedorId,
       fornecedorNome: _nomeCatalogoPub || 'Fornecedor',
-      status: 'aprovado', criadoEm: serverTimestamp(),
-    });
+      status: 'pendente', criadoEm: serverTimestamp(),
+    }).then(ref => updateDoc(ref, { status: 'aprovado' }));
 
     const servicosPadrao = [
       { nome: 'Limpeza de Pele',        cat: 'Facial',   icone: 'ti-sparkles'    },
