@@ -10429,6 +10429,10 @@ async function catpubEscolherPagamento(forma) {
   }
   if (pagamento) pagamento.style.display = 'none';
   if (obrigado) obrigado.style.display = 'block';
+  // Esconde o convite genérico do rodapé — o botão de cima já cobre o mesmo
+  // convite, com os dados dela já preenchidos.
+  const ctaGenerico = document.getElementById('catpub-cta-generico');
+  if (ctaGenerico) ctaGenerico.style.display = 'none';
 }
 window.catpubEscolherPagamento = catpubEscolherPagamento;
 
@@ -13528,7 +13532,7 @@ window._avUrl             = _avUrl;
     </div>
   </div>
 
-  <div class="catpub-cta">
+  <div class="catpub-cta" id="catpub-cta-generico">
     <p>Gostou do catálogo? Conheça o app <strong>Me Cuidar</strong> e tenha mais vantagens exclusivas por apenas R$ 19,90 por mês. Teste grátis!</p>
     <a href="https://mecuidar.app.br" class="catpub-btn-cta">Conhecer o Me Cuidar</a>
   </div>
