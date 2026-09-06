@@ -476,6 +476,8 @@ input[type="password"]::-ms-clear {
 .catpub-kit-card details{font-size:13px;color:var(--tx2);margin-top:8px;}
 .catpub-cta{text-align:center;background:var(--pk50);border-radius:var(--rl);padding:20px 16px;margin:16px;}
 .catpub-aviso-legal{text-align:center;font-size:11px;color:var(--tx3);padding:0 16px 20px;line-height:1.4;}
+html.catpub-mode #mascote-wrap,
+html.catpub-mode #mascote-pro-wrap{display:none!important;}
 .catpub-btn-cta{display:inline-block;background:var(--bg);border:1px solid var(--pk400);border-radius:var(--r);padding:8px 20px;color:var(--pk600);text-decoration:none;font-size:14px;margin-top:8px;}
 /* Lista de produtos estilo carrinho (uma linha por produto) */
 .catpub-busca-wrap{margin:0 16px 12px;}
@@ -2149,6 +2151,11 @@ if (_isCatalogoPublico) {
   if (appDivPub) appDivPub.style.display = 'none';
   const loginPub = document.getElementById('login-cli-screen');
   if (loginPub) loginPub.style.display = 'none';
+  // Página pública (visitante externo, sem login) — Margarida não faz sentido aqui.
+  // Classe com !important em vez de só esconder agora: blinda contra qualquer código
+  // futuro que force display:block nesses wraps (foi o que causou o vazamento do
+  // balão "p-dash" nessa tela).
+  document.documentElement.classList.add('catpub-mode');
 }
 
 // ── Inatividade (10 minutos) ──────────────────────────────────────────────
