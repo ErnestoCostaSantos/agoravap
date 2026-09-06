@@ -5,6 +5,11 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <title>MeCuidar</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Clique aqui e faça seu pedido">
+<meta property="og:description" content="Catálogo online — veja os produtos e peça direto pelo link, sem precisar baixar nada.">
+<meta property="og:image" content="https://mecuidar.app.br/apple-touch-icon.png">
+<meta name="twitter:card" content="summary">
 
 
 <!-- PWA -->
@@ -470,6 +475,7 @@ input[type="password"]::-ms-clear {
 .catpub-precos span:not(:first-child){color:var(--tx3);}
 .catpub-kit-card details{font-size:13px;color:var(--tx2);margin-top:8px;}
 .catpub-cta{text-align:center;background:var(--pk50);border-radius:var(--rl);padding:20px 16px;margin:16px;}
+.catpub-aviso-legal{text-align:center;font-size:11px;color:var(--tx3);padding:0 16px 20px;line-height:1.4;}
 .catpub-btn-cta{display:inline-block;background:var(--bg);border:1px solid var(--pk400);border-radius:var(--r);padding:8px 20px;color:var(--pk600);text-decoration:none;font-size:14px;margin-top:8px;}
 /* Lista de produtos estilo carrinho (uma linha por produto) */
 .catpub-busca-wrap{margin:0 16px 12px;}
@@ -9444,6 +9450,7 @@ let _unsubProdutosForn = null;
 let _prodImgBase64 = '';
 let _prodEditId = '';
 let _logoFornBase64 = '';
+let _catalogoUrlFornecedor = ''; // preenchido por gerarQRCodeFornecedor(), reusado pelo botão de WhatsApp
 
 // Navegação por abas do painel do Fornecedor (Dashboard/Catálogo/Clientes/Pedidos/Promoções).
 function toggleFornSidebar(){
@@ -9522,6 +9529,7 @@ function gerarQRCodeFornecedor() {
   if (!fid || !alvo) return;
   const nome = encodeURIComponent(cp.name || '');
   const url = `https://mecuidar.app.br/?catalogo=1&f=${fid}&nome=${nome}`;
+  _catalogoUrlFornecedor = url; // guardado pra reusar no botão de compartilhar no WhatsApp
   alvo.innerHTML = '';
   if (window.QRCode) {
     new QRCode(alvo, { text: url, width: 220, height: 220 });
@@ -9550,6 +9558,14 @@ function gerarQRCodeFornecedor() {
   }
 }
 window.gerarQRCodeFornecedor = gerarQRCodeFornecedor;
+
+function compartilharCatalogoWhatsapp() {
+  const url = _catalogoUrlFornecedor;
+  if (!url) return;
+  const msg = `🛍️ *Clique Aqui e Faça seu Pedido*\n${url}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+window.compartilharCatalogoWhatsapp = compartilharCatalogoWhatsapp;
 
 function toggleBuscaClinicaForn() {
   const wrap = document.getElementById('forn-busca-clinica-wrap');
@@ -11742,6 +11758,10 @@ Desodorante 0% Alumínio c/ Niacinamida 55g;39.40;Corporal</textarea>
     <div id="qrcode-fornecedor-container" style="width:220px;height:220px;background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;"></div>
     <div id="qrcode-fornecedor-views" style="font-size:12px;color:#57534e;margin-top:10px;font-weight:600;"></div>
     <div id="qrcode-fornecedor-link" style="font-size:11px;color:#a8a29e;margin-top:4px;word-break:break-all;max-width:320px;"></div>
+    <button onclick="compartilharCatalogoWhatsapp()" style="margin-top:12px;background:#25D366;color:#fff;border:none;padding:9px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;">
+      <i class="ti ti-brand-whatsapp"></i> Compartilhar no WhatsApp
+    </button>
+    <div style="font-size:11px;color:#a8a29e;margin-top:6px;max-width:320px;">Abre o WhatsApp com a mensagem "Clique Aqui e Faça seu Pedido" já pronta — escolha o contato ou grupo e envie.</div>
 
     <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e7e5e4;max-width:420px;">
       <div style="font-size:13px;font-weight:700;color:#1c1917;margin-bottom:6px;">Logo do catálogo</div>
@@ -13223,6 +13243,8 @@ window._avUrl             = _avUrl;
     <p>Gostou do catálogo? Baixe o app <strong>Me Cuidar</strong> e peça direto pelo aplicativo.</p>
     <a href="https://mecuidar.app.br" class="catpub-btn-cta">Conhecer o Me Cuidar</a>
   </div>
+
+  <p class="catpub-aviso-legal">Imagens, preços e descritivos meramente ilustrativos e sujeitos a desatualizações.</p>
 </div>
 
 <!-- ── Lightbox genérico: clique em qualquer foto de produto/kit/promoção pra ver em tamanho grande ── -->
