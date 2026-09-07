@@ -1638,9 +1638,23 @@ function previewFotoPesagem(input){ if(window._previewFotoPesagem) window._previ
           <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">WhatsApp do estabelecimento</label>
           <input id="pers-wpp" type="text" inputmode="numeric" placeholder="Ex: 5511999999999 (DDI+DDD+número, só dígitos)" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
         </div>
-        <div>
+        <div style="margin-bottom:12px">
           <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Plano / selo exibido no menu</label>
           <input id="pers-plano" type="text" placeholder="Ex: Solo Pro, Clínica Pro, Studio, Espaço..." style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Atividade</label>
+          <select id="pers-atividade" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+            <option value="">Selecione...</option>
+            <option value="Biomedicina">Biomedicina</option>
+            <option value="Estética">Estética</option>
+            <option value="Medicina">Medicina</option>
+            <option value="Nutrição">Nutrição</option>
+            <option value="Outras">Outras</option>
+            <option value="Salão">Salão</option>
+            <option value="Spa">Spa</option>
+            <option value="Studio">Studio</option>
+          </select>
         </div>
       </div>
 
@@ -8066,6 +8080,7 @@ async function initPersonalizacaoForm(){
   const nomeEl  = document.getElementById('pers-nome');
   const wppEl   = document.getElementById('pers-wpp');
   const planoEl = document.getElementById('pers-plano');
+  const profEl  = document.getElementById('pers-atividade');
   const preview = document.getElementById('pers-img-preview');
   const label    = document.getElementById('pers-img-label');
   const hint     = document.getElementById('pers-img-hint');
@@ -8082,6 +8097,7 @@ async function initPersonalizacaoForm(){
   if(nomeEl)  nomeEl.value  = _persBrandAtual.nomeEstab  || window.NOME_ESTAB  || '';
   if(wppEl)   wppEl.value   = _persBrandAtual.wppEstab   || window.WPP_ESTAB   || '';
   if(planoEl) planoEl.value = _persBrandAtual.planoEstab || window.PLANO_ESTAB || '';
+  if(profEl)  profEl.value  = _persBrandAtual.atividade  || '';
 
   if(_persBrandAtual.imagemFundoBase64){
     if(preview){ preview.src = _persBrandAtual.imagemFundoBase64; preview.style.display = 'block'; }
@@ -8104,9 +8120,10 @@ async function salvarPersonalizacao(){
   const toast  = document.getElementById('pers-toast');
   if(erroEl) erroEl.textContent = '';
 
-  const nome   = (document.getElementById('pers-nome')?.value  || '').trim();
-  const wppNum = (document.getElementById('pers-wpp')?.value   || '').replace(/\D/g, '');
-  const plano  = (document.getElementById('pers-plano')?.value || '').trim();
+  const nome   = (document.getElementById('pers-nome')?.value      || '').trim();
+  const wppNum = (document.getElementById('pers-wpp')?.value       || '').replace(/\D/g, '');
+  const plano  = (document.getElementById('pers-plano')?.value     || '').trim();
+  const prof   = (document.getElementById('pers-atividade')?.value || '').trim();
 
   if(!nome)             { if(erroEl) erroEl.textContent = 'Informe o nome do estabelecimento.'; return; }
   if(wppNum.length < 10){ if(erroEl) erroEl.textContent = 'Informe o WhatsApp com DDI+DDD (ex: 5511999999999).'; return; }
@@ -8114,7 +8131,7 @@ async function salvarPersonalizacao(){
 
   if(btn){ btn.innerHTML = 'Salvando...'; btn.disabled = true; }
 
-  const dados = { nomeEstab: nome, wppEstab: wppNum, planoEstab: plano };
+  const dados = { nomeEstab: nome, wppEstab: wppNum, planoEstab: plano, atividade: prof };
   // _persImgBase64: null = sem alteração · '' = remover · string = nova foto
   if(_persImgBase64 !== null) dados.imagemFundoBase64 = _persImgBase64;
 
