@@ -746,6 +746,15 @@ function fecharPerfilCliente(){ if(window._fecharPerfilCliente) window._fecharPe
 function filtrarClientes(q){ if(window._filtrarClientes) window._filtrarClientes(q); }
 function editarCliente(id){ if(window._editarCliente) window._editarCliente(id); }
 function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvarEdicaoCliente(id); }
+// Programa de controle de peso — delegam para o módulo
+function abrirModalPrograma(id){ if(window._abrirModalPrograma) window._abrirModalPrograma(id); }
+function fecharModalPrograma(){ if(window._fecharModalPrograma) window._fecharModalPrograma(); }
+function salvarPrograma(){ if(window._salvarPrograma) window._salvarPrograma(); }
+function abrirModalPesagem(id){ if(window._abrirModalPesagem) window._abrirModalPesagem(id); }
+function fecharModalPesagem(){ if(window._fecharModalPesagem) window._fecharModalPesagem(); }
+function salvarPesagem(){ if(window._salvarPesagem) window._salvarPesagem(); }
+function previewFotoPrograma(input){ if(window._previewFotoPrograma) window._previewFotoPrograma(input); }
+function previewFotoPesagem(input){ if(window._previewFotoPesagem) window._previewFotoPesagem(input); }
 </script>
 <div class="content" id="content">
 
@@ -4878,6 +4887,23 @@ function abrirPerfilCliente(id){
         ${c.obs ? `<div style="background:var(--am50);border-radius:var(--r);padding:6px 8px;font-size:11px;color:var(--am800)"><i class="ti ti-note"></i> ${c.obs}</div>` : ''}
       </div>
     </div>
+    ${(() => {
+      const pp = c.programaPeso;
+      if(pp && pp.ativo){
+        const faltam = (pp.meta != null && pp.pesoAtual != null) ? (pp.pesoAtual - pp.meta) : null;
+        return `
+    <div class="card" style="margin-bottom:10px;padding:12px;background:var(--tl50);border-color:var(--tl100)">
+      <div style="font-size:11px;font-weight:700;color:var(--tl800);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em"><i class="ti ti-chart-line"></i> Controle de peso — ${pp.programa}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div><div style="font-size:10px;color:var(--tx3)">Peso atual</div><div style="font-size:16px;font-weight:700;color:var(--tx)">${pp.pesoAtual} kg</div></div>
+        <div><div style="font-size:10px;color:var(--tx3)">Meta</div><div style="font-size:16px;font-weight:700;color:var(--tx)">${pp.meta != null ? pp.meta + ' kg' : '—'}</div></div>
+      </div>
+      ${faltam != null ? `<div style="font-size:12px;color:var(--tl800);margin-bottom:8px">${faltam > 0 ? 'Faltam ' + faltam.toFixed(1) + ' kg para a meta' : 'Meta atingida! 🎉'}</div>` : ''}
+      <button class="btn tl" style="width:100%" onclick="abrirModalPesagem('${c.id}')"><i class="ti ti-scale"></i> Registrar pesagem</button>
+    </div>`;
+      }
+      return `<button class="btn" style="width:100%;margin-bottom:10px" onclick="abrirModalPrograma('${c.id}')"><i class="ti ti-scale"></i> Iniciar programa de controle de peso</button>`;
+    })()}
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <button class="btn tl" style="flex:1" onclick="window.open('https://wa.me/55${c.wpp.replace(/\D/g,'')}?text='+encodeURIComponent('Olá, ${c.nome.split(' ')[0]}! Aqui é do ${window.NOME_ESTAB || 'estabelecimento'}.'),'_blank')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
       <button class="btn pk" style="flex:1" onclick="fecharPerfilCliente();abrirModalAg()"><i class="ti ti-calendar-plus"></i> Agendar</button>
@@ -5005,6 +5031,197 @@ async function salvarCliente(){
   document.getElementById('nc-toast').style.display='flex';
   setTimeout(()=>fecharModalCliente(), 2000);
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MÓDULO PROGRAMA DE CONTROLE DE PESO — cadastro do programa + pesagens
+// ══════════════════════════════════════════════════════════════════════════════
+let _fotoProgramaBase64 = '';
+let _fotoPesagemBase64  = '';
+
+// Reaproveita o mesmo padrão de compressão de imagem usado em previewPromoImg()
+function _compactarFoto(input, onDone){
+  if(!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.onload = () => {
+      const MAX = 480;
+      let w = img.width, h = img.height;
+      if(w > MAX || h > MAX){
+        if(w > h){ h = Math.round(h * MAX / w); w = MAX; }
+        else      { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      onDone(canvas.toDataURL('image/jpeg', 0.60));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewFotoPrograma(input){
+  _compactarFoto(input, base64 => {
+    _fotoProgramaBase64 = base64;
+    const preview = document.getElementById('prg-foto-preview');
+    const label   = document.getElementById('prg-foto-label');
+    const badge   = document.getElementById('prg-foto-badge');
+    if(preview){ preview.src = base64; preview.style.display = 'block'; }
+    if(label)   label.style.display = 'none';
+    if(badge)   badge.style.display = 'block';
+  });
+}
+function previewFotoPesagem(input){
+  _compactarFoto(input, base64 => {
+    _fotoPesagemBase64 = base64;
+    const preview = document.getElementById('pesa-foto-preview');
+    const label   = document.getElementById('pesa-foto-label');
+    const badge   = document.getElementById('pesa-foto-badge');
+    if(preview){ preview.src = base64; preview.style.display = 'block'; }
+    if(label)   label.style.display = 'none';
+    if(badge)   badge.style.display = 'block';
+  });
+}
+
+function abrirModalPrograma(clienteId){
+  document.getElementById('prg-cliente-id').value = clienteId;
+  document.getElementById('prg-programa').selectedIndex = 0;
+  document.getElementById('prg-motivo').selectedIndex   = 0;
+  document.getElementById('prg-dieta').selectedIndex    = 0;
+  document.querySelectorAll('input[name="prg-restr"]').forEach(chk => chk.checked = false);
+  document.getElementById('prg-restricoes-outras').value = '';
+  ['prg-peso','prg-cintura','prg-quadril','prg-busto','prg-braco','prg-meta','prg-prazo'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  _fotoProgramaBase64 = '';
+  const preview = document.getElementById('prg-foto-preview');
+  const label   = document.getElementById('prg-foto-label');
+  const badge   = document.getElementById('prg-foto-badge');
+  if(preview) preview.style.display = 'none';
+  if(label)   label.style.display = 'flex';
+  if(badge)   badge.style.display = 'none';
+  document.getElementById('prg-error').textContent = '';
+  document.getElementById('modal-programa-peso').style.display = 'flex';
+}
+function fecharModalPrograma(){
+  document.getElementById('modal-programa-peso').style.display = 'none';
+}
+async function salvarPrograma(){
+  const clienteId = document.getElementById('prg-cliente-id').value;
+  const peso = parseFloat(document.getElementById('prg-peso').value);
+  if(!clienteId || !peso){ document.getElementById('prg-error').textContent = 'Peso inicial é obrigatório.'; return; }
+  const restricoes = Array.from(document.querySelectorAll('input[name="prg-restr"]:checked')).map(chk => chk.value);
+  const meta = parseFloat(document.getElementById('prg-meta').value);
+  const programaPeso = {
+    ativo: true,
+    programa: document.getElementById('prg-programa').value,
+    motivo:   document.getElementById('prg-motivo').value,
+    dieta:    document.getElementById('prg-dieta').value,
+    restricoes,
+    restricoesOutras: document.getElementById('prg-restricoes-outras').value.trim(),
+    pesoInicial: peso,
+    pesoAtual:   peso,
+    meta:        isNaN(meta) ? null : meta,
+    prazoMeta:   document.getElementById('prg-prazo').value || '',
+    iniciadoEm:  new Date().toISOString(),
+  };
+  try{
+    await updateDoc(doc(db,'clientes',clienteId), { programaPeso });
+    const cintura = document.getElementById('prg-cintura').value;
+    const quadril = document.getElementById('prg-quadril').value;
+    const busto   = document.getElementById('prg-busto').value;
+    const braco   = document.getElementById('prg-braco').value;
+    await addDoc(collection(db,'clientes',clienteId,'pesagens'), {
+      data: new Date().toISOString().slice(0,10),
+      peso,
+      cintura: cintura ? parseFloat(cintura) : null,
+      quadril: quadril ? parseFloat(quadril) : null,
+      busto:   busto   ? parseFloat(busto)   : null,
+      braco:   braco   ? parseFloat(braco)   : null,
+      fotoBase64: _fotoProgramaBase64 || '',
+      obs: 'Início do programa',
+      criadoEm: new Date().toISOString(),
+      registradoPor: (window.cp && window.cp.nome) || 'admin',
+    });
+    const c = (window.clientesDB || clientesDB || []).find(x => x.id === clienteId);
+    if(c) c.programaPeso = programaPeso;
+    fecharModalPrograma();
+    abrirPerfilCliente(clienteId);
+  } catch(e){
+    console.error('[Belezza] salvarPrograma ERRO:', e.message);
+    document.getElementById('prg-error').textContent = 'Erro ao salvar: ' + e.message;
+  }
+}
+
+function abrirModalPesagem(clienteId){
+  document.getElementById('pesa-cliente-id').value = clienteId;
+  document.getElementById('pesa-data').value = new Date().toISOString().slice(0,10);
+  ['pesa-peso','pesa-cintura','pesa-quadril','pesa-busto','pesa-braco'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('pesa-obs').value = '';
+  _fotoPesagemBase64 = '';
+  const preview = document.getElementById('pesa-foto-preview');
+  const label   = document.getElementById('pesa-foto-label');
+  const badge   = document.getElementById('pesa-foto-badge');
+  if(preview) preview.style.display = 'none';
+  if(label)   label.style.display = 'flex';
+  if(badge)   badge.style.display = 'none';
+  document.getElementById('pesa-error').textContent = '';
+  document.getElementById('modal-pesagem').style.display = 'flex';
+}
+function fecharModalPesagem(){
+  document.getElementById('modal-pesagem').style.display = 'none';
+}
+async function salvarPesagem(){
+  const clienteId = document.getElementById('pesa-cliente-id').value;
+  const peso = parseFloat(document.getElementById('pesa-peso').value);
+  if(!clienteId || !peso){ document.getElementById('pesa-error').textContent = 'Peso é obrigatório.'; return; }
+  const cintura = document.getElementById('pesa-cintura').value;
+  const quadril = document.getElementById('pesa-quadril').value;
+  const busto   = document.getElementById('pesa-busto').value;
+  const braco   = document.getElementById('pesa-braco').value;
+  try{
+    await addDoc(collection(db,'clientes',clienteId,'pesagens'), {
+      data: document.getElementById('pesa-data').value || new Date().toISOString().slice(0,10),
+      peso,
+      cintura: cintura ? parseFloat(cintura) : null,
+      quadril: quadril ? parseFloat(quadril) : null,
+      busto:   busto   ? parseFloat(busto)   : null,
+      braco:   braco   ? parseFloat(braco)   : null,
+      fotoBase64: _fotoPesagemBase64 || '',
+      obs: document.getElementById('pesa-obs').value.trim(),
+      criadoEm: new Date().toISOString(),
+      registradoPor: (window.cp && window.cp.nome) || 'admin',
+    });
+    await updateDoc(doc(db,'clientes',clienteId), { 'programaPeso.pesoAtual': peso });
+    const c = (window.clientesDB || clientesDB || []).find(x => x.id === clienteId);
+    if(c && c.programaPeso) c.programaPeso.pesoAtual = peso;
+    fecharModalPesagem();
+    abrirPerfilCliente(clienteId);
+  } catch(e){
+    console.error('[Belezza] salvarPesagem ERRO:', e.message);
+    document.getElementById('pesa-error').textContent = 'Erro ao salvar: ' + e.message;
+  }
+}
+window.abrirModalPrograma   = abrirModalPrograma;
+window._abrirModalPrograma  = abrirModalPrograma;
+window.fecharModalPrograma  = fecharModalPrograma;
+window._fecharModalPrograma = fecharModalPrograma;
+window.salvarPrograma       = salvarPrograma;
+window._salvarPrograma      = salvarPrograma;
+window.abrirModalPesagem    = abrirModalPesagem;
+window._abrirModalPesagem   = abrirModalPesagem;
+window.fecharModalPesagem   = fecharModalPesagem;
+window._fecharModalPesagem  = fecharModalPesagem;
+window.salvarPesagem        = salvarPesagem;
+window._salvarPesagem       = salvarPesagem;
+window.previewFotoPrograma  = previewFotoPrograma;
+window._previewFotoPrograma = previewFotoPrograma;
+window.previewFotoPesagem   = previewFotoPesagem;
+window._previewFotoPesagem  = previewFotoPesagem;
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO FIRESTORE — Integração completa agendamentos
@@ -12420,6 +12637,129 @@ Desodorante 0% Alumínio c/ Niacinamida 55g;39.40;Corporal</textarea>
     </div>
     <div id="nc-toast" style="display:none;background:var(--tl50);border:1px solid var(--tl100);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--tl800);align-items:center;gap:8px">
       <i class="ti ti-circle-check" style="font-size:18px"></i> Cliente cadastrada com sucesso!
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PROGRAMA DE CONTROLE DE PESO -->
+<div id="modal-programa-peso" style="display:none;position:fixed;inset:0;z-index:8100;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+  <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700;color:var(--tx)">Novo programa de controle de peso</div>
+      <button onclick="fecharModalPrograma()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">✕</button>
+    </div>
+    <input type="hidden" id="prg-cliente-id" value="">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Programa</label>
+        <select id="prg-programa" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+          <option>Emagrecimento</option>
+          <option>Manutenção de peso</option>
+          <option>Ganho de massa</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Motivo</label>
+        <select id="prg-motivo" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+          <option>Estética</option>
+          <option>Saúde</option>
+          <option>Indicação médica</option>
+          <option>Evento</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Dieta</label>
+        <select id="prg-dieta" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx)">
+          <option>Reeducação alimentar</option>
+          <option>Low carb</option>
+          <option>Cetogênica</option>
+          <option>Jejum intermitente</option>
+          <option>Não acompanha dieta específica</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Restrições</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:8px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--tx)"><input type="checkbox" name="prg-restr" value="Diabetes"> Diabetes</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--tx)"><input type="checkbox" name="prg-restr" value="Hipertensão"> Hipertensão</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--tx)"><input type="checkbox" name="prg-restr" value="Intolerância à lactose"> Intolerância à lactose</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--tx)"><input type="checkbox" name="prg-restr" value="Alergia alimentar"> Alergia alimentar</label>
+        </div>
+        <input id="prg-restricoes-outras" type="text" placeholder="Outras restrições" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--br);padding-top:12px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Medidas iniciais</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label style="font-size:10px;color:var(--tx3)">Peso (kg) *</label><input id="prg-peso" type="number" step="0.1" placeholder="0" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+        <div><label style="font-size:10px;color:var(--tx3)">Cintura (cm)</label><input id="prg-cintura" type="number" step="0.1" placeholder="0" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+        <div><label style="font-size:10px;color:var(--tx3)">Quadril (cm)</label><input id="prg-quadril" type="number" step="0.1" placeholder="0" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+        <div><label style="font-size:10px;color:var(--tx3)">Busto (cm)</label><input id="prg-busto" type="number" step="0.1" placeholder="0" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+        <div><label style="font-size:10px;color:var(--tx3)">Braço (cm)</label><input id="prg-braco" type="number" step="0.1" placeholder="0" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Foto de progresso (inicial)</label>
+      <label id="prg-foto-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:90px;border:1.5px dashed var(--br2);border-radius:var(--rl);cursor:pointer;background:var(--bg2);color:var(--tx3);position:relative;overflow:hidden">
+        <i class="ti ti-camera" style="font-size:20px"></i>
+        <span style="font-size:11px">Toque para adicionar</span>
+        <input type="file" accept="image/*" style="display:none" onchange="previewFotoPrograma(this)">
+      </label>
+      <img id="prg-foto-preview" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:var(--rl);margin-top:6px" onclick="this.parentElement.querySelector('input')?.click()">
+      <button type="button" id="prg-foto-badge" onclick="document.getElementById('prg-foto-label').querySelector('input').click()" style="display:none;margin-top:5px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--tx3);font-family:inherit"><i class="ti ti-refresh"></i> Trocar foto</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid var(--br);padding-top:12px;margin-bottom:10px">
+      <div><label style="font-size:10px;color:var(--tx3)">Meta (peso alvo, kg)</label><input id="prg-meta" type="number" step="0.1" placeholder="0" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+      <div><label style="font-size:10px;color:var(--tx3)">Prazo da meta</label><input id="prg-prazo" type="date" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+    </div>
+    <div id="prg-error" style="color:var(--pk600);font-size:12px;margin-bottom:8px;min-height:16px"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="fecharModalPrograma()" class="btn" style="flex:1">Cancelar</button>
+      <button onclick="salvarPrograma()" class="btn pk" style="flex:1"><i class="ti ti-device-floppy"></i> Salvar programa</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REGISTRAR PESAGEM -->
+<div id="modal-pesagem" style="display:none;position:fixed;inset:0;z-index:8100;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+  <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700;color:var(--tx)">Registrar pesagem</div>
+      <button onclick="fecharModalPesagem()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">✕</button>
+    </div>
+    <input type="hidden" id="pesa-cliente-id" value="">
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Data</label>
+      <input id="pesa-data" type="date" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label style="font-size:10px;color:var(--tx3)">Peso (kg) *</label><input id="pesa-peso" type="number" step="0.1" placeholder="0" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+      <div><label style="font-size:10px;color:var(--tx3)">Cintura (cm)</label><input id="pesa-cintura" type="number" step="0.1" placeholder="0" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+      <div><label style="font-size:10px;color:var(--tx3)">Quadril (cm)</label><input id="pesa-quadril" type="number" step="0.1" placeholder="0" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+      <div><label style="font-size:10px;color:var(--tx3)">Busto (cm)</label><input id="pesa-busto" type="number" step="0.1" placeholder="0" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+      <div><label style="font-size:10px;color:var(--tx3)">Braço (cm)</label><input id="pesa-braco" type="number" step="0.1" placeholder="0" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box"></div>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Foto de progresso</label>
+      <label id="pesa-foto-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:90px;border:1.5px dashed var(--br2);border-radius:var(--rl);cursor:pointer;background:var(--bg2);color:var(--tx3);position:relative;overflow:hidden">
+        <i class="ti ti-camera" style="font-size:20px"></i>
+        <span style="font-size:11px">Toque para adicionar</span>
+        <input type="file" accept="image/*" style="display:none" onchange="previewFotoPesagem(this)">
+      </label>
+      <img id="pesa-foto-preview" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:var(--rl);margin-top:6px" onclick="this.parentElement.querySelector('input')?.click()">
+      <button type="button" id="pesa-foto-badge" onclick="document.getElementById('pesa-foto-label').querySelector('input').click()" style="display:none;margin-top:5px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--tx3);font-family:inherit"><i class="ti ti-refresh"></i> Trocar foto</button>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Observações</label>
+      <textarea id="pesa-obs" rows="2" placeholder="Ex: Cliente relatou dificuldade com o cardápio nos finais de semana" style="width:100%;padding:9px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);resize:none;font-family:inherit;box-sizing:border-box"></textarea>
+    </div>
+    <div id="pesa-error" style="color:var(--pk600);font-size:12px;margin-bottom:8px;min-height:16px"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="fecharModalPesagem()" class="btn" style="flex:1">Cancelar</button>
+      <button onclick="salvarPesagem()" class="btn pk" style="flex:1"><i class="ti ti-device-floppy"></i> Salvar pesagem</button>
     </div>
   </div>
 </div>
