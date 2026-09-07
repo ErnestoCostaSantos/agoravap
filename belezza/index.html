@@ -746,7 +746,7 @@ function fecharPerfilCliente(){ if(window._fecharPerfilCliente) window._fecharPe
 function filtrarClientes(q){ if(window._filtrarClientes) window._filtrarClientes(q); }
 function editarCliente(id){ if(window._editarCliente) window._editarCliente(id); }
 function salvarEdicaoCliente(id){ if(window._salvarEdicaoCliente) window._salvarEdicaoCliente(id); }
-// Programa de controle de peso — delegam para o módulo
+// Programa Cuidar do Peso — delegam para o módulo
 function abrirModalPrograma(id){ if(window._abrirModalPrograma) window._abrirModalPrograma(id); }
 function fecharModalPrograma(){ if(window._fecharModalPrograma) window._fecharModalPrograma(); }
 function salvarPrograma(){ if(window._salvarPrograma) window._salvarPrograma(); }
@@ -1638,23 +1638,9 @@ function previewFotoPesagem(input){ if(window._previewFotoPesagem) window._previ
           <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">WhatsApp do estabelecimento</label>
           <input id="pers-wpp" type="text" inputmode="numeric" placeholder="Ex: 5511999999999 (DDI+DDD+número, só dígitos)" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
         </div>
-        <div style="margin-bottom:12px">
+        <div>
           <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Plano / selo exibido no menu</label>
           <input id="pers-plano" type="text" placeholder="Ex: Solo Pro, Clínica Pro, Studio, Espaço..." style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
-        </div>
-        <div>
-          <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Atividade</label>
-          <select id="pers-atividade" style="width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--br);font-size:13px;background:var(--bg2);color:var(--tx);box-sizing:border-box">
-            <option value="">Selecione...</option>
-            <option value="Biomedicina">Biomedicina</option>
-            <option value="Estética">Estética</option>
-            <option value="Medicina">Medicina</option>
-            <option value="Nutrição">Nutrição</option>
-            <option value="Outras">Outras</option>
-            <option value="Salão">Salão</option>
-            <option value="Spa">Spa</option>
-            <option value="Studio">Studio</option>
-          </select>
         </div>
       </div>
 
@@ -4907,7 +4893,7 @@ function abrirPerfilCliente(id){
         const faltam = (pp.meta != null && pp.pesoAtual != null) ? (pp.pesoAtual - pp.meta) : null;
         return `
     <div class="card" style="margin-bottom:10px;padding:12px;background:var(--tl50);border-color:var(--tl100)">
-      <div style="font-size:11px;font-weight:700;color:var(--tl800);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em"><i class="ti ti-chart-line"></i> Controle de peso — ${pp.programa}</div>
+      <div style="font-size:11px;font-weight:700;color:var(--tl800);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em"><i class="ti ti-chart-line"></i> Cuidar do Peso — ${pp.programa}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <div><div style="font-size:10px;color:var(--tx3)">Peso atual</div><div style="font-size:16px;font-weight:700;color:var(--tx)">${pp.pesoAtual} kg</div></div>
         <div><div style="font-size:10px;color:var(--tx3)">Meta</div><div style="font-size:16px;font-weight:700;color:var(--tx)">${pp.meta != null ? pp.meta + ' kg' : '—'}</div></div>
@@ -4916,7 +4902,7 @@ function abrirPerfilCliente(id){
       <button class="btn tl" style="width:100%" onclick="abrirModalPesagem('${c.id}')"><i class="ti ti-scale"></i> Registrar pesagem</button>
     </div>`;
       }
-      return `<button class="btn" style="width:100%;margin-bottom:10px" onclick="abrirModalPrograma('${c.id}')"><i class="ti ti-scale"></i> Iniciar programa de controle de peso</button>`;
+      return `<button class="btn" style="width:100%;margin-bottom:10px" onclick="abrirModalPrograma('${c.id}')"><i class="ti ti-scale"></i> Iniciar programa Cuidar do Peso</button>`;
     })()}
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <button class="btn tl" style="flex:1" onclick="window.open('https://wa.me/55${c.wpp.replace(/\D/g,'')}?text='+encodeURIComponent('Olá, ${c.nome.split(' ')[0]}! Aqui é do ${window.NOME_ESTAB || 'estabelecimento'}.'),'_blank')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
@@ -5047,7 +5033,7 @@ async function salvarCliente(){
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO PROGRAMA DE CONTROLE DE PESO — cadastro do programa + pesagens
+// MÓDULO PROGRAMA CUIDAR DO PESO — cadastro do programa + pesagens
 // ══════════════════════════════════════════════════════════════════════════════
 let _fotoProgramaBase64 = '';
 let _fotoPesagemBase64  = '';
@@ -5169,6 +5155,59 @@ async function salvarPrograma(){
   }
 }
 
+// ── Tela "Cuidar do Peso" na versão Cliente (aberta a partir do serviço no catálogo) ──
+let _meuClienteId = null;
+let _meuClienteData = null;
+let _pesagemOrigemCliente = false;
+
+async function abrirCuidarPesoCliente(){
+  const modal = document.getElementById('modal-cuidar-peso-cliente');
+  const body  = document.getElementById('cuidar-peso-cli-body');
+  if(!modal || !body) return;
+  modal.style.display = 'flex';
+  body.innerHTML = '<div style="text-align:center;padding:24px 0;color:var(--tx3);font-size:12px">Carregando...</div>';
+  try{
+    if(!_meuClienteId && cu && cu.email){
+      const qCli = await getDocs(query(collection(db,'clientes'), where('email','==', cu.email)));
+      if(!qCli.empty){ _meuClienteId = qCli.docs[0].id; _meuClienteData = qCli.docs[0].data(); }
+    } else if(_meuClienteId){
+      const snap = await getDoc(doc(db,'clientes', _meuClienteId));
+      if(snap.exists()) _meuClienteData = snap.data();
+    }
+  } catch(e){ console.warn('[Belezza] abrirCuidarPesoCliente:', e); }
+  renderCuidarPesoCliente();
+}
+function fecharCuidarPesoCliente(){
+  const modal = document.getElementById('modal-cuidar-peso-cliente');
+  if(modal) modal.style.display = 'none';
+}
+function renderCuidarPesoCliente(){
+  const body = document.getElementById('cuidar-peso-cli-body');
+  if(!body) return;
+  const pp = _meuClienteData && _meuClienteData.programaPeso;
+  if(pp && pp.ativo){
+    const faltam = (pp.meta != null && pp.pesoAtual != null) ? (pp.pesoAtual - pp.meta) : null;
+    body.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div style="font-size:10px;color:var(--tx3)">Peso atual</div><div style="font-size:18px;font-weight:700;color:var(--tx)">${pp.pesoAtual} kg</div></div>
+        <div><div style="font-size:10px;color:var(--tx3)">Meta</div><div style="font-size:18px;font-weight:700;color:var(--tx)">${pp.meta != null ? pp.meta + ' kg' : '—'}</div></div>
+      </div>
+      ${faltam != null ? `<div style="font-size:12px;color:var(--tl800);margin-bottom:14px">${faltam > 0 ? 'Faltam ' + faltam.toFixed(1) + ' kg para a meta' : 'Meta atingida! 🎉'}</div>` : '<div style="margin-bottom:14px"></div>'}
+      <button class="btn tl" style="width:100%" onclick="abrirModalPesagemCliente()"><i class="ti ti-scale"></i> Registrar minha pesagem</button>
+    `;
+  } else {
+    body.innerHTML = `<div style="font-size:13px;color:var(--tx2);text-align:center;padding:16px 0 8px">Você ainda não tem um programa Cuidar do Peso ativo. Fale com a equipe para começar! 💕</div>`;
+  }
+}
+function abrirModalPesagemCliente(){
+  if(!_meuClienteId) return;
+  _pesagemOrigemCliente = true;
+  abrirModalPesagem(_meuClienteId);
+}
+window.abrirCuidarPesoCliente   = abrirCuidarPesoCliente;
+window.fecharCuidarPesoCliente  = fecharCuidarPesoCliente;
+window.abrirModalPesagemCliente = abrirModalPesagemCliente;
+
 function abrirModalPesagem(clienteId){
   document.getElementById('pesa-cliente-id').value = clienteId;
   document.getElementById('pesa-data').value = new Date().toISOString().slice(0,10);
@@ -5214,7 +5253,13 @@ async function salvarPesagem(){
     const c = (window.clientesDB || clientesDB || []).find(x => x.id === clienteId);
     if(c && c.programaPeso) c.programaPeso.pesoAtual = peso;
     fecharModalPesagem();
-    abrirPerfilCliente(clienteId);
+    if(_pesagemOrigemCliente){
+      _pesagemOrigemCliente = false;
+      if(_meuClienteData && _meuClienteData.programaPeso) _meuClienteData.programaPeso.pesoAtual = peso;
+      renderCuidarPesoCliente();
+    } else {
+      abrirPerfilCliente(clienteId);
+    }
   } catch(e){
     console.error('[Belezza] salvarPesagem ERRO:', e.message);
     document.getElementById('pesa-error').textContent = 'Erro ao salvar: ' + e.message;
@@ -8080,7 +8125,6 @@ async function initPersonalizacaoForm(){
   const nomeEl  = document.getElementById('pers-nome');
   const wppEl   = document.getElementById('pers-wpp');
   const planoEl = document.getElementById('pers-plano');
-  const profEl  = document.getElementById('pers-atividade');
   const preview = document.getElementById('pers-img-preview');
   const label    = document.getElementById('pers-img-label');
   const hint     = document.getElementById('pers-img-hint');
@@ -8097,7 +8141,6 @@ async function initPersonalizacaoForm(){
   if(nomeEl)  nomeEl.value  = _persBrandAtual.nomeEstab  || window.NOME_ESTAB  || '';
   if(wppEl)   wppEl.value   = _persBrandAtual.wppEstab   || window.WPP_ESTAB   || '';
   if(planoEl) planoEl.value = _persBrandAtual.planoEstab || window.PLANO_ESTAB || '';
-  if(profEl)  profEl.value  = _persBrandAtual.atividade  || '';
 
   if(_persBrandAtual.imagemFundoBase64){
     if(preview){ preview.src = _persBrandAtual.imagemFundoBase64; preview.style.display = 'block'; }
@@ -8120,10 +8163,9 @@ async function salvarPersonalizacao(){
   const toast  = document.getElementById('pers-toast');
   if(erroEl) erroEl.textContent = '';
 
-  const nome   = (document.getElementById('pers-nome')?.value      || '').trim();
-  const wppNum = (document.getElementById('pers-wpp')?.value       || '').replace(/\D/g, '');
-  const plano  = (document.getElementById('pers-plano')?.value     || '').trim();
-  const prof   = (document.getElementById('pers-atividade')?.value || '').trim();
+  const nome   = (document.getElementById('pers-nome')?.value  || '').trim();
+  const wppNum = (document.getElementById('pers-wpp')?.value   || '').replace(/\D/g, '');
+  const plano  = (document.getElementById('pers-plano')?.value || '').trim();
 
   if(!nome)             { if(erroEl) erroEl.textContent = 'Informe o nome do estabelecimento.'; return; }
   if(wppNum.length < 10){ if(erroEl) erroEl.textContent = 'Informe o WhatsApp com DDI+DDD (ex: 5511999999999).'; return; }
@@ -8131,7 +8173,7 @@ async function salvarPersonalizacao(){
 
   if(btn){ btn.innerHTML = 'Salvando...'; btn.disabled = true; }
 
-  const dados = { nomeEstab: nome, wppEstab: wppNum, planoEstab: plano, atividade: prof };
+  const dados = { nomeEstab: nome, wppEstab: wppNum, planoEstab: plano };
   // _persImgBase64: null = sem alteração · '' = remover · string = nova foto
   if(_persImgBase64 !== null) dados.imagemFundoBase64 = _persImgBase64;
 
@@ -9411,7 +9453,13 @@ function renderSvcGrid(docs, catFiltro) {
     const precoHtml = s.preco
       ? `<span class="svc-price">A partir de ${s.preco.replace(/^a partir de\s*/i,'')}</span>`
       : `<span class="svc-price-empty">Consulte o valor</span>`;
-    return `<div class="svc-card" onclick="selecionarServico(this,'${nomeEsc}','${precoEsc}')">
+    // "Cuidar do Peso" é um serviço especial: em vez de selecionar para agendamento,
+    // abre a tela de progresso (peso atual/meta/histórico) da própria cliente.
+    const ehCuidarPeso = (s.nome || '').trim() === 'Cuidar do Peso';
+    const clickAttr = ehCuidarPeso
+      ? `abrirCuidarPesoCliente()`
+      : `selecionarServico(this,'${nomeEsc}','${precoEsc}')`;
+    return `<div class="svc-card" onclick="${clickAttr}">
       <div class="svc-banner">
         <img src="${imgSrc}" alt="${s.nome||'Serviço'}" loading="eager">
         <div class="svc-banner-overlay"></div>
@@ -12658,11 +12706,11 @@ Desodorante 0% Alumínio c/ Niacinamida 55g;39.40;Corporal</textarea>
   </div>
 </div>
 
-<!-- MODAL PROGRAMA DE CONTROLE DE PESO -->
+<!-- MODAL PROGRAMA CUIDAR DO PESO -->
 <div id="modal-programa-peso" style="display:none;position:fixed;inset:0;z-index:8100;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
   <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div style="font-size:15px;font-weight:700;color:var(--tx)">Novo programa de controle de peso</div>
+      <div style="font-size:15px;font-weight:700;color:var(--tx)">Novo programa Cuidar do Peso</div>
       <button onclick="fecharModalPrograma()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">✕</button>
     </div>
     <input type="hidden" id="prg-cliente-id" value="">
@@ -12778,6 +12826,17 @@ Desodorante 0% Alumínio c/ Niacinamida 55g;39.40;Corporal</textarea>
       <button onclick="fecharModalPesagem()" class="btn" style="flex:1">Cancelar</button>
       <button onclick="salvarPesagem()" class="btn pk" style="flex:1"><i class="ti ti-device-floppy"></i> Salvar pesagem</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL CUIDAR DO PESO (versão Cliente) -->
+<div id="modal-cuidar-peso-cliente" style="display:none;position:fixed;inset:0;z-index:8090;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+  <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:520px;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700;color:var(--tx)"><i class="ti ti-chart-line"></i> Cuidar do Peso</div>
+      <button onclick="fecharCuidarPesoCliente()" style="background:none;border:none;cursor:pointer;color:var(--tx2);font-size:22px;line-height:1">✕</button>
+    </div>
+    <div id="cuidar-peso-cli-body"></div>
   </div>
 </div>
 
