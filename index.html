@@ -652,8 +652,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           </div>
         </div>
 
-        <div class="fgrid fg2">
+        <div class="fgrid fg3">
           <div></div>
+          <div class="field"><label>Potencial de Vendas (R$)</label><input type="text" id="potencial-display" placeholder="–" readonly style="background:#FFF6E5;color:#7B4F00;font-weight:700;cursor:default"/></div>
           <div class="field"><label>Meta Mensal (R$)</label><input type="text" id="meta-mensal-display" placeholder="–" readonly style="background:#F0F4FF;color:#1B4F72;font-weight:700;cursor:default"/></div>
         </div>
         <div class="ffooter"><button class="btn-save" id="btn-salvar-cotacoes">Registrar Cotações e Pedidos</button></div>
@@ -935,11 +936,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <div class="field"><label>Nome</label><input type="text" id="adm-nome" placeholder="Nome completo"/></div>
             <div class="field"><label>E-mail</label><input type="email" id="adm-email" placeholder="email@empresa.com"/></div>
           </div>
-          <div class="fgrid fg2">
+          <div class="fgrid fg3">
             <div class="field"><label>Perfil</label>
               <select id="adm-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="master" id="adm-perfil-master-opt" hidden>Master</option></select>
             </div>
             <div class="field"><label>Meta mensal (R$)</label><input type="number" id="adm-meta-ini" placeholder="0,00" min="0"/></div>
+            <div class="field"><label>Potencial de Vendas (R$)</label><input type="number" id="adm-potencial-ini" placeholder="0,00" min="0"/></div>
           </div>
           <div id="aviso-edicao" style="display:none;background:#E3F2FD;border:1px solid #1565C0;border-radius:6px;padding:8px 12px;font-size:.82rem;color:#0D47A1;font-weight:600;margin-bottom:.5rem"></div>
           <div id="aviso-cadastro" style="background:#FFF9C4;border:1px solid #F9A825;border-radius:6px;padding:8px 12px;font-size:.78rem;color:#7B4F00;margin-bottom:.5rem">
@@ -964,12 +966,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       <div id="adm-metas" style="display:none">
         <div class="fcard">
           <div class="fcard-title"><span class="bar" style="background:var(--g)"></span>Definir Meta Mensal</div>
-          <div class="fgrid fg3">
+          <div class="fgrid fg4">
             <div class="field"><label>Profissional</label>
               <select id="meta-uid"><option value="">Selecione…</option></select>
             </div>
             <div class="field"><label>Mês / Ano</label><input type="month" id="meta-mes"/></div>
             <div class="field"><label>Meta de Vendas (R$)</label><input type="number" min="0" step="0.01" id="meta-valor" placeholder="0,00"/></div>
+            <div class="field"><label>Potencial de Vendas (R$)</label><input type="number" min="0" step="0.01" id="meta-potencial" placeholder="0,00"/></div>
           </div>
           <div class="ffooter"><button class="btn-save" id="btn-meta-save">Salvar Meta</button></div>
         </div>
@@ -3568,6 +3571,19 @@ function renderMetricsDia(){
   const metaEl = $('meta-mensal-display');
   if(metaEl) metaEl.value = metaVal > 0 ? fC(metaVal) : '–';
 
+  // Potencial de Vendas do profissional
+  const potencialVal = (() => {
+    if(!cu) return 0;
+    const m = _metas.find(x => x.uid === cu.uid && x.mes === mes);
+    if(m && m.potencial) return m.potencial;
+    const u = _users.find(x => x.id === cu.uid);
+    return u?.potencial || 0;
+  })();
+
+  // Exibe potencial no campo readonly do formulário
+  const potEl = $('potencial-display');
+  if(potEl) potEl.value = potencialVal > 0 ? fC(potencialVal) : '–';
+
   // Contatos por origem
   const origens    = ['carteira','prospint','ativos','inativos','prospext','outras','invalidos'];
   const origLabels = ['Carteira','Prosp. Int.','At. Ativos','At. Inativos','Prosp. Ext.','Outras Ext.','Inválidos'];
@@ -4580,7 +4596,8 @@ $('rel-gerar').onclick = window.gerarRelatorio;
 $('btn-adm-save').onclick = async () => {
   const n=$('adm-nome').value.trim(), e=$('adm-email').value.trim(),
         r=$('adm-perfil').value, uid=$('adm-uid').value,
-        metaIni=parseFloat($('adm-meta-ini')?.value)||0;
+        metaIni=parseFloat($('adm-meta-ini')?.value)||0,
+        potencialIni=parseFloat($('adm-potencial-ini')?.value)||0;
   if(!n){ toast('Informe o nome.'); return; }
   if(!validateNome(n)){ toast('Nome deve ter nome e sobrenome (min. 2 caracteres cada).'); return; }
   // Só exige e-mail no modo cadastro (não edição)
@@ -4590,15 +4607,21 @@ $('btn-adm-save').onclick = async () => {
     // Modo editar: atualiza nome, perfil (papel) e meta
     if(!validateNome(n)){ toast('Informe nome e sobrenome (min. 2 caracteres cada).'); return; }
     await updateDoc(doc(db,'users',uid),{name:n, role:r, updatedAt:new Date().toISOString()});
-    // Salva meta do mes atual se informada
-    if(metaIni > 0){
+    // Salva meta e/ou potencial do mes atual se informados (merge para não apagar o campo não editado aqui)
+    if(metaIni > 0 || potencialIni > 0){
       const mesAtual = thisMes();
-      await setDoc(doc(db,'metas',uid+'_'+mesAtual),{
-        uid, mes:mesAtual, valor:metaIni,
+      const metaDoc = {
+        uid, mes:mesAtual,
         companyId: cp.companyId || _companyId || 'default',
         sellerName:n, updatedAt:new Date().toISOString()
-      });
-      await updateDoc(doc(db,'users',uid),{meta:metaIni});
+      };
+      if(metaIni > 0) metaDoc.valor = metaIni;
+      if(potencialIni > 0) metaDoc.potencial = potencialIni;
+      await setDoc(doc(db,'metas',uid+'_'+mesAtual), metaDoc, {merge:true});
+      const userUpd = {};
+      if(metaIni > 0) userUpd.meta = metaIni;
+      if(potencialIni > 0) userUpd.potencial = potencialIni;
+      await updateDoc(doc(db,'users',uid), userUpd);
     }
     toast('Profissional atualizado!');
     resetAdmForm();
@@ -4619,20 +4642,23 @@ $('btn-adm-save').onclick = async () => {
 
       // Cria documento no Firestore
       await setDoc(doc(db, 'users', newUid), {
-        name: n, email: e, role: r, meta: metaIni,
+        name: n, email: e, role: r, meta: metaIni, potencial: potencialIni,
         companyId: cp.companyId || _companyId || 'default',
         tempPass: tempPass,
         firstLogin: true,
         createdAt: new Date().toISOString()
       });
-      // Salva meta inicial na coleção metas se informada
-      if(metaIni > 0){
+      // Salva meta e/ou potencial inicial na coleção metas se informados
+      if(metaIni > 0 || potencialIni > 0){
         const mesAtual = thisMes();
-        await setDoc(doc(db,'metas', newUid+'_'+mesAtual),{
-          uid: newUid, mes: mesAtual, valor: metaIni,
+        const metaDoc = {
+          uid: newUid, mes: mesAtual,
           companyId: cp.companyId || _companyId || 'default',
           sellerName: n, createdAt: new Date().toISOString()
-        });
+        };
+        if(metaIni > 0) metaDoc.valor = metaIni;
+        if(potencialIni > 0) metaDoc.potencial = potencialIni;
+        await setDoc(doc(db,'metas', newUid+'_'+mesAtual), metaDoc, {merge:true});
       }
       // Mostra senha temporaria para o Lider repassar ao profissional
       toast('Profissional "' + n + '" cadastrado!', 5000);
@@ -4652,7 +4678,7 @@ $('btn-adm-save').onclick = async () => {
     } catch (err) {
       if (err.code === 'auth/email-already-in-use') {
         // E-mail já existe no Auth — tenta restaurar automaticamente
-        await recoverDeletedUser(e, n, r, metaIni);
+        await recoverDeletedUser(e, n, r, metaIni, potencialIni);
       } else {
         VapLogger.error('Erro ao criar usuario', { code: err.code, msg: err.message, email: e });
         toast('Erro ao criar usuario: ' + (err.code || err.message));
@@ -4661,7 +4687,7 @@ $('btn-adm-save').onclick = async () => {
   }
 };
 
-async function recoverDeletedUser(email, name, role, meta) {
+async function recoverDeletedUser(email, name, role, meta, potencial) {
   try {
     // console.log('[recover] buscando:', email);
     const snap = await getDocs(collection(db, 'deleted_users'));
@@ -4702,7 +4728,7 @@ async function recoverDeletedUser(email, name, role, meta) {
       // console.log('[recover] usando uid:', currentUid);
       // console.log('[recover] setDoc...');
       await setDoc(doc(db, 'users', currentUid), {
-        name, email, role, meta,
+        name, email, role, meta, potencial,
         companyId: cid,
         firstLogin: true,
         updatedAt: new Date().toISOString()
@@ -4734,6 +4760,7 @@ async function recoverDeletedUser(email, name, role, meta) {
 function resetAdmForm(){
   ['adm-nome','adm-email','adm-uid'].forEach(id=>{ const el=$(id); if(el) el.value=''; });
   const metaEl = $('adm-meta-ini'); if(metaEl) metaEl.value='';
+  const potEl = $('adm-potencial-ini'); if(potEl) potEl.value='';
   const perfEl = $('adm-perfil'); if(perfEl){ perfEl.value='vendedor'; perfEl.disabled=false; }
   const saveBtn = $('btn-adm-save'); if(saveBtn) saveBtn.textContent='Cadastrar Profissional';
   const cancelBtn = $('btn-adm-cancel'); if(cancelBtn) cancelBtn.style.display='none';
@@ -4751,11 +4778,12 @@ function renderUsersTable(){
   const el=$('users-table');
   if(!_users.length){el.innerHTML='<div class="empty">Nenhum usuário.</div>';return;}
   el.innerHTML=`<table class="adm-table">
-    <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Meta mensal</th><th>Ações</th></tr></thead>
+    <thead><tr><th style="width:16%">Nome</th><th style="width:20%">E-mail</th><th>Perfil</th><th>Meta mensal</th><th>Potencial</th><th>Ações</th></tr></thead>
     <tbody>${_users.map(u=>`<tr>
       <td>${u.name}</td><td>${u.email}</td>
       <td><span class="badge ${u.role==='lider'?'bg-amber':u.role==='master'?'bg-teal':u.role==='superadmin'?'bg-purple':'bg-blue'}">${u.role==='lider'?'Líder':u.role==='master'?'Master':u.role==='superadmin'?'Super Admin':'Vendedor'}</span></td>
       <td>${fC(u.meta||0)}</td>
+      <td>${fC(u.potencial||0)}</td>
       <td><div class="act">
         <button class="btn-xs bx-edit" data-uid="${u.id}">Editar</button>
         ${u.id!==cu.uid?`<button class="btn-xs bx-del" data-uid="${u.id}">Remover</button>`:''}
@@ -4776,6 +4804,9 @@ function editUser(uid){
   const metaAtual = _metas.find(m=>m.uid===uid&&m.mes===mesMeta)?.valor || u.meta || 0;
   const metaEl = $('adm-meta-ini');
   if(metaEl) metaEl.value = metaAtual > 0 ? metaAtual : '';
+  const potencialAtual = _metas.find(m=>m.uid===uid&&m.mes===mesMeta)?.potencial || u.potencial || 0;
+  const potEl = $('adm-potencial-ini');
+  if(potEl) potEl.value = potencialAtual > 0 ? potencialAtual : '';
   // Mostra o perfil (agora editável) e pré-seleciona o papel atual do usuário
   const emailWrap = $('adm-email')?.closest('.field');
   const perfilWrap = $('adm-perfil')?.closest('.field');
@@ -4840,19 +4871,21 @@ async function resetAllLogins(){
 // ── Admin: Metas ──────────────────────────────────────────
 $('btn-meta-save').onclick = async () => {
   const uid=$('meta-uid').value, mes=$('meta-mes').value,
-        val=n0($('meta-valor').value);
+        val=n0($('meta-valor').value),
+        pot=n0($('meta-potencial')?.value);
   if(!uid||!mes){ toast('Selecione o vendedor e o mês.'); return; }
   const id=`${uid}_${mes}`;
   try {
     await setDoc(doc(db,'metas',id),{
-      uid, mes, valor:val,
+      uid, mes, valor:val, potencial:pot,
       companyId: cp.companyId || _companyId || 'default',
       sellerName: _users.find(u=>u.id===uid)?.name||'',
       updatedAt: new Date().toISOString()
-    });
-    // Also update user meta field
-    await updateDoc(doc(db,'users',uid),{meta:val});
+    }, {merge:true});
+    // Also update user meta/potencial fields
+    await updateDoc(doc(db,'users',uid),{meta:val, potencial:pot});
     $('meta-valor').value='';
+    $('meta-potencial').value='';
     toast('Meta salva!');
   } catch(err){
     VapLogger.error('Erro ao salvar meta', { code: err.code, msg: err.message, uid, mes });
@@ -4865,11 +4898,12 @@ function renderMetasTable(){
   if(!_metas.length){el.innerHTML='<div class="empty">Nenhuma meta cadastrada.</div>';return;}
   const sorted=[..._metas].sort((a,b)=>b.mes.localeCompare(a.mes));
   el.innerHTML=`<table class="adm-table">
-    <thead><tr><th>Vendedor</th><th>Mês</th><th>Meta</th><th>Ação</th></tr></thead>
+    <thead><tr><th>Vendedor</th><th>Mês</th><th>Meta</th><th>Potencial</th><th>Ação</th></tr></thead>
     <tbody>${sorted.map(m=>`<tr>
       <td>${m.sellerName||m.uid}</td>
       <td>${m.mes}</td>
-      <td>${fC(m.valor)}</td>
+      <td>${fC(m.valor||0)}</td>
+      <td>${fC(m.potencial||0)}</td>
       <td><button class="btn-xs bx-del" data-id="${m.id}">Remover</button></td>
     </tr>`).join('')}</tbody>
   </table>`;
