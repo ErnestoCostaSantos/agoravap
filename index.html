@@ -673,6 +673,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
                 <th style="padding:7px 6px;text-align:left;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2;width:128px">Data</th>
                 <th style="padding:7px 6px;text-align:left;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2">Nome do Cliente</th>
                 <th style="padding:7px 6px;text-align:left;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2">Produtos</th>
+                <th style="padding:7px 6px;text-align:left;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2;width:110px">Razão</th>
                 <th style="padding:7px 6px;text-align:right;font-weight:700;color:#C53030;border-bottom:2px solid #FEB2B2;width:100px">Venda Perdida (R$)</th>
                 <th style="padding:7px 6px;border-bottom:2px solid #FEB2B2;width:28px"></th>
               </tr>
@@ -3382,6 +3383,12 @@ function renderPerdasTable(){
           style="border:none;outline:none;width:100%;font-family:inherit;font-size:.82rem;background:transparent;color:var(--dark)"
           oninput="window.perdaChange(this)"/>
       </td>
+      <td style="padding:6px 4px">
+        <input type="text" value="${row.razao||''}" maxlength="24"
+          data-pid="${row.id}" data-pf="razao"
+          style="border:none;outline:none;width:100%;font-family:inherit;font-size:.82rem;background:transparent;color:var(--dark)"
+          oninput="window.perdaChange(this)"/>
+      </td>
       <td style="padding:6px 4px;text-align:right">
         <input type="text" inputmode="decimal" value="${valorFmt}" placeholder="0,00"
           data-pid="${row.id}" data-pf="valor"
@@ -3448,7 +3455,7 @@ window.addPerdaRow = function(){
     toast(`Limite de ${PERDAS_MAX_ROWS} linhas atingido.`);
     return;
   }
-  _perdasRows.push({id:_perdaNovoId(), data: tod(), cliente:'', produtos:'', valor:0});
+  _perdasRows.push({id:_perdaNovoId(), data: tod(), cliente:'', produtos:'', razao:'', valor:0});
   renderPerdasTable();
 };
 
@@ -3469,6 +3476,7 @@ async function carregarPerdas(){
         data: r.data || '',
         cliente: r.cliente || '',
         produtos: r.produtos || '',
+        razao: r.razao || '',
         valor: Number(r.valor) || 0
       }));
     } else {
