@@ -122,6 +122,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 .btn-sec{padding:9px 18px;background:transparent;color:#E53E3E;border:1.5px solid #FED7D7;border-radius:var(--rsm);font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;transition:background .15s}
 .prosp-tipo-btn{padding:7px 14px;font-size:.8rem}
 .prosp-tipo-btn.active{background:#22C55E;color:#fff;border-color:#22C55E}
+.prosp-graf-btn{padding:6px 12px;font-size:.78rem}
+.prosp-graf-btn.active{background:#1B6CA8;color:#fff;border-color:#1B6CA8}
 .btn-sec:hover{background:#FFF5F5}
 .btn-danger{padding:8px 16px;background:transparent;color:var(--r);border:1.5px solid var(--rl);border-radius:var(--rsm);font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s}
 .btn-danger:hover{background:var(--rl)}
@@ -820,6 +822,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
               <option value="Sem contato">Sem contato</option>
               <option value="Inicial">Inicial</option>
               <option value="Aguardando">Aguardando</option>
+              <option value="Cadastro">Cadastro</option>
             </select>
           </div>
           <div class="ff" id="ff-cart-vendedor" style="display:none;min-width:150px">
@@ -868,6 +871,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
               <option value="Fez Cotação">Fez Cotação</option>
               <option value="Vendeu">Vendeu</option>
               <option value="Ctto Inválido">Ctto Inválido</option>
+              <option value="Cadastro">Cadastro</option>
             </select>
           </div>
           <div class="field" id="ff-prosp-vendedor" style="display:none">
@@ -878,7 +882,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
 
       <div class="chart-card" id="prosp-chart-card" style="display:none">
-        <div class="chart-title">Resultado do Mês por Vendedor</div>
+        <div class="chart-title" id="prosp-chart-title">Resultado do Mês por Vendedor</div>
+        <div id="prosp-chart-toggle" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+          <button type="button" class="btn-sec prosp-graf-btn" data-filtro="Prospeccao" onclick="vapProspSelecionarFiltroGrafico('Prospeccao')">Prospecção</button>
+          <button type="button" class="btn-sec prosp-graf-btn" data-filtro="Manutencao" onclick="vapProspSelecionarFiltroGrafico('Manutencao')">Manutenção de Carteira</button>
+          <button type="button" class="btn-sec prosp-graf-btn" data-filtro="Tudo" onclick="vapProspSelecionarFiltroGrafico('Tudo')">Tudo</button>
+        </div>
         <canvas id="prosp-ch-resumo" height="220"></canvas>
       </div>
 
@@ -1558,11 +1567,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h3>2.8 Módulo CRM</h3>
           <p>Registro diário de acompanhamento, prospecção e follow-up de contatos comerciais, com totalização diária/mensal, um sistema de lembretes de "Próximo Contato", relatórios extensíveis e vínculo direto com a Carteira de Clientes.</p>
           <ul>
-            <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Outros — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, Fez Cotação, Vendeu, Ctto Inválido) e Próximo Contato</li>
+            <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Atualizar/Reativar — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, Fez Cotação, Vendeu, Ctto Inválido ou Cadastro) e Próximo Contato</li>
             <li><b>Vínculo automático com a Carteira</b> — Se o texto digitado em Empresa bater com um cliente já cadastrado, o lançamento vincula automaticamente: aparece o aviso "🔗 Vinculado à Carteira de Clientes", e Responsável/Telefone/Segmento são preenchidos a partir do cadastro do cliente. Esse lançamento passa a contar no histórico do cliente (veja 2.7). Para registrar como lançamento avulso, fora da Carteira (por exemplo uma prospecção de empresa nova), clique em "Desvincular" no próprio aviso. Quando o Resultado é "Vendeu" e há vínculo, a Data da Última Compra do cliente é atualizada automaticamente</li>
             <li><b>Próximo Contato</b> — Pode ser digitado ou escolhido num calendário; é a data usada pelo lembrete de pendências (veja abaixo)</li>
             <li><b>Totais e filtros</b> — Contadores "Hoje" e "Este Mês" no topo (ambos respeitam os mesmos filtros de Vendedor e Resultado aplicados na tela, para os números ficarem sempre consistentes entre si); filtros por Mês, Resultado e (Líder/Master/SuperAdmin) por Vendedor</li>
-            <li><b>Gráfico "Resultado do Mês por Vendedor"</b> — Visível para Líder/Master/SuperAdmin, mostra a distribuição de Resultados por vendedor no mês selecionado, considerando apenas lançamentos do Tipo <b>Prospecção</b> (lançamentos de Acompanhamento ou Outros não entram nesse gráfico)</li>
+            <li><b>Gráfico "Resultado do Mês por Vendedor"</b> — Visível para Líder/Master/SuperAdmin, mostra a distribuição de Resultados por vendedor no mês selecionado. Um seletor acima do gráfico alterna entre três visões: <b>Prospecção</b> (só lançamentos Tipo Prospecção — visão padrão ao abrir a tela), <b>Manutenção de Carteira</b> (Tipo Acompanhamento ou Atualizar/Reativar) e <b>Tudo</b> (todos os Tipos juntos). O card fica oculto quando não há nenhum lançamento no mês para a categoria selecionada</li>
             <li><b>📊 Relatórios</b> — Botão que abre um modal com relatórios do CRM, com uma lista de tipos que cresce ao longo do tempo. Hoje com dois: <b>Ativos/Inativos</b> (período em meses configurável, padrão 3 — independente dos 6 meses fixos do status Ativo/Inativo da Carteira) e <b>Resultados por Vendedor</b> (por mês). Master e Super Admin filtram por vendedor no primeiro; Líder, Master e Super Admin no segundo. Botão "Baixar PDF" imprime o relatório aberto no momento</li>
             <li><b>Baixar PDF do mês</b> — Gera um relatório para impressão com todos os lançamentos do mês/filtros selecionados, de qualquer Tipo</li>
           </ul>
@@ -1969,6 +1978,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <option value="Pedido">Pedido</option>
           <option value="Aguardando">Aguardando</option>
           <option value="Sem contato">Sem contato</option>
+          <option value="Cadastro">Cadastro</option>
         </select>
       </div>
       <div class="field"><label>Data do último contato</label><input type="text" inputmode="numeric" id="cart-cli-data-contato" placeholder="DD/MM/AAAA" maxlength="10" style="width:100%" oninput="window.cartDataMask(this)"/></div>
@@ -2007,7 +2017,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
         <div id="prosp-tipo-group" style="display:flex;gap:8px;flex-wrap:wrap">
           <button type="button" class="btn-sec prosp-tipo-btn" data-tipo="Acompanhamento" onclick="vapProspSelecionarTipo('Acompanhamento')">Acompanhamento</button>
           <button type="button" class="btn-sec prosp-tipo-btn" data-tipo="Prospecção" onclick="vapProspSelecionarTipo('Prospecção')">Prospecção</button>
-          <button type="button" class="btn-sec prosp-tipo-btn" data-tipo="Outros" onclick="vapProspSelecionarTipo('Outros')">Outros</button>
+          <button type="button" class="btn-sec prosp-tipo-btn" data-tipo="Atualizar/Reativar" onclick="vapProspSelecionarTipo('Atualizar/Reativar')">Atualizar/Reativar</button>
         </div>
       </div>
     </div>
@@ -2034,6 +2044,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <option value="Fez Cotação">Fez Cotação</option>
           <option value="Vendeu">Vendeu</option>
           <option value="Ctto Inválido">Ctto Inválido</option>
+          <option value="Cadastro">Cadastro</option>
         </select>
       </div>
     </div>
@@ -6785,9 +6796,9 @@ let unProspeccoes = null;
 let _crmFiltroClienteId = null;
 let _crmFiltroClienteNome = '';
 const PROSP_SEGMENTOS = ['Revenda','Centro Automotivo','Transportadora','Posto de Troca','Posto de Gasolina','Outros'];
-const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido'];
-const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444'};
-const PROSP_TIPOS = ['Acompanhamento','Prospecção','Outros'];
+const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido','Cadastro'];
+const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444','Cadastro':'#0D9488'};
+const PROSP_TIPOS = ['Acompanhamento','Prospecção','Atualizar/Reativar'];
 // Resultados que "encerram" um lançamento — deixam de contar como pendência mesmo com Próximo Contato vencido
 const PROSP_RESULTADOS_FINAIS = ['Vendeu','Sem interesse','Ctto Inválido'];
 
@@ -6803,10 +6814,13 @@ function prospEhGestor(){
 }
 
 // Seleção única do campo Tipo (visual de botões, comportamento de rádio)
+// "Outros" é o valor legado (antes da renomeação para "Atualizar/Reativar"); tratado
+// como equivalente aqui só para o botão certo ficar destacado ao editar registros antigos.
 function vapProspSelecionarTipo(tipo){
   $('prosp-tipo').value = tipo;
+  const tipoParaDestaque = tipo === 'Outros' ? 'Atualizar/Reativar' : tipo;
   document.querySelectorAll('.prosp-tipo-btn').forEach(b=>{
-    b.classList.toggle('active', b.dataset.tipo===tipo);
+    b.classList.toggle('active', b.dataset.tipo===tipoParaDestaque);
   });
 }
 window.vapProspSelecionarTipo = vapProspSelecionarTipo;
@@ -7100,14 +7114,39 @@ function vapProspRenderLista(){
 }
 
 let _prospChart = null;
+let _prospGraficoFiltro = 'Prospeccao'; // default: Prospecção (mesmo comportamento de antes)
+
+// Tipos de lançamento que contam como "Manutenção de Carteira" (Acompanhamento e
+// Atualizar/Reativar; "Outros" é o valor legado antes da renomeação, tratado igual)
+const PROSP_TIPOS_MANUTENCAO = ['Acompanhamento','Atualizar/Reativar','Outros'];
+
+function vapProspSelecionarFiltroGrafico(filtro){
+  _prospGraficoFiltro = filtro;
+  document.querySelectorAll('.prosp-graf-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.filtro===filtro);
+  });
+  vapProspRenderGrafico();
+}
+window.vapProspSelecionarFiltroGrafico = vapProspSelecionarFiltroGrafico;
+
 function vapProspRenderGrafico(){
   const veTodaEmpresa = prospEhGestor();
   const card = $('prosp-chart-card');
   if(!card) return;
   if(!veTodaEmpresa){ card.style.display='none'; return; }
-  // Gráfico considera só lançamentos do Tipo "Prospecção" (lançamentos antigos, sem
-  // campo Tipo salvo, são tratados como Prospecção por compatibilidade)
-  const lista = vapProspListaDoMes().filter(p=>!p.tipo || p.tipo==='Prospecção');
+  document.querySelectorAll('.prosp-graf-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.filtro===_prospGraficoFiltro);
+  });
+  const titulos = {Prospeccao:'Prospecção', Manutencao:'Manutenção de Carteira', Tudo:'Tudo'};
+  const tituloEl = $('prosp-chart-title');
+  if(tituloEl) tituloEl.textContent = `Resultado do Mês por Vendedor — ${titulos[_prospGraficoFiltro]}`;
+  // Filtra pelo Tipo do lançamento conforme a categoria escolhida no toggle acima
+  // (lançamentos antigos sem campo Tipo salvo são tratados como Prospecção por compatibilidade)
+  const lista = vapProspListaDoMes().filter(p=>{
+    if(_prospGraficoFiltro==='Tudo') return true;
+    if(_prospGraficoFiltro==='Prospeccao') return !p.tipo || p.tipo==='Prospecção';
+    return PROSP_TIPOS_MANUTENCAO.includes(p.tipo);
+  });
   if(!lista.length){ card.style.display='none'; return; }
   card.style.display='block';
   const porVendedor = {};
