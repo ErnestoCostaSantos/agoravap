@@ -6111,7 +6111,21 @@ function vapIniciarListenerPromos(){
   _vapUnsubPromo=onSnapshot(collection(db,'promocoes'),snap=>{
     const promos=snap.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.companyId===CID).sort((a,b)=>a.criadoEm>b.criadoEm?-1:1);
     window._vapPromosAtuais=promos;
-    _vapRenderPromosPro(promos);_vapRenderPromosVendedor(promos);
+    // Renderiza só a visão do papel atual — as duas visões usam os MESMOS ids
+    // (vap-vp-<id>, vap-vp-msg-<id>, vap-vacum-<id>) nos campos de "Nova venda".
+    // Renderizar as duas ao mesmo tempo deixava uma cópia oculta no DOM cujo
+    // getElementById() era encontrado primeiro, fazendo o clique em "Adicionar"
+    // ler o campo escondido (sempre vazio) em vez do campo visível.
+    const _vapEhGestorPromo = cp?.role==='lider' || cp?.role==='master' || cp?.role==='superadmin';
+    const _vapListaPro = document.getElementById('vap-promo-lista-pro');
+    const _vapListaVend = document.getElementById('vap-promo-lista-vendedor');
+    if (_vapEhGestorPromo) {
+      _vapRenderPromosPro(promos);
+      if (_vapListaVend) _vapListaVend.innerHTML = '';
+    } else {
+      _vapRenderPromosVendedor(promos);
+      if (_vapListaPro) _vapListaPro.innerHTML = '';
+    }
     if(typeof _vapRenderCampanhas==='function'&&_vapCampanhasDB)_vapRenderCampanhas(_vapCampanhasDB); // reprocessa cards de campanha p/ refletir imagem de promoção vinculada
   },err=>console.warn('[VAP] listener promos:',err));
 }
