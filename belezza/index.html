@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-<title>MeCuidar</title>
+<title>MeCuidar PILOTO</title>
 <meta property="og:type" content="website">
 <meta property="og:title" content="Clique aqui e faça seu pedido">
 <meta property="og:description" content="Catálogo online — veja os produtos e peça direto pelo link, sem precisar baixar nada.">
@@ -2339,6 +2339,7 @@ onAuthStateChanged(auth, async user => {
           if (window.iniciarListenerPedidosForn) window.iniciarListenerPedidosForn();
           if (window.iniciarListenerPedidosPublicosForn) window.iniciarListenerPedidosPublicosForn();
           if (window.iniciarListenerPromosForn) window.iniciarListenerPromosForn();
+          if (window.iniciarListenerLancamentosForn) window.iniciarListenerLancamentosForn();
         }, 200);
 
       } else {
@@ -9726,6 +9727,7 @@ function switchFornTab(tab) {
   const contentWrap = document.getElementById('forn-tab-' + tab)?.parentElement;
   if (contentWrap) contentWrap.scrollTop = 0;
   if (tab === 'qrcode' && window.gerarQRCodeFornecedor) window.gerarQRCodeFornecedor();
+  if (tab === 'lancamentos' && window.lancAbrirAba) window.lancAbrirAba();
   closeFornSidebar();
 }
 window.switchFornTab = switchFornTab;
@@ -11689,6 +11691,548 @@ async function carregarPromosClinicaForn(aprovados) {
 }
 window.trocarTabSvcImg     = trocarTabSvcImg;
 
+// ══════════════════════════════════════════════════════════════════════════
+// PILOTO v2.0 — LANÇAMENTOS DO FORNECEDOR (vendas manuais + resultados de contato)
+// Versão de teste (branch piloto-forn). Coleções, ambas dentro do Fornecedor:
+//   /fornecedores/{fid}/contatos         — cada lançamento (resultado do contato)
+//   /fornecedores/{fid}/pedidos_manuais  — venda com itens (só quando Resultado = Vendeu)
+// Cliente sem app: doc em /fornecedores/{fid}/clientes/{idAutomatico} com semApp:true
+// (a aba Clientes atual só lista clínicas vinculadas e ignora esses docs).
+// Cliques da tela usam delegação (data-acao), sem argumentos em onclick inline.
+// Datas: sempre horário local (nunca toISOString, que é UTC).
+// ══════════════════════════════════════════════════════════════════════════
+const LANC_RES_CORES = {
+  'Vendeu':        ['#dcfce7', '#166534'],
+  'Agendado':      ['#dbeafe', '#1e40af'],
+  'Sem interesse': ['#f5f5f4', '#57534e'],
+  'Não atendeu':   ['#fef3c7', '#92400e'],
+  'Ctto Inválido': ['#fee2e2', '#991b1b'],
+  'Cadastro':      ['#ede9fe', '#5b21b6']
+};
+const LANC_FAIXAS = {
+  auto: 'Automática',
+  cheia: 'Tabela cheia',
+  profissional: 'Profissional (-30%)',
+  trio: 'Trio (-35%)'
+};
+
+let _lancContatos = [];
+let _lancPedidos = [];
+let _lancUnsubC = null;
+let _lancUnsubP = null;
+let _lancCliente = null;      // { id, nome, origem }
+let _lancResultado = '';
+let _lancItens = [];          // { produtoId, nome, linha, precoCheio, qtd, faixa }
+let _lancEditId = null;       // id do contato em edição
+let _lancEditPedidoId = '';   // id do pedido ligado ao contato em edição
+let _lancEventosOk = false;
+let _lancSalvando = false;
+
+function _lancHoje() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function _lancNorm(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function _lancEsc(s) { return _escHtml(s == null ? '' : s); }
+function _lancBRL(v) { return 'R$ ' + (Number(v) || 0).toFixed(2).replace('.', ','); }
+function _lancDataBR(iso) {
+  if (!iso) return '';
+  const p = String(iso).split('-');
+  return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(iso);
+}
+function _lancEl(id) { return document.getElementById(id); }
+function _lancValor(id) { const e = _lancEl(id); return e ? e.value : ''; }
+function _lancMsgErro(txt) {
+  const e = _lancEl('lanc-erro'); if (e) e.textContent = txt || '';
+  const s = _lancEl('lanc-status'); if (s && txt) s.textContent = '';
+}
+function _lancMsgOk(txt) {
+  const s = _lancEl('lanc-status'); if (s) s.textContent = txt || '';
+  const e = _lancEl('lanc-erro'); if (e && txt) e.textContent = '';
+}
+
+// ── Listeners ─────────────────────────────────────────────────────────────
+function _lancOrdenar(a, b) {
+  const porData = String(b.data || '').localeCompare(String(a.data || ''));
+  if (porData) return porData;
+  const sa = (a.criadoEm && a.criadoEm.seconds) || 9e9;
+  const sb = (b.criadoEm && b.criadoEm.seconds) || 9e9;
+  return sb - sa;
+}
+function iniciarListenerLancamentosForn() {
+  const fid = cp?.fornecedorId;
+  if (!fid) return;
+  if (!_lancUnsubC) {
+    const qc = query(collection(db, 'fornecedores', fid, 'contatos'), orderBy('data', 'desc'));
+    _lancUnsubC = onSnapshot(qc, snap => {
+      _lancContatos = snap.docs.map(d => ({ ...d.data(), _id: d.id })).sort(_lancOrdenar);
+      lancRenderLista();
+    }, err => {
+      console.warn('[Piloto] contatos listener:', err);
+      const box = _lancEl('lanc-lista');
+      if (box) box.innerHTML = '<div style="color:#b91c1c;font-size:13px;text-align:center;padding:16px 0;">Erro ao carregar lançamentos (' + _lancEsc(err.code || err.message || 'desconhecido') + ').</div>';
+    });
+  }
+  if (!_lancUnsubP) {
+    const qp = query(collection(db, 'fornecedores', fid, 'pedidos_manuais'), orderBy('data', 'desc'));
+    _lancUnsubP = onSnapshot(qp, snap => {
+      _lancPedidos = snap.docs.map(d => ({ ...d.data(), _id: d.id })).sort(_lancOrdenar);
+      lancRenderLista();
+    }, err => console.warn('[Piloto] pedidos_manuais listener:', err));
+  }
+}
+window.iniciarListenerLancamentosForn = iniciarListenerLancamentosForn;
+
+// ── Clientes (clínicas vinculadas + clientes sem app) ─────────────────────
+function _lancClientes() {
+  const out = [];
+  (_clinicasTodas || []).forEach(function (c) {
+    if (_vinculosPorClinica[c._id] === 'aprovado') {
+      const crm = _clientesCRM[c._id] || {};
+      out.push({ id: c._id, nome: c.nomeEstab || c.nome || 'Clínica', origem: 'app', whatsapp: crm.whatsapp || '' });
+    }
+  });
+  Object.keys(_clientesCRM || {}).forEach(function (id) {
+    const c = _clientesCRM[id];
+    if (c && c.semApp) out.push({ id: id, nome: c.nome || 'Sem nome', origem: 'semApp', whatsapp: c.whatsapp || '' });
+  });
+  out.sort(function (a, b) { return a.nome.localeCompare(b.nome, 'pt-BR'); });
+  return out;
+}
+
+function lancBuscarCliente(q) {
+  const box = _lancEl('lanc-cli-resultados');
+  if (!box) return;
+  const t = _lancNorm(q).trim();
+  const dig = String(q || '').replace(/\D/g, '');
+  if (!t) { box.innerHTML = ''; return; }
+  const achados = _lancClientes().filter(function (c) {
+    return _lancNorm(c.nome).indexOf(t) >= 0 ||
+      (dig.length >= 3 && String(c.whatsapp).replace(/\D/g, '').indexOf(dig) >= 0);
+  }).slice(0, 8);
+  if (!achados.length) {
+    box.innerHTML = '<div style="font-size:12px;color:#a8a29e;padding:8px 2px;">Nenhum cliente encontrado. Use "+ Novo cliente (sem app)".</div>';
+    return;
+  }
+  box.innerHTML = achados.map(function (c) {
+    return '<div data-acao="cli-sel" data-id="' + _lancEsc(c.id) + '" style="display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid #e7e5e4;border-radius:6px;margin-top:4px;background:#fafaf9;cursor:pointer;font-size:13px;">' +
+      '<span>' + _lancEsc(c.nome) + '</span>' +
+      '<span style="font-size:11px;color:#a8a29e;">' + (c.origem === 'app' ? 'No app' : 'Sem app') + '</span></div>';
+  }).join('');
+}
+window.lancBuscarCliente = lancBuscarCliente;
+
+function lancEscolherCliente(id) {
+  const c = _lancClientes().find(function (x) { return x.id === id; });
+  if (!c) return;
+  _lancCliente = { id: c.id, nome: c.nome, origem: c.origem };
+  const w = _lancEl('lanc-novocli-wrap'); if (w) w.style.display = 'none';
+  const b = _lancEl('lanc-cli-busca'); if (b) b.value = '';
+  const r = _lancEl('lanc-cli-resultados'); if (r) r.innerHTML = '';
+  lancRenderCliente();
+}
+
+function lancRenderCliente() {
+  const ch = _lancEl('lanc-cli-escolhido');
+  const bw = _lancEl('lanc-cli-busca-wrap');
+  if (!ch || !bw) return;
+  if (_lancCliente) {
+    ch.style.display = 'flex';
+    ch.innerHTML = '<div style="font-size:14px;font-weight:700;color:#1c1917;">' + _lancEsc(_lancCliente.nome) + '</div>' +
+      '<span data-acao="cli-trocar" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">Trocar</span>';
+    bw.style.display = 'none';
+  } else {
+    ch.style.display = 'none';
+    ch.innerHTML = '';
+    bw.style.display = 'block';
+  }
+}
+
+function lancToggleNovoCliente() {
+  const w = _lancEl('lanc-novocli-wrap');
+  if (!w) return;
+  w.style.display = w.style.display === 'none' ? 'block' : 'none';
+  const e = _lancEl('lanc-nc-erro'); if (e) e.textContent = '';
+}
+window.lancToggleNovoCliente = lancToggleNovoCliente;
+
+async function lancSalvarNovoCliente() {
+  const erro = _lancEl('lanc-nc-erro');
+  if (erro) erro.textContent = '';
+  const nome = _lancValor('lanc-nc-nome').trim();
+  const resp = _lancValor('lanc-nc-resp').trim();
+  const wpp = _lancValor('lanc-nc-wpp').trim();
+  const tipo = _lancValor('lanc-nc-tipo');
+  const fid = cp?.fornecedorId;
+  if (!fid) { if (erro) erro.textContent = 'Fornecedor não identificado.'; return; }
+  if (!nome) { if (erro) erro.textContent = 'Informe o nome do cliente.'; return; }
+  const dig = wpp.replace(/\D/g, '');
+  if (dig.length >= 8) {
+    const dup = _lancClientes().find(function (c) { return String(c.whatsapp).replace(/\D/g, '') === dig; });
+    if (dup) {
+      alert('Já existe um cliente com este WhatsApp: ' + dup.nome + '. Ele foi selecionado.');
+      lancEscolherCliente(dup.id);
+      return;
+    }
+  }
+  try {
+    const ref = await addDoc(collection(db, 'fornecedores', fid, 'clientes'), {
+      nome: nome, responsavel: resp, whatsapp: wpp, tipo: tipo, semApp: true, criadoEm: serverTimestamp()
+    });
+    _lancCliente = { id: ref.id, nome: nome, origem: 'semApp' };
+    ['lanc-nc-nome', 'lanc-nc-resp', 'lanc-nc-wpp', 'lanc-nc-tipo'].forEach(function (id) { const e = _lancEl(id); if (e) e.value = ''; });
+    const w = _lancEl('lanc-novocli-wrap'); if (w) w.style.display = 'none';
+    lancRenderCliente();
+  } catch (e) {
+    console.error('[Piloto] lancSalvarNovoCliente:', e);
+    if (erro) erro.textContent = 'Erro ao salvar o cliente. Tente novamente.';
+  }
+}
+window.lancSalvarNovoCliente = lancSalvarNovoCliente;
+
+// ── Resultado ─────────────────────────────────────────────────────────────
+function lancEscolherResultado(r) {
+  _lancResultado = r || '';
+  document.querySelectorAll('#lanc-resultados [data-res]').forEach(function (b) {
+    const ativo = b.getAttribute('data-res') === _lancResultado;
+    b.style.background = ativo ? '#5b21b6' : '#fff';
+    b.style.color = ativo ? '#fff' : '#44403c';
+    b.style.borderColor = ativo ? '#5b21b6' : '#d6d3d1';
+  });
+  const bv = _lancEl('lanc-bloco-venda');
+  if (bv) bv.style.display = _lancResultado === 'Vendeu' ? 'block' : 'none';
+}
+
+// ── Produtos do pedido ────────────────────────────────────────────────────
+function _lancPrecoItem(it) {
+  const t = calcPrecoTiers(it.precoCheio);
+  let faixa = it.faixa;
+  if (faixa === 'auto') faixa = it.qtd >= 3 ? 'trio' : 'profissional';
+  const unit = faixa === 'cheia' ? t.cheia : (faixa === 'trio' ? t.p35 : t.p30);
+  const perc = faixa === 'cheia' ? 0 : (faixa === 'trio' ? 35 : 30);
+  const unitR = Math.round(unit * 100) / 100;
+  return { faixa: faixa, perc: perc, unit: unitR, subtotal: Math.round(unitR * it.qtd * 100) / 100 };
+}
+function _lancTotal() {
+  let total = 0;
+  _lancItens.forEach(function (it) { total += _lancPrecoItem(it).subtotal; });
+  return Math.round(total * 100) / 100;
+}
+
+function lancBuscarProduto(q) {
+  const box = _lancEl('lanc-prod-resultados');
+  if (!box) return;
+  const t = _lancNorm(q).trim();
+  if (!t) { box.innerHTML = ''; return; }
+  const achados = (_prodFornTodos || []).filter(function (p) {
+    return p.disponivel !== false && _lancNorm(p.nome).indexOf(t) >= 0;
+  }).slice(0, 8);
+  if (!achados.length) {
+    box.innerHTML = '<div style="font-size:12px;color:#a8a29e;padding:8px 2px;">Nenhum produto encontrado.</div>';
+    return;
+  }
+  box.innerHTML = achados.map(function (p) {
+    const cheia = calcPrecoTiers(p.preco).cheia;
+    return '<div data-acao="prod-add" data-id="' + _lancEsc(p._id) + '" style="display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid #e7e5e4;border-radius:6px;margin-top:4px;background:#fafaf9;cursor:pointer;font-size:13px;">' +
+      '<span>' + _lancEsc(p.nome) + (p.categoria ? ' <span style="font-size:11px;color:#a8a29e;">' + _lancEsc(p.categoria) + '</span>' : '') + '</span>' +
+      '<span style="color:#57534e;">' + (cheia ? _lancBRL(cheia) : 'sem preço') + '</span></div>';
+  }).join('');
+}
+window.lancBuscarProduto = lancBuscarProduto;
+
+function lancAdicionarProduto(id) {
+  const p = (_prodFornTodos || []).find(function (x) { return x._id === id; });
+  if (!p) return;
+  const ex = _lancItens.find(function (i) { return i.produtoId === id; });
+  if (ex) {
+    ex.qtd += 1;
+  } else {
+    _lancItens.push({ produtoId: id, nome: p.nome || 'Produto', linha: p.categoria || '', precoCheio: calcPrecoTiers(p.preco).cheia, qtd: 1, faixa: 'auto' });
+  }
+  const b = _lancEl('lanc-prod-busca'); if (b) b.value = '';
+  const r = _lancEl('lanc-prod-resultados'); if (r) r.innerHTML = '';
+  lancRenderItens();
+}
+
+function lancRenderItens() {
+  const box = _lancEl('lanc-itens');
+  const tot = _lancEl('lanc-total');
+  if (!box || !tot) return;
+  if (!_lancItens.length) {
+    box.innerHTML = '<div style="font-size:12px;color:#a8a29e;padding:10px 2px;">Nenhum produto adicionado ainda.</div>';
+    tot.innerHTML = '';
+    return;
+  }
+  const btnQtd = 'width:30px;height:30px;border:1px solid #d6d3d1;border-radius:6px;background:#fff;font-size:16px;cursor:pointer;line-height:1;';
+  box.innerHTML = _lancItens.map(function (it, i) {
+    const pr = _lancPrecoItem(it);
+    const opts = Object.keys(LANC_FAIXAS).map(function (k) {
+      return '<option value="' + k + '"' + (it.faixa === k ? ' selected' : '') + '>' + LANC_FAIXAS[k] + '</option>';
+    }).join('');
+    const rotulo = pr.faixa === 'cheia' ? 'tabela cheia' : (pr.faixa === 'trio' ? 'Trio -35%' : 'Profissional -30%');
+    return '<div style="border:1px solid #e7e5e4;border-radius:8px;padding:10px;margin-top:8px;background:#fff;">' +
+      '<div style="display:flex;justify-content:space-between;gap:8px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#1c1917;">' + _lancEsc(it.nome) + '</div>' +
+        '<span data-acao="item-del" data-i="' + i + '" style="font-size:12px;color:#b91c1c;text-decoration:underline;cursor:pointer;">Remover</span>' +
+      '</div>' +
+      (it.linha ? '<div style="font-size:11px;color:#a8a29e;">' + _lancEsc(it.linha) + '</div>' : '') +
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
+        '<button type="button" data-acao="qtd-menos" data-i="' + i + '" style="' + btnQtd + '">-</button>' +
+        '<input type="number" min="1" step="1" value="' + it.qtd + '" data-acao="qtd-input" data-i="' + i + '" style="width:60px;padding:6px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;text-align:center;">' +
+        '<button type="button" data-acao="qtd-mais" data-i="' + i + '" style="' + btnQtd + '">+</button>' +
+        '<select data-acao="faixa" data-i="' + i + '" style="padding:6px 8px;border:1px solid #e7e5e4;border-radius:6px;font-size:13px;">' + opts + '</select>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#57534e;margin-top:6px;">Unitário: <b>' + _lancBRL(pr.unit) + '</b> (' + rotulo + ') · Subtotal: <b>' + _lancBRL(pr.subtotal) + '</b></div>' +
+      (it.precoCheio ? '' : '<div style="font-size:11px;color:#b91c1c;margin-top:4px;">Este produto está sem preço no catálogo.</div>') +
+    '</div>';
+  }).join('');
+  tot.innerHTML = 'Total: <b>' + _lancBRL(_lancTotal()) + '</b>';
+}
+
+// ── Formulário ────────────────────────────────────────────────────────────
+function lancLimparForm() {
+  _lancCliente = null;
+  _lancItens = [];
+  _lancEditId = null;
+  _lancEditPedidoId = '';
+  ['lanc-cli-busca', 'lanc-prox', 'lanc-obs', 'lanc-pgto', 'lanc-prod-busca'].forEach(function (id) { const e = _lancEl(id); if (e) e.value = ''; });
+  const d = _lancEl('lanc-data'); if (d) { d.max = _lancHoje(); d.value = _lancHoje(); }
+  const r1 = _lancEl('lanc-cli-resultados'); if (r1) r1.innerHTML = '';
+  const r2 = _lancEl('lanc-prod-resultados'); if (r2) r2.innerHTML = '';
+  const nc = _lancEl('lanc-novocli-wrap'); if (nc) nc.style.display = 'none';
+  const bn = _lancEl('lanc-edit-banner'); if (bn) bn.style.display = 'none';
+  const bt = _lancEl('lanc-btn-salvar'); if (bt) bt.textContent = 'Salvar lançamento';
+  lancEscolherResultado('');
+  lancRenderCliente();
+  lancRenderItens();
+  _lancMsgErro('');
+}
+window.lancLimparForm = lancLimparForm;
+
+function lancCancelarEdicao() { lancLimparForm(); _lancMsgOk(''); }
+window.lancCancelarEdicao = lancCancelarEdicao;
+
+function lancEditar(id) {
+  const c = _lancContatos.find(function (x) { return x._id === id; });
+  if (!c) return;
+  lancLimparForm();
+  _lancEditId = id;
+  _lancEditPedidoId = c.pedidoId || '';
+  _lancCliente = { id: c.clienteId, nome: c.clienteNome || 'Cliente', origem: '' };
+  lancRenderCliente();
+  _lancEl('lanc-data').value = c.data || _lancHoje();
+  _lancEl('lanc-prox').value = c.proximoContato || '';
+  _lancEl('lanc-obs').value = c.obs || '';
+  lancEscolherResultado(c.resultado || '');
+  if (c.pedidoId) {
+    const p = _lancPedidos.find(function (x) { return x._id === c.pedidoId; });
+    if (p) {
+      _lancItens = (p.itens || []).map(function (it) {
+        return { produtoId: it.produtoId || '', nome: it.nome || '', linha: it.linha || '', precoCheio: Number(it.precoTabela) || 0, qtd: Number(it.qtd) || 1, faixa: it.faixa || 'auto' };
+      });
+      _lancEl('lanc-pgto').value = p.formaPagamento || '';
+    }
+  }
+  lancRenderItens();
+  const bn = _lancEl('lanc-edit-banner');
+  const tx = _lancEl('lanc-edit-txt');
+  if (tx) tx.textContent = 'Editando o lançamento de ' + _lancDataBR(c.data) + ' — ' + (c.clienteNome || 'Cliente');
+  if (bn) bn.style.display = 'block';
+  const bt = _lancEl('lanc-btn-salvar'); if (bt) bt.textContent = 'Salvar alterações';
+  _lancMsgOk('');
+  const painel = _lancEl('forn-tab-lancamentos');
+  if (painel && painel.scrollIntoView) painel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function lancSalvar() {
+  if (_lancSalvando) return;
+  _lancMsgErro('');
+  _lancMsgOk('');
+  const fid = cp?.fornecedorId;
+  const user = auth.currentUser;
+  if (!fid || !user) { _lancMsgErro('Fornecedor não identificado. Entre novamente.'); return; }
+  if (!_lancCliente) { _lancMsgErro('Escolha o cliente.'); return; }
+  const data = _lancValor('lanc-data');
+  if (!data) { _lancMsgErro('Informe a data do lançamento.'); return; }
+  if (data > _lancHoje()) { _lancMsgErro('A data do lançamento não pode ser futura.'); return; }
+  if (!_lancResultado) { _lancMsgErro('Escolha o resultado.'); return; }
+  const prox = _lancValor('lanc-prox');
+  if (prox && prox < data) { _lancMsgErro('O próximo contato não pode ser antes da data do lançamento.'); return; }
+  const obs = _lancValor('lanc-obs').trim();
+
+  const ehVenda = _lancResultado === 'Vendeu';
+  let itens = [];
+  let total = 0;
+  let pgto = '';
+  if (ehVenda) {
+    if (!_lancItens.length) { _lancMsgErro('Adicione ao menos um produto ao pedido.'); return; }
+    itens = _lancItens.map(function (it) {
+      const pr = _lancPrecoItem(it);
+      return { produtoId: it.produtoId, nome: it.nome, linha: it.linha, qtd: it.qtd, precoTabela: it.precoCheio, faixa: pr.faixa, percentual: pr.perc, precoUnit: pr.unit, subtotal: pr.subtotal };
+    });
+    total = _lancTotal();
+    if (!(total > 0)) { _lancMsgErro('O valor total do pedido está zerado. Confira os preços dos produtos.'); return; }
+    pgto = _lancValor('lanc-pgto');
+  }
+  if (_lancEditPedidoId && !ehVenda) {
+    if (!confirm('Mudar o resultado para "' + _lancResultado + '" apaga o pedido de venda deste lançamento. Continuar?')) return;
+  }
+
+  _lancSalvando = true;
+  const btn = _lancEl('lanc-btn-salvar');
+  if (btn) btn.disabled = true;
+  try {
+    const batch = writeBatch(db);
+    const nomeVend = cp.name || (user.email || '').split('@')[0];
+    const cRef = _lancEditId
+      ? doc(db, 'fornecedores', fid, 'contatos', _lancEditId)
+      : doc(collection(db, 'fornecedores', fid, 'contatos'));
+    let pedidoId = _lancEditPedidoId || '';
+
+    if (ehVenda) {
+      const pRef = pedidoId
+        ? doc(db, 'fornecedores', fid, 'pedidos_manuais', pedidoId)
+        : doc(collection(db, 'fornecedores', fid, 'pedidos_manuais'));
+      const ped = {
+        clienteId: _lancCliente.id, clienteNome: _lancCliente.nome, data: data,
+        itens: itens, valorTotal: total, formaPagamento: pgto, obs: obs,
+        origem: 'manual', contatoId: cRef.id
+      };
+      if (pedidoId) { ped.editadoPor = user.uid; ped.editadoEm = serverTimestamp(); }
+      else { ped.vendedorUid = user.uid; ped.vendedorNome = nomeVend; ped.criadoEm = serverTimestamp(); }
+      batch.set(pRef, ped, { merge: true });
+      pedidoId = pRef.id;
+    } else if (pedidoId) {
+      batch.delete(doc(db, 'fornecedores', fid, 'pedidos_manuais', pedidoId));
+      pedidoId = '';
+    }
+
+    const cont = {
+      clienteId: _lancCliente.id, clienteNome: _lancCliente.nome, data: data,
+      resultado: _lancResultado, proximoContato: prox, obs: obs,
+      valor: total, pedidoId: pedidoId
+    };
+    if (_lancEditId) { cont.editadoPor = user.uid; cont.editadoEm = serverTimestamp(); }
+    else { cont.vendedorUid = user.uid; cont.vendedorNome = nomeVend; cont.criadoEm = serverTimestamp(); }
+    batch.set(cRef, cont, { merge: true });
+
+    await batch.commit();
+    const editou = !!_lancEditId;
+    lancLimparForm();
+    _lancMsgOk(editou ? 'Alterações salvas.' : 'Lançamento salvo.');
+  } catch (e) {
+    console.error('[Piloto] lancSalvar:', e);
+    _lancMsgErro('Erro ao salvar (' + (e.code || e.message || 'desconhecido') + '). Nada foi gravado; tente novamente.');
+  } finally {
+    _lancSalvando = false;
+    if (btn) btn.disabled = false;
+  }
+}
+window.lancSalvar = lancSalvar;
+
+async function lancApagar(id) {
+  const c = _lancContatos.find(function (x) { return x._id === id; });
+  const fid = cp?.fornecedorId;
+  if (!c || !fid) return;
+  const aviso = 'Apagar este lançamento' + (c.pedidoId ? ' e o pedido de venda ligado a ele' : '') + '?';
+  if (!confirm(aviso)) return;
+  try {
+    const batch = writeBatch(db);
+    batch.delete(doc(db, 'fornecedores', fid, 'contatos', id));
+    if (c.pedidoId) batch.delete(doc(db, 'fornecedores', fid, 'pedidos_manuais', c.pedidoId));
+    await batch.commit();
+    if (_lancEditId === id) lancLimparForm();
+    _lancMsgOk('Lançamento apagado.');
+  } catch (e) {
+    console.error('[Piloto] lancApagar:', e);
+    _lancMsgErro('Erro ao apagar (' + (e.code || e.message || 'desconhecido') + ').');
+  }
+}
+
+// ── Lista dos últimos lançamentos ─────────────────────────────────────────
+function lancRenderLista() {
+  const box = _lancEl('lanc-lista');
+  if (!box) return;
+  if (!_lancContatos.length) {
+    box.innerHTML = '<div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Nenhum lançamento ainda.</div>';
+    return;
+  }
+  const pedPorId = {};
+  _lancPedidos.forEach(function (p) { pedPorId[p._id] = p; });
+  box.innerHTML = _lancContatos.slice(0, 60).map(function (c) {
+    const cor = LANC_RES_CORES[c.resultado] || ['#f5f5f4', '#57534e'];
+    const ped = c.pedidoId ? pedPorId[c.pedidoId] : null;
+    let venda = '';
+    if (ped) {
+      const resumo = (ped.itens || []).map(function (it) { return it.qtd + 'x ' + it.nome; }).join(', ');
+      venda = '<div style="font-size:12px;color:#78716c;margin-top:4px;">' + _lancEsc(resumo) + '</div>' +
+        '<div style="font-size:13px;font-weight:600;color:#1c1917;margin-top:4px;">' + _lancBRL(ped.valorTotal) + (ped.formaPagamento ? ' <span style="font-size:11px;font-weight:400;color:#a8a29e;">' + _lancEsc(ped.formaPagamento) + '</span>' : '') + '</div>';
+    }
+    return '<div style="background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">' +
+        '<div style="font-size:13px;font-weight:700;color:#1c1917;">' + _lancEsc(c.clienteNome || 'Cliente') + '</div>' +
+        '<span style="font-size:11px;padding:3px 8px;border-radius:4px;background:' + cor[0] + ';color:' + cor[1] + ';">' + _lancEsc(c.resultado || '') + '</span>' +
+      '</div>' +
+      '<div style="font-size:11px;color:#a8a29e;margin-top:2px;">' + _lancDataBR(c.data) + (c.vendedorNome ? ' · ' + _lancEsc(c.vendedorNome) : '') + '</div>' +
+      venda +
+      (c.proximoContato ? '<div style="font-size:12px;color:#57534e;margin-top:4px;">Próximo contato: ' + _lancDataBR(c.proximoContato) + '</div>' : '') +
+      (c.obs ? '<div style="font-size:12px;color:#78716c;margin-top:4px;">' + _lancEsc(c.obs) + '</div>' : '') +
+      '<div style="display:flex;gap:12px;margin-top:8px;">' +
+        '<span data-acao="lanc-edit" data-id="' + _lancEsc(c._id) + '" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">Editar</span>' +
+        '<span data-acao="lanc-del" data-id="' + _lancEsc(c._id) + '" style="font-size:12px;color:#b91c1c;text-decoration:underline;cursor:pointer;">Apagar</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── Eventos (delegação) e abertura da aba ─────────────────────────────────
+function _lancIniciarEventos() {
+  if (_lancEventosOk) return;
+  const painel = _lancEl('forn-tab-lancamentos');
+  if (!painel) return;
+  _lancEventosOk = true;
+  painel.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-acao]');
+    if (!el || !painel.contains(el)) return;
+    const acao = el.getAttribute('data-acao');
+    const id = el.getAttribute('data-id');
+    const i = parseInt(el.getAttribute('data-i'), 10);
+    if (acao === 'cli-sel') lancEscolherCliente(id);
+    else if (acao === 'cli-trocar') { _lancCliente = null; lancRenderCliente(); }
+    else if (acao === 'res') lancEscolherResultado(el.getAttribute('data-res'));
+    else if (acao === 'prod-add') lancAdicionarProduto(id);
+    else if (acao === 'qtd-menos') { if (_lancItens[i]) { _lancItens[i].qtd = Math.max(1, _lancItens[i].qtd - 1); lancRenderItens(); } }
+    else if (acao === 'qtd-mais') { if (_lancItens[i]) { _lancItens[i].qtd += 1; lancRenderItens(); } }
+    else if (acao === 'item-del') { if (_lancItens[i]) { _lancItens.splice(i, 1); lancRenderItens(); } }
+    else if (acao === 'lanc-edit') lancEditar(id);
+    else if (acao === 'lanc-del') lancApagar(id);
+  });
+  painel.addEventListener('change', function (e) {
+    const el = e.target;
+    const acao = el.getAttribute && el.getAttribute('data-acao');
+    const i = parseInt(el.getAttribute && el.getAttribute('data-i'), 10);
+    if (acao === 'faixa' && _lancItens[i]) { _lancItens[i].faixa = el.value; lancRenderItens(); }
+    else if (acao === 'qtd-input' && _lancItens[i]) {
+      const n = parseInt(el.value, 10);
+      _lancItens[i].qtd = (n > 0) ? n : 1;
+      lancRenderItens();
+    }
+  });
+}
+
+function lancAbrirAba() {
+  _lancIniciarEventos();
+  iniciarListenerLancamentosForn();
+  const d = _lancEl('lanc-data');
+  if (d) { d.max = _lancHoje(); if (!d.value) d.value = _lancHoje(); }
+  lancRenderCliente();
+  lancRenderItens();
+  lancRenderLista();
+}
+window.lancAbrirAba = lancAbrirAba;
+
 </script>
 <script>
 // Bridge — garante que funções do module estejam disponíveis para onclick inline
@@ -11968,6 +12512,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
 </div>
 <!-- HOME FORNECEDOR (após login) — placeholder inicial, telas do módulo Fornecedor entram aqui -->
 <div id="home-forn-screen" style="position:fixed;inset:0;z-index:9050;background:#f7f3f0;display:none;flex-direction:column;overflow:hidden;">
+  <div style="background:#f59e0b;color:#1c1917;font-size:11px;font-weight:700;text-align:center;padding:4px 8px;flex-shrink:0;">VERSÃO PILOTO v2.0-piloto — os dados lançados aqui são reais</div>
   <div style="background:#993556;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
     <div style="display:flex;align-items:center;gap:10px;">
       <button class="tb-menu" onclick="toggleFornSidebar()" style="color:#fff;"><i class="ti ti-menu-2"></i></button>
@@ -11983,6 +12528,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <div class="sb-backdrop" id="forn-sb-bd" onclick="toggleFornSidebar()"></div>
     <nav class="sidebar" id="forn-sidebar" style="width:170px;flex-shrink:0;background:#993556;padding:16px 0;display:flex;flex-direction:column;gap:2px;overflow-y:auto;">
       <div class="forn-nav-item" data-tab="dashboard" onclick="switchFornTab('dashboard')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#fff;background:#5b21b6;">Dashboard</div>
+      <div class="forn-nav-item" data-tab="lancamentos" onclick="switchFornTab('lancamentos')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Lançamentos</div>
       <div class="forn-nav-item" data-tab="catalogo" onclick="switchFornTab('catalogo')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Catálogo</div>
       <div class="forn-nav-item" data-tab="clientes" onclick="switchFornTab('clientes')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Clientes</div>
       <div class="forn-nav-item" data-tab="pedidos" onclick="switchFornTab('pedidos')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Pedidos</div>
@@ -12006,6 +12552,100 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <div style="font-size:13px;font-weight:700;color:#1c1917;margin-bottom:8px;">Ranking de clínicas</div>
     <div id="forn-dash-ranking" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
       <div style="color:#a8a29e;font-size:13px;">Sem pedidos ainda.</div>
+    </div>
+  </div>
+
+  <div id="forn-tab-lancamentos" class="forn-tab-panel" style="display:none;padding:0 20px 20px 20px;">
+    <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Novo lançamento</div>
+
+    <div id="lanc-edit-banner" style="display:none;background:#fef3c7;color:#92400e;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px;max-width:680px;">
+      <span id="lanc-edit-txt"></span>
+      <span onclick="lancCancelarEdicao()" style="text-decoration:underline;cursor:pointer;margin-left:8px;">Cancelar edição</span>
+    </div>
+
+    <div style="background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);max-width:680px;">
+
+      <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Cliente</label>
+      <div id="lanc-cli-escolhido" style="display:none;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border:1px solid #c4b5fd;background:#f5f3ff;border-radius:6px;"></div>
+      <div id="lanc-cli-busca-wrap">
+        <input id="lanc-cli-busca" type="text" placeholder="Buscar por nome ou WhatsApp" autocomplete="off" oninput="lancBuscarCliente(this.value)" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+        <div id="lanc-cli-resultados"></div>
+        <span onclick="lancToggleNovoCliente()" style="display:inline-block;margin-top:8px;font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">+ Novo cliente (sem app)</span>
+      </div>
+
+      <div id="lanc-novocli-wrap" style="display:none;margin-top:10px;padding:12px;border:1px dashed #d6d3d1;border-radius:8px;background:#fafaf9;">
+        <div style="font-size:13px;font-weight:700;color:#1c1917;margin-bottom:8px;">Novo cliente</div>
+        <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Nome</label>
+        <input id="lanc-nc-nome" type="text" maxlength="80" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:10px;box-sizing:border-box;">
+        <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Responsável</label>
+        <input id="lanc-nc-resp" type="text" maxlength="80" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:10px;box-sizing:border-box;">
+        <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">WhatsApp</label>
+        <input id="lanc-nc-wpp" type="text" placeholder="(11) 90000-0000" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:10px;box-sizing:border-box;">
+        <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Tipo</label>
+        <select id="lanc-nc-tipo" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;margin-bottom:10px;box-sizing:border-box;">
+          <option value="">Selecione...</option>
+          <option value="Estética">Estética</option>
+          <option value="Clínica">Clínica</option>
+          <option value="Salão">Salão</option>
+          <option value="Revenda">Revenda</option>
+          <option value="Distribuidor">Distribuidor</option>
+          <option value="Escola">Escola</option>
+          <option value="Outros">Outros</option>
+        </select>
+        <div id="lanc-nc-erro" style="color:#b91c1c;font-size:12px;margin-bottom:8px;"></div>
+        <div style="display:flex;gap:10px;">
+          <button type="button" onclick="lancSalvarNovoCliente()" style="background:#1c1917;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar cliente</button>
+          <button type="button" onclick="lancToggleNovoCliente()" style="background:#e7e5e4;color:#44403c;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
+        </div>
+      </div>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin:14px 0 4px;">Data do lançamento</label>
+      <input id="lanc-data" type="date" style="padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+      <div style="font-size:11px;color:#a8a29e;margin-top:4px;">Pode ser uma data passada; datas futuras não são aceitas.</div>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin:14px 0 6px;">Resultado</label>
+      <div id="lanc-resultados" style="display:flex;flex-wrap:wrap;gap:6px;">
+        <button type="button" data-acao="res" data-res="Vendeu" style="padding:8px 14px;border:1px solid #d6d3d1;border-radius:999px;background:#fff;color:#44403c;font-size:13px;cursor:pointer;">Vendeu</button>
+        <button type="button" data-acao="res" data-res="Agendado" style="padding:8px 14px;border:1px solid #d6d3d1;border-radius:999px;background:#fff;color:#44403c;font-size:13px;cursor:pointer;">Agendado</button>
+        <button type="button" data-acao="res" data-res="Sem interesse" style="padding:8px 14px;border:1px solid #d6d3d1;border-radius:999px;background:#fff;color:#44403c;font-size:13px;cursor:pointer;">Sem interesse</button>
+        <button type="button" data-acao="res" data-res="Não atendeu" style="padding:8px 14px;border:1px solid #d6d3d1;border-radius:999px;background:#fff;color:#44403c;font-size:13px;cursor:pointer;">Não atendeu</button>
+        <button type="button" data-acao="res" data-res="Ctto Inválido" style="padding:8px 14px;border:1px solid #d6d3d1;border-radius:999px;background:#fff;color:#44403c;font-size:13px;cursor:pointer;">Ctto Inválido</button>
+        <button type="button" data-acao="res" data-res="Cadastro" style="padding:8px 14px;border:1px solid #d6d3d1;border-radius:999px;background:#fff;color:#44403c;font-size:13px;cursor:pointer;">Cadastro</button>
+      </div>
+
+      <div id="lanc-bloco-venda" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid #e7e5e4;">
+        <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Produtos do pedido</label>
+        <input id="lanc-prod-busca" type="text" placeholder="Buscar produto pelo nome" autocomplete="off" oninput="lancBuscarProduto(this.value)" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+        <div id="lanc-prod-resultados"></div>
+        <div id="lanc-itens"></div>
+        <div id="lanc-total" style="text-align:right;font-size:15px;color:#1c1917;margin-top:10px;"></div>
+        <label style="display:block;font-size:12px;color:#78716c;margin:12px 0 4px;">Forma de pagamento (opcional)</label>
+        <select id="lanc-pgto" style="padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+          <option value="">Não informada</option>
+          <option value="Pix">Pix</option>
+          <option value="Cartão">Cartão</option>
+          <option value="Boleto">Boleto</option>
+          <option value="A combinar">A combinar</option>
+        </select>
+      </div>
+
+      <label style="display:block;font-size:12px;color:#78716c;margin:16px 0 4px;">Próximo contato (opcional)</label>
+      <input id="lanc-prox" type="date" style="padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+
+      <label style="display:block;font-size:12px;color:#78716c;margin:14px 0 4px;">Observação (opcional)</label>
+      <textarea id="lanc-obs" rows="2" maxlength="300" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;resize:vertical;"></textarea>
+
+      <div id="lanc-erro" style="color:#b91c1c;font-size:12px;margin-top:10px;"></div>
+      <div id="lanc-status" style="color:#166534;font-size:12px;margin-top:10px;"></div>
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button id="lanc-btn-salvar" type="button" onclick="lancSalvar()" style="background:#1c1917;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar lançamento</button>
+        <button type="button" onclick="lancLimparForm()" style="background:#e7e5e4;color:#44403c;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:13px;">Limpar</button>
+      </div>
+    </div>
+
+    <div style="font-size:15px;font-weight:700;color:#1c1917;margin:24px 0 12px;">Últimos lançamentos</div>
+    <div id="lanc-lista" style="display:flex;flex-direction:column;gap:8px;max-width:680px;">
+      <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando lançamentos...</div>
     </div>
   </div>
 
