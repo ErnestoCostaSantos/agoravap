@@ -11921,6 +11921,46 @@ function _lancTotal() {
   return Math.round(total * 100) / 100;
 }
 
+// Aceita "25,50", "25.50" e "1.250,00". Retorna NaN se não for número.
+function _lancNum(v) {
+  let s = String(v == null ? '' : v).trim().replace(/[^0-9.,-]/g, '');
+  if (!s) return NaN;
+  if (s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.');
+  return parseFloat(s);
+}
+// Ordem do cálculo: produtos -> desconto adicional (só no Pix) -> frete somado no fim.
+function _lancCalc() {
+  const sub = _lancTotal();
+  const pgto = _lancValor('lanc-pgto');
+  const pct = pgto === 'Pix' ? (parseInt(_lancValor('lanc-desc'), 10) || 0) : 0;
+  const desc = Math.round(sub * pct) / 100;
+  const f = _lancNum(_lancValor('lanc-frete'));
+  const frete = (f >= 0) ? Math.round(f * 100) / 100 : 0;
+  const produtos = Math.round((sub - desc) * 100) / 100;
+  const total = Math.round((produtos + frete) * 100) / 100;
+  return { sub: sub, pct: pct, desc: desc, produtos: produtos, frete: frete, total: total };
+}
+function lancRenderResumo() {
+  const el = _lancEl('lanc-total');
+  if (!el) return;
+  if (!_lancItens.length) { el.innerHTML = ''; return; }
+  const c = _lancCalc();
+  let h = '<div style="display:flex;justify-content:space-between;"><span>Produtos</span><span>' + _lancBRL(c.sub) + '</span></div>';
+  if (c.pct > 0) h += '<div style="display:flex;justify-content:space-between;"><span>Desconto Pix (' + c.pct + '%)</span><span>- ' + _lancBRL(c.desc) + '</span></div>';
+  if (c.frete > 0) h += '<div style="display:flex;justify-content:space-between;"><span>Frete</span><span>+ ' + _lancBRL(c.frete) + '</span></div>';
+  h += '<div style="display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid #e7e5e4;font-size:15px;color:#1c1917;"><b>Total</b><b>' + _lancBRL(c.total) + '</b></div>';
+  el.innerHTML = h;
+}
+window.lancRenderResumo = lancRenderResumo;
+function lancPgtoMudou() {
+  const w = _lancEl('lanc-desc-wrap');
+  const ehPix = _lancValor('lanc-pgto') === 'Pix';
+  if (w) w.style.display = ehPix ? 'block' : 'none';
+  if (!ehPix) { const d = _lancEl('lanc-desc'); if (d) d.value = '0'; }
+  lancRenderResumo();
+}
+window.lancPgtoMudou = lancPgtoMudou;
+
 function lancBuscarProduto(q) {
   const box = _lancEl('lanc-prod-resultados');
   if (!box) return;
@@ -11958,11 +11998,10 @@ function lancAdicionarProduto(id) {
 
 function lancRenderItens() {
   const box = _lancEl('lanc-itens');
-  const tot = _lancEl('lanc-total');
-  if (!box || !tot) return;
+  if (!box) return;
   if (!_lancItens.length) {
     box.innerHTML = '<div style="font-size:12px;color:#a8a29e;padding:10px 2px;">Nenhum produto adicionado ainda.</div>';
-    tot.innerHTML = '';
+    lancRenderResumo();
     return;
   }
   const btnQtd = 'width:30px;height:30px;border:1px solid #d6d3d1;border-radius:6px;background:#fff;font-size:16px;cursor:pointer;line-height:1;';
@@ -11988,7 +12027,7 @@ function lancRenderItens() {
       (it.precoCheio ? '' : '<div style="font-size:11px;color:#b91c1c;margin-top:4px;">Este produto está sem preço no catálogo.</div>') +
     '</div>';
   }).join('');
-  tot.innerHTML = 'Total: <b>' + _lancBRL(_lancTotal()) + '</b>';
+  lancRenderResumo();
 }
 
 // ── Formulário ────────────────────────────────────────────────────────────
@@ -11997,7 +12036,9 @@ function lancLimparForm() {
   _lancItens = [];
   _lancEditId = null;
   _lancEditPedidoId = '';
-  ['lanc-cli-busca', 'lanc-prox', 'lanc-obs', 'lanc-pgto', 'lanc-prod-busca'].forEach(function (id) { const e = _lancEl(id); if (e) e.value = ''; });
+  ['lanc-cli-busca', 'lanc-prox', 'lanc-obs', 'lanc-pgto', 'lanc-prod-busca', 'lanc-frete'].forEach(function (id) { const e = _lancEl(id); if (e) e.value = ''; });
+  const dsc = _lancEl('lanc-desc'); if (dsc) dsc.value = '0';
+  lancPgtoMudou();
   const d = _lancEl('lanc-data'); if (d) { d.max = _lancHoje(); d.value = _lancHoje(); }
   const r1 = _lancEl('lanc-cli-resultados'); if (r1) r1.innerHTML = '';
   const r2 = _lancEl('lanc-prod-resultados'); if (r2) r2.innerHTML = '';
@@ -12033,6 +12074,9 @@ function lancEditar(id) {
         return { produtoId: it.produtoId || '', nome: it.nome || '', linha: it.linha || '', precoCheio: Number(it.precoTabela) || 0, qtd: Number(it.qtd) || 1, faixa: it.faixa || 'auto' };
       });
       _lancEl('lanc-pgto').value = p.formaPagamento || '';
+      _lancEl('lanc-desc').value = String(p.descontoPct || 0);
+      _lancEl('lanc-frete').value = p.frete > 0 ? String(p.frete).replace('.', ',') : '';
+      lancPgtoMudou();
     }
   }
   lancRenderItens();
@@ -12065,6 +12109,7 @@ async function lancSalvar() {
   const ehVenda = _lancResultado === 'Vendeu';
   let itens = [];
   let total = 0;
+  let calc = null;
   let pgto = '';
   if (ehVenda) {
     if (!_lancItens.length) { _lancMsgErro('Adicione ao menos um produto ao pedido.'); return; }
@@ -12072,8 +12117,11 @@ async function lancSalvar() {
       const pr = _lancPrecoItem(it);
       return { produtoId: it.produtoId, nome: it.nome, linha: it.linha, qtd: it.qtd, precoTabela: it.precoCheio, faixa: pr.faixa, percentual: pr.perc, precoUnit: pr.unit, subtotal: pr.subtotal };
     });
-    total = _lancTotal();
-    if (!(total > 0)) { _lancMsgErro('O valor total do pedido está zerado. Confira os preços dos produtos.'); return; }
+    const freteTxt = _lancValor('lanc-frete').trim();
+    if (freteTxt && !(_lancNum(freteTxt) >= 0)) { _lancMsgErro('Frete inválido. Use um valor como 25,50.'); return; }
+    calc = _lancCalc();
+    total = calc.total;
+    if (!(calc.sub > 0) || !(total > 0)) { _lancMsgErro('O valor total do pedido está zerado. Confira os preços dos produtos.'); return; }
     pgto = _lancValor('lanc-pgto');
   }
   if (_lancEditPedidoId && !ehVenda) {
@@ -12100,6 +12148,11 @@ async function lancSalvar() {
         itens: itens, valorTotal: total, formaPagamento: pgto, obs: obs,
         origem: 'manual', contatoId: cRef.id
       };
+      ped.subtotalItens = calc.sub;
+      ped.descontoPct = calc.pct;
+      ped.descontoValor = calc.desc;
+      ped.valorProdutos = calc.produtos;
+      ped.frete = calc.frete;
       if (pedidoId) { ped.editadoPor = user.uid; ped.editadoEm = serverTimestamp(); }
       else { ped.vendedorUid = user.uid; ped.vendedorNome = nomeVend; ped.criadoEm = serverTimestamp(); }
       batch.set(pRef, ped, { merge: true });
@@ -12167,7 +12220,11 @@ function lancRenderLista() {
     let venda = '';
     if (ped) {
       const resumo = (ped.itens || []).map(function (it) { return it.qtd + 'x ' + it.nome; }).join(', ');
-      venda = '<div style="font-size:12px;color:#78716c;margin-top:4px;">' + _lancEsc(resumo) + '</div>' +
+      const partes = [];
+      if (ped.descontoValor > 0) partes.push('Desconto Pix ' + ped.descontoPct + '%: -' + _lancBRL(ped.descontoValor));
+      if (ped.frete > 0) partes.push('Frete: ' + _lancBRL(ped.frete));
+      const detalhe = partes.length ? '<div style="font-size:11px;color:#a8a29e;margin-top:2px;">Produtos ' + _lancBRL(ped.subtotalItens != null ? ped.subtotalItens : ped.valorTotal) + ' · ' + partes.join(' · ') + '</div>' : '';
+      venda = '<div style="font-size:12px;color:#78716c;margin-top:4px;">' + _lancEsc(resumo) + '</div>' + detalhe +
         '<div style="font-size:13px;font-weight:600;color:#1c1917;margin-top:4px;">' + _lancBRL(ped.valorTotal) + (ped.formaPagamento ? ' <span style="font-size:11px;font-weight:400;color:#a8a29e;">' + _lancEsc(ped.formaPagamento) + '</span>' : '') + '</div>';
     }
     return '<div style="background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">' +
@@ -12618,15 +12675,26 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         <input id="lanc-prod-busca" type="text" placeholder="Buscar produto pelo nome" autocomplete="off" oninput="lancBuscarProduto(this.value)" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
         <div id="lanc-prod-resultados"></div>
         <div id="lanc-itens"></div>
-        <div id="lanc-total" style="text-align:right;font-size:15px;color:#1c1917;margin-top:10px;"></div>
-        <label style="display:block;font-size:12px;color:#78716c;margin:12px 0 4px;">Forma de pagamento (opcional)</label>
-        <select id="lanc-pgto" style="padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+        <label style="display:block;font-size:12px;color:#78716c;margin:14px 0 4px;">Forma de pagamento (opcional)</label>
+        <select id="lanc-pgto" onchange="lancPgtoMudou()" style="padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
           <option value="">Não informada</option>
           <option value="Pix">Pix</option>
           <option value="Cartão">Cartão</option>
           <option value="Boleto">Boleto</option>
           <option value="A combinar">A combinar</option>
         </select>
+        <div id="lanc-desc-wrap" style="display:none;margin-top:10px;">
+          <label style="display:block;font-size:12px;color:#78716c;margin-bottom:4px;">Desconto adicional no Pix</label>
+          <select id="lanc-desc" onchange="lancRenderResumo()" style="padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+            <option value="0">Sem desconto</option>
+            <option value="3">3%</option>
+            <option value="5">5%</option>
+          </select>
+        </div>
+        <label style="display:block;font-size:12px;color:#78716c;margin:12px 0 4px;">Frete em R$ (opcional)</label>
+        <input id="lanc-frete" type="text" inputmode="decimal" placeholder="0,00" oninput="lancRenderResumo()" style="width:140px;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
+        <div style="font-size:11px;color:#a8a29e;margin-top:4px;">Somado ao total depois do desconto.</div>
+        <div id="lanc-total" style="margin-top:12px;padding:10px 12px;background:#fafaf9;border-radius:8px;font-size:13px;color:#57534e;"></div>
       </div>
 
       <label style="display:block;font-size:12px;color:#78716c;margin:16px 0 4px;">Próximo contato (opcional)</label>
