@@ -9728,6 +9728,7 @@ function switchFornTab(tab) {
   if (contentWrap) contentWrap.scrollTop = 0;
   if (tab === 'qrcode' && window.gerarQRCodeFornecedor) window.gerarQRCodeFornecedor();
   if (tab === 'lancamentos' && window.lancAbrirAba) window.lancAbrirAba();
+  if (tab === 'relatorios' && window.relAbrirAba) window.relAbrirAba();
   closeFornSidebar();
 }
 window.switchFornTab = switchFornTab;
@@ -11769,6 +11770,7 @@ function iniciarListenerLancamentosForn() {
     _lancUnsubC = onSnapshot(qc, snap => {
       _lancContatos = snap.docs.map(d => ({ ...d.data(), _id: d.id })).sort(_lancOrdenar);
       lancRenderLista();
+      relRenderSeAberta();
     }, err => {
       console.warn('[Piloto] contatos listener:', err);
       const box = _lancEl('lanc-lista');
@@ -11780,6 +11782,7 @@ function iniciarListenerLancamentosForn() {
     _lancUnsubP = onSnapshot(qp, snap => {
       _lancPedidos = snap.docs.map(d => ({ ...d.data(), _id: d.id })).sort(_lancOrdenar);
       lancRenderLista();
+      relRenderSeAberta();
     }, err => console.warn('[Piloto] pedidos_manuais listener:', err));
   }
 }
@@ -12290,6 +12293,219 @@ function lancAbrirAba() {
 }
 window.lancAbrirAba = lancAbrirAba;
 
+// ══════════════════════════════════════════════════════════════════════════
+// PILOTO v2.0 — RELATÓRIOS DO FORNECEDOR (etapa 3A)
+// Junta 3 origens de venda, sempre separadas nos números:
+//   app    = /pedidos (clínicas; exceto cancelados — mesmo critério do Dashboard)
+//   qr     = /fornecedores/{fid}/pedidos_publicos (catálogo QR Code; "pedido inicial")
+//   manual = /fornecedores/{fid}/pedidos_manuais (lançamentos do vendedor)
+// Faturamento = valor dos produtos (já com desconto Pix). Frete fica à parte.
+// Cliente novo = primeira compra (em qualquer origem) caiu no mês selecionado.
+// Reativados: ficam para depois do teste (dados já gravados nos pedidos).
+// ══════════════════════════════════════════════════════════════════════════
+const REL_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const REL_ORIGENS = [['app', 'App (clínicas)'], ['qr', 'Catálogo QR Code'], ['manual', 'Manual (lançamentos)']];
+const REL_RESULTADOS = ['Vendeu', 'Agendado', 'Sem interesse', 'Não atendeu', 'Ctto Inválido', 'Cadastro'];
+let _relMes = '';
+let _relPublicos = [];
+let _relUnsubPub = null;
+
+function _relMesAtual() { return _lancHoje().slice(0, 7); }
+function _relSomarMes(mes, delta) {
+  const p = mes.split('-');
+  let y = parseInt(p[0], 10);
+  let m = parseInt(p[1], 10) - 1 + delta;
+  y += Math.floor(m / 12);
+  m = ((m % 12) + 12) % 12;
+  return y + '-' + String(m + 1).padStart(2, '0');
+}
+function _relDataLocal(ts) {
+  if (!ts || !ts.toDate) return _lancHoje();
+  const d = ts.toDate();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function _r2(v) { return Math.round((Number(v) || 0) * 100) / 100; }
+
+function _relItens(lista) {
+  return (lista || []).map(function (it) {
+    const qtd = Number(it.qtd) || 0;
+    const valor = it.subtotal != null ? Number(it.subtotal) : (Number(it.precoUnit) || 0) * qtd;
+    return { nome: it.nome || 'Item', qtd: qtd, valor: valor || 0 };
+  });
+}
+
+function _relNormalizar() {
+  const out = [];
+  (_pedidosFornTodos || []).forEach(function (p) {
+    if (p.status === 'cancelado') return;
+    out.push({
+      origem: 'app', data: _relDataLocal(p.criadoEm),
+      chave: p.clinicaId ? 'c:' + p.clinicaId : 'n:' + _lancNorm(p.clinicaNome),
+      nome: p.clinicaNome || 'Clínica', itens: _relItens(p.itens),
+      produtos: Number(p.valorTotal) || 0, frete: 0
+    });
+  });
+  (_relPublicos || []).forEach(function (p) {
+    const dig = String(p.whatsapp || '').replace(/\D/g, '');
+    out.push({
+      origem: 'qr', data: _relDataLocal(p.criadoEm),
+      chave: dig.length >= 8 ? 'w:' + dig : 'n:' + _lancNorm(p.nomeResponsavel),
+      nome: p.nomeResponsavel || 'Cliente', itens: _relItens(p.itens),
+      produtos: Number(p.valorTotal) || 0, frete: 0
+    });
+  });
+  (_lancPedidos || []).forEach(function (p) {
+    const crm = _clientesCRM[p.clienteId] || {};
+    const dig = String(crm.whatsapp || '').replace(/\D/g, '');
+    out.push({
+      origem: 'manual', data: String(p.data || ''),
+      chave: (crm.semApp && dig.length >= 8) ? 'w:' + dig : 'c:' + p.clienteId,
+      nome: p.clienteNome || 'Cliente', itens: _relItens(p.itens),
+      produtos: p.valorProdutos != null ? Number(p.valorProdutos) : (Number(p.valorTotal) || 0),
+      frete: Number(p.frete) || 0
+    });
+  });
+  return out.filter(function (x) { return x.data; });
+}
+
+function _relCard(titulo, corpo, nota) {
+  return '<div style="font-size:14px;font-weight:700;color:#1c1917;margin:22px 0 8px;">' + titulo + '</div>' + corpo +
+    (nota ? '<div style="font-size:11px;color:#a8a29e;margin-top:4px;">' + nota + '</div>' : '');
+}
+function _relLinha(esq, dir) {
+  return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:6px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:6px;font-size:13px;color:#1c1917;">' +
+    '<div>' + esq + '</div><div style="font-weight:600;text-align:right;">' + dir + '</div></div>';
+}
+function _relVazio(txt) { return '<div style="color:#a8a29e;font-size:13px;padding:6px 2px;">' + txt + '</div>'; }
+function _relStat(rotulo, valor) {
+  return '<div style="flex:1;min-width:150px;background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.08);">' +
+    '<div style="font-size:11px;color:#a8a29e;">' + rotulo + '</div>' +
+    '<div style="font-size:20px;font-weight:700;color:#1c1917;margin-top:4px;">' + valor + '</div></div>';
+}
+
+function relRender() {
+  const box = _lancEl('rel-conteudo');
+  if (!box) return;
+  if (!_relMes) _relMes = _relMesAtual();
+  const partes = _relMes.split('-');
+  const lab = _lancEl('rel-mes-label');
+  if (lab) lab.textContent = REL_MESES[parseInt(partes[1], 10) - 1] + ' de ' + partes[0];
+
+  const todos = _relNormalizar();
+  const doMes = todos.filter(function (x) { return x.data.slice(0, 7) === _relMes; });
+
+  let fat = 0, frete = 0;
+  const porOrigem = { app: { n: 0, v: 0 }, qr: { n: 0, v: 0 }, manual: { n: 0, v: 0 } };
+  const prods = {};
+  const clis = {};
+  doMes.forEach(function (x) {
+    fat += x.produtos; frete += x.frete;
+    porOrigem[x.origem].n += 1; porOrigem[x.origem].v += x.produtos;
+    x.itens.forEach(function (it) {
+      const k = _lancNorm(it.nome);
+      if (!prods[k]) prods[k] = { nome: it.nome, qtd: 0, valor: 0 };
+      prods[k].qtd += it.qtd; prods[k].valor += it.valor;
+    });
+    if (!clis[x.chave]) clis[x.chave] = { nome: x.nome, n: 0, valor: 0 };
+    clis[x.chave].n += 1; clis[x.chave].valor += x.produtos;
+  });
+  fat = _r2(fat); frete = _r2(frete);
+  const vendas = doMes.length;
+  const ticket = vendas ? _r2(fat / vendas) : 0;
+
+  let h = '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
+    _relStat('Faturamento (produtos)', _lancBRL(fat)) +
+    _relStat('Vendas no mês', String(vendas)) +
+    _relStat('Ticket médio', _lancBRL(ticket)) +
+    _relStat('Frete cobrado', _lancBRL(frete)) + '</div>' +
+    '<div style="font-size:11px;color:#a8a29e;margin-top:6px;">Faturamento já com o desconto do Pix. O frete fica fora do faturamento.</div>';
+
+  // Faturamento por origem
+  let o = '';
+  REL_ORIGENS.forEach(function (par) {
+    const d = porOrigem[par[0]];
+    const pct = fat > 0 ? Math.round((d.v / fat) * 100) : 0;
+    o += '<div style="background:#fff;border-radius:6px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:6px;font-size:13px;color:#1c1917;">' +
+      '<div style="display:flex;justify-content:space-between;gap:8px;"><span>' + par[1] + ' <span style="font-size:11px;color:#a8a29e;">' + d.n + (d.n === 1 ? ' pedido' : ' pedidos') + '</span></span><span style="font-weight:600;">' + _lancBRL(d.v) + '</span></div>' +
+      '<div style="height:6px;background:#f5f5f4;border-radius:3px;margin-top:6px;"><div style="height:6px;width:' + pct + '%;background:#c4b5fd;border-radius:3px;"></div></div></div>';
+  });
+  h += _relCard('Faturamento por origem', o, 'Pedidos do catálogo QR Code são o pedido inicial, sem frete e promoções finais.');
+
+  // Produtos mais vendidos
+  const listaProd = Object.keys(prods).map(function (k) { return prods[k]; }).sort(function (a, b) { return b.valor - a.valor; }).slice(0, 10);
+  h += _relCard('Produtos mais vendidos', listaProd.length
+    ? listaProd.map(function (p, i) { return _relLinha('<b>' + (i + 1) + 'º</b> ' + _lancEsc(p.nome), p.qtd + ' un. · ' + _lancBRL(p.valor)); }).join('')
+    : _relVazio('Sem vendas neste mês.'), 'Valores dos itens antes do desconto do Pix.');
+
+  // Melhores clientes
+  const listaCli = Object.keys(clis).map(function (k) { return clis[k]; }).sort(function (a, b) { return b.valor - a.valor; }).slice(0, 10);
+  h += _relCard('Melhores clientes', listaCli.length
+    ? listaCli.map(function (c, i) { return _relLinha('<b>' + (i + 1) + 'º</b> ' + _lancEsc(c.nome) + ' <span style="font-size:11px;color:#a8a29e;">' + c.n + (c.n === 1 ? ' pedido' : ' pedidos') + '</span>', _lancBRL(_r2(c.valor))); }).join('')
+    : _relVazio('Sem vendas neste mês.'));
+
+  // Funil de contatos (lançamentos do mês)
+  const contMes = (_lancContatos || []).filter(function (c) { return String(c.data || '').slice(0, 7) === _relMes; });
+  const cont = {};
+  contMes.forEach(function (c) { cont[c.resultado] = (cont[c.resultado] || 0) + 1; });
+  const totCont = contMes.length;
+  const conv = totCont ? (Math.round(((cont['Vendeu'] || 0) / totCont) * 1000) / 10) : 0;
+  let f = '';
+  REL_RESULTADOS.forEach(function (r) {
+    const cor = LANC_RES_CORES[r] || ['#f5f5f4', '#57534e'];
+    f += _relLinha('<span style="font-size:11px;padding:3px 8px;border-radius:4px;background:' + cor[0] + ';color:' + cor[1] + ';">' + r + '</span>', String(cont[r] || 0));
+  });
+  f += _relLinha('Total de lançamentos', String(totCont));
+  f += _relLinha('Taxa de conversão (Vendeu ÷ total)', String(conv).replace('.', ',') + '%');
+  h += _relCard('Funil de contatos', totCont ? f : _relVazio('Nenhum lançamento neste mês.'), 'Considera os lançamentos feitos na aba Lançamentos.');
+
+  // Clientes novos (primeira compra no mês)
+  const primeira = {};
+  todos.slice().sort(function (a, b) { return a.data.localeCompare(b.data); }).forEach(function (x) {
+    if (!primeira[x.chave]) primeira[x.chave] = x;
+  });
+  const novos = Object.keys(primeira).map(function (k) { return primeira[k]; }).filter(function (x) {
+    return x.data.slice(0, 7) === _relMes;
+  }).sort(function (a, b) { return b.data.localeCompare(a.data); });
+  const nomeOrig = { app: 'App', qr: 'Catálogo QR', manual: 'Manual' };
+  h += _relCard('Clientes novos (' + novos.length + ')', novos.length
+    ? novos.map(function (x) { return _relLinha(_lancEsc(x.nome) + ' <span style="font-size:11px;color:#a8a29e;">' + nomeOrig[x.origem] + ' · ' + _lancDataBR(x.data) + '</span>', _lancBRL(_r2(x.produtos))); }).join('')
+    : _relVazio('Nenhum cliente novo neste mês.'), 'Cliente novo é quem fez a primeira compra no mês, em qualquer origem. Cadastros aparecem no funil.');
+
+  box.innerHTML = h;
+}
+window.relRender = relRender;
+
+function relRenderSeAberta() {
+  const p = _lancEl('forn-tab-relatorios');
+  if (p && p.style.display !== 'none') relRender();
+}
+function relMesAnterior() { _relMes = _relSomarMes(_relMes || _relMesAtual(), -1); relRender(); }
+function relMesSeguinte() {
+  const prox = _relSomarMes(_relMes || _relMesAtual(), 1);
+  if (prox > _relMesAtual()) return;
+  _relMes = prox; relRender();
+}
+window.relMesAnterior = relMesAnterior;
+window.relMesSeguinte = relMesSeguinte;
+
+function _relIniciarPublicos() {
+  if (_relUnsubPub) return;
+  const fid = cp?.fornecedorId;
+  if (!fid) return;
+  _relUnsubPub = onSnapshot(collection(db, 'fornecedores', fid, 'pedidos_publicos'), snap => {
+    _relPublicos = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    relRenderSeAberta();
+  }, err => console.warn('[Piloto] pedidos_publicos (relatórios) listener:', err));
+}
+
+function relAbrirAba() {
+  if (!_relMes) _relMes = _relMesAtual();
+  _relIniciarPublicos();
+  iniciarListenerLancamentosForn();
+  relRender();
+}
+window.relAbrirAba = relAbrirAba;
+
 </script>
 <script>
 // Bridge — garante que funções do module estejam disponíveis para onclick inline
@@ -12586,6 +12802,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <nav class="sidebar" id="forn-sidebar" style="width:170px;flex-shrink:0;background:#993556;padding:16px 0;display:flex;flex-direction:column;gap:2px;overflow-y:auto;">
       <div class="forn-nav-item" data-tab="dashboard" onclick="switchFornTab('dashboard')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#fff;background:#5b21b6;">Dashboard</div>
       <div class="forn-nav-item" data-tab="lancamentos" onclick="switchFornTab('lancamentos')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Lançamentos</div>
+      <div class="forn-nav-item" data-tab="relatorios" onclick="switchFornTab('relatorios')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Relatórios</div>
       <div class="forn-nav-item" data-tab="catalogo" onclick="switchFornTab('catalogo')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Catálogo</div>
       <div class="forn-nav-item" data-tab="clientes" onclick="switchFornTab('clientes')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Clientes</div>
       <div class="forn-nav-item" data-tab="pedidos" onclick="switchFornTab('pedidos')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Pedidos</div>
@@ -12715,6 +12932,18 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <div id="lanc-lista" style="display:flex;flex-direction:column;gap:8px;max-width:680px;">
       <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando lançamentos...</div>
     </div>
+  </div>
+
+  <div id="forn-tab-relatorios" class="forn-tab-panel" style="display:none;padding:0 20px 20px 20px;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap;">
+      <div style="font-size:15px;font-weight:700;color:#1c1917;">Relatórios</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button type="button" onclick="relMesAnterior()" style="width:32px;height:32px;border:1px solid #d6d3d1;border-radius:6px;background:#fff;font-size:16px;cursor:pointer;line-height:1;">‹</button>
+        <span id="rel-mes-label" style="font-size:13px;font-weight:700;color:#1c1917;min-width:130px;text-align:center;">—</span>
+        <button type="button" onclick="relMesSeguinte()" style="width:32px;height:32px;border:1px solid #d6d3d1;border-radius:6px;background:#fff;font-size:16px;cursor:pointer;line-height:1;">›</button>
+      </div>
+    </div>
+    <div id="rel-conteudo" style="max-width:760px;"></div>
   </div>
 
   <div id="forn-tab-catalogo" class="forn-tab-panel" style="display:none;padding:20px;">
