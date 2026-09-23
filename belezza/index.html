@@ -9729,6 +9729,7 @@ function switchFornTab(tab) {
   if (tab === 'qrcode' && window.gerarQRCodeFornecedor) window.gerarQRCodeFornecedor();
   if (tab === 'lancamentos' && window.lancAbrirAba) window.lancAbrirAba();
   if (tab === 'relatorios' && window.relAbrirAba) window.relAbrirAba();
+  if (tab === 'clientes' && window.renderClientesSemApp) window.renderClientesSemApp();
   closeFornSidebar();
 }
 window.switchFornTab = switchFornTab;
@@ -11381,6 +11382,7 @@ function iniciarListenerClientesForn() {
     _clientesCRM = {};
     snap.docs.forEach(d => { _clientesCRM[d.id] = d.data(); });
     renderClientesForn();
+    if (window.renderClientesSemApp) renderClientesSemApp();
   }, err => console.warn('[Belezza] clientes fornecedor listener:', err));
 }
 window.iniciarListenerClientesForn = iniciarListenerClientesForn;
@@ -11771,6 +11773,7 @@ function iniciarListenerLancamentosForn() {
       _lancContatos = snap.docs.map(d => ({ ...d.data(), _id: d.id })).sort(_lancOrdenar);
       lancRenderLista();
       relRenderSeAberta();
+      _pendAposCarga();
     }, err => {
       console.warn('[Piloto] contatos listener:', err);
       const box = _lancEl('lanc-lista');
@@ -11783,6 +11786,7 @@ function iniciarListenerLancamentosForn() {
       _lancPedidos = snap.docs.map(d => ({ ...d.data(), _id: d.id })).sort(_lancOrdenar);
       lancRenderLista();
       relRenderSeAberta();
+      semAppRenderSeAberta();
     }, err => console.warn('[Piloto] pedidos_manuais listener:', err));
   }
 }
@@ -12495,6 +12499,7 @@ function _relIniciarPublicos() {
   _relUnsubPub = onSnapshot(collection(db, 'fornecedores', fid, 'pedidos_publicos'), snap => {
     _relPublicos = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
     relRenderSeAberta();
+    semAppRenderSeAberta();
   }, err => console.warn('[Piloto] pedidos_publicos (relatórios) listener:', err));
 }
 
@@ -12505,6 +12510,216 @@ function relAbrirAba() {
   relRender();
 }
 window.relAbrirAba = relAbrirAba;
+
+// ══════════════════════════════════════════════════════════════════════════
+// PILOTO v2.0 — ETAPA 3B: Pendências de Hoje + Clientes sem app na aba Clientes
+// Pendência = último lançamento do cliente com próximo contato hoje/vencido e
+// resultado que não encerra o contato (Vendeu, Sem interesse e Ctto Inválido encerram).
+// Como cada lançamento é um registro novo, vale só o ÚLTIMO de cada cliente.
+// Pop-up automático 1x por dia (localStorage por usuário) e só quando há pendência.
+// ══════════════════════════════════════════════════════════════════════════
+const PEND_ENCERRAM = ['Vendeu', 'Sem interesse', 'Ctto Inválido'];
+let _pendAutoFeito = false;
+let _pendEventosOk = false;
+let _semAppEventosOk = false;
+
+function _pendCalcular() {
+  const hoje = _lancHoje();
+  const ultimo = {};
+  // _lancContatos já vem ordenado do mais novo para o mais antigo
+  (_lancContatos || []).forEach(function (c) {
+    if (!ultimo[c.clienteId]) ultimo[c.clienteId] = c;
+  });
+  const lista = Object.keys(ultimo).map(function (k) { return ultimo[k]; }).filter(function (c) {
+    return c.proximoContato && c.proximoContato <= hoje && PEND_ENCERRAM.indexOf(c.resultado) < 0;
+  });
+  lista.sort(function (a, b) { return String(a.proximoContato).localeCompare(String(b.proximoContato)); });
+  return lista;
+}
+
+function _pendDiasAtraso(iso) {
+  const a = new Date(iso + 'T12:00:00');
+  const b = new Date(_lancHoje() + 'T12:00:00');
+  return Math.round((b - a) / 86400000);
+}
+
+function pendRender() {
+  const box = _lancEl('pend-lista');
+  if (!box) return;
+  const lista = _pendCalcular();
+  if (!lista.length) {
+    box.innerHTML = '<div style="color:#a8a29e;font-size:13px;text-align:center;padding:20px 0;">Não há pendências para hoje.</div>';
+    return;
+  }
+  box.innerHTML = lista.map(function (c) {
+    const cor = LANC_RES_CORES[c.resultado] || ['#f5f5f4', '#57534e'];
+    const dias = _pendDiasAtraso(c.proximoContato);
+    const quando = dias <= 0 ? 'hoje' : (dias === 1 ? 'atrasado há 1 dia' : 'atrasado há ' + dias + ' dias');
+    return '<div data-acao="pend-ir" data-id="' + _lancEsc(c.clienteId) + '" style="border:1px solid #e7e5e4;border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer;background:#fafaf9;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
+        '<div style="font-size:13px;font-weight:700;color:#1c1917;">' + _lancEsc(c.clienteNome || 'Cliente') + '</div>' +
+        '<span style="font-size:11px;padding:3px 8px;border-radius:4px;background:' + cor[0] + ';color:' + cor[1] + ';">' + _lancEsc(c.resultado || '') + '</span>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#57534e;margin-top:4px;">Próximo contato: ' + _lancDataBR(c.proximoContato) + ' (' + quando + ')</div>' +
+      '<div style="font-size:11px;color:#a8a29e;margin-top:2px;">Último lançamento em ' + _lancDataBR(c.data) + '</div>' +
+      (c.obs ? '<div style="font-size:12px;color:#78716c;margin-top:4px;">' + _lancEsc(c.obs) + '</div>' : '') +
+      '<div style="font-size:11px;color:#5b21b6;margin-top:6px;">Toque para lançar o contato</div>' +
+    '</div>';
+  }).join('');
+}
+
+function pendAtualizarBotao() {
+  const el = _lancEl('pend-count');
+  if (!el) return;
+  const n = _pendCalcular().length;
+  el.textContent = n ? String(n) : '';
+  el.style.display = n ? 'inline-block' : 'none';
+}
+
+function _pendIniciarEventos() {
+  if (_pendEventosOk) return;
+  const m = _lancEl('modal-pend-forn');
+  if (!m) return;
+  _pendEventosOk = true;
+  m.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-acao="pend-ir"]');
+    if (el) { lancIniciarParaCliente(el.getAttribute('data-id')); return; }
+    if (e.target === m) pendFechar();   // clique no fundo escuro fecha
+  });
+}
+
+function pendAbrir() {
+  _pendIniciarEventos();
+  pendRender();
+  const m = _lancEl('modal-pend-forn');
+  if (m) m.style.display = 'flex';
+}
+function pendFechar() {
+  const m = _lancEl('modal-pend-forn');
+  if (m) m.style.display = 'none';
+}
+window.pendAbrir = pendAbrir;
+window.pendFechar = pendFechar;
+
+// Chamado a cada atualização dos contatos: atualiza o botão e abre o pop-up 1x por dia.
+function _pendAposCarga() {
+  pendAtualizarBotao();
+  const m = _lancEl('modal-pend-forn');
+  if (m && m.style.display === 'flex') pendRender();
+  if (_pendAutoFeito) return;
+  _pendAutoFeito = true;
+  if (!_pendCalcular().length) return;
+  const uid = (auth.currentUser && auth.currentUser.uid) || '';
+  const chave = 'piloto_pend_' + uid;
+  try {
+    if (localStorage.getItem(chave) === _lancHoje()) return;
+    localStorage.setItem(chave, _lancHoje());
+  } catch (e) { /* sem storage: abre mesmo assim */ }
+  pendAbrir();
+}
+
+// Abre o formulário de lançamento já com o cliente escolhido.
+function lancIniciarParaCliente(id, nome) {
+  pendFechar();
+  switchFornTab('lancamentos');
+  lancLimparForm();
+  const c = _lancClientes().find(function (x) { return x.id === id; });
+  let nomeCli = c ? c.nome : (nome || '');
+  if (!nomeCli) {
+    const ct = (_lancContatos || []).find(function (x) { return x.clienteId === id; });
+    nomeCli = ct ? (ct.clienteNome || 'Cliente') : 'Cliente';
+  }
+  _lancCliente = { id: id, nome: nomeCli, origem: c ? c.origem : '' };
+  lancRenderCliente();
+  const painel = _lancEl('forn-tab-lancamentos');
+  if (painel && painel.scrollIntoView) painel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.lancIniciarParaCliente = lancIniciarParaCliente;
+
+// ── Aba Clientes: seção "Clientes sem app" ────────────────────────────────
+function _semIso(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function renderClientesSemApp() {
+  const box = _lancEl('forn-semapp-lista');
+  if (!box) return;
+  if (!_semAppEventosOk) {
+    _semAppEventosOk = true;
+    box.addEventListener('click', function (e) {
+      const el = e.target.closest('[data-acao]');
+      if (!el) return;
+      const acao = el.getAttribute('data-acao');
+      const id = el.getAttribute('data-id');
+      const crm = _clientesCRM[id] || {};
+      if (acao === 'semapp-novo') lancIniciarParaCliente(id, crm.nome || '');
+      else if (acao === 'semapp-edit' && window.abrirFormClienteForn) window.abrirFormClienteForn(id, crm.nome || 'Cliente');
+    });
+  }
+  const termo = _lancNorm(_lancValor('forn-semapp-busca')).trim();
+  const dig = _lancValor('forn-semapp-busca').replace(/\D/g, '');
+  const corte = new Date();
+  corte.setMonth(corte.getMonth() - 3);
+  const corteStr = _semIso(corte);
+  const pedidos = _relNormalizar();
+
+  const todos = Object.keys(_clientesCRM || {}).filter(function (id) {
+    return _clientesCRM[id] && _clientesCRM[id].semApp;
+  }).map(function (id) {
+    const c = _clientesCRM[id];
+    const wd = String(c.whatsapp || '').replace(/\D/g, '');
+    const chave = wd.length >= 8 ? 'w:' + wd : 'c:' + id;
+    const meus = pedidos.filter(function (x) { return x.chave === chave; })
+      .sort(function (a, b) { return b.data.localeCompare(a.data); });
+    let tri = 0;
+    meus.forEach(function (x) { if (x.data >= corteStr) tri += x.produtos; });
+    return { id: id, c: c, wd: wd, ultima: meus[0] || null, tri: _r2(tri) };
+  });
+
+  const lista = todos.filter(function (x) {
+    if (!termo && !dig) return true;
+    return _lancNorm(x.c.nome).indexOf(termo) >= 0 || (dig.length >= 3 && x.wd.indexOf(dig) >= 0);
+  }).sort(function (a, b) {
+    return (b.tri - a.tri) || String(a.c.nome || '').localeCompare(String(b.c.nome || ''), 'pt-BR');
+  });
+
+  const q = _lancEl('forn-semapp-qtd');
+  if (q) q.textContent = todos.length ? '(' + todos.length + ')' : '';
+  if (!todos.length) {
+    box.innerHTML = '<div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Nenhum cliente sem app ainda. Cadastre pela aba Lançamentos, em "+ Novo cliente".</div>';
+    return;
+  }
+  if (!lista.length) {
+    box.innerHTML = '<div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Nenhum cliente encontrado.</div>';
+    return;
+  }
+  box.innerHTML = lista.map(function (x) {
+    const c = x.c;
+    const tipoBadge = c.tipo ? '<span style="background:#e0e7ff;color:#3730a3;font-size:10px;padding:2px 8px;border-radius:4px;">' + _lancEsc(c.tipo) + '</span>' : '';
+    const contato = (c.responsavel || c.whatsapp)
+      ? _lancEsc(c.responsavel || 'Sem responsável') + (c.whatsapp ? ' · ' + _lancEsc(c.whatsapp) : '')
+      : 'Sem contato cadastrado';
+    const ultima = x.ultima ? _lancDataBR(x.ultima.data) + ' · ' + _lancBRL(x.ultima.produtos) : 'Nunca comprou';
+    return '<div style="background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">' +
+        '<div style="display:flex;align-items:center;gap:8px;"><div style="font-size:13px;font-weight:700;color:#1c1917;">' + _lancEsc(c.nome || 'Sem nome') + '</div>' + tipoBadge + '</div>' +
+        '<div style="text-align:right;"><div style="font-size:11px;color:#a8a29e;">Trimestre</div><div style="font-size:13px;font-weight:700;color:#1c1917;">' + _lancBRL(x.tri) + '</div></div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#78716c;margin-top:6px;">' + contato + '</div>' +
+      '<div style="font-size:12px;color:#a8a29e;margin-top:2px;">Última compra: ' + ultima + '</div>' +
+      '<div style="display:flex;gap:14px;margin-top:8px;">' +
+        '<span data-acao="semapp-novo" data-id="' + _lancEsc(x.id) + '" style="font-size:12px;color:#5b21b6;text-decoration:underline;cursor:pointer;">Novo lançamento</span>' +
+        '<span data-acao="semapp-edit" data-id="' + _lancEsc(x.id) + '" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">Editar contato</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+window.renderClientesSemApp = renderClientesSemApp;
+
+function semAppRenderSeAberta() {
+  const p = _lancEl('forn-tab-clientes');
+  if (p && p.style.display !== 'none') renderClientesSemApp();
+}
 
 </script>
 <script>
@@ -12830,7 +13045,10 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
   </div>
 
   <div id="forn-tab-lancamentos" class="forn-tab-panel" style="display:none;padding:0 20px 20px 20px;">
-    <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:12px;">Novo lançamento</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;max-width:680px;">
+      <div style="font-size:15px;font-weight:700;color:#1c1917;">Novo lançamento</div>
+      <button type="button" onclick="pendAbrir()" style="background:#fff;border:1px solid #d6d3d1;color:#1c1917;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;"><i class="ti ti-bell"></i> Pendências de Hoje <span id="pend-count" style="display:none;background:#b91c1c;color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px;"></span></button>
+    </div>
 
     <div id="lanc-edit-banner" style="display:none;background:#fef3c7;color:#92400e;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px;max-width:680px;">
       <span id="lanc-edit-txt"></span>
@@ -13163,6 +13381,14 @@ Desodorante 0% Alumínio c/ Niacinamida 55g;39.40;Corporal</textarea>
     </div>
     <div id="forn-clientes-lista" style="display:flex;flex-direction:column;gap:8px;max-height:860px;overflow-y:auto;">
       <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando clientes...</div>
+    </div>
+
+    <div id="forn-semapp-wrap" style="margin-top:22px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <div style="font-size:15px;font-weight:700;color:#1c1917;">Clientes sem app <span id="forn-semapp-qtd" style="font-size:12px;font-weight:400;color:#a8a29e;"></span></div>
+        <input id="forn-semapp-busca" type="text" placeholder="Buscar por nome ou WhatsApp" autocomplete="off" oninput="renderClientesSemApp()" style="padding:8px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:13px;box-sizing:border-box;width:230px;max-width:100%;">
+      </div>
+      <div id="forn-semapp-lista" style="display:flex;flex-direction:column;gap:8px;max-height:640px;overflow-y:auto;"></div>
     </div>
 
     <div id="forn-cliente-form-wrap" style="display:none;margin-top:16px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
@@ -14955,6 +15181,20 @@ window._avUrl             = _avUrl;
     <div style="display:flex;gap:10px;margin-top:10px">
       <button onclick="tourNovoSalvarEdicao()" style="flex:1;background:#f59e0b;color:#1c1917;border:none;padding:10px;border-radius:8px;font-weight:700;cursor:pointer">Salvar</button>
       <button onclick="document.getElementById('tour-novo-edicao-modal').style.display='none'" style="flex:1;background:#333;color:#f0f0f0;border:none;padding:10px;border-radius:8px;cursor:pointer">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PILOTO: pop-up de Pendências de Hoje (modal estático; só display flex/none) ── -->
+<div id="modal-pend-forn" style="display:none;position:fixed;inset:0;z-index:999990;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:12px;max-width:460px;width:100%;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.25);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 16px 10px;">
+      <div style="font-size:15px;font-weight:700;color:#1c1917;">Pendências de Hoje</div>
+      <span onclick="pendFechar()" style="font-size:20px;color:#78716c;cursor:pointer;line-height:1;padding:0 4px;">×</span>
+    </div>
+    <div id="pend-lista" style="overflow:auto;padding:0 16px 8px;flex:1;"></div>
+    <div style="padding:10px 16px 16px;text-align:right;">
+      <button type="button" onclick="pendFechar()" style="background:#e7e5e4;color:#44403c;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">Fechar</button>
     </div>
   </div>
 </div>
