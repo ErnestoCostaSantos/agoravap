@@ -2340,6 +2340,7 @@ onAuthStateChanged(auth, async user => {
           if (window.iniciarListenerPedidosPublicosForn) window.iniciarListenerPedidosPublicosForn();
           if (window.iniciarListenerPromosForn) window.iniciarListenerPromosForn();
           if (window.iniciarListenerLancamentosForn) window.iniciarListenerLancamentosForn();
+          if (window.relIniciarPublicos) window.relIniciarPublicos();
         }, 200);
 
       } else {
@@ -11342,7 +11343,7 @@ function renderPedidosPublicosForn(lista) {
       <div style="font-size:12px;color:#78716c;margin-top:4px;">${itensTxt}</div>
       <div style="font-size:11px;color:#a8a29e;margin-top:2px;">${p.whatsapp || ''} · ${dataTxt}</div>
       <div style="font-size:13px;font-weight:600;color:#1c1917;margin-top:4px;">R$ ${valorFmt}</div>
-      <div style="margin-top:8px;">${wppBtn}</div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">${wppBtn}<button onclick="imprimirPedidoQR('${p._id}')" style="background:#fff;color:#1c1917;border:1px solid #d6d3d1;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;"><i class="ti ti-printer"></i> Imprimir pedido</button></div>
     </div>`;
   }).join('');
 }
@@ -11739,7 +11740,10 @@ function _lancNorm(s) {
   return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 function _lancEsc(s) { return _escHtml(s == null ? '' : s); }
-function _lancBRL(v) { return 'R$ ' + (Number(v) || 0).toFixed(2).replace('.', ','); }
+function _lancBRL(v) {
+  const p = (Number(v) || 0).toFixed(2).split('.');
+  return 'R$ ' + p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + p[1];
+}
 function _lancDataBR(iso) {
   if (!iso) return '';
   const p = String(iso).split('-');
@@ -12246,6 +12250,7 @@ function lancRenderLista() {
       '<div style="display:flex;gap:12px;margin-top:8px;">' +
         '<span data-acao="lanc-edit" data-id="' + _lancEsc(c._id) + '" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">Editar</span>' +
         '<span data-acao="lanc-del" data-id="' + _lancEsc(c._id) + '" style="font-size:12px;color:#b91c1c;text-decoration:underline;cursor:pointer;">Apagar</span>' +
+        (ped ? '<span data-acao="lanc-print" data-id="' + _lancEsc(ped._id) + '" style="font-size:12px;color:#5b21b6;text-decoration:underline;cursor:pointer;">Imprimir pedido</span>' : '') +
       '</div>' +
     '</div>';
   }).join('');
@@ -12272,6 +12277,7 @@ function _lancIniciarEventos() {
     else if (acao === 'item-del') { if (_lancItens[i]) { _lancItens.splice(i, 1); lancRenderItens(); } }
     else if (acao === 'lanc-edit') lancEditar(id);
     else if (acao === 'lanc-del') lancApagar(id);
+    else if (acao === 'lanc-print') imprimirPedidoManual(id);
   });
   painel.addEventListener('change', function (e) {
     const el = e.target;
@@ -12309,6 +12315,7 @@ window.lancAbrirAba = lancAbrirAba;
 // ══════════════════════════════════════════════════════════════════════════
 const REL_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const REL_ORIGENS = [['app', 'App (clínicas)'], ['qr', 'Catálogo QR Code'], ['manual', 'Manual (lançamentos)']];
+const REL_NOME_ORIGEM = { app: 'App', qr: 'Catálogo QR', manual: 'Manual' };
 const REL_RESULTADOS = ['Vendeu', 'Agendado', 'Sem interesse', 'Não atendeu', 'Ctto Inválido', 'Cadastro'];
 let _relMes = '';
 let _relPublicos = [];
@@ -12387,14 +12394,9 @@ function _relStat(rotulo, valor) {
     '<div style="font-size:20px;font-weight:700;color:#1c1917;margin-top:4px;">' + valor + '</div></div>';
 }
 
-function relRender() {
-  const box = _lancEl('rel-conteudo');
-  if (!box) return;
+function _relCalcular() {
   if (!_relMes) _relMes = _relMesAtual();
   const partes = _relMes.split('-');
-  const lab = _lancEl('rel-mes-label');
-  if (lab) lab.textContent = REL_MESES[parseInt(partes[1], 10) - 1] + ' de ' + partes[0];
-
   const todos = _relNormalizar();
   const doMes = todos.filter(function (x) { return x.data.slice(0, 7) === _relMes; });
 
@@ -12415,7 +12417,41 @@ function relRender() {
   });
   fat = _r2(fat); frete = _r2(frete);
   const vendas = doMes.length;
-  const ticket = vendas ? _r2(fat / vendas) : 0;
+
+  const listaProd = Object.keys(prods).map(function (k) { return prods[k]; }).sort(function (a, b) { return b.valor - a.valor; }).slice(0, 10);
+  const listaCli = Object.keys(clis).map(function (k) { return clis[k]; }).sort(function (a, b) { return b.valor - a.valor; }).slice(0, 10);
+
+  const contMes = (_lancContatos || []).filter(function (c) { return String(c.data || '').slice(0, 7) === _relMes; });
+  const cont = {};
+  contMes.forEach(function (c) { cont[c.resultado] = (cont[c.resultado] || 0) + 1; });
+  const totCont = contMes.length;
+  const conv = totCont ? (Math.round(((cont['Vendeu'] || 0) / totCont) * 1000) / 10) : 0;
+
+  const primeira = {};
+  todos.slice().sort(function (a, b) { return a.data.localeCompare(b.data); }).forEach(function (x) {
+    if (!primeira[x.chave]) primeira[x.chave] = x;
+  });
+  const novos = Object.keys(primeira).map(function (k) { return primeira[k]; }).filter(function (x) {
+    return x.data.slice(0, 7) === _relMes;
+  }).sort(function (a, b) { return b.data.localeCompare(a.data); });
+
+  return {
+    mes: _relMes, rotulo: REL_MESES[parseInt(partes[1], 10) - 1] + ' de ' + partes[0],
+    fat: fat, frete: frete, vendas: vendas, ticket: vendas ? _r2(fat / vendas) : 0,
+    porOrigem: porOrigem, listaProd: listaProd, listaCli: listaCli,
+    cont: cont, totCont: totCont, conv: conv, novos: novos
+  };
+}
+
+function relRender() {
+  const box = _lancEl('rel-conteudo');
+  if (!box) return;
+  const d = _relCalcular();
+  const lab = _lancEl('rel-mes-label');
+  if (lab) lab.textContent = d.rotulo;
+  const fat = d.fat, frete = d.frete, vendas = d.vendas, ticket = d.ticket;
+  const porOrigem = d.porOrigem, listaProd = d.listaProd, listaCli = d.listaCli;
+  const cont = d.cont, totCont = d.totCont, conv = d.conv, novos = d.novos;
 
   let h = '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
     _relStat('Faturamento (produtos)', _lancBRL(fat)) +
@@ -12424,35 +12460,24 @@ function relRender() {
     _relStat('Frete cobrado', _lancBRL(frete)) + '</div>' +
     '<div style="font-size:11px;color:#a8a29e;margin-top:6px;">Faturamento já com o desconto do Pix. O frete fica fora do faturamento.</div>';
 
-  // Faturamento por origem
   let o = '';
   REL_ORIGENS.forEach(function (par) {
-    const d = porOrigem[par[0]];
-    const pct = fat > 0 ? Math.round((d.v / fat) * 100) : 0;
+    const dd = porOrigem[par[0]];
+    const pct = fat > 0 ? Math.round((dd.v / fat) * 100) : 0;
     o += '<div style="background:#fff;border-radius:6px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:6px;font-size:13px;color:#1c1917;">' +
-      '<div style="display:flex;justify-content:space-between;gap:8px;"><span>' + par[1] + ' <span style="font-size:11px;color:#a8a29e;">' + d.n + (d.n === 1 ? ' pedido' : ' pedidos') + '</span></span><span style="font-weight:600;">' + _lancBRL(d.v) + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;gap:8px;"><span>' + par[1] + ' <span style="font-size:11px;color:#a8a29e;">' + dd.n + (dd.n === 1 ? ' pedido' : ' pedidos') + '</span></span><span style="font-weight:600;">' + _lancBRL(dd.v) + '</span></div>' +
       '<div style="height:6px;background:#f5f5f4;border-radius:3px;margin-top:6px;"><div style="height:6px;width:' + pct + '%;background:#c4b5fd;border-radius:3px;"></div></div></div>';
   });
   h += _relCard('Faturamento por origem', o, 'Pedidos do catálogo QR Code são o pedido inicial, sem frete e promoções finais.');
 
-  // Produtos mais vendidos
-  const listaProd = Object.keys(prods).map(function (k) { return prods[k]; }).sort(function (a, b) { return b.valor - a.valor; }).slice(0, 10);
   h += _relCard('Produtos mais vendidos', listaProd.length
     ? listaProd.map(function (p, i) { return _relLinha('<b>' + (i + 1) + 'º</b> ' + _lancEsc(p.nome), p.qtd + ' un. · ' + _lancBRL(p.valor)); }).join('')
     : _relVazio('Sem vendas neste mês.'), 'Valores dos itens antes do desconto do Pix.');
 
-  // Melhores clientes
-  const listaCli = Object.keys(clis).map(function (k) { return clis[k]; }).sort(function (a, b) { return b.valor - a.valor; }).slice(0, 10);
   h += _relCard('Melhores clientes', listaCli.length
     ? listaCli.map(function (c, i) { return _relLinha('<b>' + (i + 1) + 'º</b> ' + _lancEsc(c.nome) + ' <span style="font-size:11px;color:#a8a29e;">' + c.n + (c.n === 1 ? ' pedido' : ' pedidos') + '</span>', _lancBRL(_r2(c.valor))); }).join('')
     : _relVazio('Sem vendas neste mês.'));
 
-  // Funil de contatos (lançamentos do mês)
-  const contMes = (_lancContatos || []).filter(function (c) { return String(c.data || '').slice(0, 7) === _relMes; });
-  const cont = {};
-  contMes.forEach(function (c) { cont[c.resultado] = (cont[c.resultado] || 0) + 1; });
-  const totCont = contMes.length;
-  const conv = totCont ? (Math.round(((cont['Vendeu'] || 0) / totCont) * 1000) / 10) : 0;
   let f = '';
   REL_RESULTADOS.forEach(function (r) {
     const cor = LANC_RES_CORES[r] || ['#f5f5f4', '#57534e'];
@@ -12462,17 +12487,8 @@ function relRender() {
   f += _relLinha('Taxa de conversão (Vendeu ÷ total)', String(conv).replace('.', ',') + '%');
   h += _relCard('Funil de contatos', totCont ? f : _relVazio('Nenhum lançamento neste mês.'), 'Considera os lançamentos feitos na aba Lançamentos.');
 
-  // Clientes novos (primeira compra no mês)
-  const primeira = {};
-  todos.slice().sort(function (a, b) { return a.data.localeCompare(b.data); }).forEach(function (x) {
-    if (!primeira[x.chave]) primeira[x.chave] = x;
-  });
-  const novos = Object.keys(primeira).map(function (k) { return primeira[k]; }).filter(function (x) {
-    return x.data.slice(0, 7) === _relMes;
-  }).sort(function (a, b) { return b.data.localeCompare(a.data); });
-  const nomeOrig = { app: 'App', qr: 'Catálogo QR', manual: 'Manual' };
   h += _relCard('Clientes novos (' + novos.length + ')', novos.length
-    ? novos.map(function (x) { return _relLinha(_lancEsc(x.nome) + ' <span style="font-size:11px;color:#a8a29e;">' + nomeOrig[x.origem] + ' · ' + _lancDataBR(x.data) + '</span>', _lancBRL(_r2(x.produtos))); }).join('')
+    ? novos.map(function (x) { return _relLinha(_lancEsc(x.nome) + ' <span style="font-size:11px;color:#a8a29e;">' + REL_NOME_ORIGEM[x.origem] + ' · ' + _lancDataBR(x.data) + '</span>', _lancBRL(_r2(x.produtos))); }).join('')
     : _relVazio('Nenhum cliente novo neste mês.'), 'Cliente novo é quem fez a primeira compra no mês, em qualquer origem. Cadastros aparecem no funil.');
 
   box.innerHTML = h;
@@ -12510,6 +12526,7 @@ function relAbrirAba() {
   relRender();
 }
 window.relAbrirAba = relAbrirAba;
+window.relIniciarPublicos = _relIniciarPublicos;
 
 // ══════════════════════════════════════════════════════════════════════════
 // PILOTO v2.0 — ETAPA 3B: Pendências de Hoje + Clientes sem app na aba Clientes
@@ -12720,6 +12737,245 @@ function semAppRenderSeAberta() {
   const p = _lancEl('forn-tab-clientes');
   if (p && p.style.display !== 'none') renderClientesSemApp();
 }
+
+// ══════════════════════════════════════════════════════════════════════════
+// PILOTO v2.0 — DOCUMENTOS IMPRESSOS (pedido e relatório) com o cabeçalho da empresa
+// Abre uma janela com o documento e chama a impressão do navegador (Salvar como PDF).
+// Logo: campo logoBase64 do doc /fornecedores/{fid} (o mesmo do catálogo público).
+// Dados da empresa: padrão abaixo; pode ser sobreposto pelo campo "empresa" do mesmo doc.
+// ══════════════════════════════════════════════════════════════════════════
+const DOC_EMPRESA_PADRAO = {
+  razao: 'PEEL LINE COMERCIO DE COSMETICOS LTDA',
+  cnpj: '05.151.654/0001-30',
+  ie: '116.518.264.116',
+  endereco: 'RUA CAPITAO MACEDO, 223',
+  bairro: 'VILA CLEMENTINO',
+  cidade: 'São Paulo - SP - CEP: 04021-020',
+  telefone: '(11) 99641-4377'
+};
+let _docEmpresa = null;
+
+async function _docCarregarEmpresa() {
+  if (_docEmpresa) return _docEmpresa;
+  const fid = cp?.fornecedorId;
+  let logo = '';
+  let emp = {};
+  try {
+    const snap = await getDoc(doc(db, 'fornecedores', fid));
+    if (snap.exists()) {
+      const d = snap.data();
+      logo = d.logoBase64 || '';
+      emp = d.empresa || {};
+    }
+  } catch (e) { console.warn('[Piloto] dados da empresa:', e); }
+  const out = {};
+  Object.keys(DOC_EMPRESA_PADRAO).forEach(function (k) { out[k] = emp[k] || DOC_EMPRESA_PADRAO[k]; });
+  out.logo = String(logo).replace(/"/g, '');
+  _docEmpresa = out;
+  return out;
+}
+
+function _docAbrirJanela() {
+  const w = window.open('', '_blank');
+  if (!w) {
+    alert('O navegador bloqueou a janela do documento. Permita pop-ups para este site e tente de novo.');
+    return null;
+  }
+  w.document.write('<p style="font-family:Arial,sans-serif;padding:24px;color:#444;">Preparando documento...</p>');
+  return w;
+}
+function _docEscrever(w, html) {
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function () { try { w.focus(); w.print(); } catch (e) { /* o botão da página também imprime */ } }, 600);
+}
+
+function _docCss() {
+  return '@page{size:A4;margin:14mm;}' +
+    '*{box-sizing:border-box;}' +
+    'body{font-family:Arial,Helvetica,sans-serif;color:#111;font-size:12px;margin:0;padding:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    '.bar{margin-bottom:14px;}.bar button{padding:8px 16px;font-size:13px;cursor:pointer;}' +
+    '@media print{.bar{display:none;}body{padding:0;}}' +
+    '.cab{display:flex;justify-content:space-between;align-items:stretch;gap:24px;}' +
+    '.cab-esq{display:flex;flex-direction:column;justify-content:space-between;}' +
+    '.logo{max-height:74px;max-width:220px;object-fit:contain;display:block;}' +
+    '.titulo{font-size:22px;font-weight:700;margin:26px 0 0;}' +
+    '.sub{font-size:12px;color:#444;margin-top:5px;}' +
+    '.cab-dir{text-align:right;}' +
+    '.razao{font-size:16px;font-weight:700;margin:6px 0 16px;}' +
+    '.cab-dir p{margin:0 0 9px;font-size:10.5px;line-height:1.55;}' +
+    'h2{font-size:15px;margin:24px 0 6px;}' +
+    '.cli-nome{font-size:13px;font-weight:700;text-transform:uppercase;margin:4px 0 9px;}' +
+    '.cols{display:flex;gap:30px;}.cols>div{flex:1;}' +
+    '.lin{margin:0 0 8px;font-size:12px;}.lin b{margin-right:6px;}' +
+    'table{width:100%;border-collapse:collapse;margin-top:6px;}' +
+    'th{background:#eee;text-align:left;font-size:11px;padding:6px;border-bottom:1px solid #999;}' +
+    'td{padding:6px;border-bottom:1px solid #ddd;font-size:11.5px;vertical-align:top;}' +
+    '.d{text-align:right;white-space:nowrap;}' +
+    'tr{page-break-inside:avoid;}' +
+    'table.tot{width:auto;margin-left:auto;margin-top:12px;min-width:270px;}' +
+    '.tot td{border:none;padding:3px 6px;font-size:12px;}' +
+    '.tot tr.final td{border-top:1px solid #111;font-size:14px;font-weight:700;padding-top:7px;}' +
+    '.nota{font-size:10.5px;color:#555;margin-top:20px;line-height:1.5;}' +
+    '.vazio{color:#777;font-size:11.5px;padding:6px 0;}';
+}
+
+function _docCabecalho(emp, titulo, sub) {
+  const logo = emp.logo ? '<img class="logo" src="' + emp.logo + '">' : '';
+  return '<div class="cab"><div class="cab-esq"><div>' + logo + '</div>' +
+    '<div><div class="titulo">' + _lancEsc(titulo) + '</div>' + (sub ? '<div class="sub">' + _lancEsc(sub) + '</div>' : '') + '</div></div>' +
+    '<div class="cab-dir"><div class="razao">' + _lancEsc(emp.razao) + '</div>' +
+    '<p>CNPJ: ' + _lancEsc(emp.cnpj) + '<br>Inscrição Estadual: ' + _lancEsc(emp.ie) + '</p>' +
+    '<p>' + _lancEsc(emp.endereco) + '<br>' + _lancEsc(emp.bairro) + '<br>' + _lancEsc(emp.cidade) + '<br>Telefone: ' + _lancEsc(emp.telefone) + '</p>' +
+    '</div></div>';
+}
+
+function _docPagina(titulo, corpo) {
+  return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>' + _lancEsc(titulo) + '</title>' +
+    '<style>' + _docCss() + '</style></head><body>' +
+    '<div class="bar"><button onclick="window.print()">Imprimir / Salvar PDF</button></div>' + corpo + '</body></html>';
+}
+
+function _docMoeda(v) { return v < 0 ? '- ' + _lancBRL(-v) : _lancBRL(v); }
+function _docLinhas(lista) {
+  return lista.filter(function (p) { return p[1]; }).map(function (p) {
+    return '<p class="lin"><b>' + _lancEsc(p[0]) + ':</b>' + _lancEsc(p[1]) + '</p>';
+  }).join('');
+}
+function _docRef(id, dataISO) {
+  const p = String(dataISO || '').split('-');
+  const d = p.length === 3 ? p[2] + p[1] + p[0].slice(2) : '';
+  return d + '-' + String(id || '').slice(-4).toUpperCase();
+}
+
+// Modelo comum do pedido: { ref, data, origemTxt, clienteNome, esq, dir, itens, resumo, pagamento, vendedor, obs, nota }
+function _docHtmlPedido(emp, d) {
+  let h = _docCabecalho(emp, 'Pedido Nº ' + d.ref, 'Data: ' + _lancDataBR(d.data) + (d.origemTxt ? ' · ' + d.origemTxt : ''));
+  h += '<h2>Informações do Cliente</h2><div class="cli-nome">' + _lancEsc(d.clienteNome) + '</div>';
+  if (d.esq.length || d.dir.length) h += '<div class="cols"><div>' + _docLinhas(d.esq) + '</div><div>' + _docLinhas(d.dir) + '</div></div>';
+  const temFaixa = d.itens.some(function (i) { return i.faixa; });
+  h += '<h2>Itens do pedido</h2><table><thead><tr><th>#</th><th>Produto</th><th class="d">Qtd</th><th class="d">Preço unit.</th>' +
+    (temFaixa ? '<th>Faixa</th>' : '') + '<th class="d">Subtotal</th></tr></thead><tbody>' +
+    d.itens.map(function (it, i) {
+      return '<tr><td>' + (i + 1) + '</td><td>' + _lancEsc(it.nome) + '</td><td class="d">' + _lancEsc(it.qtd) + '</td><td class="d">' + _lancBRL(it.unit) + '</td>' +
+        (temFaixa ? '<td>' + _lancEsc(it.faixa || '') + '</td>' : '') + '<td class="d">' + _lancBRL(it.sub) + '</td></tr>';
+    }).join('') + '</tbody></table>';
+  h += '<table class="tot"><tbody>' + d.resumo.map(function (r) {
+    return '<tr' + (r[2] ? ' class="final"' : '') + '><td>' + _lancEsc(r[0]) + '</td><td class="d">' + _docMoeda(r[1]) + '</td></tr>';
+  }).join('') + '</tbody></table>';
+  const extra = [];
+  if (d.pagamento) extra.push(['Forma de pagamento', d.pagamento]);
+  if (d.vendedor) extra.push(['Vendedor', d.vendedor]);
+  if (d.obs) extra.push(['Observação', d.obs]);
+  if (extra.length) h += '<h2>Dados do pedido</h2>' + _docLinhas(extra);
+  if (d.nota) h += '<div class="nota">' + _lancEsc(d.nota) + '</div>';
+  return _docPagina('Pedido ' + d.ref, h);
+}
+
+function _docPedidoQR(p) {
+  const data = _relDataLocal(p.criadoEm);
+  const itens = (p.itens || []).map(function (it) {
+    const q = Number(it.qtd) || 0;
+    return { nome: it.nome, qtd: q, unit: Number(it.precoUnit) || 0, sub: it.subtotal != null ? Number(it.subtotal) : (Number(it.precoUnit) || 0) * q, faixa: '' };
+  });
+  return {
+    ref: _docRef(p._id, data), data: data, origemTxt: 'Catálogo QR Code',
+    clienteNome: p.nomeResponsavel || 'Cliente', esq: [['Telefone', p.whatsapp || '']], dir: [],
+    itens: itens, resumo: [['Total do pedido', Number(p.valorTotal) || 0, true]],
+    pagamento: p.formaPagamento || '', vendedor: '', obs: '',
+    nota: 'Pedido inicial feito pelo catálogo. O valor final, com frete e eventuais promoções, será confirmado.'
+  };
+}
+
+function _docPedidoManual(p) {
+  const crm = _clientesCRM[p.clienteId] || {};
+  const clin = (_clinicasTodas || []).find(function (c) { return c._id === p.clienteId; }) || {};
+  const esq = [];
+  const dir = [];
+  const tel = crm.whatsapp || clin.wppEstab || '';
+  if (tel) esq.push(['Telefone', tel]);
+  if (crm.responsavel) esq.push(['Responsável', crm.responsavel]);
+  if (crm.tipo) dir.push(['Tipo', crm.tipo]);
+  const itens = (p.itens || []).map(function (it) {
+    const rot = it.faixa === 'cheia' ? 'Tabela cheia' : (it.faixa === 'trio' ? 'Trio -35%' : 'Profissional -30%');
+    return { nome: it.nome, qtd: it.qtd, unit: Number(it.precoUnit) || 0, sub: Number(it.subtotal) || 0, faixa: rot };
+  });
+  const resumo = [['Produtos', p.subtotalItens != null ? Number(p.subtotalItens) : (Number(p.valorTotal) || 0)]];
+  if (p.descontoValor > 0) resumo.push(['Desconto Pix (' + p.descontoPct + '%)', -Number(p.descontoValor)]);
+  if (p.frete > 0) resumo.push(['Frete', Number(p.frete)]);
+  resumo.push(['Total do pedido', Number(p.valorTotal) || 0, true]);
+  return {
+    ref: _docRef(p._id, p.data), data: p.data, origemTxt: 'Lançamento manual',
+    clienteNome: p.clienteNome || 'Cliente', esq: esq, dir: dir, itens: itens, resumo: resumo,
+    pagamento: p.formaPagamento || '', vendedor: p.vendedorNome || '', obs: p.obs || '', nota: ''
+  };
+}
+
+async function imprimirPedidoQR(id) {
+  const w = _docAbrirJanela();
+  if (!w) return;
+  const p = (_relPublicos || []).find(function (x) { return x._id === id; });
+  if (!p) { w.close(); alert('Pedido não encontrado. Atualize a página e tente de novo.'); return; }
+  const emp = await _docCarregarEmpresa();
+  _docEscrever(w, _docHtmlPedido(emp, _docPedidoQR(p)));
+}
+window.imprimirPedidoQR = imprimirPedidoQR;
+
+async function imprimirPedidoManual(id) {
+  const w = _docAbrirJanela();
+  if (!w) return;
+  const p = (_lancPedidos || []).find(function (x) { return x._id === id; });
+  if (!p) { w.close(); alert('Pedido não encontrado. Atualize a página e tente de novo.'); return; }
+  const emp = await _docCarregarEmpresa();
+  _docEscrever(w, _docHtmlPedido(emp, _docPedidoManual(p)));
+}
+window.imprimirPedidoManual = imprimirPedidoManual;
+
+// ── Relatório impresso (mesmo conteúdo da tela, em tabelas) ───────────────
+function _docHtmlRelatorio(emp, d) {
+  let h = _docCabecalho(emp, 'Relatório de Vendas', d.rotulo);
+  h += '<h2>Resumo do mês</h2><table class="tot" style="margin-left:0;width:100%;"><tbody>' +
+    '<tr><td>Faturamento (produtos, com desconto Pix)</td><td class="d">' + _lancBRL(d.fat) + '</td></tr>' +
+    '<tr><td>Vendas no mês</td><td class="d">' + d.vendas + '</td></tr>' +
+    '<tr><td>Ticket médio</td><td class="d">' + _lancBRL(d.ticket) + '</td></tr>' +
+    '<tr><td>Frete cobrado (fora do faturamento)</td><td class="d">' + _lancBRL(d.frete) + '</td></tr></tbody></table>';
+  h += '<h2>Faturamento por origem</h2><table><thead><tr><th>Origem</th><th class="d">Pedidos</th><th class="d">Valor</th><th class="d">%</th></tr></thead><tbody>' +
+    REL_ORIGENS.map(function (par) {
+      const o = d.porOrigem[par[0]];
+      const pct = d.fat > 0 ? Math.round((o.v / d.fat) * 100) : 0;
+      return '<tr><td>' + par[1] + '</td><td class="d">' + o.n + '</td><td class="d">' + _lancBRL(_r2(o.v)) + '</td><td class="d">' + pct + '%</td></tr>';
+    }).join('') + '</tbody></table>';
+  h += '<h2>Produtos mais vendidos</h2>' + (d.listaProd.length
+    ? '<table><thead><tr><th>#</th><th>Produto</th><th class="d">Qtd</th><th class="d">Valor</th></tr></thead><tbody>' +
+      d.listaProd.map(function (p, i) { return '<tr><td>' + (i + 1) + '</td><td>' + _lancEsc(p.nome) + '</td><td class="d">' + p.qtd + '</td><td class="d">' + _lancBRL(_r2(p.valor)) + '</td></tr>'; }).join('') + '</tbody></table>' +
+      '<div class="nota" style="margin-top:6px;">Valores dos itens antes do desconto do Pix.</div>'
+    : '<div class="vazio">Sem vendas neste mês.</div>');
+  h += '<h2>Melhores clientes</h2>' + (d.listaCli.length
+    ? '<table><thead><tr><th>#</th><th>Cliente</th><th class="d">Pedidos</th><th class="d">Valor</th></tr></thead><tbody>' +
+      d.listaCli.map(function (c, i) { return '<tr><td>' + (i + 1) + '</td><td>' + _lancEsc(c.nome) + '</td><td class="d">' + c.n + '</td><td class="d">' + _lancBRL(_r2(c.valor)) + '</td></tr>'; }).join('') + '</tbody></table>'
+    : '<div class="vazio">Sem vendas neste mês.</div>');
+  h += '<h2>Funil de contatos</h2>' + (d.totCont
+    ? '<table><thead><tr><th>Resultado</th><th class="d">Lançamentos</th></tr></thead><tbody>' +
+      REL_RESULTADOS.map(function (r) { return '<tr><td>' + r + '</td><td class="d">' + (d.cont[r] || 0) + '</td></tr>'; }).join('') +
+      '<tr><td><b>Total</b></td><td class="d"><b>' + d.totCont + '</b></td></tr>' +
+      '<tr><td>Taxa de conversão (Vendeu ÷ total)</td><td class="d">' + String(d.conv).replace('.', ',') + '%</td></tr></tbody></table>'
+    : '<div class="vazio">Nenhum lançamento neste mês.</div>');
+  h += '<h2>Clientes novos (' + d.novos.length + ')</h2>' + (d.novos.length
+    ? '<table><thead><tr><th>Cliente</th><th>Origem</th><th>Primeira compra</th><th class="d">Valor</th></tr></thead><tbody>' +
+      d.novos.map(function (x) { return '<tr><td>' + _lancEsc(x.nome) + '</td><td>' + _lancEsc(REL_NOME_ORIGEM[x.origem]) + '</td><td>' + _lancDataBR(x.data) + '</td><td class="d">' + _lancBRL(_r2(x.produtos)) + '</td></tr>'; }).join('') + '</tbody></table>' +
+      '<div class="nota" style="margin-top:6px;">Cliente novo é quem fez a primeira compra no mês, em qualquer origem.</div>'
+    : '<div class="vazio">Nenhum cliente novo neste mês.</div>');
+  return _docPagina('Relatório de Vendas - ' + d.rotulo, h);
+}
+
+async function relImprimir() {
+  const w = _docAbrirJanela();
+  if (!w) return;
+  const emp = await _docCarregarEmpresa();
+  _docEscrever(w, _docHtmlRelatorio(emp, _relCalcular()));
+}
+window.relImprimir = relImprimir;
 
 </script>
 <script>
@@ -13160,6 +13416,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         <span id="rel-mes-label" style="font-size:13px;font-weight:700;color:#1c1917;min-width:130px;text-align:center;">—</span>
         <button type="button" onclick="relMesSeguinte()" style="width:32px;height:32px;border:1px solid #d6d3d1;border-radius:6px;background:#fff;font-size:16px;cursor:pointer;line-height:1;">›</button>
       </div>
+      <button type="button" onclick="relImprimir()" style="background:#1c1917;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;"><i class="ti ti-printer"></i> Imprimir / PDF</button>
     </div>
     <div id="rel-conteudo" style="max-width:760px;"></div>
   </div>
