@@ -2117,7 +2117,7 @@ import { getAuth, signInWithEmailAndPassword,
 import { getFirestore, doc, getDoc, getDocs, setDoc,
          collection, collectionGroup, query, where, orderBy,
          onSnapshot, addDoc, updateDoc, deleteDoc,
-         increment, writeBatch,
+         increment, writeBatch, runTransaction,
          serverTimestamp }                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 // ── Configuração ──────────────────────────────────────────────────────────
@@ -10702,6 +10702,7 @@ async function catpubEscolherPagamento(forma) {
   const itens = Object.values(_catpubCarrinho);
   const total = itens.reduce((s, it) => s + it.subtotal, 0);
   try {
+    const numeroPedido = await _pedidoNumeroGerar(_catpubFornecedorId, _lancHoje());
     await addDoc(collection(db, 'fornecedores', _catpubFornecedorId, 'pedidos_publicos'), {
       itens: itens.map(it => ({ nome: it.nome, qtd: it.qtd, precoUnit: it.precoUnit, subtotal: it.subtotal })),
       valorTotal: total,
@@ -10709,6 +10710,7 @@ async function catpubEscolherPagamento(forma) {
       whatsapp: _catpubContato.whatsapp,
       formaPagamento: forma,
       status: 'novo',
+      numeroPedido: numeroPedido,
       criadoEm: serverTimestamp(),
     });
   } catch (e) {
@@ -11149,6 +11151,7 @@ async function enviarPedido() {
   if (!itens.length) { alert('Escolha ao menos um produto ou kit.'); return; }
   const valorTotal = itens.reduce((s, it) => s + it.precoUnit * it.qtd, 0);
   try {
+    const numeroPedido = await _pedidoNumeroGerar(_pedidoFornecedorId, _lancHoje());
     await addDoc(collection(db, 'pedidos'), {
       clinicaId: clinicaAtual(),
       clinicaNome: window.NOME_ESTAB || '',
@@ -11156,6 +11159,7 @@ async function enviarPedido() {
       fornecedorNome: _pedidoFornecedorNome,
       itens, valorTotal,
       status: 'novo',
+      numeroPedido: numeroPedido,
       criadoEm: serverTimestamp(),
     });
     fecharCatalogoFornecedor();
@@ -11181,12 +11185,14 @@ const PEDIDO_STATUS_COR = {
   cancelado: 'background:#fee2e2;color:#991b1b',
 };
 
+let _pedidosClinicaTodas = [];
 function iniciarListenerPedidosClinica() {
   if (_unsubPedidosClinica) return;
   const cid = clinicaAtual();
   const q = query(collection(db, 'pedidos'), where('clinicaId', '==', cid));
   _unsubPedidosClinica = onSnapshot(q, snap => {
     const lista = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    _pedidosClinicaTodas = lista;
     renderPedidosClinica(lista);
   }, err => console.warn('[Belezza] pedidos clínica listener:', err));
 }
@@ -11202,13 +11208,16 @@ function renderPedidosClinica(lista) {
   wrap.innerHTML = lista.map(p => {
     const itensTxt = (p.itens || []).map(it => `${it.qtd}x ${it.nome}`).join(', ');
     const badge = PEDIDO_STATUS_COR[p.status] || PEDIDO_STATUS_COR.novo;
+    const numTxt = p.numeroPedido ? `<div style="font-size:11px;color:var(--tx3);margin-top:2px">Pedido Nº ${p.numeroPedido}</div>` : '';
     return `<div class="card" style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:13px;font-weight:600;color:var(--tx)">${p.fornecedorNome || 'Fornecedor'}</div>
         <span style="${badge};font-size:11px;padding:3px 8px;border-radius:4px">${PEDIDO_STATUS_LABEL[p.status]||p.status}</span>
       </div>
+      ${numTxt}
       <div style="font-size:12px;color:var(--tx3);margin-top:4px">${itensTxt}</div>
       <div style="font-size:13px;font-weight:600;color:var(--tx);margin-top:4px">R$ ${(p.valorTotal||0).toFixed(2).replace('.', ',')}</div>
+      <div style="margin-top:8px"><button onclick="imprimirPedidoClinica('${p._id}')" style="background:#fff;color:var(--tx);border:1px solid var(--br);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;"><i class="ti ti-printer"></i> Imprimir pedido</button></div>
     </div>`;
   }).join('');
 }
@@ -11292,11 +11301,13 @@ function renderPedidosForn(lista) {
     const cancelarBtn = (p.status !== 'entregue' && p.status !== 'cancelado')
       ? `<span onclick="cancelarPedido('${p._id}')" style="color:#b91c1c;font-size:12px;text-decoration:underline;cursor:pointer;margin-left:8px;">Cancelar</span>`
       : '';
+    const numTxt = p.numeroPedido ? `<div style="font-size:11px;color:#a8a29e;margin-top:2px;">Pedido Nº ${p.numeroPedido}</div>` : '';
     return `<div style="background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:13px;font-weight:700;color:#1c1917;">${p.clinicaNome || 'Clínica'}</div>
         <span style="font-size:11px;padding:3px 8px;border-radius:4px;background:#f5f5f4;color:#57534e;">${PEDIDO_STATUS_LABEL[p.status]||p.status}</span>
       </div>
+      ${numTxt}
       <div style="font-size:12px;color:#78716c;margin-top:4px;">${itensTxt}</div>
       <div style="font-size:13px;font-weight:600;color:#1c1917;margin-top:4px;">R$ ${(p.valorTotal||0).toFixed(2).replace('.', ',')}</div>
       <div style="margin-top:8px;">${acaoBtn}${cancelarBtn}</div>
@@ -11335,13 +11346,14 @@ function renderPedidosPublicosForn(lista) {
     const wppBtn = numWpp
       ? `<button onclick="window.open('https://wa.me/55${numWpp}?text=${encodeURIComponent(msg)}','_blank')" style="background:#1c1917;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;"><i class="ti ti-brand-whatsapp"></i> Avisar cliente via WhatsApp</button>`
       : '';
+    const numTxt = p.numeroPedido ? ` · Pedido Nº ${p.numeroPedido}` : '';
     return `<div style="background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:13px;font-weight:700;color:#1c1917;">${p.nomeResponsavel || 'Cliente'}</div>
         <span style="font-size:11px;padding:3px 8px;border-radius:4px;background:#f5f5f4;color:#57534e;">${p.formaPagamento || ''}</span>
       </div>
       <div style="font-size:12px;color:#78716c;margin-top:4px;">${itensTxt}</div>
-      <div style="font-size:11px;color:#a8a29e;margin-top:2px;">${p.whatsapp || ''} · ${dataTxt}</div>
+      <div style="font-size:11px;color:#a8a29e;margin-top:2px;">${p.whatsapp || ''} · ${dataTxt}${numTxt}</div>
       <div style="font-size:13px;font-weight:600;color:#1c1917;margin-top:4px;">R$ ${valorFmt}</div>
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">${wppBtn}<button onclick="imprimirPedidoQR('${p._id}')" style="background:#fff;color:#1c1917;border:1px solid #d6d3d1;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;"><i class="ti ti-printer"></i> Imprimir pedido</button></div>
     </div>`;
@@ -11735,6 +11747,25 @@ let _lancSalvando = false;
 function _lancHoje() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// Numeração sequencial de pedidos: AAMMDD + sequência do dia (01, 02... ou
+// 3 dígitos a partir de 100). Compartilhada pelas 3 origens de pedido
+// (catálogo QR sem login, clínica, lançamento manual) via a mesma coleção
+// de contador /fornecedores/{fid}/contadores_pedido/{AAMMDD}. Usa transação
+// pra nunca repetir número mesmo com dois pedidos entrando ao mesmo tempo.
+async function _pedidoNumeroGerar(fid, dataISO) {
+  const diaId = String(dataISO).replace(/-/g, '').slice(2); // "2026-09-24" → "260924"
+  const ref = doc(db, 'fornecedores', fid, 'contadores_pedido', diaId);
+  const seq = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const atual = snap.exists() ? (snap.data().seq || 0) : 0;
+    const novo = atual + 1;
+    tx.set(ref, { seq: novo });
+    return novo;
+  });
+  const seqTxt = seq <= 99 ? String(seq).padStart(2, '0') : String(seq);
+  return diaId + seqTxt;
 }
 function _lancNorm(s) {
   return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -12165,7 +12196,10 @@ async function lancSalvar() {
       ped.valorProdutos = calc.produtos;
       ped.frete = calc.frete;
       if (pedidoId) { ped.editadoPor = user.uid; ped.editadoEm = serverTimestamp(); }
-      else { ped.vendedorUid = user.uid; ped.vendedorNome = nomeVend; ped.criadoEm = serverTimestamp(); }
+      else {
+        ped.vendedorUid = user.uid; ped.vendedorNome = nomeVend; ped.criadoEm = serverTimestamp();
+        ped.numeroPedido = await _pedidoNumeroGerar(fid, data);
+      }
       batch.set(pRef, ped, { merge: true });
       pedidoId = pRef.id;
     } else if (pedidoId) {
@@ -12235,7 +12269,8 @@ function lancRenderLista() {
       if (ped.descontoValor > 0) partes.push('Desconto Pix ' + ped.descontoPct + '%: -' + _lancBRL(ped.descontoValor));
       if (ped.frete > 0) partes.push('Frete: ' + _lancBRL(ped.frete));
       const detalhe = partes.length ? '<div style="font-size:11px;color:#a8a29e;margin-top:2px;">Produtos ' + _lancBRL(ped.subtotalItens != null ? ped.subtotalItens : ped.valorTotal) + ' · ' + partes.join(' · ') + '</div>' : '';
-      venda = '<div style="font-size:12px;color:#78716c;margin-top:4px;">' + _lancEsc(resumo) + '</div>' + detalhe +
+      const numTxt = ped.numeroPedido ? '<div style="font-size:11px;color:#a8a29e;margin-top:2px;">Pedido Nº ' + _lancEsc(ped.numeroPedido) + '</div>' : '';
+      venda = '<div style="font-size:12px;color:#78716c;margin-top:4px;">' + _lancEsc(resumo) + '</div>' + detalhe + numTxt +
         '<div style="font-size:13px;font-weight:600;color:#1c1917;margin-top:4px;">' + _lancBRL(ped.valorTotal) + (ped.formaPagamento ? ' <span style="font-size:11px;font-weight:400;color:#a8a29e;">' + _lancEsc(ped.formaPagamento) + '</span>' : '') + '</div>';
     }
     return '<div style="background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">' +
@@ -12880,7 +12915,7 @@ function _docPedidoQR(p) {
     return { nome: it.nome, qtd: q, unit: Number(it.precoUnit) || 0, sub: it.subtotal != null ? Number(it.subtotal) : (Number(it.precoUnit) || 0) * q, faixa: '' };
   });
   return {
-    ref: _docRef(p._id, data), data: data, origemTxt: 'Catálogo QR Code',
+    ref: p.numeroPedido || _docRef(p._id, data), data: data, origemTxt: 'Catálogo QR Code',
     clienteNome: p.nomeResponsavel || 'Cliente', esq: [['Telefone', p.whatsapp || '']], dir: [],
     itens: itens, resumo: [['Total do pedido', Number(p.valorTotal) || 0, true]],
     pagamento: p.formaPagamento || '', vendedor: '', obs: '',
@@ -12906,11 +12941,35 @@ function _docPedidoManual(p) {
   if (p.frete > 0) resumo.push(['Frete', Number(p.frete)]);
   resumo.push(['Total do pedido', Number(p.valorTotal) || 0, true]);
   return {
-    ref: _docRef(p._id, p.data), data: p.data, origemTxt: 'Lançamento manual',
+    ref: p.numeroPedido || _docRef(p._id, p.data), data: p.data, origemTxt: 'Lançamento manual',
     clienteNome: p.clienteNome || 'Cliente', esq: esq, dir: dir, itens: itens, resumo: resumo,
     pagamento: p.formaPagamento || '', vendedor: p.vendedorNome || '', obs: p.obs || '', nota: ''
   };
 }
+
+function _docPedidoClinica(p) {
+  const data = _relDataLocal(p.criadoEm);
+  const itens = (p.itens || []).map(function (it) {
+    const q = Number(it.qtd) || 0;
+    return { nome: it.nome, qtd: q, unit: Number(it.precoUnit) || 0, sub: (Number(it.precoUnit) || 0) * q, faixa: '' };
+  });
+  return {
+    ref: p.numeroPedido || _docRef(p._id, data), data: data, origemTxt: 'Pedido pelo app',
+    clienteNome: p.clinicaNome || 'Clínica', esq: [], dir: [],
+    itens: itens, resumo: [['Total do pedido', Number(p.valorTotal) || 0, true]],
+    pagamento: '', vendedor: '', obs: '', nota: ''
+  };
+}
+
+async function imprimirPedidoClinica(id) {
+  const w = _docAbrirJanela();
+  if (!w) return;
+  const p = (_pedidosClinicaTodas || []).find(function (x) { return x._id === id; });
+  if (!p) { w.close(); alert('Pedido não encontrado. Atualize a página e tente de novo.'); return; }
+  const emp = await _docCarregarEmpresa();
+  _docEscrever(w, _docHtmlPedido(emp, _docPedidoClinica(p)));
+}
+window.imprimirPedidoClinica = imprimirPedidoClinica;
 
 async function imprimirPedidoQR(id) {
   const w = _docAbrirJanela();
