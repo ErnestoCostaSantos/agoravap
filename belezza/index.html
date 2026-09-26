@@ -11490,6 +11490,8 @@ function calcMetricasClienteForn(clinicaId) {
   };
 }
 
+let _carteiraOrdemAsc = false; // false = mais recente primeiro, true = mais antigo primeiro
+
 function renderClientesForn() {
   const wrap = document.getElementById('forn-clientes-lista');
   if (!wrap) return;
@@ -11502,7 +11504,13 @@ function renderClientesForn() {
     const crm = _clientesCRM[c._id] || {};
     const met = calcMetricasClienteForn(c._id);
     return { c, crm, met };
-  }).sort((a, b) => b.met.trimestre - a.met.trimestre);
+  }).sort((a, b) => {
+    const da = a.met.ultimaData, db = b.met.ultimaData;
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+    return _carteiraOrdemAsc ? (da - db) : (db - da);
+  });
 
   wrap.innerHTML = linhas.map(({ c, crm, met }) => {
     const nome = c.nomeEstab || c.nome || 'Clínica';
@@ -11533,6 +11541,15 @@ function renderClientesForn() {
   }).join('');
 }
 window.renderClientesForn = renderClientesForn;
+
+function toggleOrdemCarteira() {
+  _carteiraOrdemAsc = !_carteiraOrdemAsc;
+  const btn = document.getElementById('forn-ordem-btn');
+  if (btn) btn.innerHTML = '<i class="ti ti-arrows-sort"></i> ' + (_carteiraOrdemAsc ? 'Mais antigo primeiro' : 'Mais recente primeiro');
+  if (window.renderClientesForn) renderClientesForn();
+  if (window.renderClientesSemApp) renderClientesSemApp();
+}
+window.toggleOrdemCarteira = toggleOrdemCarteira;
 
 function abrirFormClienteForn(clinicaId, nome) {
   const wrap = document.getElementById('forn-cliente-form-wrap');
@@ -13062,7 +13079,12 @@ function renderClientesSemApp() {
     if (!termo && !dig) return true;
     return _lancNorm(x.c.nome).indexOf(termo) >= 0 || (dig.length >= 3 && x.wd.indexOf(dig) >= 0);
   }).sort(function (a, b) {
-    return (b.tri - a.tri) || String(a.c.nome || '').localeCompare(String(b.c.nome || ''), 'pt-BR');
+    const da = a.ultima ? a.ultima.data : null;
+    const db = b.ultima ? b.ultima.data : null;
+    if (!da && !db) return String(a.c.nome || '').localeCompare(String(b.c.nome || ''), 'pt-BR');
+    if (!da) return 1;
+    if (!db) return -1;
+    return _carteiraOrdemAsc ? da.localeCompare(db) : db.localeCompare(da);
   });
 
   const q = _lancEl('forn-semapp-qtd');
@@ -14028,9 +14050,12 @@ Desodorante 0% Alumínio c/ Niacinamida 55g;39.40;Corporal</textarea>
   </div>
 
   <div id="forn-tab-clientes" class="forn-tab-panel" style="display:none;padding:0 20px 20px 20px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
       <div style="font-size:15px;font-weight:700;color:#1c1917;">Carteira</div>
-      <span onclick="toggleBuscaClinicaForn()" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">+ Vincular clínica</span>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <span id="forn-ordem-btn" onclick="toggleOrdemCarteira()" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;white-space:nowrap;"><i class="ti ti-arrows-sort"></i> Mais recente primeiro</span>
+        <span onclick="toggleBuscaClinicaForn()" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;">+ Vincular clínica</span>
+      </div>
     </div>
     <div id="forn-clientes-lista" style="display:flex;flex-direction:column;gap:8px;max-height:860px;overflow-y:auto;">
       <div style="color:#a8a29e;font-size:13px;text-align:center;padding:16px 0;">Carregando clientes...</div>
