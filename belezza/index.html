@@ -9731,9 +9731,80 @@ function switchFornTab(tab) {
   if (tab === 'lancamentos' && window.lancAbrirAba) window.lancAbrirAba();
   if (tab === 'relatorios' && window.relAbrirAba) window.relAbrirAba();
   if (tab === 'clientes' && window.renderClientesSemApp) window.renderClientesSemApp();
+  if (tab === 'duvidas' && window.renderFornFaq) window.renderFornFaq();
   closeFornSidebar();
 }
 window.switchFornTab = switchFornTab;
+
+// ── Módulo Ajuda (FAQ) do painel Vendedor — piloto v2.0 ─────────────────────
+const FORN_FAQ = [
+  { cat: 'lancamentos', q: 'O que é a aba Lançamentos?', a: 'É onde você registra cada contato com um cliente: o resultado (Vendeu, Agendado, Sem interesse, Não atendeu, Ctto Inválido, Cadastro) e, se vendeu, o pedido com os produtos, desconto e frete.' },
+  { cat: 'lancamentos', q: 'Como lanço um pedido para um cliente que não tem o app?', a: 'Em Lançamentos, clique em "+ Novo cliente (sem app)" e informe nome e WhatsApp. Ele passa a aparecer na sua Carteira e pode ser usado em qualquer lançamento futuro.' },
+  { cat: 'lancamentos', q: 'Como funciona o desconto do Pix?', a: 'Ao marcar a forma de pagamento como Pix, você pode aplicar um desconto adicional de 3% ou 5% sobre o valor dos produtos. Para as demais formas de pagamento, não há desconto automático.' },
+  { cat: 'lancamentos', q: 'O frete entra no desconto?', a: 'Não. O frete é somado depois do desconto, sobre o valor já com o desconto do Pix aplicado — não é descontado.' },
+  { cat: 'lancamentos', q: 'Para que serve o campo Transportadora?', a: 'É um campo opcional, texto livre, para anotar quem vai entregar o pedido (ex.: Correios, motoboy, nome da transportadora). Aparece na lista de Lançamentos e no pedido impresso.' },
+  { cat: 'lancamentos', q: 'Por que o produto que acabei de adicionar aparece no topo da lista?', a: 'Assim é mais fácil conferir o último item adicionado sem precisar rolar a tela até o final — cada produto novo entra sempre no topo.' },
+  { cat: 'lancamentos', q: 'Posso lançar um pedido com data retroativa?', a: 'Sim. A data do lançamento é editável e pode ser de um dia anterior, mas nunca uma data futura.' },
+  { cat: 'lancamentos', q: 'Dá para editar ou apagar um lançamento já salvo?', a: 'Sim, na lista de "Últimos lançamentos" há os links Editar e Apagar em cada item.' },
+  { cat: 'relatorios', q: 'O que aparece nos Relatórios?', a: 'Faturamento do mês (líquido e bruto), desconto de Pix concedido, faturamento por origem (App da clínica, Catálogo QR Code e Lançamentos manuais), produtos mais vendidos, melhores clientes, funil de contatos e clientes novos.' },
+  { cat: 'relatorios', q: 'Qual a diferença entre faturamento líquido e bruto?', a: 'O líquido já é com o desconto do Pix descontado; o bruto é o valor antes desse desconto. Hoje essa quebra só é calculada a partir dos lançamentos manuais — pedidos do Catálogo QR Code e do App da clínica não têm desconto de Pix registrado no sistema.' },
+  { cat: 'relatorios', q: 'Como vejo o acumulado de 3 ou 6 meses em Produtos mais vendidos e Melhores clientes?', a: 'Acima dessas duas listas há os botões "Este mês", "3 meses" e "6 meses" — a janela escolhida termina sempre no mês selecionado no topo da tela.' },
+  { cat: 'relatorios', q: 'Por que um cliente aparece com vários pedidos somados em Melhores clientes?', a: 'O relatório soma todos os pedidos do mesmo cliente em uma única linha, com o total de pedidos ao lado do nome — não é duplicidade.' },
+  { cat: 'relatorios', q: 'Dá para imprimir o relatório?', a: 'Sim, o botão "Imprimir / PDF" no topo da aba Relatórios gera um PDF pelo navegador, com o cabeçalho da empresa e os mesmos dados da tela.' },
+  { cat: 'clientes', q: 'O que é a Carteira?', a: 'É a lista de todos os seus clientes — tanto os que têm o app (clínicas vinculadas) quanto os "sem app" cadastrados por você. Cada um tem um contato (responsável/WhatsApp) que pode ser editado.' },
+  { cat: 'clientes', q: 'Como importo vários clientes de uma vez?', a: 'Na aba Clientes, na seção "Clientes sem app", clique em "+ Importar". Você pode subir uma planilha CSV/Excel com colunas Nome e WhatsApp, ou um arquivo .vcf exportado da agenda do celular (iPhone ou Android).' },
+  { cat: 'clientes', q: 'O sistema detecta clientes duplicados na importação?', a: 'Sim — antes de importar, o sistema confere o WhatsApp contra a sua carteira atual; quem já está cadastrado é ignorado automaticamente, e o resumo final mostra quantos foram importados e quantos eram duplicados.' },
+  { cat: 'clientes', q: 'A importação traz qualquer contato da minha agenda?', a: 'Não — só contatos com celular brasileiro no formato atual (DDD + 9 dígitos). Telefones fixos, incompletos ou estrangeiros são ignorados, e o resumo mostra quantos foram ignorados.' },
+  { cat: 'pedidos', q: 'O que é o número do pedido (ex.: 26092501)?', a: 'É gerado automaticamente no formato AAMMDD + sequência do dia — os 6 primeiros dígitos são a data e os 2 últimos são a ordem do pedido naquele dia. O mesmo número nunca se repete, mesmo com pedidos simultâneos.' },
+  { cat: 'pedidos', q: 'Por que um pedido que lancei não aparece na aba "Pedidos"?', a: 'A aba "Pedidos" e os cartões do Dashboard mostram só os pedidos feitos pela clínica no próprio app dela. Pedidos lançados por você (manual) ou feitos pelo Catálogo QR Code aparecem em Lançamentos e em Relatórios, não em "Pedidos".' },
+  { cat: 'pedidos', q: 'O que é o aviso "Pendências de Hoje"?', a: 'Mostra os clientes cujo próximo contato está vencido ou é hoje, e cujo último resultado ainda não encerrou o caso (Vendeu, Sem interesse e Ctto Inválido encerram). Abre automaticamente uma vez por dia e também pelo botão no topo da tela.' },
+  { cat: 'catalogo', q: 'Como funcionam as faixas de preço dos produtos?', a: 'Por padrão, 1 ou 2 unidades usam o preço Profissional (-30%) e 3 unidades ou mais usam o preço Trio (-35%). Você pode trocar manualmente a faixa de cada item no pedido, inclusive para o preço cheio.' },
+  { cat: 'catalogo', q: 'Meu QR Code entrega o mesmo catálogo do meu painel?', a: 'Sim — o QR Code leva direto para o catálogo público, sem precisar de login. Quem escaneia vê os mesmos produtos, kits e preços cadastrados no seu Catálogo.' },
+  { cat: 'conta', q: 'O que muda entre Vendedor e Líder?', a: 'O Vendedor lança pedidos e contata clientes normalmente. O Líder, quando essa parte estiver liberada, vai ver um consolidado de todos os vendedores da equipe, além do próprio trabalho.' },
+];
+
+let _fornFaqCat = 'todos';
+let _fornFaqBusca = '';
+
+function renderFornFaq() {
+  const box = document.getElementById('forn-faq-lista');
+  if (!box) return;
+  const termo = _fornFaqBusca.trim().toLowerCase();
+  const lista = FORN_FAQ.filter(function (f) {
+    const passaCat = _fornFaqCat === 'todos' || f.cat === _fornFaqCat;
+    const passaBusca = !termo || f.q.toLowerCase().includes(termo) || f.a.toLowerCase().includes(termo);
+    return passaCat && passaBusca;
+  });
+  if (!lista.length) {
+    box.innerHTML = '<div style="color:#a8a29e;font-size:13px;text-align:center;padding:20px 0;">Nenhuma dúvida encontrada.</div>';
+    return;
+  }
+  box.innerHTML = lista.map(function (f) {
+    return '<details style="background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);">' +
+      '<summary style="font-size:13px;font-weight:700;color:#1c1917;cursor:pointer;">' + _lancEsc(f.q) + '</summary>' +
+      '<div style="font-size:12px;color:#57534e;margin-top:8px;line-height:1.5;">' + _lancEsc(f.a) + '</div></details>';
+  }).join('');
+}
+window.renderFornFaq = renderFornFaq;
+
+function filterFornFaq(v) {
+  _fornFaqBusca = v || '';
+  renderFornFaq();
+}
+window.filterFornFaq = filterFornFaq;
+
+function filterFornCat(cat, el) {
+  _fornFaqCat = cat;
+  document.querySelectorAll('.forn-faq-cat').forEach(function (b) {
+    const ativo = b === el;
+    b.classList.toggle('active', ativo);
+    b.style.background = ativo ? '#1c1917' : '#fff';
+    b.style.borderColor = ativo ? '#1c1917' : '#e7e5e4';
+    b.style.color = ativo ? '#fff' : '#57534e';
+  });
+  renderFornFaq();
+}
+window.filterFornCat = filterFornCat;
 
 function previewLogoForn(input) {
   if (!input.files || !input.files[0]) return;
@@ -13601,6 +13672,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
       <div class="forn-nav-item" data-tab="pedidos" onclick="switchFornTab('pedidos')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Pedidos</div>
       <div class="forn-nav-item" data-tab="promocoes" onclick="switchFornTab('promocoes')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Promoções</div>
       <div class="forn-nav-item" data-tab="qrcode" onclick="switchFornTab('qrcode')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Meu QR Code</div>
+      <div class="forn-nav-item" data-tab="duvidas" onclick="switchFornTab('duvidas')" style="padding:10px 20px;font-size:13px;cursor:pointer;color:#a8a29e;">Dúvidas</div>
     </nav>
     <div style="flex:1;overflow:auto;min-width:0;">
 
@@ -14119,6 +14191,23 @@ Desodorante 0% Alumínio c/ Niacinamida 55g;39.40;Corporal</textarea>
       <button onclick="salvarLogoForn()" style="background:#1c1917;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Salvar logo</button>
       <div id="forn-logo-status" style="font-size:12px;color:#57534e;margin-top:6px;"></div>
     </div>
+  </div>
+
+  <div id="forn-tab-duvidas" class="forn-tab-panel" style="display:none;padding:20px;">
+    <div style="font-size:15px;font-weight:700;color:#1c1917;margin-bottom:10px;">Dúvidas</div>
+    <div style="position:relative;margin-bottom:10px;">
+      <input id="forn-faq-busca" type="text" placeholder="Pesquisar dúvidas..." autocomplete="off" oninput="filterFornFaq(this.value)" style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:13px;box-sizing:border-box;">
+    </div>
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;">
+      <button class="forn-faq-cat active" onclick="filterFornCat('todos',this)" style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid #e7e5e4;font-size:11px;font-weight:500;cursor:pointer;background:#fff;color:#57534e;white-space:nowrap;">Todos</button>
+      <button class="forn-faq-cat" onclick="filterFornCat('lancamentos',this)" style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid #e7e5e4;font-size:11px;font-weight:500;cursor:pointer;background:#fff;color:#57534e;white-space:nowrap;">Lançamentos</button>
+      <button class="forn-faq-cat" onclick="filterFornCat('relatorios',this)" style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid #e7e5e4;font-size:11px;font-weight:500;cursor:pointer;background:#fff;color:#57534e;white-space:nowrap;">Relatórios</button>
+      <button class="forn-faq-cat" onclick="filterFornCat('clientes',this)" style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid #e7e5e4;font-size:11px;font-weight:500;cursor:pointer;background:#fff;color:#57534e;white-space:nowrap;">Clientes</button>
+      <button class="forn-faq-cat" onclick="filterFornCat('pedidos',this)" style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid #e7e5e4;font-size:11px;font-weight:500;cursor:pointer;background:#fff;color:#57534e;white-space:nowrap;">Pedidos</button>
+      <button class="forn-faq-cat" onclick="filterFornCat('catalogo',this)" style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid #e7e5e4;font-size:11px;font-weight:500;cursor:pointer;background:#fff;color:#57534e;white-space:nowrap;">Catálogo</button>
+      <button class="forn-faq-cat" onclick="filterFornCat('conta',this)" style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid #e7e5e4;font-size:11px;font-weight:500;cursor:pointer;background:#fff;color:#57534e;white-space:nowrap;">Conta</button>
+    </div>
+    <div id="forn-faq-lista" style="display:flex;flex-direction:column;gap:8px;"></div>
   </div>
 
     </div>
