@@ -12031,7 +12031,7 @@ function lancAdicionarProduto(id) {
   if (ex) {
     ex.qtd += 1;
   } else {
-    _lancItens.push({ produtoId: id, nome: p.nome || 'Produto', linha: p.categoria || '', precoCheio: calcPrecoTiers(p.preco).cheia, qtd: 1, faixa: 'auto' });
+    _lancItens.unshift({ produtoId: id, nome: p.nome || 'Produto', linha: p.categoria || '', precoCheio: calcPrecoTiers(p.preco).cheia, qtd: 1, faixa: 'auto' });
   }
   const b = _lancEl('lanc-prod-busca'); if (b) b.value = '';
   const r = _lancEl('lanc-prod-resultados'); if (r) r.innerHTML = '';
@@ -13330,7 +13330,7 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
     <div style="display:flex;align-items:center;gap:10px;">
       <button class="tb-menu" onclick="toggleFornSidebar()" style="color:#fff;"><i class="ti ti-menu-2"></i></button>
       <div>
-        <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#f59e0b;font-weight:700;">Fornecedor</div>
+        <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#f59e0b;font-weight:700;">Vendedor</div>
         <div id="forn-welcome" style="font-size:16px;font-weight:700;margin-top:2px;">Olá!</div>
       </div>
     </div>
