@@ -12078,7 +12078,7 @@ function lancLimparForm() {
   _lancItens = [];
   _lancEditId = null;
   _lancEditPedidoId = '';
-  ['lanc-cli-busca', 'lanc-prox', 'lanc-obs', 'lanc-pgto', 'lanc-prod-busca', 'lanc-frete'].forEach(function (id) { const e = _lancEl(id); if (e) e.value = ''; });
+  ['lanc-cli-busca', 'lanc-prox', 'lanc-obs', 'lanc-pgto', 'lanc-prod-busca', 'lanc-frete', 'lanc-transp'].forEach(function (id) { const e = _lancEl(id); if (e) e.value = ''; });
   const dsc = _lancEl('lanc-desc'); if (dsc) dsc.value = '0';
   lancPgtoMudou();
   const d = _lancEl('lanc-data'); if (d) { d.max = _lancHoje(); d.value = _lancHoje(); }
@@ -12118,6 +12118,7 @@ function lancEditar(id) {
       _lancEl('lanc-pgto').value = p.formaPagamento || '';
       _lancEl('lanc-desc').value = String(p.descontoPct || 0);
       _lancEl('lanc-frete').value = p.frete > 0 ? String(p.frete).replace('.', ',') : '';
+      _lancEl('lanc-transp').value = p.transportadora || '';
       lancPgtoMudou();
     }
   }
@@ -12195,6 +12196,7 @@ async function lancSalvar() {
       ped.descontoValor = calc.desc;
       ped.valorProdutos = calc.produtos;
       ped.frete = calc.frete;
+      ped.transportadora = _lancValor('lanc-transp').trim();
       if (pedidoId) { ped.editadoPor = user.uid; ped.editadoEm = serverTimestamp(); }
       else {
         ped.vendedorUid = user.uid; ped.vendedorNome = nomeVend; ped.criadoEm = serverTimestamp();
@@ -12268,6 +12270,7 @@ function lancRenderLista() {
       const partes = [];
       if (ped.descontoValor > 0) partes.push('Desconto Pix ' + ped.descontoPct + '%: -' + _lancBRL(ped.descontoValor));
       if (ped.frete > 0) partes.push('Frete: ' + _lancBRL(ped.frete));
+      if (ped.transportadora) partes.push('Transportadora: ' + _lancEsc(ped.transportadora));
       const detalhe = partes.length ? '<div style="font-size:11px;color:#a8a29e;margin-top:2px;">Produtos ' + _lancBRL(ped.subtotalItens != null ? ped.subtotalItens : ped.valorTotal) + ' · ' + partes.join(' · ') + '</div>' : '';
       const numTxt = ped.numeroPedido ? '<div style="font-size:11px;color:#a8a29e;margin-top:2px;">Pedido Nº ' + _lancEsc(ped.numeroPedido) + '</div>' : '';
       venda = '<div style="font-size:12px;color:#78716c;margin-top:4px;">' + _lancEsc(resumo) + '</div>' + detalhe + numTxt +
@@ -12388,7 +12391,7 @@ function _relNormalizar() {
       origem: 'app', data: _relDataLocal(p.criadoEm),
       chave: p.clinicaId ? 'c:' + p.clinicaId : 'n:' + _lancNorm(p.clinicaNome),
       nome: p.clinicaNome || 'Clínica', itens: _relItens(p.itens),
-      produtos: Number(p.valorTotal) || 0, frete: 0
+      produtos: Number(p.valorTotal) || 0, bruto: Number(p.valorTotal) || 0, desconto: 0, frete: 0
     });
   });
   (_relPublicos || []).forEach(function (p) {
@@ -12397,7 +12400,7 @@ function _relNormalizar() {
       origem: 'qr', data: _relDataLocal(p.criadoEm),
       chave: dig.length >= 8 ? 'w:' + dig : 'n:' + _lancNorm(p.nomeResponsavel),
       nome: p.nomeResponsavel || 'Cliente', itens: _relItens(p.itens),
-      produtos: Number(p.valorTotal) || 0, frete: 0
+      produtos: Number(p.valorTotal) || 0, bruto: Number(p.valorTotal) || 0, desconto: 0, frete: 0
     });
   });
   (_lancPedidos || []).forEach(function (p) {
@@ -12408,6 +12411,8 @@ function _relNormalizar() {
       chave: (crm.semApp && dig.length >= 8) ? 'w:' + dig : 'c:' + p.clienteId,
       nome: p.clienteNome || 'Cliente', itens: _relItens(p.itens),
       produtos: p.valorProdutos != null ? Number(p.valorProdutos) : (Number(p.valorTotal) || 0),
+      bruto: p.subtotalItens != null ? Number(p.subtotalItens) : (p.valorProdutos != null ? Number(p.valorProdutos) : (Number(p.valorTotal) || 0)),
+      desconto: Number(p.descontoValor) || 0,
       frete: Number(p.frete) || 0
     });
   });
@@ -12435,12 +12440,12 @@ function _relCalcular() {
   const todos = _relNormalizar();
   const doMes = todos.filter(function (x) { return x.data.slice(0, 7) === _relMes; });
 
-  let fat = 0, frete = 0;
+  let fat = 0, frete = 0, bruto = 0, desconto = 0;
   const porOrigem = { app: { n: 0, v: 0 }, qr: { n: 0, v: 0 }, manual: { n: 0, v: 0 } };
   const prods = {};
   const clis = {};
   doMes.forEach(function (x) {
-    fat += x.produtos; frete += x.frete;
+    fat += x.produtos; frete += x.frete; bruto += x.bruto; desconto += x.desconto;
     porOrigem[x.origem].n += 1; porOrigem[x.origem].v += x.produtos;
     x.itens.forEach(function (it) {
       const k = _lancNorm(it.nome);
@@ -12450,7 +12455,7 @@ function _relCalcular() {
     if (!clis[x.chave]) clis[x.chave] = { nome: x.nome, n: 0, valor: 0 };
     clis[x.chave].n += 1; clis[x.chave].valor += x.produtos;
   });
-  fat = _r2(fat); frete = _r2(frete);
+  fat = _r2(fat); frete = _r2(frete); bruto = _r2(bruto); desconto = _r2(desconto);
   const vendas = doMes.length;
 
   const listaProd = Object.keys(prods).map(function (k) { return prods[k]; }).sort(function (a, b) { return b.valor - a.valor; }).slice(0, 10);
@@ -12472,7 +12477,7 @@ function _relCalcular() {
 
   return {
     mes: _relMes, rotulo: REL_MESES[parseInt(partes[1], 10) - 1] + ' de ' + partes[0],
-    fat: fat, frete: frete, vendas: vendas, ticket: vendas ? _r2(fat / vendas) : 0,
+    fat: fat, bruto: bruto, desconto: desconto, frete: frete, vendas: vendas, ticket: vendas ? _r2(fat / vendas) : 0,
     porOrigem: porOrigem, listaProd: listaProd, listaCli: listaCli,
     cont: cont, totCont: totCont, conv: conv, novos: novos
   };
@@ -12484,16 +12489,18 @@ function relRender() {
   const d = _relCalcular();
   const lab = _lancEl('rel-mes-label');
   if (lab) lab.textContent = d.rotulo;
-  const fat = d.fat, frete = d.frete, vendas = d.vendas, ticket = d.ticket;
+  const fat = d.fat, bruto = d.bruto, desconto = d.desconto, frete = d.frete, vendas = d.vendas, ticket = d.ticket;
   const porOrigem = d.porOrigem, listaProd = d.listaProd, listaCli = d.listaCli;
   const cont = d.cont, totCont = d.totCont, conv = d.conv, novos = d.novos;
 
   let h = '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
-    _relStat('Faturamento (produtos)', _lancBRL(fat)) +
+    _relStat('Faturamento líquido (produtos)', _lancBRL(fat)) +
+    _relStat('Faturamento bruto', _lancBRL(bruto)) +
+    _relStat('Desconto Pix concedido', _lancBRL(desconto)) +
     _relStat('Vendas no mês', String(vendas)) +
     _relStat('Ticket médio', _lancBRL(ticket)) +
     _relStat('Frete cobrado', _lancBRL(frete)) + '</div>' +
-    '<div style="font-size:11px;color:#a8a29e;margin-top:6px;">Faturamento já com o desconto do Pix. O frete fica fora do faturamento.</div>';
+    '<div style="font-size:11px;color:#a8a29e;margin-top:6px;">Faturamento líquido já com o desconto do Pix. O bruto e o desconto de Pix só são calculados a partir dos lançamentos manuais — pedidos do Catálogo QR e do App da clínica não têm desconto Pix registrado no sistema (o Fornecedor ajusta com a cliente por fora). Frete fica fora do faturamento.</div>';
 
   let o = '';
   REL_ORIGENS.forEach(function (par) {
@@ -12901,6 +12908,7 @@ function _docHtmlPedido(emp, d) {
   }).join('') + '</tbody></table>';
   const extra = [];
   if (d.pagamento) extra.push(['Forma de pagamento', d.pagamento]);
+  if (d.transportadora) extra.push(['Transportadora', d.transportadora]);
   if (d.vendedor) extra.push(['Vendedor', d.vendedor]);
   if (d.obs) extra.push(['Observação', d.obs]);
   if (extra.length) h += '<h2>Dados do pedido</h2>' + _docLinhas(extra);
@@ -12943,7 +12951,7 @@ function _docPedidoManual(p) {
   return {
     ref: p.numeroPedido || _docRef(p._id, p.data), data: p.data, origemTxt: 'Lançamento manual',
     clienteNome: p.clienteNome || 'Cliente', esq: esq, dir: dir, itens: itens, resumo: resumo,
-    pagamento: p.formaPagamento || '', vendedor: p.vendedorNome || '', obs: p.obs || '', nota: ''
+    pagamento: p.formaPagamento || '', transportadora: p.transportadora || '', vendedor: p.vendedorNome || '', obs: p.obs || '', nota: ''
   };
 }
 
@@ -12995,7 +13003,9 @@ window.imprimirPedidoManual = imprimirPedidoManual;
 function _docHtmlRelatorio(emp, d) {
   let h = _docCabecalho(emp, 'Relatório de Vendas', d.rotulo);
   h += '<h2>Resumo do mês</h2><table class="tot" style="margin-left:0;width:100%;"><tbody>' +
-    '<tr><td>Faturamento (produtos, com desconto Pix)</td><td class="d">' + _lancBRL(d.fat) + '</td></tr>' +
+    '<tr><td>Faturamento líquido (produtos, com desconto Pix)</td><td class="d">' + _lancBRL(d.fat) + '</td></tr>' +
+    '<tr><td>Faturamento bruto (antes do desconto Pix)</td><td class="d">' + _lancBRL(d.bruto) + '</td></tr>' +
+    '<tr><td>Desconto Pix concedido (só lançamentos manuais)</td><td class="d">' + _lancBRL(d.desconto) + '</td></tr>' +
     '<tr><td>Vendas no mês</td><td class="d">' + d.vendas + '</td></tr>' +
     '<tr><td>Ticket médio</td><td class="d">' + _lancBRL(d.ticket) + '</td></tr>' +
     '<tr><td>Frete cobrado (fora do faturamento)</td><td class="d">' + _lancBRL(d.frete) + '</td></tr></tbody></table>';
@@ -13444,6 +13454,8 @@ function exportarBackup(){ if(window.exportarBackup) window.exportarBackup(); }
         <label style="display:block;font-size:12px;color:#78716c;margin:12px 0 4px;">Frete em R$ (opcional)</label>
         <input id="lanc-frete" type="text" inputmode="decimal" placeholder="0,00" oninput="lancRenderResumo()" style="width:140px;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
         <div style="font-size:11px;color:#a8a29e;margin-top:4px;">Somado ao total depois do desconto.</div>
+        <label style="display:block;font-size:12px;color:#78716c;margin:12px 0 4px;">Transportadora (opcional)</label>
+        <input id="lanc-transp" type="text" maxlength="60" placeholder="Ex.: Correios, motoboy, retirada..." style="width:100%;padding:9px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:14px;box-sizing:border-box;">
         <div id="lanc-total" style="margin-top:12px;padding:10px 12px;background:#fafaf9;border-radius:8px;font-size:13px;color:#57534e;"></div>
       </div>
 
