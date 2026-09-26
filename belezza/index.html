@@ -11503,6 +11503,225 @@ async function salvarClienteForn() {
 }
 window.salvarClienteForn = salvarClienteForn;
 
+// ── Importação de carteira (CSV/VCF) do Fornecedor — reaproveita o parser ──
+// já usado do lado Clínica (_normalizarTel, _escHtml); grava em
+// /fornecedores/{fid}/clientes com semApp:true, igual ao "+Novo cliente".
+function toggleImportarClientesForn() {
+  const p = document.getElementById('forn-painel-importar');
+  if (!p) return;
+  const opening = p.style.display === 'none';
+  p.style.display = opening ? 'block' : 'none';
+  if (opening) {
+    setImportTabForn('csv');
+    ['forn-imp-csv-preview', 'forn-imp-vcf-preview'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+    });
+    document.getElementById('forn-imp-csv-label-txt').textContent = 'Selecionar arquivo .csv ou .xlsx';
+    document.getElementById('forn-imp-vcf-label-txt').textContent = 'Selecionar arquivo .vcf';
+  }
+}
+window.toggleImportarClientesForn = toggleImportarClientesForn;
+
+function setImportTabForn(tab) {
+  const csv = document.getElementById('forn-imp-painel-csv');
+  const vcf = document.getElementById('forn-imp-painel-vcf');
+  const btnCsv = document.getElementById('forn-imp-tab-csv');
+  const btnVcf = document.getElementById('forn-imp-tab-vcf');
+  if (!csv || !vcf) return;
+  if (tab === 'csv') {
+    csv.style.display = ''; vcf.style.display = 'none';
+    btnCsv.style.fontWeight = '700'; btnCsv.style.borderBottom = '2px solid #1c1917';
+    btnVcf.style.fontWeight = '500'; btnVcf.style.borderBottom = '2px solid transparent';
+  } else {
+    vcf.style.display = ''; csv.style.display = 'none';
+    btnVcf.style.fontWeight = '700'; btnVcf.style.borderBottom = '2px solid #1c1917';
+    btnCsv.style.fontWeight = '500'; btnCsv.style.borderBottom = '2px solid transparent';
+  }
+}
+window.setImportTabForn = setImportTabForn;
+
+function importarCSVForn(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  document.getElementById('forn-imp-csv-label-txt').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const linhas = e.target.result.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+      if (linhas.length < 2) { _impMostrarErroForn('csv', 'Arquivo vazio ou sem dados.'); return; }
+      const sep = linhas[0].includes(';') ? ';' : ',';
+      const header = linhas[0].split(sep).map(h => h.replace(/['"]/g, '').toLowerCase().trim());
+      const iNome = header.findIndex(h => h.includes('nome') || h.includes('name') || h === 'contato');
+      const iWpp = header.findIndex(h => h.includes('whatsapp') || h.includes('wpp') || h.includes('telefon') ||
+        h.includes('celular') || h.includes('fone') || h.includes('phone') || h.includes('mobile') ||
+        h.includes('número') || h.includes('numero'));
+      if (iNome === -1 || iWpp === -1) {
+        _impMostrarErroForn('csv', `Colunas não encontradas. Cabeçalho detectado: "${header.join(' | ')}". O arquivo precisa ter colunas com "Nome" e "WhatsApp" (ou Telefone/Celular).`);
+        return;
+      }
+      const contatos = [];
+      let ignorados = 0;
+      for (let i = 1; i < linhas.length; i++) {
+        const cols = linhas[i].split(sep).map(c => c.replace(/^["']|["']$/g, '').trim());
+        const nome = cols[iNome] || '';
+        const wpp = _normalizarTel(cols[iWpp] || '');
+        if (nome && wpp) contatos.push({ nome, wpp });
+        else if (nome && (cols[iWpp] || '').trim()) ignorados++;
+      }
+      _impMostrarPreviewForn('csv', contatos, ignorados);
+    } catch (err) { _impMostrarErroForn('csv', 'Erro ao ler o arquivo: ' + err.message); }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+window.importarCSVForn = importarCSVForn;
+
+function importarVCFForn(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  document.getElementById('forn-imp-vcf-label-txt').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const texto = e.target.result;
+      const blocos = texto.split(/BEGIN:VCARD/i).filter(b => b.includes('END:VCARD'));
+      const contatos = [];
+      let ignorados = 0;
+      blocos.forEach(bloco => {
+        let nome = '';
+        const fnMatch = bloco.match(/^FN(?:;[^:]*)?:(.+)$/im);
+        if (fnMatch) { nome = fnMatch[1].trim().replace(/\\,/g, ','); }
+        else {
+          const nMatch = bloco.match(/^N(?:;[^:]*)?:(.+)$/im);
+          if (nMatch) { const partes = nMatch[1].split(';').map(p => p.trim()).filter(Boolean); nome = partes.slice(0, 2).reverse().join(' '); }
+        }
+        const telMatches = [...bloco.matchAll(/^TEL(?:;[^:]*)?:(.+)$/gim)];
+        let wpp = '';
+        for (const m of telMatches) { const t = _normalizarTel(m[1].trim()); if (t) { wpp = t; break; } }
+        if (nome && wpp) contatos.push({ nome, wpp });
+        else if (nome && telMatches.length > 0) ignorados++;
+      });
+      if (contatos.length === 0) { _impMostrarErroForn('vcf', 'Nenhum contato com celular válido encontrado no arquivo.'); return; }
+      _impMostrarPreviewForn('vcf', contatos, ignorados);
+    } catch (err) { _impMostrarErroForn('vcf', 'Erro ao ler o arquivo: ' + err.message); }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+window.importarVCFForn = importarVCFForn;
+
+function _impMostrarPreviewForn(tipo, contatos, ignorados) {
+  const divId = tipo === 'csv' ? 'forn-imp-csv-preview' : 'forn-imp-vcf-preview';
+  const div = document.getElementById(divId);
+  if (!div) return;
+  ignorados = ignorados || 0;
+  div.style.display = '';
+  div.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:#1c1917;margin-bottom:4px;">
+      <i class="ti ti-circle-check"></i> ${contatos.length} contato${contatos.length > 1 ? 's' : ''} encontrado${contatos.length > 1 ? 's' : ''}
+    </div>
+    ${ignorados > 0 ? `<div style="font-size:11px;color:#a8a29e;margin-bottom:6px;"><i class="ti ti-info-circle"></i> ${ignorados} ignorado${ignorados > 1 ? 's' : ''} (não parecem celular)</div>` : ''}
+    <div style="font-size:11px;color:#78716c;margin-bottom:8px;">💡 Desmarque quem não deve ser importado.</div>
+    <div style="border:1px solid #e7e5e4;border-radius:8px;overflow:hidden;margin-bottom:10px;max-height:280px;overflow-y:auto;">
+      <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid #e7e5e4;background:#fafaf9;font-size:11px;font-weight:700;color:#1c1917;">
+        <input type="checkbox" id="_impf-todos-${tipo}" checked onchange="_impToggleTodosForn('${tipo}')" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;">
+        <label for="_impf-todos-${tipo}" style="cursor:pointer;flex:1;">Selecionar todos</label>
+      </div>
+      ${contatos.map((c, i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid #e7e5e4;font-size:12px;">
+          <input type="checkbox" class="_impf-chk-${tipo}" data-idx="${i}" checked onchange="_impAtualizarContagemForn('${tipo}')" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;">
+          <i class="ti ti-user" style="font-size:13px;color:#a8a29e;flex-shrink:0;"></i>
+          <span style="flex:1;font-weight:600;color:#1c1917;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${_escHtml(c.nome)}</span>
+          <span style="color:#78716c;white-space:nowrap;">${_escHtml(c.wpp)}</span>
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="_impCancelarForn('${tipo}')" style="flex:1;background:#e7e5e4;color:#44403c;border:none;padding:9px 12px;border-radius:6px;cursor:pointer;font-size:12px;"><i class="ti ti-x"></i> Cancelar</button>
+      <button onclick="_impConfirmarForn('${tipo}')" id="_impf-btn-confirmar-${tipo}" style="flex:1;background:#1c1917;color:#fff;border:none;padding:9px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;"><i class="ti ti-user-plus"></i> Importar <span id="_impf-contagem-${tipo}">${contatos.length}</span> cliente${contatos.length > 1 ? 's' : ''}</button>
+    </div>`;
+  window[`_impfContatos_${tipo}`] = contatos;
+}
+
+function _impAtualizarContagemForn(tipo) {
+  const checks = document.querySelectorAll(`._impf-chk-${tipo}`);
+  const marcados = Array.from(checks).filter(c => c.checked).length;
+  const span = document.getElementById(`_impf-contagem-${tipo}`);
+  if (span) span.textContent = marcados;
+  const btn = document.getElementById(`_impf-btn-confirmar-${tipo}`);
+  if (btn) {
+    btn.disabled = marcados === 0;
+    btn.style.opacity = marcados === 0 ? '0.5' : '1';
+    btn.style.cursor = marcados === 0 ? 'not-allowed' : 'pointer';
+    btn.innerHTML = `<i class="ti ti-user-plus"></i> Importar <span id="_impf-contagem-${tipo}">${marcados}</span> cliente${marcados === 1 ? '' : 's'}`;
+  }
+  const todos = document.getElementById(`_impf-todos-${tipo}`);
+  if (todos) todos.checked = marcados > 0 && marcados === checks.length;
+}
+window._impAtualizarContagemForn = _impAtualizarContagemForn;
+
+function _impToggleTodosForn(tipo) {
+  const todos = document.getElementById(`_impf-todos-${tipo}`);
+  if (!todos) return;
+  document.querySelectorAll(`._impf-chk-${tipo}`).forEach(c => c.checked = todos.checked);
+  _impAtualizarContagemForn(tipo);
+}
+window._impToggleTodosForn = _impToggleTodosForn;
+
+function _impCancelarForn(tipo) {
+  const divId = tipo === 'csv' ? 'forn-imp-csv-preview' : 'forn-imp-vcf-preview';
+  const lbId = tipo === 'csv' ? 'forn-imp-csv-label-txt' : 'forn-imp-vcf-label-txt';
+  const div = document.getElementById(divId);
+  if (div) { div.style.display = 'none'; div.innerHTML = ''; }
+  document.getElementById(lbId).textContent = tipo === 'csv' ? 'Selecionar arquivo .csv ou .xlsx' : 'Selecionar arquivo .vcf';
+}
+window._impCancelarForn = _impCancelarForn;
+
+function _impMostrarErroForn(tipo, msg) {
+  const divId = tipo === 'csv' ? 'forn-imp-csv-preview' : 'forn-imp-vcf-preview';
+  const div = document.getElementById(divId);
+  if (!div) return;
+  div.style.display = '';
+  div.innerHTML = `<div style="padding:10px;background:#fef2f2;border-radius:6px;font-size:12px;color:#b91c1c;"><i class="ti ti-alert-triangle"></i> ${_escHtml(msg)}</div>`;
+}
+
+async function _impConfirmarForn(tipo) {
+  const divId = tipo === 'csv' ? 'forn-imp-csv-preview' : 'forn-imp-vcf-preview';
+  const div = document.getElementById(divId);
+  const fid = cp?.fornecedorId;
+  if (!fid) { if (div) div.innerHTML = '<div style="padding:10px;color:#b91c1c;font-size:12px;">Fornecedor não identificado.</div>'; return; }
+  const todosContatos = window[`_impfContatos_${tipo}`] || [];
+  const checks = document.querySelectorAll(`._impf-chk-${tipo}`);
+  const contatos = [];
+  checks.forEach(chk => { if (chk.checked) { const idx = parseInt(chk.dataset.idx, 10); if (todosContatos[idx]) contatos.push(todosContatos[idx]); } });
+  if (contatos.length === 0) return;
+  if (div) div.innerHTML = `<div style="text-align:center;padding:14px;font-size:13px;color:#1c1917;"><i class="ti ti-loader"></i><br>Importando ${contatos.length} clientes...</div>`;
+
+  let importados = 0, duplicados = 0;
+  for (const c of contatos) {
+    const wppNorm = c.wpp.replace(/\D/g, '');
+    const jaExiste = Object.values(_clientesCRM || {}).some(x => x.whatsapp && String(x.whatsapp).replace(/\D/g, '') === wppNorm);
+    if (jaExiste) { duplicados++; continue; }
+    try {
+      await addDoc(collection(db, 'fornecedores', fid, 'clientes'), {
+        nome: c.nome, responsavel: '', whatsapp: c.wpp, tipo: '', semApp: true, origem: 'Importação', criadoEm: serverTimestamp()
+      });
+      importados++;
+    } catch (e) { console.warn('[Belezza] importação carteira Fornecedor:', e.message); }
+  }
+  // A lista atualiza sozinha via listener (onSnapshot em iniciarListenerClientesForn).
+  if (div) {
+    const dupMsg = duplicados > 0 ? `<div style="font-size:11px;color:#a8a29e;margin-top:4px;">${duplicados} já cadastrado${duplicados > 1 ? 's' : ''} (ignorado${duplicados > 1 ? 's' : ''})</div>` : '';
+    div.innerHTML = `<div style="padding:12px 14px;background:#fafaf9;border-radius:8px;border:1px solid #e7e5e4;text-align:center;">
+      <i class="ti ti-circle-check" style="font-size:22px;color:#1c1917;display:block;margin-bottom:4px;"></i>
+      <div style="font-size:13px;font-weight:700;color:#1c1917;">${importados} cliente${importados > 1 ? 's' : ''} importado${importados > 1 ? 's' : ''}!</div>
+      ${dupMsg}
+      <button onclick="toggleImportarClientesForn()" style="margin-top:10px;background:#1c1917;color:#fff;border:none;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:12px;">Fechar</button>
+    </div>`;
+  }
+}
+window._impConfirmarForn = _impConfirmarForn;
+
 // ══════════════════════════════════════════════════════════════════════════
 // MÓDULO FORNECEDOR — Promoções
 // Coleção: /fornecedores/{fornecedorId}/promocoes/{promoId}
@@ -12434,6 +12653,25 @@ function _relStat(rotulo, valor) {
     '<div style="font-size:20px;font-weight:700;color:#1c1917;margin-top:4px;">' + valor + '</div></div>';
 }
 
+function _relMesesJanela(mesFinal, n) {
+  const partes = mesFinal.split('-');
+  let y = parseInt(partes[0], 10), m = parseInt(partes[1], 10);
+  const arr = [];
+  for (let i = n - 1; i >= 0; i--) {
+    let mm = m - i, yy = y;
+    while (mm <= 0) { mm += 12; yy -= 1; }
+    arr.push(yy + '-' + String(mm).padStart(2, '0'));
+  }
+  return arr;
+}
+
+let _relJanelaTop = 1; // 1, 3 ou 6 meses — janela de acumulado para Produtos mais vendidos/Melhores clientes
+function relSetJanelaTop(n) {
+  _relJanelaTop = n;
+  relRender();
+}
+window.relSetJanelaTop = relSetJanelaTop;
+
 function _relCalcular() {
   if (!_relMes) _relMes = _relMesAtual();
   const partes = _relMes.split('-');
@@ -12442,11 +12680,19 @@ function _relCalcular() {
 
   let fat = 0, frete = 0, bruto = 0, desconto = 0;
   const porOrigem = { app: { n: 0, v: 0 }, qr: { n: 0, v: 0 }, manual: { n: 0, v: 0 } };
-  const prods = {};
-  const clis = {};
   doMes.forEach(function (x) {
     fat += x.produtos; frete += x.frete; bruto += x.bruto; desconto += x.desconto;
     porOrigem[x.origem].n += 1; porOrigem[x.origem].v += x.produtos;
+  });
+  fat = _r2(fat); frete = _r2(frete); bruto = _r2(bruto); desconto = _r2(desconto);
+  const vendas = doMes.length;
+
+  const janela = _relJanelaTop || 1;
+  const mesesJanela = _relMesesJanela(_relMes, janela);
+  const doJanela = todos.filter(function (x) { return mesesJanela.indexOf(x.data.slice(0, 7)) !== -1; });
+  const prods = {};
+  const clis = {};
+  doJanela.forEach(function (x) {
     x.itens.forEach(function (it) {
       const k = _lancNorm(it.nome);
       if (!prods[k]) prods[k] = { nome: it.nome, qtd: 0, valor: 0 };
@@ -12455,8 +12701,6 @@ function _relCalcular() {
     if (!clis[x.chave]) clis[x.chave] = { nome: x.nome, n: 0, valor: 0 };
     clis[x.chave].n += 1; clis[x.chave].valor += x.produtos;
   });
-  fat = _r2(fat); frete = _r2(frete); bruto = _r2(bruto); desconto = _r2(desconto);
-  const vendas = doMes.length;
 
   const listaProd = Object.keys(prods).map(function (k) { return prods[k]; }).sort(function (a, b) { return b.valor - a.valor; }).slice(0, 10);
   const listaCli = Object.keys(clis).map(function (k) { return clis[k]; }).sort(function (a, b) { return b.valor - a.valor; }).slice(0, 10);
@@ -12478,7 +12722,7 @@ function _relCalcular() {
   return {
     mes: _relMes, rotulo: REL_MESES[parseInt(partes[1], 10) - 1] + ' de ' + partes[0],
     fat: fat, bruto: bruto, desconto: desconto, frete: frete, vendas: vendas, ticket: vendas ? _r2(fat / vendas) : 0,
-    porOrigem: porOrigem, listaProd: listaProd, listaCli: listaCli,
+    porOrigem: porOrigem, listaProd: listaProd, listaCli: listaCli, janela: janela,
     cont: cont, totCont: totCont, conv: conv, novos: novos
   };
 }
@@ -12490,7 +12734,7 @@ function relRender() {
   const lab = _lancEl('rel-mes-label');
   if (lab) lab.textContent = d.rotulo;
   const fat = d.fat, bruto = d.bruto, desconto = d.desconto, frete = d.frete, vendas = d.vendas, ticket = d.ticket;
-  const porOrigem = d.porOrigem, listaProd = d.listaProd, listaCli = d.listaCli;
+  const porOrigem = d.porOrigem, listaProd = d.listaProd, listaCli = d.listaCli, janela = d.janela;
   const cont = d.cont, totCont = d.totCont, conv = d.conv, novos = d.novos;
 
   let h = '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
@@ -12512,13 +12756,21 @@ function relRender() {
   });
   h += _relCard('Faturamento por origem', o, 'Pedidos do catálogo QR Code são o pedido inicial, sem frete e promoções finais.');
 
+  const janTxt = janela === 1 ? 'neste mês' : 'nos últimos ' + janela + ' meses';
+  let jSel = '<div style="display:flex;gap:6px;margin:14px 0 -4px;">' +
+    [[1, 'Este mês'], [3, '3 meses'], [6, '6 meses']].map(function (p) {
+      const ativo = janela === p[0];
+      return '<button onclick="relSetJanelaTop(' + p[0] + ')" style="padding:5px 12px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid ' + (ativo ? '#1c1917' : '#e7e5e4') + ';background:' + (ativo ? '#1c1917' : '#fff') + ';color:' + (ativo ? '#fff' : '#57534e') + ';">' + p[1] + '</button>';
+    }).join('') + '</div>';
+  h += jSel;
+
   h += _relCard('Produtos mais vendidos', listaProd.length
     ? listaProd.map(function (p, i) { return _relLinha('<b>' + (i + 1) + 'º</b> ' + _lancEsc(p.nome), p.qtd + ' un. · ' + _lancBRL(p.valor)); }).join('')
-    : _relVazio('Sem vendas neste mês.'), 'Valores dos itens antes do desconto do Pix.');
+    : _relVazio('Sem vendas ' + janTxt + '.'), 'Valores dos itens antes do desconto do Pix, acumulado ' + janTxt + '.');
 
   h += _relCard('Melhores clientes', listaCli.length
     ? listaCli.map(function (c, i) { return _relLinha('<b>' + (i + 1) + 'º</b> ' + _lancEsc(c.nome) + ' <span style="font-size:11px;color:#a8a29e;">' + c.n + (c.n === 1 ? ' pedido' : ' pedidos') + '</span>', _lancBRL(_r2(c.valor))); }).join('')
-    : _relVazio('Sem vendas neste mês.'));
+    : _relVazio('Sem vendas ' + janTxt + '.'), 'Acumulado ' + janTxt + '.');
 
   let f = '';
   REL_RESULTADOS.forEach(function (r) {
@@ -13015,15 +13267,16 @@ function _docHtmlRelatorio(emp, d) {
       const pct = d.fat > 0 ? Math.round((o.v / d.fat) * 100) : 0;
       return '<tr><td>' + par[1] + '</td><td class="d">' + o.n + '</td><td class="d">' + _lancBRL(_r2(o.v)) + '</td><td class="d">' + pct + '%</td></tr>';
     }).join('') + '</tbody></table>';
-  h += '<h2>Produtos mais vendidos</h2>' + (d.listaProd.length
+  const janTxtP = d.janela === 1 ? 'neste mês' : 'nos últimos ' + d.janela + ' meses';
+  h += '<h2>Produtos mais vendidos (' + janTxtP + ')</h2>' + (d.listaProd.length
     ? '<table><thead><tr><th>#</th><th>Produto</th><th class="d">Qtd</th><th class="d">Valor</th></tr></thead><tbody>' +
       d.listaProd.map(function (p, i) { return '<tr><td>' + (i + 1) + '</td><td>' + _lancEsc(p.nome) + '</td><td class="d">' + p.qtd + '</td><td class="d">' + _lancBRL(_r2(p.valor)) + '</td></tr>'; }).join('') + '</tbody></table>' +
       '<div class="nota" style="margin-top:6px;">Valores dos itens antes do desconto do Pix.</div>'
-    : '<div class="vazio">Sem vendas neste mês.</div>');
-  h += '<h2>Melhores clientes</h2>' + (d.listaCli.length
+    : '<div class="vazio">Sem vendas ' + janTxtP + '.</div>');
+  h += '<h2>Melhores clientes (' + janTxtP + ')</h2>' + (d.listaCli.length
     ? '<table><thead><tr><th>#</th><th>Cliente</th><th class="d">Pedidos</th><th class="d">Valor</th></tr></thead><tbody>' +
       d.listaCli.map(function (c, i) { return '<tr><td>' + (i + 1) + '</td><td>' + _lancEsc(c.nome) + '</td><td class="d">' + c.n + '</td><td class="d">' + _lancBRL(_r2(c.valor)) + '</td></tr>'; }).join('') + '</tbody></table>'
-    : '<div class="vazio">Sem vendas neste mês.</div>');
+    : '<div class="vazio">Sem vendas ' + janTxtP + '.</div>');
   h += '<h2>Funil de contatos</h2>' + (d.totCont
     ? '<table><thead><tr><th>Resultado</th><th class="d">Lançamentos</th></tr></thead><tbody>' +
       REL_RESULTADOS.map(function (r) { return '<tr><td>' + r + '</td><td class="d">' + (d.cont[r] || 0) + '</td></tr>'; }).join('') +
@@ -13714,7 +13967,38 @@ Desodorante 0% Alumínio c/ Niacinamida 55g;39.40;Corporal</textarea>
     <div id="forn-semapp-wrap" style="margin-top:22px;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
         <div style="font-size:15px;font-weight:700;color:#1c1917;">Clientes sem app <span id="forn-semapp-qtd" style="font-size:12px;font-weight:400;color:#a8a29e;"></span></div>
-        <input id="forn-semapp-busca" type="text" placeholder="Buscar por nome ou WhatsApp" autocomplete="off" oninput="renderClientesSemApp()" style="padding:8px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:13px;box-sizing:border-box;width:230px;max-width:100%;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span onclick="toggleImportarClientesForn()" style="font-size:12px;color:#1c1917;text-decoration:underline;cursor:pointer;white-space:nowrap;">+ Importar</span>
+          <input id="forn-semapp-busca" type="text" placeholder="Buscar por nome ou WhatsApp" autocomplete="off" oninput="renderClientesSemApp()" style="padding:8px 10px;border:1px solid #e7e5e4;border-radius:6px;font-size:13px;box-sizing:border-box;width:230px;max-width:100%;">
+        </div>
+      </div>
+      <div id="forn-painel-importar" style="display:none;border:1px solid #e7e5e4;border-radius:10px;background:#fff;margin-bottom:14px;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e7e5e4;">
+          <span style="font-size:13px;font-weight:700;color:#1c1917;"><i class="ti ti-file-import"></i> Importar clientes</span>
+          <button onclick="toggleImportarClientesForn()" style="background:none;border:none;cursor:pointer;color:#78716c;font-size:18px;line-height:1;">✕</button>
+        </div>
+        <div style="display:flex;">
+          <button id="forn-imp-tab-csv" onclick="setImportTabForn('csv')" style="flex:1;padding:10px;border:none;cursor:pointer;font-size:12px;"><i class="ti ti-table"></i> Planilha / CSV</button>
+          <button id="forn-imp-tab-vcf" onclick="setImportTabForn('vcf')" style="flex:1;padding:10px;border:none;cursor:pointer;font-size:12px;"><i class="ti ti-address-book"></i> Agenda (VCF)</button>
+        </div>
+        <div id="forn-imp-painel-csv" style="padding:14px;">
+          <label style="display:block;border:1px dashed #d6d3d1;border-radius:8px;padding:14px;text-align:center;font-size:12px;color:#78716c;cursor:pointer;">
+            <i class="ti ti-upload"></i> <span id="forn-imp-csv-label-txt">Selecionar arquivo .csv ou .xlsx</span>
+            <input type="file" accept=".csv,.xlsx,.xls,.txt" style="display:none;" onchange="importarCSVForn(this)">
+          </label>
+          <div id="forn-imp-csv-preview" style="display:none;margin-top:12px;"></div>
+        </div>
+        <div id="forn-imp-painel-vcf" style="display:none;padding:14px;">
+          <div style="font-size:11px;color:#78716c;margin-bottom:10px;">
+            <strong>iPhone:</strong> Contatos → selecione contatos → Compartilhar → Salvar como .vcf<br>
+            <strong>Android:</strong> Contatos → Menu → Exportar → Exportar para arquivo VCF
+          </div>
+          <label style="display:block;border:1px dashed #d6d3d1;border-radius:8px;padding:14px;text-align:center;font-size:12px;color:#78716c;cursor:pointer;">
+            <i class="ti ti-upload"></i> <span id="forn-imp-vcf-label-txt">Selecionar arquivo .vcf</span>
+            <input type="file" accept=".vcf,.vcard" style="display:none;" onchange="importarVCFForn(this)">
+          </label>
+          <div id="forn-imp-vcf-preview" style="display:none;margin-top:12px;"></div>
+        </div>
       </div>
       <div id="forn-semapp-lista" style="display:flex;flex-direction:column;gap:8px;max-height:640px;overflow-y:auto;"></div>
     </div>
