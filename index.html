@@ -6493,7 +6493,7 @@ async function vapVerificarPopupPromo(){
       where('companyId','==',CID),
       where('popup','==',true)
     ));
-    const hoje=new Date();
+    const hoje=new Date();hoje.setHours(0,0,0,0); // zera a hora: promoção que termina hoje continua válida o dia todo
     const promos=snap.docs.map(d=>({id:d.id,...d.data()}))
       .filter(p=>{
         if(p.status==='pausada')return false;
