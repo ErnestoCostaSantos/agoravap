@@ -852,9 +852,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <button class="btn-save" id="btn-prosp-add" style="background:#22C55E">+ Novo Lançamento</button>
           </div>
         </div>
-        <div id="prosp-filtro-cliente-banner" style="display:none;background:#EEF9F1;border:1px solid #BFE8CC;border-radius:8px;padding:8px 12px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div id="prosp-filtro-cliente-banner" style="display:none;background:#EEF9F1;border:1px solid #BFE8CC;border-radius:8px;padding:8px 12px;margin-bottom:.75rem">
           <div style="font-size:.85rem;color:#1B7A3D">Histórico de: <b id="prosp-filtro-cliente-nome"></b></div>
-          <button class="btn-sec" id="prosp-filtro-cliente-voltar" style="border-color:#1B7A3D;color:#1B7A3D">← Ver todos os lançamentos</button>
         </div>
         <div id="prosp-totais-wrap" style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.75rem">
           <div><div style="font-size:.72rem;color:var(--gray)">Hoje</div><div id="prosp-total-hoje" style="font-size:1.3rem;font-weight:700;color:#22C55E">0</div></div>
@@ -1547,7 +1546,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Status Ativo/Inativo</b> — Calculado automaticamente: um cliente fica <b>Inativo</b> quando a Data da Última Compra está há mais de 6 meses; sem necessidade de marcar manualmente</li>
             <li><b>Busca e filtros</b> — Por nome/responsável, Segmento, Status (Ativo/Inativo) e Resultado do Último Contato</li>
             <li><b>Adicionar / Editar / Excluir</b> — Cadastro manual pelo formulário, ou clique em Editar na lista</li>
-            <li><b>Histórico de Relacionamento (CRM)</b> — Dois atalhos na coluna Ações de cada cliente: 🕘 <b>Histórico</b> abre o módulo CRM já filtrado nos lançamentos daquele cliente (do mais recente para o mais antigo), com um aviso "Histórico de: [nome]" e um botão "Ver todos os lançamentos" que sai desse modo e volta à visão geral do CRM — não volta para a Carteira, isso é feito pelo menu superior; 📝 <b>Lançar</b> abre um Novo Lançamento no CRM já vinculado a esse cliente, com Empresa/Responsável/Telefone/Segmento pré-preenchidos. O "Resultado do Último Contato" mostrado na lista passa a refletir automaticamente o lançamento mais recente do histórico assim que existir um, e quando esse resultado é "Vendeu" a Data da Última Compra é atualizada sozinha</li>
+            <li><b>Histórico de Relacionamento (CRM)</b> — Dois atalhos na coluna Ações de cada cliente: 🕘 <b>Histórico</b> abre o módulo CRM já filtrado nos lançamentos daquele cliente (do mais recente para o mais antigo), com um aviso "Histórico de: [nome]" mostrando todo o histórico dele, sem recorte de mês. Para sair desse modo, basta abrir a aba CRM novamente pelo menu superior (ela sempre volta à visão geral) ou navegar para outro módulo. O botão "+ Novo Lançamento", usado dentro desse histórico, já abre o lançamento vinculado a esse mesmo cliente, com Empresa/Responsável/Telefone/Segmento pré-preenchidos — igual ao atalho 📝 <b>Lançar</b> da Carteira, que faz o mesmo diretamente da lista. O "Resultado do Último Contato" mostrado na lista passa a refletir automaticamente o lançamento mais recente do histórico assim que existir um, e quando esse resultado é "Vendeu" a Data da Última Compra é atualizada sozinha</li>
             <li><b>Botão WhatsApp</b> — Abre conversa direta com o cliente a partir do telefone cadastrado</li>
             <li><b>Importar Contatos</b> — Botão que abre um modal com três formas de importação em massa:
               <ul style="margin-top:6px">
@@ -5258,6 +5257,15 @@ window.switchTab = tab => {
     preencherCamposLancar(); // carrega valores existentes do dia selecionado
   }
   if(tab==='historico'){ setupHistoricoListeners(); renderHistorico(); }
+  if(tab==='prospeccao'){
+    // Sempre que a aba CRM é aberta pelo menu de cima, limpa o filtro de
+    // cliente (se houver) e mostra a visão geral. Quem quer entrar já
+    // filtrado num cliente (vapAbrirHistoricoCliente, chamado pela Carteira)
+    // define o filtro DEPOIS desta troca de aba, então não é afetado.
+    _crmFiltroClienteId = null;
+    _crmFiltroClienteNome = '';
+    if(typeof vapProspRenderTudo === 'function') vapProspRenderTudo();
+  }
   if(tab==='carteira'){ renderCarteiraLista(); }
   if(tab==='superadmin'){ loadEmpresas(); }
   if(tab==='dashboard') renderDashboard();
@@ -6943,6 +6951,16 @@ function vapProspAbrirNovo(){
 }
 window.vapProspAbrirNovo = vapProspAbrirNovo;
 
+// Chamado pelo botão "+ Novo Lançamento" do módulo CRM: se a tela estiver no
+// histórico de um cliente específico, já abre o lançamento vinculado a ele
+// (igual ao atalho "Lançar" da Carteira); senão, abre em branco como sempre.
+function vapProspNovoContextual(){
+  const c = _crmFiltroClienteId ? _cartClientes.find(x=>x.id===_crmFiltroClienteId) : null;
+  if(c) vapProspNovoParaCliente(c);
+  else vapProspAbrirNovo();
+}
+window.vapProspNovoContextual = vapProspNovoContextual;
+
 // Abre "Novo Lançamento" já vinculado a um cliente específico da Carteira
 // (atalho a partir do botão "Lançar" na lista da Carteira).
 function vapProspNovoParaCliente(c){
@@ -7078,21 +7096,16 @@ function vapProspRenderTudo(){
   if(!emModoCliente) vapProspRenderGrafico();
 }
 
-// Chamado pela Carteira ("Ver histórico") — abre o CRM já filtrado num cliente
+// Chamado pela Carteira ("Ver histórico") — abre o CRM já filtrado num cliente.
+// Troca de aba primeiro (o que por padrão já limpa esse filtro, ver switchTab)
+// e só depois aplica o filtro do cliente, pra não ser limpo em seguida.
 function vapAbrirHistoricoCliente(clienteId, nome){
+  if(typeof window.switchTab === 'function') window.switchTab('prospeccao');
   _crmFiltroClienteId = clienteId;
   _crmFiltroClienteNome = nome || '';
-  if(typeof window.switchTab === 'function') window.switchTab('prospeccao');
   vapProspRenderTudo();
 }
 window.vapAbrirHistoricoCliente = vapAbrirHistoricoCliente;
-
-function vapLimparFiltroClienteCRM(){
-  _crmFiltroClienteId = null;
-  _crmFiltroClienteNome = '';
-  vapProspRenderTudo();
-}
-window.vapLimparFiltroClienteCRM = vapLimparFiltroClienteCRM;
 
 function vapProspRenderTotais(){
   const hojeISO = tod();
@@ -7109,7 +7122,11 @@ function vapProspRenderLista(){
   const el = $('prosp-list'); if(!el) return;
   const lista = vapProspListaDoMes().slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
   const veTodaEmpresa = prospEhGestor();
-  if(!lista.length){ el.innerHTML = '<div class="fcard" style="text-align:center;color:var(--gray)">Nenhum lançamento neste mês.</div>'; return; }
+  if(!lista.length){
+    const msgVazio = _crmFiltroClienteId ? 'Nenhum lançamento para este cliente ainda.' : 'Nenhum lançamento neste mês.';
+    el.innerHTML = `<div class="fcard" style="text-align:center;color:var(--gray)">${msgVazio}</div>`;
+    return;
+  }
   el.innerHTML = lista.map(p=>`
     <div class="fcard" style="padding:.75rem 1.1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
       <div style="flex:1;min-width:200px">
@@ -7223,7 +7240,7 @@ window.vapProspBaixarPDF = vapProspBaixarPDF;
 
 function vapInitProspeccaoUI(){
   $('btn-prosp-save') && ($('btn-prosp-save').onclick = vapProspSalvar);
-  $('btn-prosp-add') && ($('btn-prosp-add').onclick = vapProspAbrirNovo);
+  $('btn-prosp-add') && ($('btn-prosp-add').onclick = vapProspNovoContextual);
   $('prosp-modal-close') && ($('prosp-modal-close').onclick = () => closeModal('modal-prospeccao'));
   $('prosp-modal-cancel') && ($('prosp-modal-cancel').onclick = () => closeModal('modal-prospeccao'));
   $('btn-prosp-pdf') && ($('btn-prosp-pdf').onclick = vapProspBaixarPDF);
@@ -7231,7 +7248,6 @@ function vapInitProspeccaoUI(){
   $('prosp-filtro-resultado') && ($('prosp-filtro-resultado').onchange = vapProspRenderTudo);
   $('prosp-proximo') && ($('prosp-proximo').onchange = () => atualizarProspProximoFmt());
   $('prosp-telefone') && ($('prosp-telefone').oninput = () => cartMaskTelefone($('prosp-telefone')));
-  $('prosp-filtro-cliente-voltar') && ($('prosp-filtro-cliente-voltar').onclick = vapLimparFiltroClienteCRM);
   $('prosp-empresa') && ($('prosp-empresa').oninput = vapProspChecarVinculoEmpresa);
   $('prosp-desvincular') && ($('prosp-desvincular').onclick = (e) => {
     e.preventDefault();
