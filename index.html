@@ -871,6 +871,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
               <option value="Vendeu">Vendeu</option>
               <option value="Ctto Inválido">Ctto Inválido</option>
               <option value="Cadastro">Cadastro</option>
+              <option value="Promo via Whats">Promo via Whats</option>
             </select>
           </div>
           <div class="field" id="ff-prosp-vendedor" style="display:none">
@@ -1547,7 +1548,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Busca e filtros</b> — Por nome/responsável, Segmento, Status (Ativo/Inativo) e Resultado do Último Contato</li>
             <li><b>Adicionar / Editar / Excluir</b> — Cadastro manual pelo formulário, ou clique em Editar na lista</li>
             <li><b>Histórico de Relacionamento (CRM)</b> — Dois atalhos na coluna Ações de cada cliente: 🕘 <b>Histórico</b> abre o módulo CRM já filtrado nos lançamentos daquele cliente (do mais recente para o mais antigo), com um aviso "Histórico de: [nome]" mostrando todo o histórico dele, sem recorte de mês. Para sair desse modo, basta abrir a aba CRM novamente pelo menu superior (ela sempre volta à visão geral) ou navegar para outro módulo. O botão "+ Novo Lançamento", usado dentro desse histórico, já abre o lançamento vinculado a esse mesmo cliente, com Empresa/Responsável/Telefone/Segmento pré-preenchidos — igual ao atalho 📝 <b>Lançar</b> da Carteira, que faz o mesmo diretamente da lista. O "Resultado do Último Contato" mostrado na lista passa a refletir automaticamente o lançamento mais recente do histórico assim que existir um, e quando esse resultado é "Vendeu" a Data da Última Compra é atualizada sozinha</li>
-            <li><b>Botão WhatsApp</b> — Abre conversa direta com o cliente a partir do telefone cadastrado</li>
+            <li><b>Botão WhatsApp</b> — Abre conversa direta com o cliente a partir do telefone cadastrado e <b>registra automaticamente</b> um lançamento no histórico dele (módulo CRM), Tipo <b>Acompanhamento</b> e Resultado <b>Promo via Whats</b>, em nome do vendedor logado, com Empresa/Responsável/Telefone/Segmento do cadastro e sem Próximo Contato. O registro acontece no momento do clique: o WhatsApp não informa ao AgoraVAP! se a mensagem foi realmente enviada, então ele indica a <i>intenção</i> de contato. Cliques repetidos no mesmo cliente em até 1 minuto geram um único registro. O "Resultado do Último Contato" da lista passa a mostrar "Promo via Whats" até que um novo lançamento seja feito. Os botões "Enviar por WhatsApp" de Promoções e das etapas de Campanhas não registram nada, pois não têm cliente específico</li>
             <li><b>Importar Contatos</b> — Botão que abre um modal com três formas de importação em massa:
               <ul style="margin-top:6px">
                 <li><b>Agenda do celular</b> — Usa a agenda de contatos do próprio aparelho (só funciona em Chrome/Android; não disponível em iPhone/Safari)</li>
@@ -1566,7 +1567,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h3>2.8 Módulo CRM</h3>
           <p>Registro diário de acompanhamento, prospecção e follow-up de contatos comerciais, com totalização diária/mensal, um sistema de lembretes de "Próximo Contato", relatórios extensíveis e vínculo direto com a Carteira de Clientes.</p>
           <ul>
-            <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Atualizar/Reativar — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, Fez Cotação, Vendeu, Ctto Inválido ou Cadastro) e Próximo Contato</li>
+            <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Atualizar/Reativar — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, Fez Cotação, Vendeu, Ctto Inválido, Cadastro ou Promo via Whats) e Próximo Contato. O resultado <b>Promo via Whats</b> é preenchido automaticamente quando o vendedor clica no botão WhatsApp da Carteira ou da lista do CRM (💬), e também pode ser escolhido manualmente</li>
             <li><b>Vínculo automático com a Carteira</b> — Se o texto digitado em Empresa bater com um cliente já cadastrado, o lançamento vincula automaticamente: aparece o aviso "🔗 Vinculado à Carteira de Clientes", e Responsável/Telefone/Segmento são preenchidos a partir do cadastro do cliente. Esse lançamento passa a contar no histórico do cliente (veja 2.7). Para registrar como lançamento avulso, fora da Carteira (por exemplo uma prospecção de empresa nova), clique em "Desvincular" no próprio aviso. Quando o Resultado é "Vendeu" e há vínculo, a Data da Última Compra do cliente é atualizada automaticamente</li>
             <li><b>Próximo Contato</b> — Pode ser digitado ou escolhido num calendário; é a data usada pelo lembrete de pendências (veja abaixo)</li>
             <li><b>Totais e filtros</b> — Contadores "Hoje" e "Este Mês" no topo (ambos respeitam os mesmos filtros de Vendedor e Resultado aplicados na tela, para os números ficarem sempre consistentes entre si); filtros por Mês, Resultado e (Líder/Master/SuperAdmin) por Vendedor</li>
@@ -1577,7 +1578,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h4 style="margin:10px 0 4px">Pop-up de Pendências de Hoje</h4>
           <p>Todo dia, ao entrar no sistema, um pop-up de lembrete abre automaticamente logo depois do pop-up de promoções (mesmo em dias sem nenhuma promoção ativa), mostrando os lançamentos com Próximo Contato vencido ou marcado para hoje.</p>
           <ul>
-            <li><b>O que "encerra" uma pendência</b> — Um lançamento deixa de aparecer no lembrete assim que o Resultado é marcado como <b>Vendeu</b>, <b>Sem interesse</b> ou <b>Ctto Inválido</b>, mesmo que a data do Próximo Contato já tenha passado. Os demais resultados (Agendado, Não atendeu, Fez Cotação) continuam gerando lembrete até serem atualizados</li>
+            <li><b>O que "encerra" uma pendência</b> — Um lançamento deixa de aparecer no lembrete assim que o Resultado é marcado como <b>Vendeu</b>, <b>Sem interesse</b> ou <b>Ctto Inválido</b>, mesmo que a data do Próximo Contato já tenha passado. Os demais resultados (Agendado, Não atendeu, Fez Cotação, Cadastro, Promo via Whats) continuam gerando lembrete até serem atualizados — mas só quando há Próximo Contato preenchido; os lançamentos automáticos de "Promo via Whats" nascem sem data e, por isso, não geram lembrete a menos que você edite o lançamento e informe uma data</li>
             <li><b>Sem pendências</b> — Quando não há nada vencido, aparece a frase "Não há pendências agendadas para hoje" por 5 segundos, e o pop-up fecha sozinho</li>
             <li><b>Com pendências</b> — A lista fica até 10 itens visíveis por vez, com rolagem para ver o restante; clicar num item abre o lançamento direto para edição; fecha pelo "✕" no canto superior direito</li>
             <li><b>Visão Líder/Master</b> — Além da própria lista de pendências (mesmo comportamento acima), uma linha extra no rodapé do pop-up mostra "Hoje o time tem X pendências agendadas", somando a empresa toda</li>
@@ -2044,6 +2045,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <option value="Vendeu">Vendeu</option>
           <option value="Ctto Inválido">Ctto Inválido</option>
           <option value="Cadastro">Cadastro</option>
+          <option value="Promo via Whats">Promo via Whats</option>
         </select>
       </div>
     </div>
@@ -6777,14 +6779,53 @@ function cartMaskTelefone(el){
 $('cart-cli-telefone') && ($('cart-cli-telefone').oninput = () => cartMaskTelefone($('cart-cli-telefone')));
 
 // WhatsApp direto por telefone do cliente
-function vapAbrirWppTelefone(telefone, nome){
+// ctx (opcional) = { clienteId, empresa, responsavel, segmento, tipo } — quando informado, o clique
+// também grava um lançamento no CRM (Resultado "Promo via Whats"), que entra no histórico do cliente.
+function vapAbrirWppTelefone(telefone, nome, ctx){
   let digits = (telefone||'').replace(/\D/g,'');
   if(!digits){ toast('Cliente sem telefone cadastrado.'); return; }
   if(digits.length <= 11) digits = '55' + digits; // adiciona DDI Brasil quando ausente
   const msg = `Olá${nome ? ', '+nome.split(' ')[0] : ''}! Tudo bem?`;
-  window.open('https://wa.me/'+digits+'?text='+encodeURIComponent(msg), '_blank');
+  window.open('https://wa.me/'+digits+'?text='+encodeURIComponent(msg), '_blank'); // abre antes de qualquer await (evita bloqueio de pop-up)
+  if(ctx) vapRegistrarPromoWpp(ctx, telefone);
 }
 window.vapAbrirWppTelefone = vapAbrirWppTelefone;
+
+// Registro automático ao clicar no WhatsApp (Carteira e CRM). Registra a INTENÇÃO de envio —
+// o link wa.me não permite saber se a mensagem foi realmente enviada.
+// Trava de 60s por cliente/telefone evita lançamento duplicado em clique duplo.
+const _wppUltimoReg = {};
+async function vapRegistrarPromoWpp(ctx, telefone){
+  const CID = _vapGetCompanyId(); if(!CID || !cu) return;
+  const chave = ctx.clienteId || (telefone||'').replace(/\D/g,'');
+  const agora = Date.now();
+  if(_wppUltimoReg[chave] && agora - _wppUltimoReg[chave] < 60000) return;
+  _wppUltimoReg[chave] = agora;
+  try{
+    await addDoc(collection(db,'prospeccoes'), {
+      companyId: CID, uid: cu.uid, vendedorNome: cp?.name || cu?.displayName || '—',
+      empresa: ctx.empresa || '', responsavel: ctx.responsavel || '',
+      tipo: ctx.tipo || 'Acompanhamento', segmento: ctx.segmento || PROSP_SEGMENTOS[0],
+      telefone: telefone || '', localSaturacao: '', resultado: 'Promo via Whats',
+      proximoContato: '', clienteId: ctx.clienteId || '', criadoEm: new Date().toISOString()
+    });
+    toast('Contato registrado no histórico (Promo via Whats).');
+  }catch(e){
+    delete _wppUltimoReg[chave];
+    console.warn('[CRM] não foi possível registrar o WhatsApp no histórico:', e);
+  }
+}
+window.vapRegistrarPromoWpp = vapRegistrarPromoWpp;
+
+// Botão 💬 da lista do CRM: usa os dados do lançamento como base do novo registro
+function vapAbrirWppProsp(id){
+  const p = _prospLista.find(x=>x.id===id); if(!p) return;
+  vapAbrirWppTelefone(p.telefone, p.responsavel||'', {
+    clienteId: p.clienteId||'', empresa: p.empresa, responsavel: p.responsavel||'',
+    segmento: p.segmento, tipo: p.tipo==='Outros' ? 'Atualizar/Reativar' : p.tipo
+  });
+}
+window.vapAbrirWppProsp = vapAbrirWppProsp;
 
 // ── Listener em tempo real (escopo: vendedor e líder veem só a própria; master/superadmin veem a empresa toda) ──
 function vapIniciarListenerCarteira(){
@@ -6818,8 +6859,8 @@ let unProspeccoes = null;
 let _crmFiltroClienteId = null;
 let _crmFiltroClienteNome = '';
 const PROSP_SEGMENTOS = ['Revenda','Centro Automotivo','Transportadora','Posto de Troca','Posto de Gasolina','Outros'];
-const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido','Cadastro'];
-const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444','Cadastro':'#0D9488'};
+const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido','Cadastro','Promo via Whats'];
+const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444','Cadastro':'#0D9488','Promo via Whats':'#EC4899'};
 const PROSP_TIPOS = ['Acompanhamento','Prospecção','Atualizar/Reativar'];
 // Resultados que "encerram" um lançamento — deixam de contar como pendência mesmo com Próximo Contato vencido
 const PROSP_RESULTADOS_FINAIS = ['Vendeu','Sem interesse','Ctto Inválido'];
@@ -7136,7 +7177,7 @@ function vapProspRenderLista(){
       </div>
       <span class="badge" style="background:${PROSP_CORES[p.resultado]||'#999'}22;color:${PROSP_CORES[p.resultado]||'#666'}">${p.resultado||'—'}</span>
       <div style="display:flex;gap:6px">
-        ${p.telefone?`<button class="btn-sec" onclick="vapAbrirWppTelefone('${p.telefone}','${(p.responsavel||'').replace(/'/g,"")}')" title="WhatsApp">💬</button>`:''}
+        ${p.telefone?`<button class="btn-sec" onclick="vapAbrirWppProsp('${p.id}')" title="WhatsApp">💬</button>`:''}
         <button class="btn-sec" onclick="vapProspEditar('${p.id}')">Editar</button>
         <button class="btn-danger" onclick="vapProspApagar('${p.id}')">✕</button>
       </div>
@@ -7587,7 +7628,7 @@ function renderCarteiraLista(){
   </table></div>`;
 
   wrap.querySelectorAll('.bx-wpp').forEach(b=>b.onclick=()=>{
-    const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapAbrirWppTelefone(c.telefone, c.nome);
+    const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapAbrirWppTelefone(c.telefone, c.nome, {clienteId:c.id, empresa:c.nome, responsavel:c.responsavel||'', segmento:c.segmento});
   });
   wrap.querySelectorAll('.bx-hist').forEach(b=>b.onclick=()=>{
     const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapAbrirHistoricoCliente(c.id, c.nome);
