@@ -5867,18 +5867,15 @@ function vapAbrirWpp(msg){window.open('https://wa.me/?text='+encodeURIComponent(
 // O link wa.me do WhatsApp só aceita texto — não existe forma de anexar imagem por URL (limitação do
 // próprio WhatsApp, não do app). Fluxo: baixar a imagem → abrir o WhatsApp pelo botão normal (texto
 // pronto) → anexar a imagem manualmente na conversa. Mesmo padrão usado no app Belezza/MeCuidar.
-function vapBaixarImagemEtapa(campId, idx){
+async function vapBaixarImagemEtapa(campId, idx){
   const c=_vapCampanhasDB.find(x=>x.id===campId);if(!c)return;
   const et=(c.etapas||[])[idx];if(!et)return;
   const promo=(window._vapPromosAtuais||[]).find(p=>p.campanha===c.nome&&p.imagemUrl);
   const img=et.imagemOverride||promo?.imagemUrl;
   if(!img)return;
   const nomeArq=et.imagemOverride?`etapa${idx+1}_${(c.nome||'campanha').replace(/[^a-z0-9]+/gi,'_').toLowerCase()}.jpg`:(promo.nome||'promocao').replace(/[^a-z0-9]+/gi,'_').toLowerCase()+'.jpg';
-  try{
-    const a=document.createElement('a');
-    a.href=img;a.download=nomeArq;
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-  }catch(e){console.warn('[VAP] baixarImagemEtapa:',e);}
+  const _res=await _vapBaixarImagemUrl(img,nomeArq);
+  if(_res==='aberta'){alert(_VAP_MSG_IMG_ABERTA);return;}
   alert('Imagem baixada! Agora toque em "WhatsApp" (o texto já vem pronto) e anexe a imagem manualmente na conversa, usando o ícone de anexo/câmera do WhatsApp.\n\nSe a imagem não aparecer na Galeria, mantenha o dedo pressionado sobre a imagem aqui na tela e escolha "Salvar imagem".');
 }
 window.vapBaixarImagemEtapa=vapBaixarImagemEtapa;
@@ -5909,15 +5906,12 @@ window.vapAbrirWpp=vapAbrirWpp;
 // Baixa a imagem da promoção para o vendedor anexar manualmente no WhatsApp (card de Promoções do vendedor).
 // Mesma limitação/fluxo do módulo Campanhas: o link wa.me só aceita texto, então a imagem é baixada
 // separadamente e anexada à mão na conversa.
-function vapBaixarImagemPromoVendedor(promoId){
+async function vapBaixarImagemPromoVendedor(promoId){
   const p=(window._vapPromosAtuais||[]).find(x=>x.id===promoId);
   if(!p||!p.imagemUrl)return;
   const nomeArq=(p.nome||'promocao').replace(/[^a-z0-9]+/gi,'_').toLowerCase()+'.jpg';
-  try{
-    const a=document.createElement('a');
-    a.href=p.imagemUrl;a.download=nomeArq;
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-  }catch(e){console.warn('[VAP] baixarImagemPromoVendedor:',e);}
+  const _res=await _vapBaixarImagemUrl(p.imagemUrl,nomeArq);
+  if(_res==='aberta'){alert(_VAP_MSG_IMG_ABERTA);return;}
   alert('Imagem baixada! Agora toque em "Enviar por WhatsApp" (o texto já vem pronto) e anexe a imagem manualmente na conversa, usando o ícone de anexo/câmera do WhatsApp.\n\nSe a imagem não aparecer na Galeria, mantenha o dedo pressionado sobre a imagem aqui na tela e escolha "Salvar imagem".');
 }
 window.vapBaixarImagemPromoVendedor=vapBaixarImagemPromoVendedor;
@@ -6249,6 +6243,93 @@ function _vapImgParaBase64(file){
     reader.readAsDataURL(file);
   });
 }
+// ── Imagens de promoção no Firebase Storage (em vez de base64 dentro do documento) ──
+// Mesma regra de tamanho de _vapImgParaBase64 (máx. 800px, JPEG 75%), mas devolve um Blob.
+function _vapImgParaBlob(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=800;
+        let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+        const canvas=document.createElement('canvas');
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        canvas.toBlob(b=>b?resolve(b):reject(new Error('toBlob falhou')),'image/jpeg',0.75);
+      };
+      img.onerror=reject;
+      img.src=e.target.result;
+    };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+// Envia a imagem ao Storage e devolve a URL pública. Usa a mesma pasta já liberada nas Rules (promocoes_videos/{empresa}/).
+async function _vapImgParaStorage(file,CID){
+  const blob=await _vapImgParaBlob(file);
+  const nomeArq=`img_${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
+  const ref=storageRef(storage,`promocoes_videos/${CID}/${nomeArq}`);
+  await uploadBytes(ref,blob,{contentType:'image/jpeg'});
+  return await getDownloadURL(ref);
+}
+function _vapDataUrlParaBlob(dataUrl){
+  const m=/^data:([^;,]+)?(;base64)?,([\s\S]*)$/.exec(dataUrl);
+  if(!m)throw new Error('data URL inválida');
+  const mime=m[1]||'image/jpeg';
+  const bin=m[2]?atob(m[3]):decodeURIComponent(m[3]);
+  const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  return new Blob([bytes],{type:mime});
+}
+// Migração única: passa para o Storage as imagens que ainda estão em base64 nas promoções da empresa.
+// Uso (Master/SuperAdmin, no Console do navegador):  vapMigrarImagensPromo()
+async function vapMigrarImagensPromo(){
+  if(!(cp?.role==='master'||cp?.role==='superadmin')){alert('Apenas Master/SuperAdmin pode executar a migração.');return;}
+  const CID=_vapGetCompanyId();
+  if(!CID){alert('Empresa não identificada.');return;}
+  const snap=await getDocs(query(collection(db,'promocoes'),where('companyId','==',CID)));
+  const alvos=snap.docs.filter(d=>String(d.data().imagemUrl||'').startsWith('data:'));
+  if(!alvos.length){alert('Nenhuma imagem em base64 para migrar.');return;}
+  if(!confirm('Migrar '+alvos.length+' imagem(ns) de promoção para o Storage?\n\nAs imagens continuam aparecendo normalmente. Pode levar alguns minutos — não feche a página.'))return;
+  let ok=0,falhas=0;
+  for(const d of alvos){
+    try{
+      const blob=_vapDataUrlParaBlob(d.data().imagemUrl);
+      const ref=storageRef(storage,`promocoes_videos/${CID}/img_${d.id}.jpg`);
+      await uploadBytes(ref,blob,{contentType:blob.type||'image/jpeg'});
+      const url=await getDownloadURL(ref);
+      await updateDoc(doc(db,'promocoes',d.id),{imagemUrl:url});
+      ok++;
+      console.log('[VAP migração] '+(ok+falhas)+'/'+alvos.length+' ok: '+d.id);
+    }catch(e){
+      falhas++;
+      console.error('[VAP migração] falhou:',d.id,e);
+    }
+  }
+  alert('Migração concluída: '+ok+' migrada(s), '+falhas+' falha(s).'+(falhas?' Veja o Console para detalhes (pode rodar de novo: só tenta as que faltam).':''));
+}
+window.vapMigrarImagensPromo=vapMigrarImagensPromo;
+// Baixa uma imagem para o vendedor anexar no WhatsApp. data: baixa direto; URL do Storage tenta baixar
+// (precisa de CORS no bucket) e, se não der, abre a imagem em nova aba para salvar manualmente.
+async function _vapBaixarImagemUrl(url,nomeArq){
+  const baixar=href=>{const a=document.createElement('a');a.href=href;a.download=nomeArq;document.body.appendChild(a);a.click();document.body.removeChild(a);};
+  if(String(url).startsWith('data:')){baixar(url);return 'baixada';}
+  try{
+    const r=await fetch(url);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const obj=URL.createObjectURL(await r.blob());
+    baixar(obj);
+    setTimeout(()=>URL.revokeObjectURL(obj),5000);
+    return 'baixada';
+  }catch(e){
+    console.warn('[VAP] download direto indisponível, abrindo em nova aba:',e);
+    window.open(url,'_blank','noopener');
+    return 'aberta';
+  }
+}
+const _VAP_MSG_IMG_ABERTA='A imagem foi aberta em uma nova aba. Mantenha o dedo pressionado sobre ela (no computador, botão direito) e escolha "Salvar imagem". Depois volte aqui, toque em "WhatsApp" (o texto já vem pronto) e anexe a imagem manualmente na conversa.';
 function vapIniciarListenerPromos(){
   const CID=_vapGetCompanyId();if(!CID)return;
   if(_vapUnsubPromo)_vapUnsubPromo();
@@ -6489,7 +6570,7 @@ async function vapPublicarPromo(){
   if(btnPub){btnPub.disabled=true;btnPub.textContent='Publicando...';}
   const getDt=pref=>{const d=document.getElementById(pref+'-dia')?.value,m=document.getElementById(pref+'-mes')?.value,a=document.getElementById(pref+'-ano')?.value;return d&&m&&a?`${d}/${m}/${a}`:'';}
   try{
-    // Imagem → base64 (redimensionada) · Vídeo → upload no Firebase Storage
+    // Imagem (redimensionada) e vídeo → upload no Firebase Storage; o documento guarda só a URL
     let imagemUrl='', videoUrl='', tipoMidia='';
     if(_vapPromoImgFile){
       const isVideo=_vapPromoImgFile.type.startsWith('video/');
@@ -6507,8 +6588,13 @@ async function vapPublicarPromo(){
           return;
         }
       }else{
-        try{ imagemUrl=await _vapImgParaBase64(_vapPromoImgFile); tipoMidia='imagem'; }
-        catch(ie){ console.warn('[VAP] conversão imagem:',ie); }
+        if(btnPub)btnPub.textContent='Enviando imagem...';
+        try{ imagemUrl=await _vapImgParaStorage(_vapPromoImgFile,CID); tipoMidia='imagem'; }
+        catch(ie){
+          console.error('[VAP] upload imagem:',ie);
+          if(errEl)errEl.textContent='Erro ao enviar a imagem. Verifique sua conexão e tente novamente.';
+          return;
+        }
       }
       _vapPromoImgFile=null;
     }
