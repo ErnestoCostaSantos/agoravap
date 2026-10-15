@@ -2909,6 +2909,19 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
+// ── TEMPORÁRIO: medição do que cada listener baixa (remover depois do diagnóstico) ──
+function _vapMedir(nome, snap){
+  try{
+    let total = 0, maior = 0, maiorId = '';
+    snap.docs.forEach(d => {
+      const n = JSON.stringify(d.data()).length;
+      total += n;
+      if(n > maior){ maior = n; maiorId = d.id; }
+    });
+    console.log('[VAP MEDIDA] ' + nome + ': ' + snap.size + ' docs, ~' + Math.round(total/1024) + ' kB | maior doc: ' + Math.round(maior/1024) + ' kB (' + maiorId + ')');
+  }catch(e){}
+}
+
 // ── Janela de lançamentos (records) ───────────────────────
 // 1º dia do mês anterior (data local, AAAA-MM-DD)
 function _recsJanelaInicio(){
@@ -3007,6 +3020,7 @@ function startListeners(){
   _recsAntigos  = [];
   _recsLive     = [];
   unRecs = onSnapshot(_recsQuery([where('ts','>=',_recsTsJanela)]), snap => {
+    _vapMedir('records (janela)', snap);
     _recsLive = snap.docs.map(d=>({id:d.id,...d.data()}));
     _recsReconstruir();
     renderMetricsDia();
@@ -3026,6 +3040,7 @@ function startListeners(){
       ? query(collection(db,'users'), orderBy('name'))
       : query(collection(db,'users'), where('companyId','==',cid), orderBy('name'));
     unUsers = onSnapshot(uq, snap=>{
+      _vapMedir('users', snap);
       _users = snap.docs.map(d=>({id:d.id,...d.data()}));
       renderUsersTable();
       populateSelects();
@@ -3036,6 +3051,7 @@ function startListeners(){
       ? query(collection(db,'metas'))
       : query(collection(db,'metas'), where('companyId','==',cid));
     unMetas = onSnapshot(mq, snap=>{
+      _vapMedir('metas', snap);
       _metas = snap.docs.map(d=>({id:d.id,...d.data()}));
       renderMetasTable();
     });
@@ -3047,6 +3063,7 @@ function startListeners(){
       ? query(collection(db,PERDAS_COLLECTION))
       : query(collection(db,PERDAS_COLLECTION), where('companyId','==',cid));
     unPerdasDash = onSnapshot(pdq, snap=>{
+      _vapMedir('vendas_perdidas_dia', snap);
       const rows = [];
       snap.forEach(docSnap=>{
         const d = docSnap.data();
@@ -5801,6 +5818,7 @@ function vapIniciarListenerCampanhas(){
   const CID=_vapGetCompanyId();if(!CID)return;
   if(_vapUnsubCamp)_vapUnsubCamp();
   _vapUnsubCamp=onSnapshot(query(collection(db,'campanhas'),where('companyId','==',CID)),snap=>{
+    _vapMedir('campanhas', snap);
     _vapCampanhasDB=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>c.companyId===CID).sort((a,b)=>a.criadoEm>b.criadoEm?-1:1);
     window._vapCampanhasDB=_vapCampanhasDB;
     _vapRenderCampanhas(_vapCampanhasDB);
@@ -6235,6 +6253,7 @@ function vapIniciarListenerPromos(){
   const CID=_vapGetCompanyId();if(!CID)return;
   if(_vapUnsubPromo)_vapUnsubPromo();
   _vapUnsubPromo=onSnapshot(query(collection(db,'promocoes'),where('companyId','==',CID)),snap=>{
+    _vapMedir('promocoes', snap);
     const promos=snap.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.companyId===CID).sort((a,b)=>a.criadoEm>b.criadoEm?-1:1);
     window._vapPromosAtuais=promos;
     // Renderiza só a visão do papel atual — as duas visões usam os MESMOS ids
@@ -6773,6 +6792,7 @@ function vapIniciarListenerVendasPromo() {
   const hoje = tod();
   const meuUid = cu?.uid || '';
   _vapUnsubVendasPromo = onSnapshot(query(collection(db,'vendas_promo'), where('companyId','==',CID)), snap => {
+    _vapMedir('vendas_promo', snap);
     const docs = snap.docs.map(d=>({id:d.id,...d.data()}))
       .filter(r => r.companyId === CID);
     // Vendas de hoje do vendedor logado
@@ -6953,6 +6973,7 @@ function vapIniciarListenerCarteira(){
     ? query(collection(db,'carteira_clientes'), where('companyId','==',CID))
     : query(collection(db,'carteira_clientes'), where('companyId','==',CID), where('uid','==',cu.uid));
   unCarteira = onSnapshot(q, snap => {
+    _vapMedir('carteira_clientes', snap);
     _cartClientes = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderCarteiraLista();
   }, err => {
@@ -7168,6 +7189,7 @@ function vapIniciarListenerProspeccao(){
     ? query(collection(db,'prospeccoes'), where('companyId','==',CID))
     : query(collection(db,'prospeccoes'), where('companyId','==',CID), where('uid','==',cu.uid));
   unProspeccoes = onSnapshot(q, snap => {
+    _vapMedir('prospeccoes', snap);
     _prospLista = snap.docs.map(d=>({id:d.id, ...d.data()}));
     vapProspAtualizarFiltroMes();
     vapProspRenderTudo();
@@ -8185,6 +8207,7 @@ function vapIniciarListenerLetreiro(){
   if(!cid) return;
   if(_vapLetreiroUnsub) { _vapLetreiroUnsub(); _vapLetreiroUnsub = null; }
   _vapLetreiroUnsub = onSnapshot(doc(db,'letreiro',cid), snap => {
+    try{ console.log('[VAP MEDIDA] letreiro: ~' + Math.round(JSON.stringify(snap.data()||{}).length/1024) + ' kB'); }catch(e){}
     const d = snap.exists() ? snap.data() : null;
     vapRenderLetreiro(d);
     // Se a aba Admin > Letreiro estiver aberta, mantém o formulário sincronizado
