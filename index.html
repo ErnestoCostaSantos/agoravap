@@ -2360,6 +2360,13 @@ let _company = null;   // empresa ativa no login
 let _companyId = null; // id da empresa ativa
 let _recs = [], _users = [], _metas = [], _perdasMesDash = [];
 let unRecs = null, unUsers = null, unMetas = null, unPerdasDash = null;
+// Janela de lançamentos (records): mês atual + anterior ao vivo; meses antigos sob demanda
+let _recsLive = [];          // registros da janela ao vivo (listener)
+let _recsAntigos = [];       // registros mais antigos que a janela, buscados sob demanda
+let _recsDesde = '';         // data (AAAA-MM-DD) a partir da qual _recs está completo
+let _recsTsJanela = '';      // início da janela ao vivo (ts ISO)
+let _recsTsDesde = '';       // limite inferior (ts ISO) já buscado
+let _recsCarregando = null;  // busca de meses antigos em andamento
 
 // ── Utils ────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -2902,6 +2909,88 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
+// ── Janela de lançamentos (records) ───────────────────────
+// 1º dia do mês anterior (data local, AAAA-MM-DD)
+function _recsJanelaInicio(){
+  const d = new Date(); d.setDate(1); d.setMonth(d.getMonth()-1);
+  return _isoLocal(d);
+}
+// ts (ISO/UTC) com 1 dia de folga antes da data — cobre fuso e lançamentos feitos de madrugada
+function _recsTsDe(dataStr){
+  const [y,m,dd] = dataStr.split('-').map(Number);
+  return new Date(y, m-1, dd-1, 0, 0, 0, 0).toISOString();
+}
+// Mesma regra de escopo de antes (SuperAdmin / Líder-Master / Vendedor), agora aceitando filtros de ts
+function _recsQuery(tsFiltros){
+  const isLider = cp.role === 'lider' || cp.role === 'master';
+  const isSuperAdmin = cp.role === 'superadmin';
+  const cid = isSuperAdmin ? _companyId : (cp.companyId || _companyId);
+  const base = [];
+  if(isSuperAdmin){ if(cid) base.push(where('companyId','==',cid)); }
+  else if(isLider){ base.push(where('companyId','==',cid)); }
+  else { base.push(where('uid','==',cu.uid)); }
+  return query(collection(db,'records'), ...base, ...tsFiltros, orderBy('ts','desc'));
+}
+// Junta janela ao vivo + meses antigos já buscados e atualiza _recs
+function _recsReconstruir(){
+  const isSuperAdmin = cp?.role === 'superadmin';
+  const cid = isSuperAdmin ? _companyId : (cp?.companyId || _companyId);
+  const idsLive = new Set(_recsLive.map(r=>r.id));
+  const recs = [..._recsLive, ..._recsAntigos.filter(r=>!idsLive.has(r.id))];
+  // Inclui registros legados (sem companyId) que pertencem a usuários desta empresa (compat. v2.0)
+  if(cid && !isSuperAdmin){
+    const companyUids = _users.map(u=>u.id);
+    _recs = recs.map(r => {
+      if(!r.companyId && companyUids.includes(r.uid)){
+        return {...r, companyId: cid};
+      }
+      return r;
+    });
+  } else {
+    _recs = recs;
+  }
+}
+// Garante que _recs contém os lançamentos desde dataIni (AAAA-MM-DD ou AAAA-MM). Busca só o que falta.
+async function vapGarantirRegistros(dataIni){
+  if(!dataIni) return true;
+  if(dataIni.length === 7) dataIni += '-01';
+  if(!_recsDesde || dataIni >= _recsDesde) return true;
+  if(_recsCarregando){
+    try{ await _recsCarregando; }catch(e){}
+    if(dataIni >= _recsDesde) return true;
+  }
+  const busca = (async () => {
+    const de  = _recsTsDe(dataIni);
+    const ate = _recsTsDesde;
+    const snap = await getDocs(_recsQuery([where('ts','>=',de), where('ts','<',ate)]));
+    const novos = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const ids = new Set(novos.map(r=>r.id));
+    _recsAntigos = [...novos, ..._recsAntigos.filter(r=>!ids.has(r.id))];
+    _recsTsDesde = de;
+    _recsDesde   = dataIni;
+    _recsReconstruir();
+  })();
+  _recsCarregando = busca;
+  try{
+    await busca;
+    return true;
+  }catch(e){
+    console.error('[VAP] carregar registros antigos:', e);
+    toast('Não foi possível carregar registros antigos. Tente novamente.');
+    return false;
+  }finally{
+    if(_recsCarregando === busca) _recsCarregando = null;
+  }
+}
+window.vapGarantirRegistros = vapGarantirRegistros;
+// Remove da memória registros apagados (os da janela ao vivo saem sozinhos pelo listener)
+function _recsRemover(ids){
+  const s = new Set(ids);
+  _recsAntigos = _recsAntigos.filter(r=>!s.has(r.id));
+  _recsLive    = _recsLive.filter(r=>!s.has(r.id));
+  _recsReconstruir();
+}
+
 // ── Listeners ─────────────────────────────────────────────
 function startListeners(){
   const uid=cu.uid;
@@ -2911,35 +3000,22 @@ function startListeners(){
   // Líder/Vendedor: usa cp.companyId (empresa do usuário)
   const cid = isSuperAdmin ? _companyId : (cp.companyId || _companyId);
 
-  // Records — filtra por empresa
-  // Líder e vendedor: registros da empresa OU registros sem companyId (legado v2.0)
-  const rq = isSuperAdmin && cid
-    ? query(collection(db,'records'), where('companyId','==',cid), orderBy('ts','desc'))
-    : isSuperAdmin
-    ? query(collection(db,'records'), orderBy('ts','desc'))
-    : isLider
-    ? query(collection(db,'records'), where('companyId','==',cid), orderBy('ts','desc'))
-    : query(collection(db,'records'), where('uid','==',uid), orderBy('ts','desc'));
-  unRecs = onSnapshot(rq, snap => {
-    let recs = snap.docs.map(d=>({id:d.id,...d.data()}));
-    // Inclui registros legados (sem companyId) que pertencem a usuários desta empresa
-    // Isso garante compatibilidade com dados da v2.0
-    if(cid && !isSuperAdmin){
-      const companyUids = _users.map(u=>u.id);
-      // Registros sem companyId mas de usuários desta empresa são considerados desta empresa
-      _recs = recs.map(r => {
-        if(!r.companyId && companyUids.includes(r.uid)){
-          return {...r, companyId: cid}; // atribui companyId em memória
-        }
-        return r;
-      });
-    } else {
-      _recs = recs;
-    }
+  // Records — janela móvel: mês atual + mês anterior ao vivo; meses antigos sob demanda (vapGarantirRegistros)
+  _recsDesde    = _recsJanelaInicio();
+  _recsTsJanela = _recsTsDe(_recsDesde);
+  _recsTsDesde  = _recsTsJanela;
+  _recsAntigos  = [];
+  _recsLive     = [];
+  unRecs = onSnapshot(_recsQuery([where('ts','>=',_recsTsJanela)]), snap => {
+    _recsLive = snap.docs.map(d=>({id:d.id,...d.data()}));
+    _recsReconstruir();
     renderMetricsDia();
     const ap = document.querySelector('.panel.active')?.id;
     if(ap==='panel-historico') renderHistorico();
     if(ap==='panel-dashboard'){ window._dashFiltroUid=''; renderDashboard(); }
+  }, err => {
+    console.error('[VAP] listener records:', err);
+    toast('Erro ao carregar lançamentos. Recarregue a página.');
   });
 
   // Users — SuperAdmin com empresa selecionada filtra por ela
@@ -3077,6 +3153,8 @@ async function preencherCamposLancar(){
 // ── Busca registro existente do dia para o usuario ────────
 async function getRecDia(tipo){
   const data = getLancarData();
+  // Data antiga (fora da janela ao vivo): carrega o período antes de procurar, para não duplicar lançamento
+  if(!(await vapGarantirRegistros(data))) throw new Error('registros-indisponiveis');
   // Busca nos registros em memória (já carregados via listener)
   return _recs.find(r => r.uid===cu.uid && r.tipo===tipo && r.date===data) || null;
 }
@@ -3557,6 +3635,9 @@ function renderMetricsDia(){
   const isLider    = cp?.role === 'lider' || cp?.role === 'master';
   const isSuperAdm = cp?.role === 'superadmin';
   const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
+  if(_recsDesde && t < _recsDesde){
+    vapGarantirRegistros(t).then(ok => { if(ok) renderMetricsDia(); });
+  }
   let dr = _recs.filter(r => r.date === t);
   if(isSuperAdm && _companyId){
     dr = dr.filter(r => r.companyId === _companyId);
@@ -3676,13 +3757,16 @@ function setupHistoricoListeners(){
   };
 
   // Botão Apagar Registros — só Master/SuperAdmin (botão fica desabilitado/inerte para os demais)
-  $('btn-limpar') && ($('btn-limpar').onclick = () => {
+  $('btn-limpar') && ($('btn-limpar').onclick = async () => {
     const podeApagarRegistros = cp?.role === 'master' || cp?.role === 'superadmin';
     if(!podeApagarRegistros) return; // segurança extra além do disabled do botão
 
     const isSuperAdmClick = cp?.role === 'superadmin';
     const cid = isSuperAdmClick ? _companyId : cp?.companyId;
     if(!cid){ toast('Empresa não identificada.'); return; }
+
+    // Período antigo: garante que todos os registros do filtro estão carregados antes de contar/apagar
+    if(!(await vapGarantirRegistros(_histNecessidade()))) return;
 
     // Recalcula exatamente os mesmos registros exibidos no Histórico (empresa + filtros de tela)
     const uid_filter = $('hist-vendedor')?.value;
@@ -3718,6 +3802,8 @@ function setupHistoricoListeners(){
       const batch = writeBatch(db);
       recsAlvo.forEach(r => batch.delete(doc(db,'records', r.id)));
       await batch.commit();
+      _recsRemover(recsAlvo.map(r => r.id));
+      renderHistorico();
       VapLogger.warning('Registros apagados', { uid_filter: uid_filter||'todos', companyId: cid, periodo: periodoLabel, qtd });
       toast('Registros apagados.');
     });
@@ -3727,7 +3813,26 @@ function setupHistoricoListeners(){
   applyModo();
 }
 
+// Data mais antiga que o filtro atual do Histórico precisa ('' = nenhuma)
+function _histNecessidade(){
+  const modo = $('hist-modo')?.value || 'dia';
+  if(modo === 'dia')     return $('hist-data')?.value || '';
+  if(modo === 'periodo') return $('hist-de')?.value || '1900-01-01'; // sem "De" = desde o início
+  if(modo === 'mes'){ const m = $('hist-mes')?.value; return m ? m+'-01' : ''; }
+  return '';
+}
+
 function renderHistorico(){
+  const _need = _histNecessidade();
+  if(_need && _recsDesde && _need < _recsDesde){
+    const _hl = $('hist-list');
+    if(_hl) _hl.innerHTML = '<div class="loading"><div class="spin"></div> Carregando registros do período…</div>';
+    vapGarantirRegistros(_need).then(ok => {
+      if(ok) renderHistorico();
+      else if(_hl) _hl.innerHTML = '<div class="empty">Não foi possível carregar este período.</div>';
+    });
+    return;
+  }
   const modo = $('hist-modo')?.value || 'dia';
   const tf   = $('hist-tipo').value;
   const sv   = $('hist-vendedor').value;
@@ -3870,6 +3975,16 @@ function renderDashboard(filtroUid){
   const isSuperAdm=cp?.role==='superadmin';
   const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
   const mes = window._dashFiltroMes || thisMes();
+  // Mês fora da janela ao vivo (mês atual + anterior): carrega sob demanda e redesenha
+  if(_recsDesde && (mes + '-01') < _recsDesde){
+    const _dc = $('dash-content');
+    if(_dc) _dc.innerHTML = '<div class="loading"><div class="spin"></div> Carregando…</div>';
+    vapGarantirRegistros(mes + '-01').then(ok => {
+      if(ok) renderDashboard(filtroUid);
+      else if(_dc) _dc.innerHTML = '<div class="empty">Não foi possível carregar este mês.</div>';
+    });
+    return;
+  }
   // Filtra registros pela empresa ativa
   let recs;
   if(isSuperAdm && _companyId){
@@ -4965,6 +5080,7 @@ function initExpDates(){
 
 $('btn-exportar').onclick = async () => {
   const de=$('exp-de').value, ate=$('exp-ate').value;
+  if(!(await vapGarantirRegistros(de || '1900-01-01'))) return; // período antigo: carrega antes de exportar
   const tipo=$('exp-tipo').value;
   const vuid=$('exp-vendedor')?.value||'';
   const isLider    = cp?.role==='lider' || cp?.role==='master';
@@ -5684,7 +5800,7 @@ window.vapCriarCampanha=vapCriarCampanha;
 function vapIniciarListenerCampanhas(){
   const CID=_vapGetCompanyId();if(!CID)return;
   if(_vapUnsubCamp)_vapUnsubCamp();
-  _vapUnsubCamp=onSnapshot(collection(db,'campanhas'),snap=>{
+  _vapUnsubCamp=onSnapshot(query(collection(db,'campanhas'),where('companyId','==',CID)),snap=>{
     _vapCampanhasDB=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>c.companyId===CID).sort((a,b)=>a.criadoEm>b.criadoEm?-1:1);
     window._vapCampanhasDB=_vapCampanhasDB;
     _vapRenderCampanhas(_vapCampanhasDB);
@@ -5823,7 +5939,7 @@ async function vapLancarCliente() {
   const periodo = `${ano}-${String(mes).padStart(2,'0')}`;
   try {
     // Verificar se já existe lançamento deste vendedor para este cliente neste período
-    const snap = await getDocs(collection(db,'ranking_clientes'));
+    const snap = await getDocs(query(collection(db,'ranking_clientes'), where('companyId','==',CID)));
     const existente = snap.docs.find(d => {
       const r = d.data();
       return r.companyId===CID && r.vendedor===(cp?.name||cu?.uid) && r.cliente===cliente && r.periodo===periodo;
@@ -5891,7 +6007,7 @@ async function vapCarregarRankingLider() {
   if (lista) lista.innerHTML = '<div style="font-size:12px;color:#95A5A6;text-align:center;padding:12px 0">Calculando...</div>';
   const periodo = `${ano}-${String(mes).padStart(2,'0')}`;
   try {
-    const snap = await getDocs(collection(db,'ranking_clientes'));
+    const snap = await getDocs(query(collection(db,'ranking_clientes'), where('companyId','==',CID)));
     const docs = snap.docs.map(d=>({id:d.id,...d.data()}))
       .filter(r => r.companyId===CID && r.periodo===periodo)
       .sort((a,b) => b.valor - a.valor);
@@ -6030,7 +6146,7 @@ async function vapCarregarRankingVendedor() {
   const meusEl = document.getElementById('vap-rc-meus');
   const rankEl = document.getElementById('vap-rank-lista-vendedor');
   try {
-    const snap = await getDocs(collection(db,'ranking_clientes'));
+    const snap = await getDocs(query(collection(db,'ranking_clientes'), where('companyId','==',CID)));
     const todos = snap.docs.map(d=>({id:d.id,...d.data()}))
       .filter(r => r.companyId===CID && r.periodo===periodo)
       .sort((a,b) => b.valor - a.valor);
@@ -6118,7 +6234,7 @@ function _vapImgParaBase64(file){
 function vapIniciarListenerPromos(){
   const CID=_vapGetCompanyId();if(!CID)return;
   if(_vapUnsubPromo)_vapUnsubPromo();
-  _vapUnsubPromo=onSnapshot(collection(db,'promocoes'),snap=>{
+  _vapUnsubPromo=onSnapshot(query(collection(db,'promocoes'),where('companyId','==',CID)),snap=>{
     const promos=snap.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.companyId===CID).sort((a,b)=>a.criadoEm>b.criadoEm?-1:1);
     window._vapPromosAtuais=promos;
     // Renderiza só a visão do papel atual — as duas visões usam os MESMOS ids
@@ -6415,7 +6531,8 @@ async function vapApagarPromo(id){
   if(!confirm('Apagar esta promoção? As vendas vinculadas também serão removidas.'))return;
   try{
     await deleteDoc(doc(db,'promocoes',id));
-    const vpSnap=await getDocs(collection(db,'vendas_promo'));
+    const _cidAp=_vapGetCompanyId();
+    const vpSnap=_cidAp?await getDocs(query(collection(db,'vendas_promo'),where('companyId','==',_cidAp))):{docs:[]};
     const lixo=vpSnap.docs.filter(d=>d.data().promoId===id);
     await Promise.all(lixo.map(d=>deleteDoc(doc(db,'vendas_promo',d.id))));
     toast('Promoção e vendas vinculadas removidas.');
@@ -6612,7 +6729,7 @@ async function vapRegistrarVendaPromo(promoId, promoNome) {
   const meuNome = cp?.name || '';
   try {
     // Verificar se já existe registro hoje para esta promoção deste vendedor
-    const snap = await getDocs(collection(db,'vendas_promo'));
+    const snap = await getDocs(query(collection(db,'vendas_promo'), where('companyId','==',CID)));
     const existente = snap.docs.find(d => {
       const r = d.data();
       return r.companyId===CID && r.promoId===promoId && r.vendedorUid===meuUid && r.data===hoje;
@@ -6655,7 +6772,7 @@ function vapIniciarListenerVendasPromo() {
   if (_vapUnsubVendasPromo) _vapUnsubVendasPromo();
   const hoje = tod();
   const meuUid = cu?.uid || '';
-  _vapUnsubVendasPromo = onSnapshot(collection(db,'vendas_promo'), snap => {
+  _vapUnsubVendasPromo = onSnapshot(query(collection(db,'vendas_promo'), where('companyId','==',CID)), snap => {
     const docs = snap.docs.map(d=>({id:d.id,...d.data()}))
       .filter(r => r.companyId === CID);
     // Vendas de hoje do vendedor logado
@@ -6688,7 +6805,7 @@ window.vapIniciarListenerVendasPromo = vapIniciarListenerVendasPromo;
 async function vapCarregarAcumLider(promos) {
   const CID = _vapGetCompanyId(); if (!CID || !promos || !promos.length) return;
   try {
-    const snap = await getDocs(collection(db,'vendas_promo'));
+    const snap = await getDocs(query(collection(db,'vendas_promo'), where('companyId','==',CID)));
     const docs = snap.docs.map(d=>({id:d.id,...d.data()})).filter(r => r.companyId===CID);
     promos.forEach(p => {
       const vendas = docs.filter(r => r.promoId === p.id);
