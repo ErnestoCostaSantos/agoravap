@@ -580,7 +580,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <div id="lancar-data-fmt" style="position:absolute;left:11px;right:32px;top:1.5px;bottom:1.5px;display:flex;align-items:center;font-size:.88rem;color:var(--dark);background:var(--bg);pointer-events:none;border-radius:5px 0 0 5px"></div>
           </div>
         </div>
-        <div style="font-size:.78rem;color:var(--gray);margin-top:18px">
+        <div id="lancar-data-dica" style="font-size:.78rem;color:var(--gray);margin-top:18px">
           Editar lançamento anterior? Selecione a data acima. Datas futuras não são permitidas.
         </div>
       </div>
@@ -605,7 +605,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
 
       <!-- Cotações e Pedidos do Dia -->
-      <div class="fcard">
+      <div class="fcard" id="card-cotacoes-lancar">
         <div class="fcard-title"><span class="bar" style="background:var(--g)"></span>Cotações e Pedidos do Dia</div>
         <div class="fgrid fg2">
           <div class="field"><label>Qtd. de Cotações (Ativo + Receptivo)</label><input type="number" min="0" id="cot-qtd" placeholder="0"/></div>
@@ -844,7 +844,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     <div class="panel" id="panel-prospeccao">
       <div class="fcard" style="padding:1rem 1.25rem">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:.75rem">
-          <div class="fcard-title" style="margin:0"><span class="bar" style="background:#22C55E"></span>CRM</div>
+          <div class="fcard-title" style="margin:0"><span class="bar" style="background:#22C55E"></span><span id="crm-titulo-txt">CRM</span></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn-sec" id="btn-prosp-pendencias">🔔 Pendências de Hoje</button>
             <button class="btn-sec" id="btn-crm-relatorios">📊 Relatórios</button>
@@ -948,7 +948,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           </div>
           <div class="fgrid fg3">
             <div class="field"><label>Perfil</label>
-              <select id="adm-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="master" id="adm-perfil-master-opt" hidden>Master</option></select>
+              <select id="adm-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="sdr">SDR (prospecção por telefone)</option><option value="master" id="adm-perfil-master-opt" hidden>Master</option></select>
             </div>
             <div class="field"><label>Meta mensal (R$)</label><input type="number" id="adm-meta-ini" placeholder="0,00" min="0"/></div>
             <div class="field"><label>Potencial de Vendas (R$)</label><input type="number" id="adm-potencial-ini" placeholder="0,00" min="0"/></div>
@@ -1914,7 +1914,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title" id="mu-title">Editar Usuário</div><button class="btn-close" id="mu-close">×</button></div>
     <div class="fgrid fg1"><div class="field"><label>Nome</label><input type="text" id="mu-nome"/></div></div>
-    <div class="fgrid fg1"><div class="field"><label>Perfil</label><select id="mu-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="master" id="mu-perfil-master-opt" hidden>Master</option></select></div></div>
+    <div class="fgrid fg1"><div class="field"><label>Perfil</label><select id="mu-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="sdr">SDR (prospecção por telefone)</option><option value="master" id="mu-perfil-master-opt" hidden>Master</option></select></div></div>
     <div class="fgrid fg1"><div class="field"><label>Meta mensal atual (R$)</label><input type="number" id="mu-meta" placeholder="0,00"/></div></div>
     <input type="hidden" id="mu-uid"/>
     <div class="ffooter"><button class="btn-sec" id="mu-cancel">Cancelar</button><button class="btn-save" id="mu-save">Salvar</button></div>
@@ -2005,14 +2005,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     <input type="hidden" id="prosp-id"/>
     <input type="hidden" id="prosp-tipo" value="Prospecção"/>
     <input type="hidden" id="prosp-cliente-id"/>
+    <input type="hidden" id="prosp-sdr-lead-id"/>
     <div class="fgrid fg2">
       <div class="field"><label>Empresa *</label><input type="text" id="prosp-empresa" placeholder="Nome da empresa" style="width:100%" list="prosp-cliente-datalist" autocomplete="off"/><datalist id="prosp-cliente-datalist"></datalist></div>
-      <div class="field"><label>Responsável</label><input type="text" id="prosp-responsavel" placeholder="Nome do responsável" style="width:100%"/></div>
+      <div class="field"><label id="lbl-prosp-resp">Responsável</label><input type="text" id="prosp-responsavel" placeholder="Nome do responsável" style="width:100%"/></div>
     </div>
     <div id="prosp-vinculo-info" style="display:none;font-size:.75rem;background:#EEF9F1;color:#1B7A3D;border:1px solid #BFE8CC;border-radius:6px;padding:6px 10px;margin:-.35rem 0 .6rem">
       🔗 Vinculado à Carteira de Clientes — este lançamento entra no histórico do cliente. <a href="#" id="prosp-desvincular" style="color:#1B7A3D;font-weight:600">Desvincular</a>
     </div>
-    <div class="fgrid fg1">
+    <div class="fgrid fg1" id="prosp-tipo-wrap">
       <div class="field"><label>Tipo</label>
         <div id="prosp-tipo-group" style="display:flex;gap:8px;flex-wrap:wrap">
           <button type="button" class="btn-sec prosp-tipo-btn" data-tipo="Acompanhamento" onclick="vapProspSelecionarTipo('Acompanhamento')">Acompanhamento</button>
@@ -2032,10 +2033,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <option value="Outros">Outros</option>
         </select>
       </div>
-      <div class="field"><label>Telefone</label><input type="text" inputmode="numeric" id="prosp-telefone" placeholder="(XX) XXXXX-XXXX" maxlength="15" style="width:100%"/></div>
+      <div class="field"><label id="lbl-prosp-tel">Telefone</label><input type="text" inputmode="numeric" id="prosp-telefone" placeholder="(XX) XXXXX-XXXX" maxlength="15" style="width:100%"/></div>
     </div>
     <div class="fgrid fg2">
-      <div class="field"><label>Local na Área de Saturação</label><input type="text" id="prosp-local" placeholder="Ex: Zona Norte, quadra 12" style="width:100%"/></div>
+      <div class="field"><label id="lbl-prosp-local">Local na Área de Saturação</label><input type="text" id="prosp-local" placeholder="Ex: Zona Norte, quadra 12" style="width:100%"/></div>
       <div class="field"><label>Resultado</label>
         <select id="prosp-resultado" style="width:100%">
           <option value="Agendado">Agendado</option>
@@ -2048,6 +2049,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <option value="Promo via Whats">Promo via Whats</option>
         </select>
       </div>
+    </div>
+    <div id="prosp-sdr-extra" style="display:none">
+      <div class="fgrid fg2">
+        <div class="field"><label>Perfil do contato</label>
+          <select id="prosp-sdr-papel" style="width:100%"><option value="">Selecione…</option><option value="Decisor">Decisor</option><option value="Influenciador">Influenciador</option></select>
+        </div>
+        <div class="field"><label>Campanha (opcional)</label><input type="text" id="prosp-sdr-campanha" placeholder="Ex: Lista Outubro" style="width:100%"/></div>
+      </div>
+      <div id="prosp-sdr-info" style="font-size:.78rem;color:var(--gray);margin:-.2rem 0 .6rem"></div>
+    </div>
+    <div id="prosp-sdr-transf" style="display:none;background:#E8F6FD;border:1px solid #BAE6FD;border-radius:8px;padding:10px 12px;margin-bottom:.6rem">
+      <div style="font-size:.8rem;font-weight:700;color:#0369A1;margin-bottom:6px">Transferir lead ao vendedor</div>
+      <div class="fgrid fg2">
+        <div class="field"><label>Vendedor *</label><select id="prosp-sdr-vendedor" style="width:100%"><option value="">Selecione…</option></select></div>
+        <div class="field"><label>Data da transferência</label><input type="date" id="prosp-sdr-data" style="width:100%"/></div>
+      </div>
+      <div style="font-size:.74rem;color:#0369A1">O cliente entra na Carteira do vendedor já com o histórico dos seus contatos. Depois de salvar não é possível editar — correções ficam com o Líder.</div>
     </div>
     <div class="fgrid fg1">
       <div class="field"><label>Próximo Contato</label>
@@ -2824,10 +2842,12 @@ onAuthStateChanged(auth, async user => {
     const isLider      = cp.role === 'lider';
     const isMasterRole = cp.role === 'master';
     const isSuperAdm   = cp.role === 'superadmin';
+    const isSdr        = cp.role === 'sdr';
+    window._vapIsSdr   = isSdr;
     // Master herda tudo que o Líder tem acesso — exceto que, ao contrário do Líder,
     // Master enxerga a Carteira de TODOS os vendedores (ver isGestorCarteira mais abaixo).
     const isGestor      = isLider || isMasterRole;
-    const roleLabel    = isSuperAdm ? 'Super Admin' : isMasterRole ? 'Master' : isLider ? 'Lider' : 'Vendedor';
+    const roleLabel    = isSuperAdm ? 'Super Admin' : isMasterRole ? 'Master' : isLider ? 'Lider' : isSdr ? 'SDR' : 'Vendedor';
     $('role-badge').textContent = roleLabel;
     if (isGestor || isSuperAdm) $('role-badge').classList.add('role-lider');
     else                        $('role-badge').classList.remove('role-lider');
@@ -2853,6 +2873,16 @@ onAuthStateChanged(auth, async user => {
     // Admin visível para Líder, Master e SuperAdmin
     const admTab = document.querySelector('[data-tab="admin"]');
     if(admTab) admTab.style.display = (isGestor || isSuperAdm) ? '' : 'none';
+
+    // SDR: menu enxuto (Lançar, Prospecção, Promoções, Ajuda). Definido explicitamente para todos os perfis,
+    // para o menu voltar ao normal se outro usuário entrar sem recarregar a página.
+    ['historico','carteira','dashboard'].forEach(t=>{
+      const b = document.querySelector('[data-tab="'+t+'"]');
+      if(b) b.style.display = isSdr ? 'none' : '';
+    });
+    const tabCrmEl = document.querySelector('[data-tab="prospeccao"]');
+    if(tabCrmEl) tabCrmEl.textContent = isSdr ? 'Prospecção' : 'CRM';
+    vapAplicarPerfilSdrUI(isSdr);
 
     // Só o Superadmin pode promover alguém a "Master" (evita autopromoção em cadeia)
     if($('adm-perfil-master-opt')) $('adm-perfil-master-opt').hidden = !isSuperAdm;
@@ -3044,6 +3074,7 @@ function startListeners(){
       _users = snap.docs.map(d=>({id:d.id,...d.data()}));
       renderUsersTable();
       populateSelects();
+      vapSyncEquipe();
     });
     const mq = isSuperAdmin && cid
       ? query(collection(db,'metas'), where('companyId','==',cid))
@@ -3148,6 +3179,12 @@ async function preencherCamposLancar(){
     const el = $('ct-' + k);
     if(el) el.value = recCt ? (recCt[k] || '') : '';
   });
+  if(cp?.role==='sdr'){
+    // Já lançado neste dia: campo e botão ficam travados (a SDR não edita depois da entrada)
+    const bloq = !!recCt;
+    if($('ct-prospint')) $('ct-prospint').disabled = bloq;
+    const bs = $('btn-salvar-contatos'); if(bs){ bs.disabled = bloq; bs.style.opacity = bloq ? '.5' : '1'; }
+  }
 
   // Campos de Cotações/Pedidos
   if(recCot){
@@ -3193,6 +3230,11 @@ $('btn-salvar-contatos').onclick = async () => {
   const data = getLancarData();
   if(data > tod()){ toast('Não é permitido lançar para datas futuras.'); return; }
   const existente = await getRecDia('contatos');
+  if(cp?.role==='sdr'){
+    // SDR só cria: um lançamento por dia, sem edição (correção fica com o Líder)
+    if(existente){ toast('Este dia já foi lançado. Para corrigir, peça ao seu Líder.'); return; }
+    if(data < _recsJanelaInicio()){ toast('Só é possível lançar no mês atual e no anterior.'); return; }
+  }
 
   try {
     const ts = new Date().toISOString();
@@ -3204,7 +3246,7 @@ $('btn-salvar-contatos').onclick = async () => {
     } else {
       const payload = { uid:cu.uid, seller:cp.name, tipo:'contatos',
                         companyId: cp.companyId || _companyId || 'default',
-                        date:data, ts, ...vals, total };
+                        date:data, ts, ...vals, total, ...(cp?.role==='sdr' ? {origem:'SDR'} : {}) };
       await addDoc(collection(db,'records'), payload);
       toast('Contatos registrados!');
     }
@@ -3219,6 +3261,7 @@ $('btn-salvar-contatos').onclick = async () => {
   // onSnapshot atualiza _recs automaticamente — aguarda 500ms para refletir
   setTimeout(()=>{
     renderMetricsDia();
+    if(cp?.role==='sdr') preencherCamposLancar();
     if(document.querySelector('#panel-dashboard.active')) renderDashboard();
   }, 500);
 };
@@ -4938,7 +4981,7 @@ function renderUsersTable(){
     <thead><tr><th style="width:16%">Nome</th><th style="width:20%">E-mail</th><th>Perfil</th><th>Meta mensal</th><th>Potencial</th><th>Ações</th></tr></thead>
     <tbody>${_users.map(u=>`<tr>
       <td>${u.name}</td><td>${u.email}</td>
-      <td><span class="badge ${u.role==='lider'?'bg-amber':u.role==='master'?'bg-teal':u.role==='superadmin'?'bg-purple':'bg-blue'}">${u.role==='lider'?'Líder':u.role==='master'?'Master':u.role==='superadmin'?'Super Admin':'Vendedor'}</span></td>
+      <td><span class="badge ${u.role==='lider'?'bg-amber':u.role==='master'?'bg-teal':u.role==='superadmin'?'bg-purple':'bg-blue'}">${u.role==='lider'?'Líder':u.role==='master'?'Master':u.role==='superadmin'?'Super Admin':u.role==='sdr'?'SDR':'Vendedor'}</span></td>
       <td>${fC(u.meta||0)}</td>
       <td>${fC(u.potencial||0)}</td>
       <td><div class="act">
@@ -4979,7 +5022,7 @@ function editUser(uid){
   // Aviso sobre o que esta sendo editado
   const avisoEl = document.getElementById('aviso-edicao');
   if(avisoEl){
-    avisoEl.textContent = 'Editando: ' + u.name + ' (' + (u.role==='lider'?'Lider':u.role==='master'?'Master':'Vendedor') + ')';
+    avisoEl.textContent = 'Editando: ' + u.name + ' (' + (u.role==='lider'?'Lider':u.role==='master'?'Master':u.role==='sdr'?'SDR':'Vendedor') + ')';
     avisoEl.style.display='block';
   }
   $('btn-adm-save').textContent = 'Salvar Alteracoes';
@@ -5083,7 +5126,7 @@ function populateSelects(){
     const sel=$(id); if(!sel) return;
     const cur=sel.value;
     const opt0=(id==='hist-vendedor'||id==='exp-vendedor'||id==='cart-filtro-vendedor')?'<option value="">Todos</option>':'<option value="">Selecione...</option>';
-    sel.innerHTML=opt0+todos.map(u=>`<option value="${u.id}">${u.name}${u.role==='lider'?' (Lider)':u.role==='master'?' (Master)':''}</option>`).join('');
+    sel.innerHTML=opt0+todos.map(u=>`<option value="${u.id}">${u.name}${u.role==='lider'?' (Lider)':u.role==='master'?' (Master)':u.role==='sdr'?' (SDR)':''}</option>`).join('');
     if(cur) sel.value=cur;
   });
 }
@@ -7043,6 +7086,7 @@ window.vapRegistrarPromoWpp = vapRegistrarPromoWpp;
 // Botão 💬 da lista do CRM: usa os dados do lançamento como base do novo registro
 function vapAbrirWppProsp(id){
   const p = _prospLista.find(x=>x.id===id); if(!p) return;
+  if(cp?.role==='sdr'){ vapAbrirWppTelefone(p.telefone, p.responsavel||'', null); return; } // SDR: só abre o WhatsApp, sem registrar
   vapAbrirWppTelefone(p.telefone, p.responsavel||'', {
     clienteId: p.clienteId||'', empresa: p.empresa, responsavel: p.responsavel||'',
     segmento: p.segmento, tipo: p.tipo==='Outros' ? 'Atualizar/Reativar' : p.tipo
@@ -7076,6 +7120,7 @@ window.vapIniciarListenerCarteira = vapIniciarListenerCarteira;
 //  coleção seguem "prosp*"/"prospeccoes" por compatibilidade)
 // ══════════════════════════════════════════════════════════
 let _prospLista = [];
+let _prospListaSdr = []; // lançamentos da SDR (fonte 'sdr') — ficam fora do CRM de vendedores/gestores; alimentam o painel da SDR
 let unProspeccoes = null;
 // Quando setado (via "Ver histórico" na Carteira), o CRM entra em modo
 // "histórico de um cliente": mostra só os lançamentos vinculados a esse cliente,
@@ -7083,11 +7128,15 @@ let unProspeccoes = null;
 let _crmFiltroClienteId = null;
 let _crmFiltroClienteNome = '';
 const PROSP_SEGMENTOS = ['Revenda','Centro Automotivo','Transportadora','Posto de Troca','Posto de Gasolina','Outros'];
-const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido','Cadastro','Promo via Whats'];
-const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444','Cadastro':'#0D9488','Promo via Whats':'#EC4899'};
+const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido','Cadastro','Promo via Whats','Transferido'];
+// O que o vendedor pode escolher ao lançar ("Transferido" só nasce da transferência da SDR)
+const PROSP_RESULTADOS_VENDEDOR = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido','Cadastro','Promo via Whats'];
+// O que a SDR pode escolher (ordem do fluxo: segue, qualifica/transfere, ou encerra)
+const PROSP_RESULTADOS_SDR = ['Agendado','Não atendeu','Transferido','Não qualificado','Sem interesse','Sem potencial','Ctto Inválido'];
+const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444','Cadastro':'#0D9488','Promo via Whats':'#EC4899','Transferido':'#38BDF8','Não qualificado':'#64748B','Sem potencial':'#6B7280'};
 const PROSP_TIPOS = ['Acompanhamento','Prospecção','Atualizar/Reativar'];
 // Resultados que "encerram" um lançamento — deixam de contar como pendência mesmo com Próximo Contato vencido
-const PROSP_RESULTADOS_FINAIS = ['Vendeu','Sem interesse','Ctto Inválido'];
+const PROSP_RESULTADOS_FINAIS = ['Vendeu','Sem interesse','Ctto Inválido','Transferido','Não qualificado','Sem potencial'];
 
 function prospNomeVendedor(uid){
   const u = _users.find(x=>x.id===uid);
@@ -7125,6 +7174,7 @@ window.atualizarProspProximoFmt = atualizarProspProximoFmt;
 
 async function vapProspSalvar(){
   const CID = _vapGetCompanyId(); if(!CID){ toast('Empresa não identificada.'); return; }
+  if(cp?.role==='sdr') return vapSdrSalvar();
   const id = $('prosp-id').value;
   const empresa = $('prosp-empresa').value.trim();
   const responsavel = $('prosp-responsavel').value.trim();
@@ -7164,10 +7214,335 @@ async function vapProspSalvar(){
 }
 window.vapProspSalvar = vapProspSalvar;
 
+// ══════════════════════════════════════════════════════════
+//  PERFIL SDR — prospecção por telefone (até 3 contatos) e transferência de lead ao vendedor
+//  • Reaproveita o modal "Novo Lançamento" e a coleção `prospeccoes` (linhas com fonte:'sdr')
+//  • Transferência (batch): cria o cliente na Carteira do vendedor + linha "Transferido" no CRM dele + linha da SDR
+//  • A SDR só cria (regras do Firestore); correções ficam com o Líder/Master
+// ══════════════════════════════════════════════════════════
+const SDR_MAX_CONTATOS = 3;
+const _sdrDigitos = t => (t||'').replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,'');
+
+// Leads da SDR = linhas agrupadas por leadId (usa só os lançamentos dela)
+function vapSdrLeads(){
+  const m = {};
+  _prospLista.forEach(p=>{ if(p.fonte!=='sdr' || !p.leadId) return; (m[p.leadId] = m[p.leadId] || []).push(p); });
+  return Object.keys(m).map(leadId=>{
+    const ls = m[leadId].slice().sort((a,b)=>(a.numeroContato||0)-(b.numeroContato||0) || (a.criadoEm||'').localeCompare(b.criadoEm||''));
+    const ultimo = ls[ls.length-1];
+    return { leadId, linhas: ls, ultimo, n: ls.length, encerrado: PROSP_RESULTADOS_FINAIS.includes(ultimo.resultado) };
+  });
+}
+window.vapSdrLeads = vapSdrLeads;
+
+function _sdrNovoLeadId(){ return 'L' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// Menu/telas conforme o perfil (chamado no login para TODOS os perfis, para reverter se outro usuário entrar)
+function vapAplicarPerfilSdrUI(isSdr){
+  const d = (el,on)=>{ if(el) el.style.display = on ? '' : 'none'; };
+  // Lançar: a SDR só informa "Internos de Prospecção"
+  ['ct-carteira','ct-ativos','ct-inativos','ct-prospext','ct-outras','ct-invalidos'].forEach(id=>d($(id)?.closest('.field'), !isSdr));
+  ['card-cotacoes-lancar','card-perdas-dia','card-top10-clientes','metrics-dia'].forEach(id=>d($(id), !isSdr));
+  const dica = $('lancar-data-dica');
+  if(dica) dica.textContent = isSdr
+    ? 'Você pode lançar dias do mês atual e do anterior. Depois de salvo, o dia não pode ser editado (peça ao Líder para corrigir).'
+    : 'Editar lançamento anterior? Selecione a data acima. Datas futuras não são permitidas.';
+  if($('lancar-data')) $('lancar-data').min = isSdr ? _recsJanelaInicio() : '';
+  if($('ct-prospint')) $('ct-prospint').disabled = false;
+  const bs = $('btn-salvar-contatos'); if(bs){ bs.disabled = false; bs.style.opacity = '1'; }
+  // CRM → "Prospecção" para a SDR
+  if($('crm-titulo-txt')) $('crm-titulo-txt').textContent = isSdr ? 'Prospecção' : 'CRM';
+  d($('btn-crm-relatorios'), !isSdr);
+  const fs = $('prosp-filtro-resultado');
+  if(fs){
+    const lista = isSdr ? PROSP_RESULTADOS_SDR : PROSP_RESULTADOS;
+    fs.innerHTML = '<option value="">Todos os resultados</option>' + lista.map(r=>`<option value="${r}">${r}</option>`).join('');
+  }
+}
+window.vapAplicarPerfilSdrUI = vapAplicarPerfilSdrUI;
+
+// Lista mínima da equipe (espelho `equipe/{uid}`), mantida por Líder/Master/SuperAdmin sempre que a lista de usuários muda
+const _equipeSync = { cid:null, map:null, busy:false };
+async function vapSyncEquipe(){
+  if(!(cp?.role==='lider' || cp?.role==='master' || cp?.role==='superadmin')) return;
+  const cid = cp.role==='superadmin' ? _companyId : (cp.companyId || _companyId);
+  if(!cid || !_users.length || _equipeSync.busy) return;
+  _equipeSync.busy = true;
+  try{
+    if(_equipeSync.cid !== cid || !_equipeSync.map){
+      const snap = await getDocs(query(collection(db,'equipe'), where('companyId','==',cid)));
+      _equipeSync.map = {}; snap.forEach(x=>{ _equipeSync.map[x.id] = x.data(); });
+      _equipeSync.cid = cid;
+    }
+    const alvo = {};
+    _users.filter(u=>u.companyId===cid && ['vendedor','lider','master'].includes(u.role||'vendedor'))
+          .forEach(u=>{ alvo[u.id] = { companyId:cid, name:u.name||'', role:u.role||'vendedor' }; });
+    const ops = [];
+    Object.keys(alvo).forEach(id=>{
+      const a = _equipeSync.map[id], v = alvo[id];
+      if(!a || a.name!==v.name || a.role!==v.role || a.companyId!==v.companyId) ops.push(setDoc(doc(db,'equipe',id), v));
+    });
+    Object.keys(_equipeSync.map).forEach(id=>{ if(!alvo[id]) ops.push(deleteDoc(doc(db,'equipe',id))); });
+    if(ops.length){ await Promise.all(ops); _equipeSync.map = alvo; }
+  }catch(e){
+    console.warn('[Equipe] sincronização:', e);
+    _equipeSync.map = null; // força reler na próxima
+  }finally{
+    _equipeSync.busy = false;
+  }
+}
+window.vapSyncEquipe = vapSyncEquipe;
+
+// Configura o modal "Novo Lançamento" conforme o perfil (rótulos, campos extras, opções de resultado)
+function vapSdrConfigurarModal(){
+  const sdr = cp?.role==='sdr';
+  const show = (id,on)=>{ const e=$(id); if(e) e.style.display = on ? '' : 'none'; };
+  const L = (id,txt)=>{ const e=$(id); if(e) e.textContent = txt; };
+  show('prosp-sdr-extra', sdr);
+  show('prosp-tipo-wrap', !sdr);
+  show('prosp-sdr-transf', false);
+  L('lbl-prosp-resp', sdr ? 'Contato' : 'Responsável');
+  L('lbl-prosp-tel', sdr ? 'WhatsApp / Telefone (com DDD) *' : 'Telefone');
+  L('lbl-prosp-local', sdr ? 'Bairro' : 'Local na Área de Saturação');
+  if($('prosp-sdr-lead-id')) $('prosp-sdr-lead-id').value = '';
+  if($('prosp-sdr-papel')) $('prosp-sdr-papel').value = '';
+  if($('prosp-sdr-campanha')) $('prosp-sdr-campanha').value = '';
+  if($('prosp-sdr-data')) $('prosp-sdr-data').value = '';
+  if($('prosp-sdr-vendedor')) $('prosp-sdr-vendedor').value = '';
+  if(sdr){ vapSdrAtualizarContexto(); }
+  else {
+    const sel = $('prosp-resultado');
+    if(sel){ sel.innerHTML = PROSP_RESULTADOS_VENDEDOR.map(r=>`<option value="${r}">${r}</option>`).join(''); sel.value = PROSP_RESULTADOS_VENDEDOR[0]; }
+  }
+}
+window.vapSdrConfigurarModal = vapSdrConfigurarModal;
+
+// Lead de um registro editado pelo vendedor pode vir como "Transferido" (não está na lista normal)
+function vapProspGarantirOpcaoResultado(r){
+  const sel = $('prosp-resultado'); if(!sel || !r) return;
+  if(![...sel.options].some(o=>o.value===r)){ const o=document.createElement('option'); o.value=r; o.textContent=r; sel.appendChild(o); }
+}
+
+// Número do contato + opções de resultado conforme o lead selecionado
+function vapSdrAtualizarContexto(){
+  const leadId = $('prosp-sdr-lead-id')?.value || '';
+  const lead = leadId ? vapSdrLeads().find(x=>x.leadId===leadId) : null;
+  const n = (lead ? lead.n : 0) + 1;
+  const info = $('prosp-sdr-info');
+  if(info) info.textContent = lead
+    ? `Contato ${n} de ${SDR_MAX_CONTATOS} deste lead` + (n>=SDR_MAX_CONTATOS ? ' — último: qualifique e transfira, ou encerre.' : '.')
+    : `Novo lead — Contato 1 de ${SDR_MAX_CONTATOS}.`;
+  const sel = $('prosp-resultado'); if(!sel) return;
+  const opcoes = n>=SDR_MAX_CONTATOS ? PROSP_RESULTADOS_SDR.filter(r=>r!=='Agendado' && r!=='Não atendeu') : PROSP_RESULTADOS_SDR;
+  const atual = sel.value;
+  sel.innerHTML = opcoes.map(r=>`<option value="${r}">${r}</option>`).join('');
+  sel.value = opcoes.includes(atual) ? atual : opcoes[0];
+  vapSdrToggleTransf();
+}
+window.vapSdrAtualizarContexto = vapSdrAtualizarContexto;
+
+// Ao digitar Empresa: se bater com um lead aberto dela, continua o mesmo lead (próximo contato)
+function vapSdrChecarLeadPorNome(){
+  const nome = ($('prosp-empresa').value||'').trim().toLowerCase();
+  const l = nome ? vapSdrLeads().find(x=>!x.encerrado && (x.ultimo.empresa||'').trim().toLowerCase()===nome) : null;
+  $('prosp-sdr-lead-id').value = l ? l.leadId : '';
+  if(l){
+    const u = l.ultimo;
+    if(u.responsavel) $('prosp-responsavel').value = u.responsavel;
+    if(u.telefone) $('prosp-telefone').value = u.telefone;
+    if(u.segmento) $('prosp-segmento').value = u.segmento;
+    if(u.localSaturacao) $('prosp-local').value = u.localSaturacao;
+    if(u.papel) $('prosp-sdr-papel').value = u.papel;
+    if(u.campanha) $('prosp-sdr-campanha').value = u.campanha;
+  }
+  vapSdrAtualizarContexto();
+}
+
+// Botão "➕ Novo contato" no cartão do lead
+function vapSdrNovoContato(leadId){
+  const l = vapSdrLeads().find(x=>x.leadId===leadId);
+  if(!l){ toast('Lead não encontrado.'); return; }
+  if(l.encerrado){ toast('Este lead já foi encerrado.'); return; }
+  if(l.n >= SDR_MAX_CONTATOS){ toast('Este lead já teve '+SDR_MAX_CONTATOS+' contatos.'); return; }
+  vapProspLimparForm();
+  vapProspAtualizarDatalistClientes();
+  const u = l.ultimo;
+  $('prosp-empresa').value = u.empresa || '';
+  $('prosp-responsavel').value = u.responsavel || '';
+  $('prosp-telefone').value = u.telefone || '';
+  if(u.segmento) $('prosp-segmento').value = u.segmento;
+  $('prosp-local').value = u.localSaturacao || '';
+  $('prosp-sdr-papel').value = u.papel || '';
+  $('prosp-sdr-campanha').value = u.campanha || '';
+  $('prosp-sdr-lead-id').value = leadId;
+  vapSdrAtualizarContexto();
+  openModal('modal-prospeccao');
+}
+window.vapSdrNovoContato = vapSdrNovoContato;
+
+// Carrega a lista mínima de vendedores (uma vez por sessão) e preenche o select da transferência
+let _sdrEquipe = null;
+async function vapSdrCarregarEquipe(){
+  const sel = $('prosp-sdr-vendedor'); if(!sel) return;
+  try{
+    if(!_sdrEquipe){
+      const cid = _vapGetCompanyId();
+      const snap = await getDocs(query(collection(db,'equipe'), where('companyId','==',cid)));
+      _sdrEquipe = snap.docs.map(x=>({id:x.id, ...x.data()})).sort((a,b)=>(a.name||'').localeCompare(b.name||'','pt-BR'));
+    }
+    const atual = sel.value;
+    sel.innerHTML = '<option value="">Selecione…</option>' +
+      _sdrEquipe.map(v=>`<option value="${v.id}">${(v.name||'—').replace(/</g,'&lt;')}</option>`).join('');
+    sel.value = atual;
+    if(!_sdrEquipe.length) toast('Nenhum vendedor disponível ainda. Peça ao Líder para abrir o app uma vez.');
+  }catch(e){
+    console.error('[SDR] equipe:', e);
+    toast('Não foi possível carregar a lista de vendedores.');
+  }
+}
+
+function vapSdrToggleTransf(){
+  if(cp?.role!=='sdr') return;
+  const on = $('prosp-resultado')?.value === 'Transferido';
+  const box = $('prosp-sdr-transf'); if(box) box.style.display = on ? '' : 'none';
+  if(on){
+    const dt = $('prosp-sdr-data');
+    if(dt){ dt.max = tod(); dt.min = _recsJanelaInicio(); if(!dt.value) dt.value = tod(); }
+    vapSdrCarregarEquipe();
+  }
+}
+window.vapSdrToggleTransf = vapSdrToggleTransf;
+
+function _sdrFmtDM(iso){
+  if(!iso) return '';
+  const dt = new Date(iso);
+  return isNaN(dt) ? '' : dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+}
+
+async function vapSdrSalvar(){
+  const CID = _vapGetCompanyId(); if(!CID){ toast('Empresa não identificada.'); return; }
+  const empresa = $('prosp-empresa').value.trim();
+  const responsavel = $('prosp-responsavel').value.trim();
+  const telefone = $('prosp-telefone').value.trim();
+  const segmento = $('prosp-segmento').value;
+  const local = $('prosp-local').value.trim();
+  const papel = $('prosp-sdr-papel').value;
+  const campanha = $('prosp-sdr-campanha').value.trim();
+  const resultado = $('prosp-resultado').value;
+  const proximoContato = $('prosp-proximo').value || '';
+  if(!empresa){ toast('Informe a empresa.'); return; }
+  if(_sdrDigitos(telefone).length < 10){ toast('Informe o WhatsApp/telefone com DDD.'); return; }
+
+  // Lead (novo ou continuação) e número do contato
+  let leadId = $('prosp-sdr-lead-id').value || '';
+  const leads = vapSdrLeads();
+  const lead = leadId ? leads.find(x=>x.leadId===leadId) : null;
+  if(lead && lead.encerrado){ toast('Este lead já foi encerrado.'); return; }
+  const n = (lead ? lead.n : 0) + 1;
+  if(n > SDR_MAX_CONTATOS){ toast('Máximo de '+SDR_MAX_CONTATOS+' contatos por lead.'); return; }
+  // Mesmo telefone em outro lead dela → não duplica
+  const dig = _sdrDigitos(telefone);
+  const dup = leads.find(x=>x.leadId!==leadId && _sdrDigitos(x.ultimo.telefone)===dig);
+  if(dup){ toast('Este telefone já está no lead "'+(dup.ultimo.empresa||'—')+'". Use o botão "Novo contato" dele.'); return; }
+  if(!leadId) leadId = _sdrNovoLeadId();
+  if(n >= SDR_MAX_CONTATOS && (resultado==='Agendado' || resultado==='Não atendeu')){
+    toast('No 3º contato, qualifique e transfira ou encerre o lead.'); return;
+  }
+
+  const agora = new Date().toISOString();
+  const base = {
+    companyId: CID, uid: cu.uid, vendedorNome: cp?.name || '—',
+    fonte: 'sdr', sdrId: cu.uid, sdrNome: cp?.name || '—',
+    leadId, numeroContato: n, papel, campanha,
+    empresa, responsavel, tipo: 'Prospecção', segmento, telefone, localSaturacao: local,
+    resultado, proximoContato: resultado==='Transferido' ? '' : proximoContato,
+    clienteId: '', criadoEm: agora
+  };
+
+  const btn = $('btn-prosp-save');
+  if(btn){ btn.disabled = true; btn.textContent = 'Salvando…'; }
+  try{
+    if(resultado !== 'Transferido'){
+      await addDoc(collection(db,'prospeccoes'), base);
+      toast(n===1 ? 'Lead registrado (contato 1).' : 'Contato '+n+' registrado.');
+    } else {
+      const vendUid = $('prosp-sdr-vendedor').value;
+      const vend = (_sdrEquipe||[]).find(v=>v.id===vendUid);
+      const dataTransf = $('prosp-sdr-data').value || tod();
+      if(!vend){ toast('Escolha o vendedor da transferência.'); return; }
+      if(!responsavel || !local || !papel){ toast('Para transferir, preencha Contato, Bairro e Perfil do contato (Decisor/Influenciador).'); return; }
+      if(dataTransf > tod()){ toast('A data da transferência não pode ser futura.'); return; }
+      if(dataTransf < _recsJanelaInicio()){ toast('Só é possível transferir com data do mês atual ou do anterior.'); return; }
+      // Resumo do histórico (contatos anteriores + este) — vai para a Carteira e para o CRM do vendedor
+      const partes = (lead ? lead.linhas : []).map(l=>`Contato ${l.numeroContato}${_sdrFmtDM(l.criadoEm)?' ('+_sdrFmtDM(l.criadoEm)+')':''}: ${l.resultado}`);
+      partes.push(`Contato ${n} (${_sdrFmtDM(agora)}): Transferido`);
+      const resumo = `SDR ${cp?.name||'—'} · ${papel}${campanha?' · Campanha: '+campanha:''} · ` + partes.join(' → ');
+      const batch = writeBatch(db);
+      const cartRef = doc(collection(db,'carteira_clientes'));
+      const vendLinhaRef = doc(collection(db,'prospeccoes'));
+      const sdrLinhaRef = doc(collection(db,'prospeccoes'));
+      batch.set(cartRef, {
+        nome: empresa, telefone, segmento, responsavel, cidade: '', bairro: local,
+        resultadoUltimoContato: '', dataUltimoContato: '', dataUltimaCompra: '',
+        observacoes: resumo, companyId: CID, uid: vendUid, origem: 'SDR',
+        sdrId: cu.uid, sdrNome: cp?.name || '—', leadId, transferidoEm: dataTransf, criadoEm: agora
+      });
+      batch.set(vendLinhaRef, {
+        companyId: CID, uid: vendUid, vendedorNome: vend.name || '—',
+        origemLead: 'SDR', sdrId: cu.uid, sdrNome: cp?.name || '—', leadId,
+        empresa, responsavel, tipo: 'Prospecção', segmento, telefone, localSaturacao: local,
+        resultado: 'Transferido', proximoContato: '', clienteId: cartRef.id,
+        resumoSdr: resumo, transferidoEm: dataTransf, criadoEm: agora
+      });
+      batch.set(sdrLinhaRef, { ...base, clienteId: cartRef.id, vendedorDestinoUid: vendUid, vendedorDestinoNome: vend.name || '—', transferidoEm: dataTransf });
+      await batch.commit();
+      toast('Lead transferido para ' + (vend.name||'o vendedor') + '.');
+    }
+    closeModal('modal-prospeccao');
+    vapProspLimparForm();
+  }catch(e){
+    console.error('[SDR] salvar:', e);
+    toast('Erro ao salvar: ' + (e.message||e.code));
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = 'Salvar Lançamento'; }
+  }
+}
+window.vapSdrSalvar = vapSdrSalvar;
+
+// Lista da SDR: um cartão por contato; "Novo contato" só no último contato de um lead ainda aberto
+function vapSdrRenderLista(el, lista){
+  if(!lista.length){
+    el.innerHTML = `<div class="fcard" style="text-align:center;color:var(--gray)">Nenhum lançamento neste mês.</div>`;
+    return;
+  }
+  const leads = vapSdrLeads();
+  const abertos = {}; leads.forEach(l=>{ if(!l.encerrado && l.n < SDR_MAX_CONTATOS) abertos[l.ultimo.id] = l.leadId; });
+  const esc = t => String(t||'').replace(/</g,'&lt;');
+  el.innerHTML = lista.map(p=>`
+    <div class="fcard" style="padding:.75rem 1.1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:600">${esc(p.empresa)||'—'} <span style="font-weight:400;font-size:.72rem;color:var(--gray)">· Contato ${p.numeroContato||1}/${SDR_MAX_CONTATOS}${p.papel?' · '+esc(p.papel):''}</span></div>
+        <div style="font-size:.78rem;color:var(--gray)">${esc(p.responsavel)||'—'} · ${esc(p.segmento)||'—'}${p.localSaturacao?' · '+esc(p.localSaturacao):''}${p.campanha?' · '+esc(p.campanha):''}</div>
+        ${p.proximoContato?`<div style="font-size:.75rem;color:var(--gray)">Próximo contato: ${cartISOtoBR(p.proximoContato)}</div>`:''}
+        ${p.vendedorDestinoNome?`<div style="font-size:.75rem;color:#0369A1">Transferido para ${esc(p.vendedorDestinoNome)}${p.transferidoEm?' em '+cartISOtoBR(p.transferidoEm):''}</div>`:''}
+      </div>
+      <span class="badge" style="background:${PROSP_CORES[p.resultado]||'#999'}22;color:${PROSP_CORES[p.resultado]||'#666'}">${p.resultado||'—'}</span>
+      <div style="display:flex;gap:6px">
+        ${p.telefone?`<button class="btn-sec" onclick="vapAbrirWppProsp('${p.id}')" title="WhatsApp">💬</button>`:''}
+        ${abertos[p.id]?`<button class="btn-sec" onclick="vapSdrNovoContato('${abertos[p.id]}')">➕ Novo contato</button>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
 // Preenche o <datalist> de sugestão de empresa com os clientes da Carteira
 // visíveis para o usuário atual (mesmo escopo já usado pela Carteira/CRM).
 function vapProspAtualizarDatalistClientes(){
   const dl = $('prosp-cliente-datalist'); if(!dl) return;
+  if(cp?.role==='sdr'){
+    dl.innerHTML = vapSdrLeads().filter(l=>!l.encerrado).map(l=>`<option value="${(l.ultimo.empresa||'').replace(/"/g,'')}">`).join('');
+    return;
+  }
   dl.innerHTML = _cartClientes.map(c=>`<option value="${(c.nome||'').replace(/"/g,'')}">`).join('');
 }
 window.vapProspAtualizarDatalistClientes = vapProspAtualizarDatalistClientes;
@@ -7182,6 +7557,7 @@ function vapProspAtualizarVinculoInfo(){
 // (mesmo escopo do usuário), vincula automaticamente e preenche os demais campos.
 // Se não bater com nenhum, trata como lançamento avulso (fora da Carteira), como antes.
 function vapProspChecarVinculoEmpresa(){
+  if(cp?.role==='sdr'){ vapSdrChecarLeadPorNome(); return; }
   const nome = ($('prosp-empresa').value||'').trim().toLowerCase();
   const c = nome ? _cartClientes.find(x=>(x.nome||'').trim().toLowerCase()===nome) : null;
   if(c){
@@ -7206,6 +7582,7 @@ function vapProspLimparForm(){
   vapProspSelecionarTipo(PROSP_TIPOS[1]); // default: Prospecção
   $('prosp-modal-title').textContent='Novo Lançamento';
   $('btn-prosp-save').textContent='Salvar Lançamento';
+  vapSdrConfigurarModal(); // rótulos/campos/resultados conforme o perfil (SDR x demais)
 }
 window.vapProspLimparForm = vapProspLimparForm;
 
@@ -7248,7 +7625,7 @@ function vapProspEditar(id){
   $('prosp-id').value=p.id; $('prosp-empresa').value=p.empresa||''; $('prosp-responsavel').value=p.responsavel||'';
   $('prosp-cliente-id').value = p.clienteId || '';
   $('prosp-segmento').value=p.segmento||PROSP_SEGMENTOS[0]; $('prosp-telefone').value=p.telefone||'';
-  $('prosp-local').value=p.localSaturacao||''; $('prosp-resultado').value=p.resultado||PROSP_RESULTADOS[0];
+  $('prosp-local').value=p.localSaturacao||''; vapProspGarantirOpcaoResultado(p.resultado); $('prosp-resultado').value=p.resultado||PROSP_RESULTADOS[0];
   $('prosp-proximo').value=p.proximoContato||'';
   atualizarProspProximoFmt();
   vapProspAtualizarVinculoInfo();
@@ -7276,7 +7653,10 @@ function vapIniciarListenerProspeccao(){
     : query(collection(db,'prospeccoes'), where('companyId','==',CID), where('uid','==',cu.uid));
   unProspeccoes = onSnapshot(q, snap => {
     _vapMedir('prospeccoes', snap);
-    _prospLista = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    const _todasProsp = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    _prospListaSdr = _todasProsp.filter(p=>p.fonte==='sdr');
+    // Vendedor/gestor não misturam os contatos de prospecção da SDR no CRM (contadores, gráficos, pendências)
+    _prospLista = cp?.role==='sdr' ? _todasProsp : _todasProsp.filter(p=>p.fonte!=='sdr');
     vapProspAtualizarFiltroMes();
     vapProspRenderTudo();
     // A Carteira exibe o "Resultado do último contato" a partir do histórico do CRM —
@@ -7360,6 +7740,7 @@ function vapProspRenderTudo(){
   vapProspRenderTotais();
   vapProspRenderLista();
   if(!emModoCliente) vapProspRenderGrafico();
+  if(cp?.role==='sdr' && $('prosp-chart-card')) $('prosp-chart-card').style.display = 'none'; // o painel de performance da SDR vem em outra etapa
 }
 
 // Chamado pela Carteira ("Ver histórico") — abre o CRM já filtrado num cliente.
@@ -7388,6 +7769,7 @@ function vapProspRenderLista(){
   const el = $('prosp-list'); if(!el) return;
   const lista = vapProspListaDoMes().slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
   const veTodaEmpresa = prospEhGestor();
+  if(cp?.role==='sdr'){ vapSdrRenderLista(el, lista); return; }
   if(!lista.length){
     const msgVazio = _crmFiltroClienteId ? 'Nenhum lançamento para este cliente ainda.' : 'Nenhum lançamento neste mês.';
     el.innerHTML = `<div class="fcard" style="text-align:center;color:var(--gray)">${msgVazio}</div>`;
@@ -7399,6 +7781,7 @@ function vapProspRenderLista(){
         <div style="font-weight:600">${p.empresa||'—'}${veTodaEmpresa?` <span style="font-weight:400;font-size:.72rem;color:var(--gray)">· ${p.vendedorNome||prospNomeVendedor(p.uid)}</span>`:''}</div>
         <div style="font-size:.78rem;color:var(--gray)">${p.responsavel||'—'} · ${p.segmento||'—'}${p.localSaturacao?' · '+p.localSaturacao:''}${p.tipo?' · '+p.tipo:''}</div>
         ${p.proximoContato?`<div style="font-size:.75rem;color:var(--gray)">Próximo contato: ${cartISOtoBR(p.proximoContato)}</div>`:''}
+        ${p.resumoSdr?`<div style="font-size:.75rem;color:#0369A1">${String(p.resumoSdr).replace(/</g,'&lt;')}</div>`:''}
       </div>
       <span class="badge" style="background:${PROSP_CORES[p.resultado]||'#999'}22;color:${PROSP_CORES[p.resultado]||'#666'}">${p.resultado||'—'}</span>
       <div style="display:flex;gap:6px">
@@ -7512,6 +7895,7 @@ function vapInitProspeccaoUI(){
   $('btn-prosp-pdf') && ($('btn-prosp-pdf').onclick = vapProspBaixarPDF);
   $('btn-prosp-pendencias') && ($('btn-prosp-pendencias').onclick = () => vapAbrirPopupCRM(false));
   $('prosp-filtro-resultado') && ($('prosp-filtro-resultado').onchange = vapProspRenderTudo);
+  $('prosp-resultado') && ($('prosp-resultado').onchange = vapSdrToggleTransf);
   $('prosp-proximo') && ($('prosp-proximo').onchange = () => atualizarProspProximoFmt());
   $('prosp-telefone') && ($('prosp-telefone').oninput = () => cartMaskTelefone($('prosp-telefone')));
   $('prosp-empresa') && ($('prosp-empresa').oninput = vapProspChecarVinculoEmpresa);
@@ -7570,7 +7954,9 @@ function _crmPopupItemHtml(p){
 
 function vapCrmPendenciaClicar(id){
   vapFecharPopupCRM();
-  vapProspEditar(id);
+  const pp = _prospLista.find(x=>x.id===id);
+  if(cp?.role==='sdr' && pp) vapSdrNovoContato(pp.leadId); // SDR não edita: abre o próximo contato do lead
+  else vapProspEditar(id);
 }
 window.vapCrmPendenciaClicar = vapCrmPendenciaClicar;
 
@@ -8398,7 +8784,7 @@ async function vapToggleLetreiro(){
 window.vapToggleLetreiro = vapToggleLetreiro;
 document.getElementById('btn-letreiro-toggle')?.addEventListener('click', vapToggleLetreiro);
 
-function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();vapIniciarListenerCarteira();vapIniciarListenerLetreiro();vapInitProspeccaoUI();vapIniciarListenerProspeccao();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
+function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();if(cp?.role!=='sdr')vapIniciarListenerCarteira();vapIniciarListenerLetreiro();vapInitProspeccaoUI();vapIniciarListenerProspeccao();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
 window.vapIniciarModulos=vapIniciarModulos;</script>
 
 <!-- ══ POP-UP PROMOCIONAL — Boas-vindas Vendedor ═══════════════════════ -->
