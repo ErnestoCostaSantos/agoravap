@@ -80,6 +80,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 .topbar h1{font-size:1.15rem;font-weight:700;letter-spacing:-.5px}
 .role-badge{font-size:.68rem;background:rgba(255,255,255,.18);padding:3px 10px;border-radius:20px;font-weight:600}
 .role-lider{background:rgba(255,215,0,.28)!important;color:#FFD700!important}
+body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda que a SDR não usa (criar campanha, ranking de clientes, registro de venda de promoção) */
 .topbar-right{display:flex;align-items:center;gap:8px}
 .topbar-user{font-size:.83rem;opacity:.85}
 .btn-top{background:rgba(255,255,255,.15);border:none;color:#fff;padding:5px 13px;border-radius:20px;font-family:var(--font);font-size:.78rem;cursor:pointer;transition:background .15s}
@@ -1173,10 +1174,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
     <!-- ════ CAMPANHAS (Líder) ═══════════════════════════════════════════ -->
     <div class="panel" id="panel-campanhas">
       <div class="sec-header" style="margin-bottom:1rem">
-        <div><div class="sec-title">Campanhas</div><div class="sec-sub">Crie e acompanhe campanhas de relacionamento com clientes</div></div>
+        <div><div class="sec-title">Campanhas</div><div class="sec-sub" id="vap-camp-sub">Crie e acompanhe campanhas de relacionamento com clientes</div></div>
       </div>
       <div id="vap-camp-static-wrap"><div class="vap-sec-lbl">Nenhuma campanha criada ainda</div></div>
-      <button class="add-btn" onclick="vapToggleNovaCamp()"><i class="ti ti-plus"></i> Criar nova campanha</button>
+      <button class="add-btn vap-so-gestao" onclick="vapToggleNovaCamp()"><i class="ti ti-plus"></i> Criar nova campanha</button>
       <div id="vap-nova-camp" style="display:none;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:10px">
         <div class="vap-sec-lbl" style="margin-bottom:14px">Nova campanha</div>
         <div style="margin-bottom:12px">
@@ -1220,7 +1221,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       <div id="vap-camp-lista" style="margin-top:12px"></div>
 
       <!-- RANKING DE CLIENTES (visão Líder) -->
-      <div style="margin-top:24px;padding-top:18px;border-top:2px dashed #f5d84a">
+      <div class="vap-so-gestao" style="margin-top:24px;padding-top:18px;border-top:2px dashed #f5d84a">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
           <div style="display:flex;align-items:center;gap:8px">
             <i class="ti ti-trophy" style="font-size:18px;color:#c49b00"></i>
@@ -1384,7 +1385,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
 
       <!-- LANÇAR CLIENTE NO RANKING -->
-      <div style="margin-top:24px;padding-top:18px;border-top:2px dashed #f5d84a">
+      <div class="vap-so-gestao" style="margin-top:24px;padding-top:18px;border-top:2px dashed #f5d84a">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <i class="ti ti-trophy" style="font-size:18px;color:#c49b00"></i>
           <span style="font-size:13px;font-weight:700;color:#7a5f00;letter-spacing:.02em">Ranking de Clientes</span>
@@ -1466,6 +1467,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <p>A plataforma permite centralizar diariamente os registros feitos pelos agentes de vendas, de seus contatos realizados, cotações, pedidos fechados e perdas. Assim, oferece visibilidade em tempo real da performance aos próprios profissionais e ao líder da equipe.</p>
           <p>A <b>versão 4.0</b> adiciona os módulos de <b>Campanhas</b>, <b>Promoções</b>, <b>Ranking de Clientes</b> e <b>Top 10 Clientes</b>, permitindo ao Líder criar ações de relacionamento e ao Vendedor registrar resultados e acompanhar seus principais clientes diariamente.</p>
           <p>Atualizações recentes adicionam o módulo <b>Carteira de Clientes</b> (com importação em massa via agenda, CSV ou VCF) e o novo nível de acesso <b>Master</b>, que enxerga a carteira de todos os vendedores da empresa.</p>
+          <p>Também foi adicionado o perfil <b>SDR</b> (prospecção por telefone): uma profissional que liga para listas externas de empresas, qualifica o interesse e <b>transfere o lead ao vendedor</b>, que passa a acompanhá-lo na própria Carteira e no CRM. Veja o capítulo <b>5.2 — Perfil SDR</b>.</p>
           <div class="help-tip">O sistema é indicado para equipes com ciclo de vendas consultivo, onde o acompanhamento de funil, taxas de conversão e ticket médio são indicadores críticos de performance.</div>
         </div>
         <div class="divider"></div>
@@ -1514,6 +1516,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
             <li><b>Motivos de Perda</b> — Rosca com 12 fatias: 4 grupos de Cotações Perdidas (Carga, Passeio, Óleo, Variadas), cada um dividido em Preço/Estoque/Outras. As 4 famílias de cor batem com as do card de Lançar; a legenda mostra só os 4 grupos e pode ser clicada para esconder/mostrar um grupo inteiro</li>
             <li><b>Contatos por Origem</b> — Barras horizontais com 7 origens</li>
             <li><b>Vendas Perdidas</b> (Líder/Master/SuperAdmin) — Listagem do mês selecionado, respeitando também o Filtro por Vendedor, com as mesmas colunas do relatório (Data, Vendedor, Cliente, Produtos, Razão, Valor). Ordenável por Data, Vendedor ou Valor, com os totais "R$ perdidos no mês" e "Quantidade de perdas" no topo — puxa da mesma lista que cada vendedor já preenche em Lançar &gt; Relatório das 2 Principais Vendas Perdidas por Dia</li>
+            <li><b>Card "SDR — Prospecção por telefone"</b> (Líder/Master/SuperAdmin) — Aparece logo depois de "Motivos de Perda / Contatos por Origem", só em empresas que têm SDR cadastrada. Mostra, no mês selecionado: Internos de Prospecção (do Lançar), Leads novos, Transferidos (e % sobre os leads novos), Vendas (com clientes distintos e conversão acumulada) e Valor vendido informado pela SDR. Com mais de uma SDR, um seletor filtra por pessoa. Abaixo, o <b>alerta</b> lista os leads transferidos há 7 dias ou mais sem nenhum registro do vendedor no CRM. Os lançamentos da SDR <b>não entram</b> nos totais, no ranking nem no filtro de vendedores do Dashboard — têm card próprio.</li>
             <li><b>Relatórios (impressão)</b> (Líder/Master/SuperAdmin) — Botão "Relatórios" abre um modal com duas opções: <i>Toda a equipe</i> (KPIs, Ranking do mês, os 3 gráficos, Ranking de Clientes e a lista de Vendas perdidas do mês ordenada do maior valor para o menor) ou <i>Vendedor específico</i> (mesmos KPIs e gráficos, só que daquele vendedor, mais "Vendas x meta" e a lista de vendas perdidas dele, também ordenada por valor). O relatório sempre segue o mês e o vendedor que estiverem selecionados no Dashboard no momento — se um vendedor estiver filtrado, o modal já abre em "Vendedor específico" com ele marcado. O botão "Gerar e imprimir" abre uma nova aba com o relatório pronto para impressão ou salvar como PDF.</li>
           </ul>
 
@@ -1612,13 +1615,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h4 style="margin:10px 0 4px">Pop-up de Pendências de Hoje</h4>
           <p>Todo dia, ao entrar no sistema, um pop-up de lembrete abre automaticamente logo depois do pop-up de promoções (mesmo em dias sem nenhuma promoção ativa), mostrando os lançamentos com Próximo Contato vencido ou marcado para hoje.</p>
           <ul>
-            <li><b>O que "encerra" uma pendência</b> — Um lançamento deixa de aparecer no lembrete assim que o Resultado é marcado como <b>Vendeu</b>, <b>Sem interesse</b> ou <b>Ctto Inválido</b>, mesmo que a data do Próximo Contato já tenha passado. Os demais resultados (Agendado, Não atendeu, Fez Cotação, Cadastro, Promo via Whats) continuam gerando lembrete até serem atualizados — mas só quando há Próximo Contato preenchido; os lançamentos automáticos de "Promo via Whats" nascem sem data e, por isso, não geram lembrete a menos que você edite o lançamento e informe uma data</li>
+            <li><b>O que "encerra" uma pendência</b> — Um lançamento deixa de aparecer no lembrete assim que o Resultado é marcado como <b>Vendeu</b>, <b>Sem interesse</b> ou <b>Ctto Inválido</b>, mesmo que a data do Próximo Contato já tenha passado. O resultado <b>Transferido</b> (lead recebido de uma SDR) também encerra a pendência. Os demais resultados (Agendado, Não atendeu, Fez Cotação, Cadastro, Promo via Whats) continuam gerando lembrete até serem atualizados — mas só quando há Próximo Contato preenchido; os lançamentos automáticos de "Promo via Whats" nascem sem data e, por isso, não geram lembrete a menos que você edite o lançamento e informe uma data</li>
             <li><b>Sem pendências</b> — Quando não há nada vencido, aparece a frase "Não há pendências agendadas para hoje" por 5 segundos, e o pop-up fecha sozinho</li>
             <li><b>Com pendências</b> — A lista fica até 10 itens visíveis por vez, com rolagem para ver o restante; clicar num item abre o lançamento direto para edição; fecha pelo "✕" no canto superior direito</li>
             <li><b>Visão Líder/Master</b> — Além da própria lista de pendências (mesmo comportamento acima), uma linha extra no rodapé do pop-up mostra "Hoje o time tem X pendências agendadas", somando a empresa toda</li>
             <li><b>Botão "🔔 Pendências de Hoje"</b> — No painel CRM, reabre esse mesmo pop-up a qualquer momento, sem esperar o login do dia</li>
           </ul>
           <div class="help-tip">O pop-up de lembrete abre só 1x por dia por usuário no fluxo automático (mesma lógica do pop-up de promoções); o botão "Pendências de Hoje" sempre mostra a situação atual, a qualquer hora.</div>
+          <h4 style="margin:10px 0 4px">Leads recebidos da SDR</h4>
+          <p>Quando uma SDR transfere um lead para você, o cliente entra na sua <b>Carteira</b> (com as Observações já preenchidas com o histórico dos contatos dela) e aparece no seu CRM uma linha com o Resultado <b>Transferido</b> (azul claro), que mostra o resumo dos contatos 1 a 3. A partir daí o acompanhamento é seu: <b>registre cada contato no CRM</b>. O lançamento <b>Vendeu</b> num cliente que veio da SDR é o que mede a conversão dela — sem esse registro a venda não aparece no painel dela. As linhas de prospecção da própria SDR não aparecem no seu CRM.</p>
         </div>
         <div class="divider"></div>
 
@@ -1660,7 +1665,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h2>4. Módulo Administrativo</h2>
 
           <h3>Profissionais</h3>
-          <p>Cadastre, edite ou remova profissionais. A edição permite alterar Nome, Meta e Perfil (Vendedor/Líder). Ao cadastrar, o profissional recebe automaticamente o <b>companyId</b> da empresa do Líder.</p>
+          <p>Cadastre, edite ou remova profissionais. A edição permite alterar Nome, Meta e Perfil (Vendedor/Líder/SDR). O perfil <b>SDR</b> (prospecção por telefone) é cadastrado aqui como qualquer outro profissional, escolhendo "SDR" em Perfil. Depois do cadastro, o Líder ou o Master precisa abrir o app para a lista de vendedores ficar disponível à SDR na transferência de leads. Ao cadastrar, o profissional recebe automaticamente o <b>companyId</b> da empresa do Líder.</p>
           <div class="help-tip">O perfil <b>Master</b> só aparece como opção para quem está logado como Super Admin — nem Líder, nem o próprio Master, conseguem promover alguém a Master. Ao editar o próprio cadastro, o campo de Perfil fica bloqueado, para evitar rebaixamento acidental.</div>
 
           <h3>Download do histórico do mês anterior</h3>
@@ -1691,6 +1696,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h2>5. Perfis de Acesso</h2>
           <ul>
             <li><b>Vendedor / Profissional</b> — Lança e consulta apenas seus próprios dados. Registra vendas por promoção e clientes no ranking. Gerencia a própria Carteira de Clientes. Abas: Lançar, Histórico, Dashboard, Promoções (inclui Ranking de Clientes), Carteira, Ajuda.</li>
+            <li><b>SDR</b> — Prospecção por telefone para gerar leads qualificados. Lança só os "Internos de Prospecção", registra os contatos dos leads (até 3 por lead) e transfere o lead qualificado ao vendedor. Não acessa Carteira, Histórico, Dashboard nem Administrativo, e não edita nem apaga o que lança. Abas: Lançar, Prospecção, Painel, Campanhas (só consulta), Promoções (só consulta), Ajuda. Detalhes no capítulo 5.2.</li>
             <li><b>Líder</b> — Visualiza dados de toda a equipe, gerencia profissionais, metas e exportações. Cria e gerencia Campanhas e Promoções. Na Carteira de Clientes, porém, é tratado como um vendedor comum: só vê e gerencia a própria carteira, não a dos demais vendedores. Acessa todas as abas (exceto Super Admin).</li>
             <li><b>Master</b> — Nível acima do Líder. Tem todo o acesso do Líder em todos os módulos, e é o único perfil (além do Super Admin) que enxerga e gerencia a <b>Carteira de Clientes de todos os vendedores da empresa</b>, com filtro por vendedor e botão "Limpar Carteira". A promoção de um usuário a Master só pode ser feita pelo Super Admin, para evitar autopromoções em cadeia.</li>
             <li><b>Super Admin</b> — Perfil exclusivo ECS. Gerencia todas as empresas da plataforma e visualiza dados de qualquer empresa.</li>
@@ -1715,6 +1721,78 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
           <h3>Visão Global</h3>
           <p>Cards com totais consolidados: empresas ativas, total de usuários e total de registros.</p>
           <div class="help-tip">Após clicar em "Ver Dados", todos os módulos exibem apenas dados daquela empresa. Para voltar à visão global, faça logout e entre novamente.</div>
+        </div>
+        <div class="divider"></div>
+
+        <!-- 5.2 PERFIL SDR -->
+        <div class="help-section" id="ajuda-sdr">
+          <h2>5.2 Perfil SDR — Prospecção por Telefone</h2>
+          <p>A SDR faz o trabalho de <b>abrir portas</b>: parte de uma lista externa de nomes de empresas, liga, identifica quem tem potencial e <b>transfere o lead qualificado ao vendedor</b>. Dali em diante o lead é do vendedor, que registra tudo no CRM — e é isso que permite medir quantos leads viram venda.</p>
+
+          <h3>5.2.1 O caminho do lead</h3>
+          <ul>
+            <li><b>Fonte externa</b> (lista de nomes) → a SDR liga (<b>Contato 1</b>).</li>
+            <li><b>Sem interesse</b> ou <b>Sem potencial</b> → fim do lead. <b>Ctto Inválido</b> (telefone errado) também encerra.</li>
+            <li><b>Com potencial</b> → segue: ela registra Empresa, Segmento, Bairro, Contato (Decisor ou Influenciador) e WhatsApp/Telefone com DDD, e agenda os próximos contatos (Contato 2 e Contato 3).</li>
+            <li><b>Não qualificado</b> → fim do lead. <b>Qualificado</b> → <b>Transferido</b> (com data e vendedor).</li>
+            <li>A transferência pode acontecer no Contato 1, 2 ou 3. <b>O limite é de 3 contatos por lead</b>; no 3º só é possível transferir ou encerrar.</li>
+          </ul>
+          <p><b>Resultados que a SDR pode escolher:</b> Agendado (retorno marcado — segue) · Não atendeu (segue) · <b>Transferido</b> · Não qualificado · Sem interesse · Sem potencial · Ctto Inválido (estes cinco encerram o lead).</p>
+
+          <h3>5.2.2 Menu da SDR</h3>
+          <p>Lançar · Prospecção · Painel · Campanhas (somente consulta) · Promoções (somente consulta) · Ajuda. A SDR <b>não vê</b> Histórico, Carteira, Dashboard nem Administrativo.</p>
+
+          <h3>5.2.3 Lançar — Internos de Prospecção</h3>
+          <ul>
+            <li>A tela mostra só o campo <b>Internos de Prospecção</b> (quantidade de ligações/contatos do dia).</li>
+            <li><b>Um lançamento por dia.</b> Depois de salvo, o campo e o botão ficam travados — a SDR não edita nem apaga. Para corrigir um erro, ela pede ao Líder.</li>
+            <li>Aceita datas do <b>mês atual e do mês anterior</b> (para recuperar um esquecimento). Datas futuras não são permitidas.</li>
+            <li>Os Internos da SDR não somam nos totais dos vendedores: aparecem no card próprio do Dashboard (visão do Líder) e no Painel da SDR.</li>
+          </ul>
+
+          <h3>5.2.4 Prospecção — registrar os contatos</h3>
+          <p>A aba <b>Prospecção</b> usa o mesmo modal "Novo Lançamento" do CRM, adaptado à SDR.</p>
+          <ul>
+            <li><b>+ Novo Lançamento</b> — cria um <b>novo lead</b> (Contato 1). Campos: Empresa e WhatsApp/Telefone com DDD (obrigatórios), Contato, Segmento, Bairro, Perfil do contato (Decisor/Influenciador), Campanha (opcional), Resultado e Próximo Contato.</li>
+            <li><b>➕ Novo contato</b> — botão no cartão do lead (aparece no último contato de um lead ainda aberto). Abre o modal já preenchido e conta como Contato 2 ou 3. Digitar o nome de um lead aberto em Empresa também continua o mesmo lead.</li>
+            <li>O modal mostra "Contato X de 3 deste lead". No 3º contato as opções "Agendado" e "Não atendeu" somem.</li>
+            <li><b>Telefone repetido</b> — se o telefone já pertence a outro lead dela, o app avisa e não duplica. Antes de ligar para um nome da lista, a SDR confirma com o vendedor se a empresa já é cliente dele.</li>
+            <li><b>Próximo Contato</b> — a data aparece em "🔔 Pendências de Hoje" (e no pop-up diário) como a agenda de retornos da SDR; clicar numa pendência abre o próximo contato daquele lead.</li>
+            <li><b>💬 WhatsApp</b> — abre a conversa; para a SDR não registra nada automaticamente (o registro é pelo botão Salvar).</li>
+            <li>A SDR <b>não edita nem apaga</b> lançamentos; correções ficam com o Líder.</li>
+          </ul>
+
+          <h3>5.2.5 Transferir o lead ao vendedor</h3>
+          <ul>
+            <li>No modal, escolha o Resultado <b>Transferido</b>. Aparece o quadro azul "Transferir lead ao vendedor": escolha o <b>Vendedor</b> e confira a <b>Data da transferência</b> (hoje por padrão; aceita mês atual ou anterior).</li>
+            <li>Para transferir é obrigatório ter Contato, Bairro e Perfil do contato (Decisor/Influenciador) preenchidos.</li>
+            <li>Ao salvar, o app faz tudo de uma vez: cria o cliente na <b>Carteira do vendedor</b> (origem "SDR", com o resumo dos contatos nas Observações), cria no <b>CRM do vendedor</b> uma linha "Transferido" (azul claro) e registra a linha da própria SDR.</li>
+            <li>Os campos que existem só na prospecção (Perfil do contato, número do contato, Campanha) ficam no histórico da SDR; na Carteira entram os campos de cadastro que já existem.</li>
+            <li>Depois de salvo não dá para editar. A SDR <b>não consegue abrir</b> a Carteira do vendedor.</li>
+          </ul>
+
+          <h3>5.2.6 Painel de performance</h3>
+          <p>A aba <b>Painel</b> mostra, por <b>período</b> (De/Até, com atalhos Hoje, Este mês e Mês anterior) e <b>campanha</b> (opcional):</p>
+          <ul>
+            <li><b>Internos de Prospecção</b> — somados do Lançar. Se a quantidade de lançamentos de prospecção for diferente, o card mostra o outro número para conferência. O Lançar não tem campanha: com uma campanha escolhida, este card mostra "—".</li>
+            <li><b>Leads novos</b> (1º contato no período, com quantos ainda estão em andamento) e <b>Leads transferidos</b> (com a taxa sobre os leads novos).</li>
+            <li><b>Vendas</b> — lançamentos "Vendeu" que o vendedor faz no CRM para clientes que vieram desta SDR (com número de clientes distintos e a <b>conversão acumulada</b>: clientes que já compraram ÷ todos os transferidos).</li>
+            <li><b>Valor vendido</b> — informado pela própria SDR (abaixo).</li>
+            <li><b>Funil do período</b> e como terminaram os leads (Transferido, Não qualificado, Sem interesse, Sem potencial, Ctto Inválido, Em andamento).</li>
+          </ul>
+          <p><b>Valor Vendido (R$)</b>: no próprio Painel, a SDR informa Data, Valor e Campanha (opcional). Cada registro soma no dia; o Painel mostra o total por dia. Aceita datas do mês atual e do anterior; depois de salvo não é editado (correção pelo Líder). O valor é <b>informado pela SDR</b> — por isso aparece com essa identificação.</p>
+          <div class="help-tip">As vendas só aparecem no Painel e no Dashboard quando o <b>vendedor registra "Vendeu" no CRM</b> para o cliente que veio da SDR. O CRM do vendedor é obrigatório para a conversão ser medida.</div>
+
+          <h3>5.2.7 Campanhas e Promoções (consulta)</h3>
+          <p>Em <b>Campanhas</b> a SDR vê as campanhas (período, etapas com o texto de cada uma e promoções ligadas) para usar como argumento nas ligações — não cria, edita nem envia nada. Em <b>Promoções</b> vê as promoções ativas; os campos de registro de vendas e o Ranking de Clientes ficam ocultos para ela. O pop-up diário de promoções e o de pendências também abrem para a SDR.</p>
+
+          <h3>5.2.8 Para o Líder e o Master</h3>
+          <ul>
+            <li><b>Cadastro</b> — em Administrativo → Profissionais, perfil "SDR". Depois, abra o app uma vez para a lista de vendedores ficar disponível à SDR.</li>
+            <li><b>Acompanhamento</b> — card "SDR" no Dashboard (funil do mês e alerta de leads transferidos há 7+ dias sem registro do vendedor no CRM).</li>
+            <li><b>Correções</b> — o Líder e o Master podem corrigir os lançamentos da SDR (ela só cria). No Histórico, o lançamento diário de Internos dela aparece com o nome dela.</li>
+          </ul>
+          <div class="help-tip">Resumo da regra de ouro: a SDR <b>só cria</b>. Quem corrige é o Líder; quem acompanha o lead depois da transferência é o vendedor.</div>
         </div>
         <div class="divider"></div>
 
@@ -2957,7 +3035,7 @@ onAuthStateChanged(auth, async user => {
     const tabCamp   = document.getElementById('tab-campanhas');
     const tabPromos = document.getElementById('tab-promocoes');
     const tabPromoV = document.getElementById('tab-promocoes-vendedor');
-    if (tabCamp)   tabCamp.style.display   = (isGestor || isSuperAdm) ? '' : 'none';
+    if (tabCamp)   tabCamp.style.display   = (isGestor || isSuperAdm || isSdr) ? '' : 'none';
     if (tabPromos) tabPromos.style.display  = (isGestor || isSuperAdm) ? '' : 'none';
     if (tabPromoV) tabPromoV.style.display  = (!isGestor && !isSuperAdm) ? '' : 'none';
 
@@ -5918,6 +5996,19 @@ function _vapRenderCampanhas(camps){
   if(sw)sw.style.display=camps.length>0?'none':'block';
   if(camps.length===0){lista.innerHTML='';return;}
   const hoje=new Date();
+  if(cp?.role==='sdr'){
+    // SDR: só consulta — nome, período, etapas com o texto e promoções ligadas à campanha (argumentos para a ligação)
+    lista.innerHTML=camps.map(c=>{
+      const[fd,fm]=(c.fim||'01/01').split('/').map(Number);
+      const ativa=new Date(hoje.getFullYear(),fm-1,fd)>=hoje&&c.status!=='encerrada';
+      const sb=ativa?'<span class="badge badge-ok">Em andamento</span>':'<span class="badge badge-done">Encerrada</span>';
+      const et=(c.etapas||[]).map(e=>`<div style="margin-top:8px"><div style="font-size:12px;font-weight:700">${e.numero}. ${_sdrEsc(e.label)} <span style="font-weight:400;color:#95A5A6">· ${_sdrEsc(e.data||'')}</span></div><div style="font-size:12px;color:#566573;white-space:pre-wrap;margin-top:2px">${_sdrEsc(e.msg||'')}</div></div>`).join('');
+      const pr=(window._vapPromosAtuais||[]).filter(x=>x.campanha===c.nome);
+      const prHtml=pr.length?`<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:10px;font-weight:700;color:#566573;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Promoções desta campanha</div>${pr.map(x=>`<div style="font-size:12px">• ${_sdrEsc(x.nome)}${x.precoPor?` — <b>R$ ${_sdrEsc(x.precoPor)}</b>`:''}${x.validadeFim?` <span style="color:#95A5A6">(até ${_sdrEsc(x.validadeFim)})</span>`:''}</div>`).join('')}</div>`:'';
+      return `<div class="vap-card" style="margin-bottom:10px${!ativa?';opacity:.7':''}"><div class="camp-hd"><div class="camp-name">${_sdrEsc(c.nome)}</div>${sb}</div><div class="camp-meta"><span><i class="ti ti-calendar" style="font-size:13px"></i>${_sdrEsc(c.inicio)} → ${_sdrEsc(c.fim)}</span><span>${_sdrEsc(c.tipoLabel||'')}</span></div>${et}${prHtml}</div>`;
+    }).join('');
+    return;
+  }
   lista.innerHTML=camps.map(c=>{
     const[fd,fm]=c.fim.split('/').map(Number);
     const ativa=new Date(hoje.getFullYear(),fm-1,fd)>=hoje&&c.status!=='encerrada';
@@ -6611,7 +6702,7 @@ function _vapRenderPromosVendedor(promos){
           </div>
 
           <!-- Registro de venda do dia -->
-          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+          <div class="vap-so-gestao" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
             <div style="font-size:10px;font-weight:700;color:#566573;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Minhas vendas desta promoção</div>
             <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:6px">
               <div style="min-width:90px">
@@ -6799,7 +6890,7 @@ function _vapPopupIniciarCarrossel(slides){
 
 async function vapVerificarPopupPromo(){
   try{
-    if(!cp||(cp.role!=='vendedor'&&cp.role!=='lider'&&cp.role!=='master'))return; // vendedor, líder e master recebem o pop-up
+    if(!cp||(cp.role!=='vendedor'&&cp.role!=='lider'&&cp.role!=='master'&&cp.role!=='sdr'))return; // vendedor, líder, master e SDR recebem o pop-up
     const CID=_vapGetCompanyId();if(!CID)return;
     const uid=cu?.uid;if(!uid)return;
 
@@ -7307,6 +7398,10 @@ function vapAplicarPerfilSdrUI(isSdr){
   if($('crm-titulo-txt')) $('crm-titulo-txt').textContent = isSdr ? 'Prospecção' : 'CRM';
   d($('btn-crm-relatorios'), !isSdr);
   d($('tab-sdr-painel'), isSdr);
+  document.body.classList.toggle('vap-sdr', !!isSdr);
+  if($('vap-camp-sub')) $('vap-camp-sub').textContent = isSdr
+    ? 'Campanhas em andamento — só consulta. Use as mensagens e as promoções como argumento nas ligações.'
+    : 'Crie e acompanhe campanhas de relacionamento com clientes';
   const fs = $('prosp-filtro-resultado');
   if(fs){
     const lista = isSdr ? PROSP_RESULTADOS_SDR : PROSP_RESULTADOS;
@@ -8378,7 +8473,7 @@ window.vapFecharPopupCRM = vapFecharPopupCRM;
 // Checagem automática (1x/dia por usuário), chamada depois do pop-up de promoções do dia
 function vapVerificarPopupCRM(){
   try{
-    if(!cp||(cp.role!=='vendedor'&&cp.role!=='lider'&&cp.role!=='master'))return;
+    if(!cp||(cp.role!=='vendedor'&&cp.role!=='lider'&&cp.role!=='master'&&cp.role!=='sdr'))return;
     const uid = cu?.uid; if(!uid) return;
     const chave = 'vapPopupCRMVisto_'+uid;
     if(localStorage.getItem(chave)===tod()) return; // já viu hoje
