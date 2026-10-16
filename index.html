@@ -550,6 +550,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   <div class="nav" id="main-nav">
     <div class="nav-tab active" data-tab="lancar">Lançar</div>
     <div class="nav-tab" data-tab="prospeccao">CRM</div>
+    <div class="nav-tab" data-tab="sdr-painel" id="tab-sdr-painel" style="display:none">Painel</div>
     <div class="nav-tab" data-tab="historico">Histórico</div>
     <div class="nav-tab" data-tab="carteira">Carteira</div>
     <div class="nav-tab" data-tab="dashboard">Dashboard</div>
@@ -892,6 +893,39 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
       </div>
 
       <div id="prosp-list"><div class="loading"><div class="spin"></div> Carregando…</div></div>
+    </div>
+
+    <!-- ════ PAINEL DA SDR ═════════════════════════════════════ -->
+    <div class="panel" id="panel-sdr-painel">
+      <div class="fcard" style="padding:1rem 1.25rem">
+        <div class="fcard-title" style="margin-bottom:.75rem"><span class="bar" style="background:#38BDF8"></span>Meu Painel de Performance</div>
+        <div class="fgrid fg3">
+          <div class="field"><label>De</label><input type="date" id="sdrp-de" style="width:100%"/></div>
+          <div class="field"><label>Até</label><input type="date" id="sdrp-ate" style="width:100%"/></div>
+          <div class="field"><label>Campanha (opcional)</label><select id="sdrp-campanha" style="width:100%"><option value="">Todas</option></select></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:.25rem">
+          <button type="button" class="btn-sec" id="sdrp-hoje">Hoje</button>
+          <button type="button" class="btn-sec" id="sdrp-mes">Este mês</button>
+          <button type="button" class="btn-sec" id="sdrp-mes-ant">Mês anterior</button>
+        </div>
+      </div>
+      <div id="sdrp-kpis"></div>
+      <div class="fcard" id="sdrp-funil-card" style="padding:1rem 1.25rem">
+        <div class="fcard-title" style="margin-bottom:.6rem"><span class="bar" style="background:#38BDF8"></span>Funil do período</div>
+        <div id="sdrp-funil"></div>
+      </div>
+      <div class="fcard" style="padding:1rem 1.25rem">
+        <div class="fcard-title" style="margin-bottom:.6rem"><span class="bar" style="background:#22C55E"></span>Valor Vendido (R$) — informado por mim</div>
+        <div class="fgrid fg3">
+          <div class="field"><label>Data</label><input type="date" id="sdrv-data" style="width:100%"/></div>
+          <div class="field"><label>Valor (R$)</label><input type="text" id="sdrv-valor" inputmode="decimal" placeholder="0,00" style="width:100%"/></div>
+          <div class="field"><label>Campanha (opcional)</label><input type="text" id="sdrv-campanha" list="sdrv-campanha-dl" placeholder="Ex: Lista Outubro" style="width:100%" autocomplete="off"/><datalist id="sdrv-campanha-dl"></datalist></div>
+        </div>
+        <div class="ffooter"><button class="btn-save" id="sdrv-salvar" style="background:#22C55E">Registrar valor</button></div>
+        <div style="font-size:.74rem;color:var(--gray);margin-top:.4rem">Cada registro soma no dia. Depois de salvo não dá para editar — correções ficam com o Líder.</div>
+        <div id="sdrv-lista" style="margin-top:.75rem"></div>
+      </div>
     </div>
 
     <!-- ════ DASHBOARD ════════════════════════════════════════ -->
@@ -2930,6 +2964,7 @@ onAuthStateChanged(auth, async user => {
   } else {
     // Deslogado — volta para tela de login
     cu = null; cp = null; _primeiroUid = null;
+    _sdrValores = []; _sdrValoresCarregado = false; _sdrEquipe = null;
     clearInactivityTimer();
     $('auth-screen').style.display = 'flex';
     $('app').style.display = 'none';
@@ -5445,6 +5480,7 @@ window.switchTab = tab => {
     if(typeof vapProspRenderTudo === 'function') vapProspRenderTudo();
   }
   if(tab==='carteira'){ renderCarteiraLista(); }
+  if(tab==='sdr-painel' && typeof vapSdrPainelAbrir === 'function') vapSdrPainelAbrir();
   if(tab==='superadmin'){ loadEmpresas(); }
   if(tab==='dashboard') renderDashboard();
   if(tab==='admin')     { renderUsersTable(); checkBannerMesAnterior(); }
@@ -7120,6 +7156,7 @@ window.vapIniciarListenerCarteira = vapIniciarListenerCarteira;
 //  coleção seguem "prosp*"/"prospeccoes" por compatibilidade)
 // ══════════════════════════════════════════════════════════
 let _prospLista = [];
+let _prospListaVend = []; // (só SDR) linhas dos vendedores ligadas a ela: "Transferido" e "Vendeu"
 let _prospListaSdr = []; // lançamentos da SDR (fonte 'sdr') — ficam fora do CRM de vendedores/gestores; alimentam o painel da SDR
 let unProspeccoes = null;
 // Quando setado (via "Ver histórico" na Carteira), o CRM entra em modo
@@ -7190,6 +7227,15 @@ async function vapProspSalvar(){
     companyId: CID, uid: cu.uid, vendedorNome: cp?.name || cu?.displayName || '—',
     empresa, responsavel, tipo, segmento, telefone, localSaturacao: local, resultado, proximoContato, clienteId
   };
+  // Cliente que veio de uma SDR: só "Vendeu" e "Transferido" ficam ligados a ela (é o que ela enxerga, para medir a conversão)
+  if(clienteId){
+    const _cc = _cartClientes.find(x=>x.id===clienteId);
+    if(_cc && _cc.origem==='SDR' && _cc.sdrId){
+      const liga = (resultado==='Vendeu' || resultado==='Transferido');
+      payload.sdrId = liga ? _cc.sdrId : '';
+      if(liga) payload.origemLead = 'SDR';
+    }
+  }
   try{
     if(id){
       await updateDoc(doc(db,'prospeccoes',id), payload);
@@ -7253,6 +7299,7 @@ function vapAplicarPerfilSdrUI(isSdr){
   // CRM → "Prospecção" para a SDR
   if($('crm-titulo-txt')) $('crm-titulo-txt').textContent = isSdr ? 'Prospecção' : 'CRM';
   d($('btn-crm-relatorios'), !isSdr);
+  d($('tab-sdr-painel'), isSdr);
   const fs = $('prosp-filtro-resultado');
   if(fs){
     const lista = isSdr ? PROSP_RESULTADOS_SDR : PROSP_RESULTADOS;
@@ -7535,6 +7582,205 @@ function vapSdrRenderLista(el, lista){
   `).join('');
 }
 
+// ══════════════════════════════════════════════════════════
+//  PAINEL DA SDR — por período e campanha (opcional)
+//  Internos de Prospecção (Lançar) · Leads · Transferidos · Vendas (CRM do vendedor) · Valor Vendido (informado por ela)
+//  Dados: lançamentos dela (_prospLista), linhas dos vendedores ligadas a ela (_prospListaVend), records e sdr_valores.
+// ══════════════════════════════════════════════════════════
+let _sdrValores = [];
+let _sdrValoresCarregado = false;
+const _sdrDataLocal = iso => iso ? _isoLocal(new Date(iso)) : '';
+const _sdrEsc = t => String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+
+function _sdrParseValor(txt){
+  let t = String(txt||'').trim().replace(/[^0-9.,]/g,'');
+  if(!t) return 0;
+  if(t.includes(',')) t = t.replace(/\./g,'').replace(',','.'); // 1.234,56 → 1234.56
+  const v = parseFloat(t);
+  return isNaN(v) ? 0 : Math.round(v*100)/100;
+}
+
+async function vapSdrCarregarValores(){
+  if(!cu) return;
+  try{
+    const snap = await getDocs(query(collection(db,'sdr_valores'), where('uid','==',cu.uid)));
+    _sdrValores = snap.docs.map(x=>({id:x.id, ...x.data()}));
+    _sdrValoresCarregado = true;
+  }catch(e){
+    console.error('[SDR] carregar valores:', e);
+    toast('Não foi possível carregar os valores informados.');
+  }
+}
+
+function vapSdrPainelPeriodo(tipo){
+  const hoje = new Date();
+  const ini = d => _isoLocal(d);
+  if(tipo==='hoje'){ $('sdrp-de').value = tod(); $('sdrp-ate').value = tod(); }
+  else if(tipo==='mes'){ $('sdrp-de').value = ini(new Date(hoje.getFullYear(), hoje.getMonth(), 1)); $('sdrp-ate').value = tod(); }
+  else if(tipo==='mes-ant'){
+    $('sdrp-de').value = ini(new Date(hoje.getFullYear(), hoje.getMonth()-1, 1));
+    $('sdrp-ate').value = ini(new Date(hoje.getFullYear(), hoje.getMonth(), 0));
+  }
+  vapSdrPainelRender();
+}
+
+async function vapSdrPainelAbrir(){
+  if(cp?.role!=='sdr') return;
+  if(!$('sdrp-de').value || !$('sdrp-ate').value){
+    $('sdrp-de').value = _isoLocal(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+    $('sdrp-ate').value = tod();
+  }
+  const vd = $('sdrv-data');
+  if(vd){ vd.max = tod(); vd.min = _recsJanelaInicio(); if(!vd.value) vd.value = tod(); }
+  if(!_sdrValoresCarregado) await vapSdrCarregarValores();
+  vapSdrPainelRender();
+}
+window.vapSdrPainelAbrir = vapSdrPainelAbrir;
+
+function vapSdrPainelRender(){
+  const kpis = $('sdrp-kpis'); if(!kpis || !cu) return;
+  const de = $('sdrp-de').value || '0000-00-00', ate = $('sdrp-ate').value || '9999-99-99';
+  const noPeriodo = d => !!d && d >= de && d <= ate;
+
+  // Campanhas conhecidas (lançamentos + valores) — preserva a escolha atual
+  const camps = [...new Set([..._prospLista.map(p=>p.campanha), ..._sdrValores.map(v=>v.campanha)].map(c=>(c||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const selC = $('sdrp-campanha'); const campAtual = selC.value;
+  selC.innerHTML = '<option value="">Todas</option>' + camps.map(c=>`<option value="${_sdrEsc(c)}">${_sdrEsc(c)}</option>`).join('');
+  selC.value = camps.includes(campAtual) ? campAtual : '';
+  const camp = selC.value;
+  const dl = $('sdrv-campanha-dl'); if(dl) dl.innerHTML = camps.map(c=>`<option value="${_sdrEsc(c)}">`).join('');
+  const okCamp = c => !camp || (c||'').trim()===camp;
+
+  // 1) Internos de Prospecção (Lançar) — o Lançar não tem campanha, então com filtro de campanha fica sem valor
+  const internos = _recs.filter(r=>r.uid===cu.uid && r.tipo==='contatos' && noPeriodo(r.date)).reduce((a,r)=>a+(r.prospint||0),0);
+  if(de < _recsDesde && typeof vapGarantirRegistros==='function'){
+    vapGarantirRegistros(de).then(ok=>{ if(ok) vapSdrPainelRender(); });
+  }
+
+  // 2) Lançamentos de prospecção dela no período/campanha (conferência dos Internos)
+  const linhasPer = _prospLista.filter(p=>noPeriodo(_sdrDataLocal(p.criadoEm)) && okCamp(p.campanha));
+
+  // 3) Leads (por leadId): novos = 1º contato dentro do período
+  const leads = vapSdrLeads();
+  const leadsNovos = leads.filter(l=>{
+    const l1 = l.linhas[0]; return l1 && noPeriodo(_sdrDataLocal(l1.criadoEm)) && okCamp(l1.campanha);
+  });
+  const contaFim = r => leadsNovos.filter(l=>l.ultimo.resultado===r).length;
+  const emAndamento = leadsNovos.filter(l=>!l.encerrado).length;
+
+  // 4) Transferidos no período (data da transferência)
+  const transfLinhas = _prospLista.filter(p=>p.resultado==='Transferido' && noPeriodo(p.transferidoEm || _sdrDataLocal(p.criadoEm)) && okCamp(p.campanha));
+
+  // 5) Vendas: linhas "Vendeu" dos vendedores (clientes que vieram desta SDR)
+  const campPorLead = {}; _prospLista.forEach(p=>{ if(p.leadId && p.campanha) campPorLead[p.leadId] = p.campanha; });
+  const vendasTodas = _prospListaVend.filter(p=>p.resultado==='Vendeu');
+  const vendasPer = vendasTodas.filter(p=>noPeriodo(_sdrDataLocal(p.criadoEm)) && okCamp(campPorLead[p.leadId]));
+  const clientesVenda = new Set(vendasPer.map(p=>p.clienteId || p.id)).size;
+  // Conversão acumulada (todos os transferidos x clientes que já compraram) — não depende do período
+  const transfTodos = _prospLista.filter(p=>p.resultado==='Transferido' && okCamp(p.campanha));
+  const compraram = new Set(vendasTodas.filter(p=>okCamp(campPorLead[p.leadId])).map(p=>p.clienteId || p.id)).size;
+  const convAcum = transfTodos.length ? Math.round(compraram/transfTodos.length*100) : 0;
+  const taxaTransf = leadsNovos.length ? Math.round(transfLinhas.length/leadsNovos.length*100) : 0;
+
+  // 6) Valor vendido (informado)
+  const valoresPer = _sdrValores.filter(v=>noPeriodo(v.date) && okCamp(v.campanha));
+  const totalValor = valoresPer.reduce((a,v)=>a+(Number(v.valor)||0),0);
+
+  const card = (rotulo, valor, sub, cor) => `
+    <div class="fcard" style="padding:.8rem 1rem;margin:0;border-top:3px solid ${cor}">
+      <div style="font-size:.72rem;color:var(--gray)">${rotulo}</div>
+      <div style="font-size:1.5rem;font-weight:700;color:${cor}">${valor}</div>
+      <div style="font-size:.72rem;color:var(--gray);min-height:1em">${sub||''}</div>
+    </div>`;
+  const dif = (!camp && internos !== linhasPer.length) ? ` · lançamentos de prospecção: ${linhasPer.length}` : '';
+  kpis.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem;margin:.75rem 0">
+    ${card('Internos de Prospecção', camp ? '—' : internos, camp ? 'O Lançar não tem campanha' : ('Do módulo Lançar' + dif), '#E53E3E')}
+    ${card('Leads novos', leadsNovos.length, emAndamento+' em andamento', '#3B82F6')}
+    ${card('Leads transferidos', transfLinhas.length, taxaTransf+'% dos leads novos', '#38BDF8')}
+    ${card('Vendas', vendasPer.length, clientesVenda+' cliente(s) · conversão acumulada '+convAcum+'%', '#22C55E')}
+    ${card('Valor vendido', fC(totalValor), 'Informado por mim', '#D4AC0D')}
+  </div>`;
+
+  // Funil + motivos de encerramento
+  const maxF = Math.max(leadsNovos.length, 1);
+  const barra = (rotulo, n, cor) => `<div style="display:flex;align-items:center;gap:8px;margin:4px 0;font-size:.8rem">
+      <div style="width:130px;color:var(--gray)">${rotulo}</div>
+      <div style="flex:1;background:#EEF2F6;border-radius:6px;height:16px"><div style="width:${Math.round(n/maxF*100)}%;min-width:${n?4:0}px;height:16px;border-radius:6px;background:${cor}"></div></div>
+      <div style="width:36px;text-align:right;font-weight:600">${n}</div></div>`;
+  const chip = (rotulo,n) => `<span class="badge" style="background:${(PROSP_CORES[rotulo]||'#999')}22;color:${PROSP_CORES[rotulo]||'#666'};margin:2px 4px 2px 0">${rotulo}: ${n}</span>`;
+  $('sdrp-funil').innerHTML =
+    barra('Leads novos', leadsNovos.length, '#3B82F6') +
+    barra('Transferidos', transfLinhas.length, '#38BDF8') +
+    barra('Com venda', clientesVenda, '#22C55E') +
+    `<div style="margin-top:.6rem;font-size:.75rem;color:var(--gray)">Situação dos leads novos do período:</div>
+     <div>${chip('Transferido',contaFim('Transferido'))}${chip('Não qualificado',contaFim('Não qualificado'))}${chip('Sem interesse',contaFim('Sem interesse'))}${chip('Sem potencial',contaFim('Sem potencial'))}${chip('Ctto Inválido',contaFim('Ctto Inválido'))}<span class="badge" style="background:#3B82F622;color:#3B82F6;margin:2px 4px 2px 0">Em andamento: ${emAndamento}</span></div>`;
+
+  // Valores informados no período, somados por dia
+  const lista = $('sdrv-lista');
+  if(lista){
+    if(!valoresPer.length){
+      lista.innerHTML = '<div style="font-size:.8rem;color:var(--gray)">Nenhum valor informado neste período.</div>';
+    } else {
+      const porDia = {};
+      valoresPer.forEach(v=>{ (porDia[v.date] = porDia[v.date] || []).push(v); });
+      lista.innerHTML = Object.keys(porDia).sort().reverse().map(dia=>{
+        const tot = porDia[dia].reduce((a,v)=>a+(Number(v.valor)||0),0);
+        const camps = [...new Set(porDia[dia].map(v=>(v.campanha||'').trim()).filter(Boolean))].join(', ');
+        return `<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--border,#eee);font-size:.82rem">
+          <span>${fD(dia)}${camps?` <span style="color:var(--gray)">· ${_sdrEsc(camps)}</span>`:''} <span style="color:var(--gray)">(${porDia[dia].length} registro${porDia[dia].length>1?'s':''})</span></span>
+          <b>${fC(tot)}</b></div>`;
+      }).join('');
+    }
+  }
+}
+window.vapSdrPainelRender = vapSdrPainelRender;
+
+async function vapSdrSalvarValor(){
+  if(cp?.role!=='sdr' || !cu) return;
+  const CID = _vapGetCompanyId(); if(!CID){ toast('Empresa não identificada.'); return; }
+  const data = $('sdrv-data').value || tod();
+  const valor = _sdrParseValor($('sdrv-valor').value);
+  const campanha = $('sdrv-campanha').value.trim();
+  if(!(valor > 0)){ toast('Informe um valor maior que zero.'); return; }
+  if(data > tod()){ toast('A data não pode ser futura.'); return; }
+  if(data < _recsJanelaInicio()){ toast('Só é possível informar valores do mês atual e do anterior.'); return; }
+  const btn = $('sdrv-salvar'); if(btn) btn.disabled = true;
+  try{
+    await addDoc(collection(db,'sdr_valores'), {
+      companyId: CID, uid: cu.uid, sdrNome: cp?.name || '—',
+      date: data, valor, campanha, criadoEm: new Date().toISOString()
+    });
+    $('sdrv-valor').value = ''; $('sdrv-campanha').value = '';
+    toast('Valor registrado.');
+    await vapSdrCarregarValores();
+    vapSdrPainelRender();
+  }catch(e){
+    console.error('[SDR] salvar valor:', e);
+    toast('Erro ao salvar: ' + (e.message||e.code));
+  }finally{
+    if(btn) btn.disabled = false;
+  }
+}
+window.vapSdrSalvarValor = vapSdrSalvarValor;
+
+(function vapSdrPainelLigar(){
+  const ligar = () => {
+    $('sdrp-de') && ($('sdrp-de').onchange = vapSdrPainelRender);
+    $('sdrp-ate') && ($('sdrp-ate').onchange = vapSdrPainelRender);
+    $('sdrp-campanha') && ($('sdrp-campanha').onchange = vapSdrPainelRender);
+    $('sdrp-hoje') && ($('sdrp-hoje').onclick = () => vapSdrPainelPeriodo('hoje'));
+    $('sdrp-mes') && ($('sdrp-mes').onclick = () => vapSdrPainelPeriodo('mes'));
+    $('sdrp-mes-ant') && ($('sdrp-mes-ant').onclick = () => vapSdrPainelPeriodo('mes-ant'));
+    $('sdrv-salvar') && ($('sdrv-salvar').onclick = vapSdrSalvarValor);
+    const v = $('sdrv-valor');
+    if(v){
+      v.addEventListener('input', function(){ const t = this.value.replace(/[^0-9,.]/g,''); if(this.value!==t) this.value = t; });
+      v.addEventListener('blur', function(){ const n = _sdrParseValor(this.value); this.value = n ? n.toFixed(2).replace('.',',') : ''; });
+    }
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ligar); else ligar();
+})();
+
 // Preenche o <datalist> de sugestão de empresa com os clientes da Carteira
 // visíveis para o usuário atual (mesmo escopo já usado pela Carteira/CRM).
 function vapProspAtualizarDatalistClientes(){
@@ -7650,15 +7896,20 @@ function vapIniciarListenerProspeccao(){
   const veTodaEmpresa = prospEhGestor();
   const q = veTodaEmpresa
     ? query(collection(db,'prospeccoes'), where('companyId','==',CID))
+    : cp?.role==='sdr'
+    ? query(collection(db,'prospeccoes'), where('companyId','==',CID), where('sdrId','==',cu.uid))
     : query(collection(db,'prospeccoes'), where('companyId','==',CID), where('uid','==',cu.uid));
   unProspeccoes = onSnapshot(q, snap => {
     _vapMedir('prospeccoes', snap);
     const _todasProsp = snap.docs.map(d=>({id:d.id, ...d.data()}));
     _prospListaSdr = _todasProsp.filter(p=>p.fonte==='sdr');
     // Vendedor/gestor não misturam os contatos de prospecção da SDR no CRM (contadores, gráficos, pendências)
-    _prospLista = cp?.role==='sdr' ? _todasProsp : _todasProsp.filter(p=>p.fonte!=='sdr');
+    // SDR: o CRM dela mostra só as linhas dela; as linhas dos vendedores ligadas a ela (Transferido/Vendeu) alimentam só o painel
+    _prospListaVend = cp?.role==='sdr' ? _todasProsp.filter(p=>p.fonte!=='sdr') : [];
+    _prospLista = cp?.role==='sdr' ? _todasProsp.filter(p=>p.fonte==='sdr') : _todasProsp.filter(p=>p.fonte!=='sdr');
     vapProspAtualizarFiltroMes();
     vapProspRenderTudo();
+    if(cp?.role==='sdr' && document.querySelector('#panel-sdr-painel.active') && typeof vapSdrPainelRender==='function') vapSdrPainelRender();
     // A Carteira exibe o "Resultado do último contato" a partir do histórico do CRM —
     // atualiza o card dela também, se já estiver carregado.
     if(typeof renderCarteiraLista === 'function') renderCarteiraLista();
