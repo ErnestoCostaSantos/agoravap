@@ -2965,6 +2965,7 @@ onAuthStateChanged(auth, async user => {
     // Deslogado — volta para tela de login
     cu = null; cp = null; _primeiroUid = null;
     _sdrValores = []; _sdrValoresCarregado = false; _sdrEquipe = null;
+    _sdrDashVal.cid = null; _sdrDashVal.t = 0; _sdrDashVal.data = []; window._dashSdrUid = '';
     clearInactivityTimer();
     $('auth-screen').style.display = 'flex';
     $('app').style.display = 'none';
@@ -3743,6 +3744,7 @@ function renderMetricsDia(){
   } else if(!isLider){
     dr = dr.filter(r => r.uid === cu.uid);
   }
+  if(isLider || isSuperAdm){ const _ehSdr = _vapRegSdrFn(); dr = dr.filter(r=>!_ehSdr(r)); }
   const ct  = dr.filter(r => r.tipo === 'contatos');
   const cot = dr.filter(r => r.tipo === 'cotacoes');
 
@@ -4093,6 +4095,8 @@ function renderDashboard(filtroUid){
   } else {
     recs = [..._recs];
   }
+  // Os lançamentos da SDR (Internos de Prospecção) não entram nos totais/ranking dos vendedores — têm card próprio
+  if(isLider || isSuperAdm){ const _ehSdr = _vapRegSdrFn(); recs = recs.filter(r=>!_ehSdr(r)); }
   // Filtro por vendedor (Líder/SuperAdmin)
   const uid_filtro = filtroUid || window._dashFiltroUid || '';
   if((isLider||isSuperAdm) && uid_filtro){
@@ -4248,7 +4252,7 @@ function renderDashboard(filtroUid){
         style="flex:1;min-width:160px;padding:6px 10px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)"
         onchange="window._dashFiltroUid=this.value;if(window.renderDashboard)window.renderDashboard(this.value)">
         <option value="">Todos</option>
-        ${_users.filter(u=>u.companyId===(cp?.companyId||_companyId)&&u.role!=='superadmin').map(u=>`<option value="${u.id}" ${window._dashFiltroUid===u.id?'selected':''}>${u.name}</option>`).join('')}
+        ${_users.filter(u=>u.companyId===(cp?.companyId||_companyId)&&u.role!=='superadmin'&&u.role!=='sdr').map(u=>`<option value="${u.id}" ${window._dashFiltroUid===u.id?'selected':''}>${u.name}</option>`).join('')}
       </select>
       ${window._dashFiltroUid?`<button onclick="window._dashFiltroUid='';if(window.renderDashboard)window.renderDashboard('')"
         style="padding:5px 10px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:#566573;white-space:nowrap">
@@ -4275,6 +4279,8 @@ function renderDashboard(filtroUid){
         <div class="chart-wrap" style="height:180px"><canvas id="ch-orig"></canvas></div>
       </div>
     </div>
+
+    ${(isLider||isSuperAdm)?vapSdrDashCardHtml(mes):''}
 
     ${(isLider||isSuperAdm)?`
     <div class="fcard" style="margin-top:.75rem">
@@ -4623,7 +4629,8 @@ window.gerarRelatorio = async function(){
 
     if(modoEquipe){
       // Reaproveita exatamente os cálculos do Dashboard do Gerente (todos os vendedores, sem filtro)
-      const recsMes = _recs.filter(r=>r.companyId===cid && r.date?.startsWith(mes));
+      const _ehSdrRel = _vapRegSdrFn();
+      const recsMes = _recs.filter(r=>r.companyId===cid && r.date?.startsWith(mes) && !_ehSdrRel(r));
       const cots = recsMes.filter(r=>r.tipo==='cotacoes');
       const cts  = recsMes.filter(r=>r.tipo==='contatos');
       const totPedVal=cots.reduce((a,b)=>a+(b.pedValor||0),0);
@@ -7780,6 +7787,120 @@ window.vapSdrSalvarValor = vapSdrSalvarValor;
   };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ligar); else ligar();
 })();
+
+// ══════════════════════════════════════════════════════════
+//  CARD "SDR" NO DASHBOARD (Líder / Master / SuperAdmin) — funil do mês + alerta de lead sem contato do vendedor
+//  Só aparece em empresas que têm pelo menos uma SDR cadastrada. A SDR usa a aba "Painel" (visão dela).
+// ══════════════════════════════════════════════════════════
+const SDR_ALERTA_DIAS = 7;
+
+// Predicado "este lançamento (records) é da SDR?" — por origem gravada ou por o usuário ter perfil SDR
+function _vapRegSdrFn(){
+  const set = new Set(_users.filter(u=>u.role==='sdr').map(u=>u.id));
+  return r => r.origem==='SDR' || set.has(r.uid);
+}
+
+// Valores informados pelas SDRs da empresa (sdr_valores) — carga leve, em cache por 2 min
+const _sdrDashVal = { cid:null, t:0, busy:false, data:[] };
+async function vapSdrDashCarregarValores(cid){
+  if(!cid || _sdrDashVal.busy) return;
+  if(_sdrDashVal.cid===cid && Date.now()-_sdrDashVal.t < 120000) return;
+  _sdrDashVal.busy = true;
+  try{
+    const snap = await getDocs(query(collection(db,'sdr_valores'), where('companyId','==',cid)));
+    _sdrDashVal.data = snap.docs.map(x=>({id:x.id, ...x.data()}));
+    _sdrDashVal.cid = cid; _sdrDashVal.t = Date.now();
+    if(document.querySelector('#panel-dashboard.active') && typeof renderDashboard==='function') renderDashboard(window._dashFiltroUid||'');
+  }catch(e){
+    console.warn('[SDR] valores da empresa:', e);
+    _sdrDashVal.cid = cid; _sdrDashVal.t = Date.now(); // evita repetir a cada redesenho
+  }finally{
+    _sdrDashVal.busy = false;
+  }
+}
+
+function vapSdrDashCardHtml(mes){
+  const isSuperAdm = cp?.role==='superadmin';
+  const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
+  if(!cid) return '';
+  const sdrs = _users.filter(u=>u.companyId===cid && u.role==='sdr');
+  if(!sdrs.length) return ''; // empresa sem SDR: nada de card vazio
+  vapSdrDashCarregarValores(cid);
+
+  const sel = (window._dashSdrUid && sdrs.some(u=>u.id===window._dashSdrUid)) ? window._dashSdrUid : '';
+  const uids = sel ? [sel] : sdrs.map(u=>u.id);
+  const doMes = iso => (_sdrDataLocal(iso)||'').startsWith(mes);
+
+  // Internos de Prospecção (Lançar) das SDRs no mês
+  const internos = _recs.filter(r=>uids.includes(r.uid) && r.tipo==='contatos' && (r.date||'').startsWith(mes))
+                        .reduce((a,r)=>a+(r.prospint||0),0);
+  // Leads das SDRs (linhas fonte 'sdr'), agrupados por lead
+  const linhas = _prospListaSdr.filter(p=>uids.includes(p.sdrId || p.uid) && p.companyId===cid);
+  const porLead = {};
+  linhas.forEach(p=>{ if(p.leadId) (porLead[p.leadId] = porLead[p.leadId] || []).push(p); });
+  const leadsNovos = Object.keys(porLead).filter(id=>{
+    const primeira = porLead[id].slice().sort((a,b)=>(a.numeroContato||0)-(b.numeroContato||0))[0];
+    return primeira && doMes(primeira.criadoEm);
+  }).length;
+  const transfMes = linhas.filter(p=>p.resultado==='Transferido' && (p.transferidoEm || _sdrDataLocal(p.criadoEm)).startsWith(mes));
+  const transfTodos = linhas.filter(p=>p.resultado==='Transferido');
+  // Vendas = linhas "Vendeu" dos vendedores carimbadas com o sdrId (clientes que vieram da SDR)
+  const vendasTodas = _prospLista.filter(p=>p.sdrId && uids.includes(p.sdrId) && p.resultado==='Vendeu');
+  const vendasMes = vendasTodas.filter(p=>doMes(p.criadoEm));
+  const clientesMes = new Set(vendasMes.map(p=>p.clienteId||p.id)).size;
+  const compraram = new Set(vendasTodas.map(p=>p.clienteId||p.id)).size;
+  const convAcum = transfTodos.length ? Math.round(compraram/transfTodos.length*100) : 0;
+  const taxaTransf = leadsNovos ? Math.round(transfMes.length/leadsNovos*100) : 0;
+  const valor = _sdrDashVal.data.filter(v=>uids.includes(v.uid) && (v.date||'').startsWith(mes)).reduce((a,v)=>a+(Number(v.valor)||0),0);
+
+  // Alerta: lead transferido há ≥ N dias sem nenhum registro do vendedor no CRM
+  const hoje = tod();
+  const dias = (a,b)=>Math.floor((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000);
+  const pend = transfTodos.filter(p=>p.clienteId).map(p=>{
+    const dt = p.transferidoEm || _sdrDataLocal(p.criadoEm);
+    const contatado = _prospLista.some(x=>x.clienteId===p.clienteId && x.resultado!=='Transferido');
+    return { p, dias: dias(dt, hoje), contatado };
+  }).filter(x=>!x.contatado && x.dias>=SDR_ALERTA_DIAS).sort((a,b)=>b.dias-a.dias);
+
+  const cardK = (rot, val, sub, cor) => `
+    <div style="background:var(--white,#fff);border:1px solid var(--border,#eee);border-top:3px solid ${cor};border-radius:10px;padding:.65rem .8rem">
+      <div style="font-size:.7rem;color:var(--gray)">${rot}</div>
+      <div style="font-size:1.25rem;font-weight:700;color:${cor}">${val}</div>
+      <div style="font-size:.7rem;color:var(--gray);min-height:1em">${sub||''}</div>
+    </div>`;
+  const alerta = pend.length ? `
+    <div style="background:#FFF5F5;border:1px solid #FEB2B2;border-left:4px solid #E53E3E;border-radius:8px;padding:.6rem .8rem;margin-top:.75rem">
+      <div style="font-size:.82rem;font-weight:700;color:#C53030">⚠️ ${pend.length} lead${pend.length>1?'s':''} transferido${pend.length>1?'s':''} sem nenhum registro do vendedor no CRM há ${SDR_ALERTA_DIAS}+ dias</div>
+      <div style="margin-top:4px">${pend.slice(0,8).map(x=>`<div style="font-size:.78rem;display:flex;justify-content:space-between;gap:8px;padding:2px 0">
+        <span>${_sdrEsc(x.p.empresa)||'—'} <span style="color:var(--gray)">→ ${_sdrEsc(x.p.vendedorDestinoNome)||'—'}</span></span>
+        <b style="color:#C53030">${x.dias} dias</b></div>`).join('')}
+        ${pend.length>8?`<div style="font-size:.74rem;color:var(--gray)">+ ${pend.length-8} outro(s)</div>`:''}</div>
+    </div>` : `<div style="font-size:.76rem;color:#2F855A;margin-top:.75rem">✔ Todos os leads transferidos já têm registro do vendedor no CRM.</div>`;
+
+  const seletor = sdrs.length>1 ? `
+    <select onchange="window._dashSdrUid=this.value;window.renderDashboard(window._dashFiltroUid||'')"
+      style="padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--border);font-size:12px;background:var(--bg);color:var(--dark)">
+      <option value="">Todas as SDRs</option>
+      ${sdrs.map(u=>`<option value="${u.id}" ${sel===u.id?'selected':''}>${_sdrEsc(u.name)}</option>`).join('')}
+    </select>` : `<span style="font-size:12px;color:#566573">${_sdrEsc(sdrs[0].name)}</span>`;
+
+  return `
+    <div class="fcard" style="margin-top:.75rem">
+      <div class="fcard-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <span><span class="bar" style="background:#38BDF8"></span>SDR — Prospecção por telefone · ${mesExtenso(mes)}</span>
+        ${seletor}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.55rem;margin-top:.6rem">
+        ${cardK('Internos de Prospecção', internos, 'Do módulo Lançar', '#E53E3E')}
+        ${cardK('Leads novos', leadsNovos, '', '#3B82F6')}
+        ${cardK('Transferidos', transfMes.length, taxaTransf+'% dos leads novos', '#38BDF8')}
+        ${cardK('Vendas', vendasMes.length, clientesMes+' cliente(s) · conversão acumulada '+convAcum+'%', '#22C55E')}
+        ${cardK('Valor vendido', fC(valor), 'Informado pela SDR', '#D4AC0D')}
+      </div>
+      ${alerta}
+    </div>`;
+}
+window.vapSdrDashCardHtml = vapSdrDashCardHtml;
 
 // Preenche o <datalist> de sugestão de empresa com os clientes da Carteira
 // visíveis para o usuário atual (mesmo escopo já usado pela Carteira/CRM).
