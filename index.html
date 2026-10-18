@@ -1586,7 +1586,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Busca e filtros</b> — Por nome/responsável, Segmento, Status (Ativo/Inativo) e Resultado do Último Contato</li>
             <li><b>Adicionar / Editar / Excluir</b> — Cadastro manual pelo formulário, ou clique em Editar na lista</li>
             <li><b>Histórico de Relacionamento (CRM)</b> — Dois atalhos na coluna Ações de cada cliente: 🕘 <b>Histórico</b> abre o módulo CRM já filtrado nos lançamentos daquele cliente (do mais recente para o mais antigo), com um aviso "Histórico de: [nome]" mostrando todo o histórico dele, sem recorte de mês. Para sair desse modo, basta abrir a aba CRM novamente pelo menu superior (ela sempre volta à visão geral) ou navegar para outro módulo. O botão "+ Novo Lançamento", usado dentro desse histórico, já abre o lançamento vinculado a esse mesmo cliente, com Empresa/Responsável/Telefone/Segmento pré-preenchidos — igual ao atalho 📝 <b>Lançar</b> da Carteira, que faz o mesmo diretamente da lista. O "Resultado do Último Contato" mostrado na lista passa a refletir automaticamente o lançamento mais recente do histórico assim que existir um, e quando esse resultado é "Vendeu" a Data da Última Compra é atualizada sozinha</li>
-            <li><b>Botão WhatsApp</b> — Abre conversa direta com o cliente a partir do telefone cadastrado e <b>registra automaticamente</b> um lançamento no histórico dele (módulo CRM), Tipo <b>Acompanhamento</b> e Resultado <b>Promo via Whats</b>, em nome do vendedor logado, com Empresa/Responsável/Telefone/Segmento do cadastro e sem Próximo Contato. <b>Havendo promoção ativa</b>, o clique abre antes a janela <b>"Enviar promoção a [cliente]"</b>: escolha a promoção (a primeira já vem marcada) e o AgoraVAP! monta a <b>imagem personalizada</b> daquele cliente — a arte original com uma faixa embaixo, "Preparada para [cliente] · Vendedor(a): [seu nome]". Toque em <b>"Baixar imagem"</b> (se não baixar, toque e segure a prévia e salve), depois em <b>"Abrir WhatsApp"</b> — a conversa já abre com o cliente e o texto da promoção pronto — e anexe a imagem. "Só mensagem" envia apenas a saudação, sem promoção. O nome da promoção fica gravado no campo Local do lançamento ("Promoção: ..."). Se a imagem não puder ser preparada, o envio só do texto continua funcionando; avise o Master. O registro acontece no primeiro "Baixar imagem" ou "Abrir WhatsApp" (uma vez por promoção escolhida) — sem promoção ativa, no momento do clique: o WhatsApp não informa ao AgoraVAP! se a mensagem foi realmente enviada, então ele indica a <i>intenção</i> de contato. Cliques repetidos no mesmo cliente e na mesma promoção em até 1 minuto geram um único registro; promoções diferentes geram registros separados. O "Resultado do Último Contato" da lista passa a mostrar "Promo via Whats" até que um novo lançamento seja feito. Os botões "Enviar por WhatsApp" de Promoções e das etapas de Campanhas não registram nada, pois não têm cliente específico</li>
+            <li><b>Botão WhatsApp</b> — Abre conversa direta com o cliente a partir do telefone cadastrado e <b>registra automaticamente</b> um lançamento no histórico dele (módulo CRM), Tipo <b>Acompanhamento</b> e Resultado <b>Promo via Whats</b>, em nome do vendedor logado, com Empresa/Responsável/Telefone/Segmento do cadastro e sem Próximo Contato. <b>Havendo promoção ativa</b>, o clique abre antes a janela <b>"Enviar promoção a [cliente]"</b>: escolha a promoção (a primeira já vem marcada) e o AgoraVAP! monta a <b>imagem personalizada</b> daquele cliente — a arte original com uma faixa embaixo, "Preparada para [cliente] · Vendedor(a): [seu nome]". Toque em <b>"Baixar imagem"</b> (se não baixar, toque e segure a prévia e salve), depois em <b>"Abrir WhatsApp"</b> — a conversa já abre com o cliente e o texto pronto — "A/C [nome completo do cliente]" (se o nome estiver em branco, usa o Responsável) o nome da promoção e a validade, pois preços e itens já vão na imagem — e anexe a imagem. "Só mensagem" envia apenas a saudação, sem promoção. O nome da promoção fica gravado no campo Local do lançamento ("Promoção: ..."). Se a imagem não puder ser preparada, o envio só do texto continua funcionando; avise o Master. O registro acontece no primeiro "Baixar imagem" ou "Abrir WhatsApp" (uma vez por promoção escolhida) — sem promoção ativa, no momento do clique: o WhatsApp não informa ao AgoraVAP! se a mensagem foi realmente enviada, então ele indica a <i>intenção</i> de contato. Cliques repetidos no mesmo cliente e na mesma promoção em até 1 minuto geram um único registro; promoções diferentes geram registros separados. O "Resultado do Último Contato" da lista passa a mostrar "Promo via Whats" até que um novo lançamento seja feito. Os botões "Enviar por WhatsApp" de Promoções e das etapas de Campanhas não registram nada, pois não têm cliente específico</li>
             <li><b>Importar Contatos</b> — Botão que abre um modal com três formas de importação em massa:
               <ul style="margin-top:6px">
                 <li><b>Agenda do celular</b> — Usa a agenda de contatos do próprio aparelho (só funciona em Chrome/Android; não disponível em iPhone/Safari)</li>
@@ -7304,7 +7304,7 @@ function _vapWppUrl(telefone, msg){
 
 // Abre o WhatsApp só com a saudação (sem promoção) e, se houver ctx, registra "Promo via Whats"
 function _vapWppDireto(telefone, nome, ctx){
-  const msg = `Olá${nome ? ', '+String(nome).split(' ')[0] : ''}! Tudo bem?`;
+  const msg = `${_vapSaudacaoAC(nome)}\n\nTudo bem?`;
   window.open(_vapWppUrl(telefone, msg), '_blank'); // abre antes de qualquer await (evita bloqueio de pop-up)
   if(ctx) vapRegistrarPromoWpp(ctx, telefone);
 }
@@ -7338,8 +7338,8 @@ window.vapRegistrarPromoWpp = vapRegistrarPromoWpp;
 // Botão 💬 da lista do CRM: usa os dados do lançamento como base do novo registro
 function vapAbrirWppProsp(id){
   const p = _prospLista.find(x=>x.id===id); if(!p) return;
-  if(cp?.role==='sdr'){ vapAbrirWppTelefone(p.telefone, p.responsavel||'', null); return; } // SDR: só abre o WhatsApp, sem registrar
-  vapAbrirWppTelefone(p.telefone, p.responsavel||'', {
+  if(cp?.role==='sdr'){ vapAbrirWppTelefone(p.telefone, (p.empresa||p.responsavel||''), null); return; } // SDR: só abre o WhatsApp, sem registrar
+  vapAbrirWppTelefone(p.telefone, (p.empresa||p.responsavel||''), {
     clienteId: p.clienteId||'', empresa: p.empresa, responsavel: p.responsavel||'',
     segmento: p.segmento, tipo: p.tipo==='Outros' ? 'Atualizar/Reativar' : p.tipo
   });
@@ -7364,12 +7364,15 @@ function _vapPromosAtivasEnvio(){
   });
 }
 
-// Mesma mensagem do card de Promoções, com a saudação pelo nome do cliente
+// Saudação "A/C {nome completo}": nome do cliente (Carteira/empresa); se vazio, o Responsável completo (ex.: "Sr. João")
+function _vapSaudacaoAC(nome){
+  const n=String(nome||'').trim();
+  return n?'A/C '+n:'Olá!';
+}
+
+// Texto do envio ao cliente: saudação + nome da promoção + validade (preços e itens já vão na imagem)
 function _vapMsgPromoCliente(p, nome){
-  const itens=(p.servicos||'').split('\n').map(x=>x.trim()).filter(Boolean).map(x=>'• '+x).join('\n');
-  const preco=p.precoDe?`\n\nDe R$ ${p.precoDe} por *R$ ${p.precoPor||'—'}*`:(p.precoPor?`\n\n*R$ ${p.precoPor}*`:'');
-  const prim=nome?', '+String(nome).split(' ')[0]:'';
-  return `Olá${prim}! Tenho uma oferta especial pra você:\n\n*${(p.nome||'').replace(/\*/g,'')}*${itens?'\n'+itens:''}${preco}${p.validadeFim?`\n\nVálido até ${p.validadeFim}.`:''}`;
+  return `${_vapSaudacaoAC(nome)}\n\nTenho uma oferta especial pra você:\n\n*${(p.nome||'').replace(/\*/g,'')}*${p.validadeFim?`\n\nVálido até ${p.validadeFim}.`:''}`;
 }
 
 // Lê a arte completa (exige CORS), acrescenta a faixa personalizada e devolve um Blob JPEG
@@ -7456,7 +7459,7 @@ function _vapPcBaixar(){
 function _vapPcWpp(){
   if(!_pc) return;
   const p=_pc.promos.find(x=>x.id===_pc.sel);
-  const msg=p?_vapMsgPromoCliente(p,_pc.nome):`Olá${_pc.nome?', '+String(_pc.nome).split(' ')[0]:''}! Tudo bem?`;
+  const msg=p?_vapMsgPromoCliente(p,_pc.nome):`${_vapSaudacaoAC(_pc.nome)}\n\nTudo bem?`;
   window.open(_vapWppUrl(_pc.telefone,msg),'_blank'); // síncrono ao clique (evita bloqueio de pop-up)
   _vapPcRegistrar();
 }
@@ -8972,7 +8975,7 @@ function renderCarteiraLista(){
   </table></div>`;
 
   wrap.querySelectorAll('.bx-wpp').forEach(b=>b.onclick=()=>{
-    const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapAbrirWppTelefone(c.telefone, c.nome, {clienteId:c.id, empresa:c.nome, responsavel:c.responsavel||'', segmento:c.segmento});
+    const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapAbrirWppTelefone(c.telefone, (c.nome||c.responsavel||''), {clienteId:c.id, empresa:c.nome, responsavel:c.responsavel||'', segmento:c.segmento});
   });
   wrap.querySelectorAll('.bx-hist').forEach(b=>b.onclick=()=>{
     const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapAbrirHistoricoCliente(c.id, c.nome);
