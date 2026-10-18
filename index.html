@@ -971,6 +971,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
         <div class="nav-tab" data-adm="letreiro">Letreiro</div>
         <div class="nav-tab" data-adm="exportar">Exportar Excel</div>
         <div class="nav-tab" data-adm="logs">Logs</div>
+        <div class="nav-tab" data-adm="uso">Uso do App</div>
       </div>
 
       <!-- Vendedores -->
@@ -1066,6 +1067,21 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <div id="logs-table-wrap" style="overflow-x:auto">
             <div class="empty" style="padding:2rem 0">Clique em "Carregar Logs" para visualizar.</div>
           </div>
+        </div>
+      </div>
+
+      <!-- Uso do App -->
+      <div id="adm-uso" style="display:none">
+        <div class="fcard">
+          <div class="fcard-title"><span class="bar" style="background:#2980B9"></span>Uso do App por profissional</div>
+          <div style="font-size:.78rem;color:var(--gray);margin-bottom:.75rem">Tempo ativo em cada aba: conta só com a tela aberta e em uso. O registro começa na data de publicação desta função.</div>
+          <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:flex-end">
+            <div class="field" style="flex:1;min-width:160px"><label>Profissional</label><select id="uso-user" style="width:100%"><option value="">Todos</option></select></div>
+            <div class="field" style="min-width:140px"><label>De</label><input type="date" id="uso-de" style="width:100%"/></div>
+            <div class="field" style="min-width:140px"><label>Até</label><input type="date" id="uso-ate" style="width:100%"/></div>
+            <button class="btn-save" id="btn-uso-ver" style="white-space:nowrap">Ver relatório</button>
+          </div>
+          <div id="uso-wrap" style="overflow-x:auto"><div class="empty" style="padding:2rem 0">Escolha o período e clique em "Ver relatório".</div></div>
         </div>
       </div>
 
@@ -1687,6 +1703,15 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>WARNING</b> — comportamentos inesperados</li>
             <li><b>ERROR</b> — falhas recuperáveis</li>
             <li><b>CRITICAL</b> — falhas graves</li>
+          </ul>
+          <h3>Uso do App</h3>
+          <p>A aba <b>Uso do App</b> (Administrativo) mostra, por profissional e período, quanto tempo cada pessoa usou o AgoraVAP! e em quais abas. Fica visível para Líder (que acompanha profissionais, SDR e outros Líderes), Master e Super Admin.</p>
+          <ul>
+            <li><b>Tempo ativo</b> — conta só com a aba aberta, a tela visível e movimento nos últimos 3 minutos; aba aberta e abandonada não conta. O registro começa na data de publicação desta função, sem dados anteriores.</li>
+            <li><b>Resumo</b> — dias com uso, sessões, tempo total e média por dia, tempo e número de acessos em cada aba e aparelho (celular ou computador). Escolha o profissional e o período (até 93 dias) e clique em "Ver relatório".</li>
+            <li><b>Atividade já registrada no período</b> — dias com lançamento, registros no CRM, "Promo via Whats" e clientes novos na Carteira. O Líder vê da Carteira só a própria, pois na Carteira ele é tratado como vendedor comum.</li>
+            <li><b>Detalhe por dia</b> — ao escolher um profissional, aparecem o primeiro e o último acesso e o tempo de cada dia, com a divisão por aba.</li>
+            <li><b>Importante</b> — mede só o que acontece dentro do AgoraVAP! (não inclui o que a pessoa faz no WhatsApp ou fora do app). A equipe deve ser informada de que o uso do app é acompanhado (LGPD).</li>
           </ul>
           <div class="help-tip">Apenas Líderes têm acesso ao módulo Administrativo.</div>
         </div>
@@ -2344,7 +2369,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc,
          query, where, orderBy, onSnapshot,
-         doc, setDoc, getDoc, getDocs, writeBatch }
+         doc, setDoc, getDoc, getDocs, writeBatch, increment, arrayUnion, documentId }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -5561,6 +5586,7 @@ $('btn-cancelar-backup') && ($('btn-cancelar-backup').onclick = () => {
 window.switchTab = tab => {
   VapLogger.setTab(tab);
   VapLogger.track('Aba: ' + tab);
+  if(typeof vapUsoTrocouAba==='function') vapUsoTrocouAba(tab);
   document.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   const btn = document.querySelector('[data-tab="'+tab+'"]');
@@ -5602,10 +5628,11 @@ document.querySelectorAll('[data-tab]').forEach(btn=>{
 document.querySelectorAll('[data-adm]').forEach(btn=>{
   btn.onclick=()=>{
     document.querySelectorAll('[data-adm]').forEach(b=>b.classList.remove('active'));
-    ['adm-vendedores','adm-metas','adm-letreiro','adm-exportar','adm-logs'].forEach(id=>$(id).style.display='none');
+    ['adm-vendedores','adm-metas','adm-letreiro','adm-exportar','adm-logs','adm-uso'].forEach(id=>$(id).style.display='none');
     btn.classList.add('active');
     $('adm-'+btn.dataset.adm).style.display='block';
     if(btn.dataset.adm==='letreiro' && typeof vapCarregarLetreiroAdmin==='function') vapCarregarLetreiroAdmin();
+    if(btn.dataset.adm==='uso') vapUsoPrepararFiltros();
   };
 });
 
@@ -5729,6 +5756,232 @@ async function loadLogs(){
 }
 
 $('btn-load-logs') && ($('btn-load-logs').onclick = loadLogs);
+
+// ── Uso do App: tempo ativo por aba ──────────────────────────────────────────────────────────────────
+// Coleção `uso_abas`: um documento por profissional por dia (id "AAAA-MM-DD_uid") com segundos ativos por aba,
+// nº de acessos por aba, início das sessões, último acesso e aparelho. Só conta com a tela visível e com
+// movimento nos últimos 3 min (aba aberta e abandonada não conta). Grava no máximo 1x por minuto de uso e ao
+// esconder/fechar a página. Falha em silêncio (nunca atrapalha o uso do app). Mede só o que acontece dentro do app.
+const VAP_USO_IDLE_MS = 3*60*1000, VAP_USO_TICK_S = 5, VAP_USO_FLUSH_MS = 60*1000;
+const VAP_USO_COLS = [['lancar','Lançar'],['prospeccao','CRM'],['carteira','Carteira'],['historico','Histórico'],['dashboard','Dashboard'],['promocoes','Promoções'],['campanhas','Campanhas']];
+const VAP_USO_NOMES = {ajuda:'Ajuda', admin:'Administrativo', sdr_painel:'Painel SDR'};
+let _uso = null, _usoGlobais = false;
+
+function _vapUsoChave(tab){
+  if(tab==='promocoes-vendedor') return 'promocoes';
+  if(tab==='sdr-painel') return 'sdr_painel';
+  return tab;
+}
+function _vapUsoDisp(){ return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'celular' : 'computador'; }
+function _vapUsoContar(tab){
+  if(!_uso) return;
+  const dia=tod(); const a=_uso.acess[dia]||(_uso.acess[dia]={});
+  a[tab]=(a[tab]||0)+1;
+}
+
+function vapUsoIniciar(){
+  if(!cu || !cp || cp.role==='superadmin') return;
+  if(_uso && _uso.uid===cu.uid) return;
+  if(_uso) vapUsoGravar(); // troca de usuário: tenta gravar o pendente do anterior
+  _uso = { uid:cu.uid, nome:cp.name||'', role:cp.role||'', cid:_vapGetCompanyId()||cp.companyId||'',
+           tab:_vapUsoChave(document.querySelector('.nav-tab.active[data-tab]')?.dataset.tab||'lancar'),
+           ultAtiv:Date.now(), pend:{}, acess:{}, inicioSessao:new Date().toISOString(), diaInicio:tod(), sessaoGravada:false, falhas:0 };
+  _vapUsoContar(_uso.tab);
+  if(_usoGlobais) return;
+  _usoGlobais = true;
+  ['mousemove','keydown','click','touchstart','scroll'].forEach(ev=>window.addEventListener(ev,()=>{ if(_uso) _uso.ultAtiv=Date.now(); },{passive:true,capture:true}));
+  setInterval(vapUsoTick, VAP_USO_TICK_S*1000);
+  setInterval(vapUsoGravar, VAP_USO_FLUSH_MS);
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') vapUsoGravar(); });
+  window.addEventListener('pagehide', vapUsoGravar);
+}
+window.vapUsoIniciar = vapUsoIniciar;
+
+function vapUsoTrocouAba(tab){
+  if(!_uso) return;
+  const k=_vapUsoChave(tab);
+  if(k===_uso.tab) return;
+  _uso.tab=k;
+  _vapUsoContar(k);
+}
+window.vapUsoTrocouAba = vapUsoTrocouAba;
+
+function vapUsoTick(){
+  if(!_uso || !cu || cu.uid!==_uso.uid) return;
+  if(document.visibilityState!=='visible') return;
+  if(Date.now()-_uso.ultAtiv > VAP_USO_IDLE_MS) return;
+  const dia=tod(); const d=_uso.pend[dia]||(_uso.pend[dia]={});
+  d[_uso.tab]=(d[_uso.tab]||0)+VAP_USO_TICK_S;
+}
+
+async function vapUsoGravar(){
+  const u=_uso; if(!u) return;
+  const dias=[...new Set([...Object.keys(u.pend),...Object.keys(u.acess)])];
+  if(!dias.length) return;
+  const pend=u.pend, acess=u.acess;
+  u.pend={}; u.acess={};
+  try{
+    for(const dia of dias){
+      const abas={}, acessos={};
+      Object.entries(pend[dia]||{}).forEach(([t,sg])=>{ abas[t]=increment(sg); });
+      Object.entries(acess[dia]||{}).forEach(([t,n])=>{ acessos[t]=increment(n); });
+      const dados={ uid:u.uid, nome:u.nome, role:u.role, companyId:u.cid, dia, ultimo:new Date().toISOString(), disp:arrayUnion(_vapUsoDisp()) };
+      if(Object.keys(abas).length) dados.abas=abas;
+      if(Object.keys(acessos).length) dados.acessos=acessos;
+      if(!u.sessaoGravada && dia===u.diaInicio) dados.sessoes=arrayUnion(u.inicioSessao);
+      await setDoc(doc(db,'uso_abas',dia+'_'+u.uid), dados, {merge:true});
+      if(dados.sessoes) u.sessaoGravada=true;
+    }
+  }catch(e){
+    u.falhas++;
+    if(u.falhas<=2) console.warn('[VAP uso] não foi possível gravar o uso do app:',e.message);
+  }
+}
+window.vapUsoGravar = vapUsoGravar;
+
+// ── Relatório "Uso do App" (Administrativo → Uso do App) ────────────────────────────────────────────
+function _vapFmtDur(sg){
+  sg=Math.round(sg||0);
+  if(sg<=0) return '0';
+  if(sg<60) return sg+'s';
+  const m=Math.floor(sg/60);
+  if(m<60) return m+'min';
+  return Math.floor(m/60)+'h'+String(m%60).padStart(2,'0');
+}
+function _vapUsoVisiveis(){ // quem o usuário atual pode acompanhar: Líder não vê Master
+  const verMaster = cp?.role==='master' || cp?.role==='superadmin';
+  return _users.filter(u=>u.role!=='superadmin' && (verMaster || u.role!=='master'));
+}
+function vapUsoPrepararFiltros(){
+  const esc=t=>String(t==null?'':t).replace(/</g,'&lt;');
+  const sel=$('uso-user');
+  if(sel){
+    const cur=sel.value;
+    sel.innerHTML='<option value="">Todos</option>'+_vapUsoVisiveis().slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''))
+      .map(u=>`<option value="${u.id}">${esc(u.name||u.id)}${u.role==='sdr'?' (SDR)':''}</option>`).join('');
+    sel.value=cur;
+  }
+  if($('uso-ate') && !$('uso-ate').value) $('uso-ate').value=tod();
+  if($('uso-de') && !$('uso-de').value){ const d=new Date(); d.setDate(d.getDate()-6); $('uso-de').value=_isoLocal(d); }
+}
+window.vapUsoPrepararFiltros = vapUsoPrepararFiltros;
+
+async function vapUsoVerRelatorio(){
+  const wrap=$('uso-wrap'); if(!wrap) return;
+  if(!(cp?.role==='lider'||cp?.role==='master'||cp?.role==='superadmin')) return;
+  const de=$('uso-de').value, ate=$('uso-ate').value, uidSel=$('uso-user').value;
+  if(!de||!ate){ toast('Informe o período.'); return; }
+  if(de>ate){ toast('A data inicial é maior que a final.'); return; }
+  if((new Date(ate)-new Date(de))/86400000 > 92){ toast('Escolha um período de até 93 dias.'); return; }
+  const CID=_vapGetCompanyId(); if(!CID) return;
+  const esc=t=>String(t==null?'':t).replace(/</g,'&lt;');
+  const verMaster = cp.role==='master' || cp.role==='superadmin';
+  wrap.innerHTML='<div class="empty" style="padding:2rem 0">Carregando...</div>';
+  try{
+    VapLogger.track('Relatório uso do app', { de, ate, uidSel });
+    // 1) Uso registrado (uso_abas). A consulta por faixa de id evita índice composto; se falhar, filtra no navegador.
+    let docs;
+    try{
+      const snap=await getDocs(query(collection(db,'uso_abas'),where('companyId','==',CID),where(documentId(),'>=',de+'_'),where(documentId(),'<=',ate+'_\uf8ff')));
+      docs=snap.docs.map(d=>d.data());
+    }catch(e){
+      console.warn('[VAP uso] consulta por faixa indisponível, usando a empresa toda:',e.message);
+      const snap=await getDocs(query(collection(db,'uso_abas'),where('companyId','==',CID)));
+      docs=snap.docs.map(d=>d.data()).filter(d=>d.dia>=de && d.dia<=ate);
+    }
+    docs=docs.filter(d=>d.role!=='superadmin' && (verMaster || d.role!=='master') && (!uidSel || d.uid===uidSel));
+
+    const por={};
+    docs.forEach(d=>{
+      const a=por[d.uid]||(por[d.uid]={dias:new Set(),sess:0,seg:0,abas:{},acess:{},disp:new Set(),porDia:[]});
+      a.dias.add(d.dia);
+      let segDia=0;
+      Object.entries(d.abas||{}).forEach(([t,sg])=>{ a.abas[t]=(a.abas[t]||0)+sg; segDia+=sg; });
+      Object.entries(d.acessos||{}).forEach(([t,n])=>{ a.acess[t]=(a.acess[t]||0)+n; });
+      a.seg+=segDia; a.sess+=(d.sessoes||[]).length;
+      (d.disp||[]).forEach(x=>a.disp.add(x));
+      a.porDia.push({dia:d.dia, primeiro:(d.sessoes||[]).slice().sort()[0]||'', ultimo:d.ultimo||'', seg:segDia, abas:d.abas||{}});
+    });
+
+    // 2) Atividade já registrada no período (dados que o app já guarda)
+    await vapGarantirRegistros(de);
+    const dentro=iso=>!!iso && iso>=de && iso<=ate;
+    const loc=ts=>ts?_isoLocal(new Date(ts)):'';
+    const ativ={}; const A=uid=>ativ[uid]||(ativ[uid]={dias:new Set(),crm:0,promo:0,cart:0});
+    _recs.forEach(r=>{ if(r.uid && dentro(r.date)) A(r.uid).dias.add(r.date); });
+    const vistos=new Set();
+    [..._prospLista,..._prospListaSdr].forEach(pp=>{
+      if(!pp.uid || vistos.has(pp.id)) return; vistos.add(pp.id);
+      if(!dentro(loc(pp.criadoEm))) return;
+      if(pp.resultado==='Transferido' && pp.fonte!=='sdr') return; // linha criada pela SDR no CRM do vendedor
+      if(pp.resultado==='Promo via Whats') A(pp.uid).promo++; else A(pp.uid).crm++;
+    });
+    (_cartClientes||[]).forEach(c=>{ if(c.uid && c.origem!=='SDR' && dentro(loc(c.criadoEm))) A(c.uid).cart++; });
+    const cartLimitada = cp.role==='lider'; // na Carteira o Líder só enxerga a própria
+
+    // 3) Monta a tabela
+    const pessoas=_vapUsoVisiveis().filter(u=>!uidSel||u.id===uidSel).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    const vazio={dias:new Set(),sess:0,seg:0,abas:{},acess:{},disp:new Set(),porDia:[]};
+    const outrasSeg=ab=>Object.entries(ab).filter(([t])=>!VAP_USO_COLS.some(c=>c[0]===t)).reduce((x,[,v])=>x+v,0);
+    const cel=(sg,n)=>sg>0?`${_vapFmtDur(sg)} <span style="color:var(--gray)">· ${n||0}x</span>`:'<span style="color:#bbb">—</span>';
+    const td='padding:6px 8px;border-bottom:1px solid #f0f0f0;white-space:nowrap';
+    const th='padding:6px 8px;text-align:left;white-space:nowrap';
+    const tot={dias:0,sess:0,seg:0};
+    const linhas=pessoas.map(u=>{
+      const a=por[u.id]||vazio;
+      tot.dias+=a.dias.size; tot.sess+=a.sess; tot.seg+=a.seg;
+      const media=a.dias.size?a.seg/a.dias.size:0;
+      return `<tr><td style="${td};font-weight:600">${esc(u.name||u.id)}${u.role==='sdr'?' <span style="color:var(--gray);font-weight:400">(SDR)</span>':''}</td>
+        <td style="${td}">${a.dias.size}</td><td style="${td}">${a.sess}</td>
+        <td style="${td};font-weight:700">${_vapFmtDur(a.seg)}</td><td style="${td}">${_vapFmtDur(media)}</td>
+        ${VAP_USO_COLS.map(c=>`<td style="${td}">${cel(a.abas[c[0]]||0,a.acess[c[0]])}</td>`).join('')}
+        <td style="${td}">${outrasSeg(a.abas)>0?_vapFmtDur(outrasSeg(a.abas)):'<span style="color:#bbb">—</span>'}</td>
+        <td style="${td}">${[...a.disp].join(' / ')||'<span style="color:#bbb">—</span>'}</td></tr>`;
+    }).join('');
+    const semUso=!docs.length;
+
+    const ativLinhas=pessoas.map(u=>{
+      const a=ativ[u.id]||{dias:new Set(),crm:0,promo:0,cart:0};
+      const cartTxt=(cartLimitada && u.id!==cu.uid)?'<span style="color:#bbb" title="Na Carteira o Líder só enxerga a própria">—</span>':a.cart;
+      return `<tr><td style="${td};font-weight:600">${esc(u.name||u.id)}</td><td style="${td}">${a.dias.size}</td><td style="${td}">${a.crm}</td><td style="${td}">${a.promo}</td><td style="${td}">${cartTxt}</td></tr>`;
+    }).join('');
+
+    let detalhe='';
+    if(uidSel && por[uidSel]){
+      const hh=iso=>iso?new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
+      const lin=por[uidSel].porDia.sort((x,y)=>x.dia<y.dia?-1:1).map(d=>{
+        const abasTxt=Object.entries(d.abas).sort((x,y)=>y[1]-x[1]).map(([t,sg])=>`${(VAP_USO_COLS.find(c=>c[0]===t)||[t,VAP_USO_NOMES[t]||t])[1]} ${_vapFmtDur(sg)}`).join(' · ');
+        return `<tr><td style="${td}">${fD(d.dia)}</td><td style="${td}">${hh(d.primeiro)}</td><td style="${td}">${hh(d.ultimo)}</td><td style="${td};font-weight:700">${_vapFmtDur(d.seg)}</td><td style="${td};white-space:normal">${abasTxt||'—'}</td></tr>`;
+      }).join('');
+      detalhe=`<div style="font-weight:700;margin:1.25rem 0 .5rem">Detalhe por dia</div>
+        <table style="width:100%;border-collapse:collapse;font-size:.8rem"><thead><tr style="background:var(--r);color:#fff"><th style="${th}">Dia</th><th style="${th}">Primeiro acesso</th><th style="${th}">Último acesso</th><th style="${th}">Tempo ativo</th><th style="${th}">Por aba</th></tr></thead><tbody>${lin}</tbody></table>`;
+    }
+
+    wrap.innerHTML=`
+      ${semUso?'<div style="background:#FFF7E6;border:1px solid #FCD9A0;border-radius:8px;padding:8px 12px;margin-bottom:.75rem;font-size:.8rem;color:#92580B">Nenhum uso registrado neste período. O registro começa na data de publicação desta função.</div>':''}
+      <div style="font-weight:700;margin-bottom:.5rem">Uso do app — ${fD(de)} a ${fD(ate)}</div>
+      <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+        <thead><tr style="background:var(--r);color:#fff"><th style="${th}">Profissional</th><th style="${th}">Dias com uso</th><th style="${th}">Sessões</th><th style="${th}">Tempo ativo</th><th style="${th}">Média/dia</th>
+          ${VAP_USO_COLS.map(c=>`<th style="${th}">${c[1]}</th>`).join('')}<th style="${th}">Outras</th><th style="${th}">Aparelho</th></tr></thead>
+        <tbody>${linhas}
+          <tr style="background:#F6F8FA;font-weight:700"><td style="${td}">Total</td><td style="${td}">${tot.dias}</td><td style="${td}">${tot.sess}</td><td style="${td}">${_vapFmtDur(tot.seg)}</td><td colspan="${VAP_USO_COLS.length+3}" style="${td}"></td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:.72rem;color:var(--gray);margin:.4rem 0 1.25rem">Nas colunas das abas: tempo ativo · número de acessos. Tempo ativo = aba aberta, tela visível e movimento nos últimos 3 minutos.</div>
+      <div style="font-weight:700;margin-bottom:.5rem">Atividade já registrada no período</div>
+      <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+        <thead><tr style="background:var(--r);color:#fff"><th style="${th}">Profissional</th><th style="${th}">Dias com lançamento</th><th style="${th}">Registros no CRM</th><th style="${th}">Promo via Whats</th><th style="${th}">Clientes novos na Carteira</th></tr></thead>
+        <tbody>${ativLinhas}</tbody>
+      </table>
+      ${cartLimitada?'<div style="font-size:.72rem;color:var(--gray);margin-top:.4rem">Na Carteira o Líder enxerga apenas a própria; os dados dos demais ficam com o Master.</div>':''}
+      ${detalhe}`;
+  }catch(err){
+    VapLogger.error('Erro no relatório de uso', { msg: err.message });
+    wrap.innerHTML='<div class="empty" style="padding:2rem 0;color:#C53030">Erro ao carregar o relatório: '+esc(err.message)+'</div>';
+  }
+}
+window.vapUsoVerRelatorio = vapUsoVerRelatorio;
+$('btn-uso-ver') && ($('btn-uso-ver').onclick = vapUsoVerRelatorio);
 $('btn-export-session-log') && ($('btn-export-session-log').onclick = () => {
   VapLogger.info('Download log sessão solicitado');
   VapLogger.exportSession();
@@ -9520,7 +9773,7 @@ async function vapToggleLetreiro(){
 window.vapToggleLetreiro = vapToggleLetreiro;
 document.getElementById('btn-letreiro-toggle')?.addEventListener('click', vapToggleLetreiro);
 
-function vapIniciarModulos(){vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();if(cp?.role!=='sdr')vapIniciarListenerCarteira();vapIniciarListenerLetreiro();vapInitProspeccaoUI();vapIniciarListenerProspeccao();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
+function vapIniciarModulos(){vapUsoIniciar();vapInitPromoForm();vapInitRankClientes();vapIniciarListenerCampanhas();vapIniciarListenerPromos();vapIniciarListenerVendasPromo();if(cp?.role!=='sdr')vapIniciarListenerCarteira();vapIniciarListenerLetreiro();vapInitProspeccaoUI();vapIniciarListenerProspeccao();setTimeout(()=>{vapCarregarRankingLider();vapCarregarRankingVendedor();vapCarregarArteTop10();},400);console.log('[VAP] Módulos iniciados — empresa:',_vapGetCompanyId());}
 window.vapIniciarModulos=vapIniciarModulos;</script>
 
 <!-- ══ POP-UP PROMOCIONAL — Boas-vindas Vendedor ═══════════════════════ -->
