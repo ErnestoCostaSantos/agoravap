@@ -1542,7 +1542,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Tipos</b> — Simples (3 etapas), VIP (3 etapas com oferta exclusiva), Flash (2 etapas)</li>
             <li><b>Etapas automáticas</b> — Datas calculadas proporcionalmente entre início e fim da campanha</li>
             <li><b>WhatsApp</b> — Botão abre o app com mensagem pré-preenchida da etapa</li>
-            <li><b>Imagem da promoção</b> — <b>Somente Master e SuperAdmin</b> veem a arte em tamanho real e o botão "Baixar imagem"; Líder e demais perfis veem apenas uma miniatura de consulta (com a marca "SOMENTE CONSULTA"), e a arte chega ao cliente pelo WhatsApp da Carteira/CRM, personalizada. Os passos abaixo valem para Master/SuperAdmin. Se a campanha tiver uma Promoção vinculada (mesmo nome no campo "Campanha" ao criar a promoção) com imagem cadastrada, cada etapa pendente mostra uma miniatura da imagem e um botão "Baixar imagem". O WhatsApp não permite anexar imagem automaticamente por link, então o envio é feito em 2 etapas — baixar a imagem e anexar manualmente no WhatsApp. Passo a passo completo:
+            <li><b>Imagem da promoção</b> — <b>Somente Master e SuperAdmin</b> veem a arte em tamanho real e o botão "Baixar imagem"; Líder e demais perfis veem apenas uma miniatura de consulta (com a marca "SOMENTE CONSULTA"; toque nela para ampliar, sem baixar), e a arte chega ao cliente pelo WhatsApp da Carteira/CRM, personalizada. Os passos abaixo valem para Master/SuperAdmin. Se a campanha tiver uma Promoção vinculada (mesmo nome no campo "Campanha" ao criar a promoção) com imagem cadastrada, cada etapa pendente mostra uma miniatura da imagem e um botão "Baixar imagem". O WhatsApp não permite anexar imagem automaticamente por link, então o envio é feito em 2 etapas — baixar a imagem e anexar manualmente no WhatsApp. Passo a passo completo:
               <ol style="margin-top:6px;padding-left:20px">
                 <li>Clique em <b>"Baixar imagem"</b>, ao lado da miniatura da etapa. A imagem é salva no computador/celular (um alerta confirma o download).</li>
                 <li>Se o download não cair automaticamente (mais comum em iPhone), toque e segure a miniatura na tela e escolha "Salvar imagem".</li>
@@ -1566,8 +1566,8 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Líder</b> — Vê total vendido por promoção e breakdown por vendedor ao expandir o card</li>
             <li><b>Líder</b> — <b>Interromper promoção</b> — Botão ao lado de "Apagar promoção" pausa a promoção sem excluí-la: ela some da lista do Vendedor e do pop-up de boas-vindas, mas o histórico de vendas registradas continua intacto. O botão vira "Retomar promoção" enquanto pausada, e um selo "⏸ Pausada" aparece no card. Use quando quiser interromper temporariamente uma promoção para retomar depois, sem perder os dados já lançados.</li>
             <li><b>Líder/Master</b> — <b>Minhas vendas acumuladas (R$)</b> — Como Líder e Master também podem ter metas próprias, o card de gestão de cada promoção ganhou, ao lado dos botões "Interromper"/"Apagar", um campo para lançar as próprias vendas daquela promoção: "Minhas vendas acumuladas (R$)" (somente leitura) + campo "Nova venda (R$)" + botão "Adicionar" — mesmo mecanismo usado pelo Vendedor. O nome do Líder/Master passa a aparecer junto no "Vendas por vendedor" do mesmo card, somado normalmente com o resto da equipe.</li>
-            <li><b>Assistir à mídia</b> — Nos cards de Promoções (Líder e Vendedor), promoções com imagem mostram a miniatura (clique para ampliar — disponível só para Master e SuperAdmin; os demais perfis veem uma miniatura de consulta, sem ampliar); promoções com vídeo mostram uma miniatura escura com ícone de play — clique para assistir com controles normais, em um modal compartilhado com a visualização de imagem</li>
-            <li><b>Master/SuperAdmin</b> — <b>Miniaturas de consulta</b> — Ao publicar uma promoção com imagem, o app gera automaticamente uma miniatura de baixa resolução com a marca "SOMENTE CONSULTA": é a única versão que Vendedor, Líder e SDR veem (nas listas e no pop-up), sem ampliar nem baixar. Para promoções antigas, aparece um aviso no topo da lista de gestão com o botão "Gerar miniaturas". Isso depende do acesso do Storage (CORS) estar configurado — sem ele, o app não consegue ler as imagens para gerar miniaturas nem as imagens personalizadas por cliente. O Master também ganha o botão "Baixar imagem" no detalhe da promoção.</li>
+            <li><b>Assistir à mídia</b> — Nos cards de Promoções (Líder e Vendedor), promoções com imagem mostram a miniatura (clique para ampliar — disponível só para Master e SuperAdmin; os demais perfis tocam na miniatura de consulta para ampliá-la, ainda com a marca e sem baixar); promoções com vídeo mostram uma miniatura escura com ícone de play — clique para assistir com controles normais, em um modal compartilhado com a visualização de imagem</li>
+            <li><b>Master/SuperAdmin</b> — <b>Miniaturas de consulta</b> — Ao publicar uma promoção com imagem, o app gera automaticamente uma miniatura de baixa resolução com a marca "SOMENTE CONSULTA": é a única versão que Vendedor, Líder e SDR veem (nas listas e no pop-up); tocando na miniatura ela abre ampliada, com a marca, sem baixar. Para promoções antigas, aparece um aviso no topo da lista de gestão com o botão "Gerar miniaturas". Isso depende do acesso do Storage (CORS) estar configurado — sem ele, o app não consegue ler as imagens para gerar miniaturas nem as imagens personalizadas por cliente. O Master também ganha o botão "Baixar imagem" no detalhe da promoção.</li>
             <li><b>Pop-up de boas-vindas</b> — Ao criar a promoção, o Líder pode ativar o toggle "Pop-up de boas-vindas". Promoções marcadas aparecem automaticamente para Vendedor, Líder e Master, uma vez por dia (no primeiro login), mostrando a promoção mais recente e ainda válida com essa marcação. Se for vídeo, o pop-up abre pausado (autoplay com som é bloqueado por navegadores mobile) — é preciso dar play manualmente, e o botão de fechar (✕) só é liberado depois que o vídeo termina de tocar. Se for imagem, o botão de fechar já aparece normalmente. Se a promoção mais recente tiver imagem e estiver vinculada a uma Campanha com outras promoções (também com imagem) ativas na mesma campanha, até 3 delas aparecem juntas em um carrossel, alternando automaticamente a cada poucos segundos.</li>
             <li><b>Vendedor</b> — Em cada card de promoção ativa, dois campos: <b>"Já registrado hoje"</b> (somente leitura, mostra o total acumulado do dia) e <b>"Nova venda (R$)"</b> (editável, sempre vazio). Cada clique em "Adicionar" soma o valor digitado ao total do dia — não substitui o valor anterior.</li>
             <li><b>Vendedor</b> — Acumulado do período: soma de todos os seus dias desde o início da promoção</li>
@@ -1812,7 +1812,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <div class="help-tip">As vendas só aparecem no Painel e no Dashboard quando o <b>vendedor registra "Vendeu" no CRM</b> para o cliente que veio da SDR. O CRM do vendedor é obrigatório para a conversão ser medida.</div>
 
           <h3>5.2.7 Campanhas e Promoções (consulta)</h3>
-          <p>Em <b>Campanhas</b> a SDR vê as campanhas (período, etapas com o texto de cada uma e promoções ligadas) para usar como argumento nas ligações — não cria, edita nem envia nada. Em <b>Promoções</b> vê as promoções ativas; os campos de registro de vendas e o Ranking de Clientes ficam ocultos para ela. O pop-up diário de promoções e o de pendências também abrem para a SDR.</p>
+          <p>Em <b>Campanhas</b> a SDR vê as campanhas (período, etapas com o texto de cada uma e promoções ligadas) para usar como argumento nas ligações — não cria, edita nem envia nada. As imagens aparecem como miniatura de consulta: toque nela para ampliar (continua com a marca "SOMENTE CONSULTA", sem baixar). Em <b>Promoções</b> vê as promoções ativas; os campos de registro de vendas e o Ranking de Clientes ficam ocultos para ela. O pop-up diário de promoções e o de pendências também abrem para a SDR.</p>
 
           <h3>5.2.8 Para o Líder e o Master</h3>
           <ul>
@@ -6301,7 +6301,7 @@ function _vapRenderCampanhas(camps){
       const imgEfetiva=et.imagemOverride||promoImgUrl;
       const isOverride=!!et.imagemOverride;
       const origemLabel=isOverride?'Imagem personalizada desta etapa':`Imagem de "${(promoVinc?.nome||'').replace(/"/g,'')}" vinculada`;
-      const imgRow=(!et.enviado&&ativa)?(imgEfetiva?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${_vapVeArteCompleta()?`<img src="${imgEfetiva}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;border:1px solid var(--border)" title="Toque e segure para salvar manualmente, se necessário"><span style="font-size:10px;color:#95A5A6">${origemLabel} · não baixou? Toque e segure a imagem para salvar.</span><button class="btn-vap-tl btn-vap-sm" onclick="vapBaixarImagemEtapa('${c.id}',${i})" style="font-size:11px"><i class="ti ti-download"></i> Baixar imagem</button>`:`${isOverride?_vapMiniHtml({},'width:64px;height:64px;border-radius:8px;flex-shrink:0'):_vapMiniHtml(promoVinc||{},'width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border)')}<span style="font-size:10px;color:#95A5A6">${origemLabel} · só consulta — a arte vai pelo WhatsApp do cliente (Carteira/CRM)</span>`}${isOverride?`<button class="btn-vap-tl btn-vap-sm" onclick="vapRemoverImagemEtapa('${c.id}',${i})" style="font-size:11px"><i class="ti ti-arrow-back-up"></i> Usar imagem da promoção</button>`:`<label style="font-size:11px;color:#95A5A6;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-replace" style="font-size:13px"></i> Trocar imagem só nesta etapa<input type="file" accept="image/*" style="display:none" onchange="vapUploadImagemEtapa('${c.id}',${i},this.files[0])"></label>`}</div>`:`<div style="margin-top:6px"><label style="font-size:11px;color:#95A5A6;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-paperclip" style="font-size:13px"></i> Anexar imagem nesta etapa (opcional)<input type="file" accept="image/*" style="display:none" onchange="vapUploadImagemEtapa('${c.id}',${i},this.files[0])"></label></div>`):'';
+      const imgRow=(!et.enviado&&ativa)?(imgEfetiva?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${_vapVeArteCompleta()?`<img src="${imgEfetiva}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;border:1px solid var(--border)" title="Toque e segure para salvar manualmente, se necessário"><span style="font-size:10px;color:#95A5A6">${origemLabel} · não baixou? Toque e segure a imagem para salvar.</span><button class="btn-vap-tl btn-vap-sm" onclick="vapBaixarImagemEtapa('${c.id}',${i})" style="font-size:11px"><i class="ti ti-download"></i> Baixar imagem</button>`:`${isOverride?_vapMiniOverrideHtml(c.id,i,'width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;border:1px solid var(--border)'):_vapMiniHtml(promoVinc||{},'width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border)')}<span style="font-size:10px;color:#95A5A6">${origemLabel} · só consulta (toque na miniatura para ampliar) — a arte vai pelo WhatsApp do cliente (Carteira/CRM)</span>`}${isOverride?`<button class="btn-vap-tl btn-vap-sm" onclick="vapRemoverImagemEtapa('${c.id}',${i})" style="font-size:11px"><i class="ti ti-arrow-back-up"></i> Usar imagem da promoção</button>`:`<label style="font-size:11px;color:#95A5A6;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-replace" style="font-size:13px"></i> Trocar imagem só nesta etapa<input type="file" accept="image/*" style="display:none" onchange="vapUploadImagemEtapa('${c.id}',${i},this.files[0])"></label>`}</div>`:`<div style="margin-top:6px"><label style="font-size:11px;color:#95A5A6;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-paperclip" style="font-size:13px"></i> Anexar imagem nesta etapa (opcional)<input type="file" accept="image/*" style="display:none" onchange="vapUploadImagemEtapa('${c.id}',${i},this.files[0])"></label></div>`):'';
       return `<div class="step"><div class="step-circle ${et.enviado?'done':isH?'active':''}">${et.enviado?'<i class="ti ti-check"></i>':et.numero}</div><div class="step-body"><div class="step-title">${et.numero}. ${et.label} ${et.enviado?'<span class="badge badge-done" style="margin-left:4px">Concluído</span>':isH?'<span class="badge badge-pend" style="margin-left:4px">Hoje</span>':`<span style="font-size:10px;color:#95A5A6;margin-left:4px">${et.data||''}</span>`}</div><div class="step-sub">${et.msg}</div>${!et.enviado&&ativa?`<div class="step-actions"><button class="btn-vap-tl btn-vap-sm" onclick="vapAbrirWpp('${et.msg.replace(/'/g,"\\'")}')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button><button class="btn btn-save btn-vap-sm" onclick="vapMarcarEtapaEnviada('${c.id}',${i})"><i class="ti ti-check"></i> Marcar enviado</button></div>${imgRow}`:et.enviado?`<div style="font-size:11px;color:#95A5A6">Enviado${et.enviadoEm?' em '+new Date(et.enviadoEm).toLocaleDateString('pt-BR'):''}</div>`:''}</div></div>`;
     }).join('');
     return `<div class="vap-card" style="margin-bottom:10px${!ativa?';opacity:.7':''}"><div class="camp-hd"><div class="camp-name">${c.nome}</div>${sb}</div><div class="camp-meta"><span><i class="ti ti-calendar" style="font-size:13px"></i>${c.inicio} → ${c.fim}</span><span><i class="ti ti-tag" style="font-size:13px"></i>${c.tipoLabel||c.tipo}</span>${promoBadge?`<span>${promoBadge}</span>`:''}</div>${ativa?`<div class="counter-row"><span class="counter-lbl"><i class="ti ti-users" style="font-size:13px"></i>Participantes</span><div class="cnt-btns"><button class="cnt-b" onclick="vapAdjCamp('${c.id}','participantes',-1)">−</button><div class="cnt-v">${c.participantes||0}</div><button class="cnt-b" onclick="vapAdjCamp('${c.id}','participantes',1)">+</button></div></div><div class="counter-row" style="margin-bottom:14px"><span class="counter-lbl"><i class="ti ti-calendar-check" style="font-size:13px"></i>Negócios gerados</span><div class="cnt-btns"><button class="cnt-b" onclick="vapAdjCamp('${c.id}','agendamentos',-1)">−</button><div class="cnt-v">${c.agendamentos||0}</div><button class="cnt-b" onclick="vapAdjCamp('${c.id}','agendamentos',1)">+</button></div></div>`:''}<div style="font-size:11px;font-weight:600;color:#95A5A6;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Etapas</div><div class="steps">${etHtml}</div>${ativa?`<button onclick="vapEncerrarCampanha('${c.id}')" style="background:none;border:none;cursor:pointer;color:#95A5A6;font-size:11px;margin-top:8px;text-decoration:underline">Encerrar campanha</button>`:''}</div>`;
@@ -6748,10 +6748,46 @@ async function _vapMiniParaStorage(file,CID){
   return await getDownloadURL(ref);
 }
 
+// Miniatura de consulta das imagens PRÓPRIAS das etapas de campanha (guardadas em base64 na campanha): gerada aqui, com a marca, e guardada em memória.
+const _vapMiniOvCache = {};
+const _vapPixel = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+function _vapMiniOverrideHtml(campId, idx, estilo){
+  const c = (_vapCampanhasDB||[]).find(x=>x.id===campId);
+  const b64 = (c && c.etapas && c.etapas[idx] && c.etapas[idx].imagemOverride) || '';
+  const nome = String((c && c.nome) || '').replace(/['"<>\\]/g,'');
+  const key = campId+'_'+idx+'_'+b64.length;
+  const feito = _vapMiniOvCache[key];
+  if(b64 && !feito) _vapGerarMiniOverride(campId, idx, key, b64);
+  const pronto = !!(feito && feito.src);
+  const base = '-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;';
+  return `<img id="vapmo-${campId}-${idx}" src="${pronto?feito.src:_vapPixel}" data-pronto="${pronto?1:0}" draggable="false" oncontextmenu="return false" onclick="event.stopPropagation();if(this.dataset.pronto==='1')vapAbrirMiniPromo(this.src,'${nome}')" title="Toque para ampliar" style="${estilo};${base}${pronto?'cursor:zoom-in':'background:var(--bg);border:1px dashed var(--border)'}">`;
+}
+function _vapGerarMiniOverride(campId, idx, key, b64){
+  _vapMiniOvCache[key] = { src:'' };
+  const img = new Image();
+  img.onload = () => {
+    try{
+      const MAX = 360; let w = img.width, h = img.height;
+      if(w>MAX||h>MAX){ if(w>h){ h=Math.round(h*MAX/w); w=MAX; } else { w=Math.round(w*MAX/h); h=MAX; } }
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      const cx = cv.getContext('2d'); cx.drawImage(img,0,0,w,h); _vapMarcaConsulta(cx,w,h);
+      const src = cv.toDataURL('image/jpeg',0.6);
+      _vapMiniOvCache[key] = { src };
+      const el = document.getElementById('vapmo-'+campId+'-'+idx);
+      if(el){ el.src = src; el.dataset.pronto = '1'; el.style.cursor = 'zoom-in'; el.style.background = ''; el.style.border = '1px solid var(--border)'; }
+    }catch(e){ console.warn('[VAP] miniatura da etapa:', e); }
+  };
+  img.onerror = () => { console.warn('[VAP] miniatura da etapa: imagem inválida'); };
+  img.src = b64;
+}
+
 // HTML da miniatura para quem não vê o tamanho real: sem zoom, sem menu de salvar; sem miniatura → ícone.
 function _vapMiniHtml(p,estilo){
   const base='-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;';
-  if(p&&p.imagemMiniUrl) return `<img src="${p.imagemMiniUrl}" draggable="false" oncontextmenu="return false" style="${estilo};${base}">`;
+  if(p&&p.imagemMiniUrl){
+    const nome=String(p.nome||'').replace(/['"<>\\]/g,'');
+    return `<img src="${p.imagemMiniUrl}" draggable="false" oncontextmenu="return false" onclick="event.stopPropagation();vapAbrirMiniPromo(this.src,'${nome}')" title="Toque para ampliar" style="${estilo};${base}cursor:zoom-in">`;
+  }
   return `<div style="${estilo};min-height:48px;display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px dashed var(--border);color:#95A5A6"><i class="ti ti-photo" style="font-size:20px"></i></div>`;
 }
 
@@ -6978,6 +7014,9 @@ function vapAbrirImagemPromo(url, nome){
   const cap = document.getElementById('vap-lb-cap');
   if(!ov || !img) return;
   if(video){video.pause();video.style.display='none';video.src='';}
+  img.oncontextmenu = null; img.draggable = true;
+  img.style.width = ''; img.style.height = ''; img.style.maxHeight = ''; img.style.objectFit = '';
+  img.style.webkitTouchCallout = ''; img.style.userSelect = '';
   img.src = url;
   img.alt = nome || '';
   img.style.display='block';
@@ -6985,6 +7024,25 @@ function vapAbrirImagemPromo(url, nome){
   ov.classList.add('open');
 }
 window.vapAbrirImagemPromo = vapAbrirImagemPromo;
+// Ampliação da MINIATURA de consulta (Vendedor, Líder, SDR): mesma imagem de baixa resolução com a marca, sem baixar nem menu de salvar
+function vapAbrirMiniPromo(url, nome){
+  if(!url) return;
+  const ov = document.getElementById('vap-lb-ov');
+  const img = document.getElementById('vap-lb-img');
+  const video = document.getElementById('vap-lb-video');
+  const cap = document.getElementById('vap-lb-cap');
+  if(!ov || !img) return;
+  if(video){video.pause();video.style.display='none';video.src='';}
+  img.draggable = false; img.oncontextmenu = () => false;
+  img.style.webkitTouchCallout = 'none'; img.style.userSelect = 'none';
+  img.style.width = 'min(92vw,560px)'; img.style.height = 'auto'; img.style.maxHeight = '86vh'; img.style.objectFit = 'contain';
+  img.src = url;
+  img.alt = nome || '';
+  img.style.display = 'block';
+  if(cap) cap.textContent = (nome ? nome + ' · ' : '') + 'somente consulta';
+  ov.classList.add('open');
+}
+window.vapAbrirMiniPromo = vapAbrirMiniPromo;
 function vapAbrirVideoPromo(url, nome){
   if(!url) return;
   const ov = document.getElementById('vap-lb-ov');
