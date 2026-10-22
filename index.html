@@ -7709,7 +7709,7 @@ window.vapAbrirEmailProsp = vapAbrirEmailProsp;
 
 // ── Enviar promoção ao cliente (Carteira/CRM): arte personalizada com o nome do cliente ──────────────
 // A arte completa NÃO é baixada na tela de Promoções (só Master/SuperAdmin). Aqui o app monta uma versão
-// só desse cliente (faixa "Preparada para {cliente} · Vendedor(a): {nome}" sob a imagem), o que torna
+// só desse cliente (marca d'água diagonal com cliente e vendedor, e faixa "Preparada para {cliente} · Vendedor(a): {nome} · WhatsApp" sob a imagem), o que torna
 // inútil encaminhá-la em massa. Precisa do CORS do bucket do Storage; sem ele a imagem NÃO é liberada
 // (o envio só do texto continua funcionando). O registro "Promo via Whats" é gravado uma vez por promoção escolhida,
 // no primeiro "Baixar imagem" ou "Abrir WhatsApp", com o nome da promoção no campo Local.
@@ -7736,7 +7736,31 @@ function _vapMsgPromoCliente(p, nome){
   return `${_vapSaudacaoAC(nome)}\n\nTenho uma oferta especial pra você:\n\n*${(p.nome||'').replace(/\*/g,'')}*${p.validadeFim?`\n\nVálido até ${p.validadeFim}.`:''}`;
 }
 
-// Lê a arte completa (exige CORS), acrescenta a faixa personalizada e devolve um Blob JPEG
+// Marca d'água diagonal com o nome do cliente e do vendedor (parâmetros definidos no simulador):
+// opacidade 25%, uma linha a -40°, cobrindo 67% da diagonal da arte, letra de 3,5% da altura, branco com contorno escuro.
+// Só desenha dentro da arte (a faixa do rodapé fica de fora). Funciona para qualquer tamanho de imagem.
+const VAP_MARCA = { opacidade:0.25, cobertura:0.67, fonte:0.035, angulo:-40 };
+function _vapDesenharMarcaDagua(c, w, h, texto){
+  const fs=Math.max(10, Math.round(h*VAP_MARCA.fonte));
+  const alvo=Math.sqrt(w*w+h*h)*VAP_MARCA.cobertura;
+  const SEP='   •   ';
+  c.save();
+  c.beginPath(); c.rect(0,0,w,h); c.clip();
+  c.globalAlpha=VAP_MARCA.opacidade;
+  c.translate(w/2,h/2); c.rotate(VAP_MARCA.angulo*Math.PI/180);
+  c.font=`bold ${fs}px sans-serif`; c.textAlign='center'; c.textBaseline='middle';
+  let t=texto;
+  while(c.measureText(t).width>alvo && t.length>4) t=t.slice(0,-2); // nome muito longo: encurta
+  if(t!==texto) t=t.trim()+'…';
+  const n=Math.max(1, Math.floor(alvo/c.measureText(t+SEP).width));
+  const linha=new Array(n).fill(t).join(SEP);
+  c.lineJoin='round'; c.lineWidth=Math.max(2, fs*0.12); c.strokeStyle='#111827';
+  c.strokeText(linha,0,0);
+  c.fillStyle='#FFFFFF'; c.fillText(linha,0,0);
+  c.restore();
+}
+
+// Lê a arte completa (exige CORS), acrescenta a marca d'água e a faixa personalizada e devolve um Blob JPEG
 async function _vapComporArteCliente(p, nomeCliente){
   const r=await fetch(p.imagemUrl,{cache:'reload'});
   if(!r.ok) throw new Error('HTTP '+r.status);
@@ -7747,13 +7771,16 @@ async function _vapComporArteCliente(p, nomeCliente){
     const cv=document.createElement('canvas'); cv.width=w; cv.height=h+faixa;
     const c=cv.getContext('2d');
     c.drawImage(img,0,0,w,h);
+    const curto=(t,n)=>{ t=String(t||'').trim(); return t.length>n ? t.slice(0,n-1).trim()+'…' : t; };
+    _vapDesenharMarcaDagua(c, w, h, curto(nomeCliente,26)+' - Vend. '+curto(cp?.name||'',18));
     c.fillStyle='#1F2937'; c.fillRect(0,h,w,faixa);
     c.textAlign='center'; c.textBaseline='middle';
     const ajusta=(txt,fs,peso)=>{ c.font=`${peso} ${fs}px sans-serif`; let t=txt; while(c.measureText(t).width>w*0.94 && t.length>4) t=t.slice(0,-2); return t===txt?t:t.trim()+'…'; };
     c.fillStyle='#FFFFFF';
     c.fillText(ajusta('Preparada para '+nomeCliente, Math.round(faixa*0.34), 'bold'), w/2, h+faixa*0.36);
     c.fillStyle='#D1D5DB';
-    c.fillText(ajusta('Vendedor(a): '+(cp?.name||'—'), Math.round(faixa*0.24), 'normal'), w/2, h+faixa*0.72);
+    const zapV=String(cp?.whatsappComercial||'').trim();
+    c.fillText(ajusta('Vendedor(a): '+(cp?.name||'—')+(zapV?' · WhatsApp '+zapV:''), Math.round(faixa*0.24), 'normal'), w/2, h+faixa*0.72);
     return await new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('toBlob falhou')),'image/jpeg',0.88));
   } finally { URL.revokeObjectURL(objUrl); }
 }
