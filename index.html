@@ -5350,7 +5350,7 @@ $('btn-exportar').onclick = async () => {
   if(incCamp && (isLider||isSuperAdm)){
     try {
       const { getDocs, collection } = await Promise.resolve({ getDocs: window.getDocs||getDocs, collection: window.collection||collection });
-      const snap = await getDocs(collection(db,'campanhas'));
+      const snap = await getDocs(cid ? query(collection(db,'campanhas'), where('companyId','==',cid)) : collection(db,'campanhas'));
       let camps = snap.docs.map(d=>({id:d.id,...d.data()}));
       if(cid) camps = camps.filter(c=>c.companyId===cid);
       // Filtro de período — campanha com início ou fim dentro do range
@@ -5383,7 +5383,7 @@ $('btn-exportar').onclick = async () => {
   const incPromo = $('exp-inc-promocoes')?.checked;
   if(incPromo && (isLider||isSuperAdm)){
     try {
-      const snap = await getDocs(collection(db,'promocoes'));
+      const snap = await getDocs(cid ? query(collection(db,'promocoes'), where('companyId','==',cid)) : collection(db,'promocoes'));
       let promos = snap.docs.map(d=>({id:d.id,...d.data()}));
       if(cid) promos = promos.filter(p=>p.companyId===cid);
       if(de||ate){
@@ -5412,7 +5412,7 @@ $('btn-exportar').onclick = async () => {
   const incVP = $('exp-inc-vendas-promo')?.checked;
   if(incVP && (isLider||isSuperAdm)){
     try {
-      const snap = await getDocs(collection(db,'vendas_promo'));
+      const snap = await getDocs(cid ? query(collection(db,'vendas_promo'), where('companyId','==',cid)) : collection(db,'vendas_promo'));
       let vp = snap.docs.map(d=>({id:d.id,...d.data()}));
       if(cid) vp = vp.filter(v=>v.companyId===cid);
       if(de)  vp = vp.filter(v=>v.data>=de);
@@ -5435,7 +5435,7 @@ $('btn-exportar').onclick = async () => {
   const incRank = $('exp-inc-ranking')?.checked;
   if(incRank && (isLider||isSuperAdm)){
     try {
-      const snap = await getDocs(collection(db,'ranking_clientes'));
+      const snap = await getDocs(cid ? query(collection(db,'ranking_clientes'), where('companyId','==',cid)) : collection(db,'ranking_clientes'));
       let rank = snap.docs.map(d=>({id:d.id,...d.data()}));
       if(cid) rank = rank.filter(r=>r.companyId===cid);
       // Filtro de período (campo "periodo" = YYYY-MM)
