@@ -608,6 +608,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
     <div class="nav-tab active" data-tab="lancar">Lançar</div>
     <div class="nav-tab" data-tab="prospeccao">CRM</div>
     <div class="nav-tab" data-tab="sdr-painel" id="tab-sdr-painel" style="display:none">Painel</div>
+    <div class="nav-tab" data-tab="oleos" id="tab-oleos" style="display:none">Óleos</div>
     <div class="nav-tab" data-tab="historico">Histórico</div>
     <div class="nav-tab" data-tab="carteira">Carteira</div>
     <div class="nav-tab" data-tab="dashboard">Dashboard</div>
@@ -953,6 +954,11 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
       <div id="prosp-list"><div class="loading"><div class="spin"></div> Carregando…</div></div>
     </div>
 
+    <!-- ════ ÓLEOS (módulo Royal — só aparece com companies.modulo = "oleos") ═════ -->
+    <div class="panel" id="panel-oleos">
+      <div id="oleos-conteudo"></div>
+    </div>
+
     <!-- ════ PAINEL DA SDR ═════════════════════════════════════ -->
     <div class="panel" id="panel-sdr-painel">
       <div class="fcard" style="padding:1rem 1.25rem">
@@ -1045,7 +1051,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           </div>
           <div class="fgrid fg3">
             <div class="field"><label>Perfil</label>
-              <select id="adm-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="sdr">SDR (prospecção por telefone)</option><option value="master" id="adm-perfil-master-opt" hidden>Master</option></select>
+              <select id="adm-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="sdr">SDR (prospecção por telefone)</option><option value="master" id="adm-perfil-master-opt" hidden>Master</option><option value="oleos" id="adm-perfil-oleos-opt" hidden>Vendedor de Óleos</option></select>
             </div>
             <div class="field"><label>Meta mensal (R$)</label><input type="number" id="adm-meta-ini" placeholder="0,00" min="0"/></div>
             <div class="field"><label>Potencial de Vendas (R$)</label><input type="number" id="adm-potencial-ini" placeholder="0,00" min="0"/></div>
@@ -2116,7 +2122,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title" id="mu-title">Editar Usuário</div><button class="btn-close" id="mu-close">×</button></div>
     <div class="fgrid fg1"><div class="field"><label>Nome</label><input type="text" id="mu-nome"/></div></div>
-    <div class="fgrid fg1"><div class="field"><label>Perfil</label><select id="mu-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="sdr">SDR (prospecção por telefone)</option><option value="master" id="mu-perfil-master-opt" hidden>Master</option></select></div></div>
+    <div class="fgrid fg1"><div class="field"><label>Perfil</label><select id="mu-perfil"><option value="vendedor">Vendedor</option><option value="lider">Líder</option><option value="sdr">SDR (prospecção por telefone)</option><option value="master" id="mu-perfil-master-opt" hidden>Master</option><option value="oleos" id="mu-perfil-oleos-opt" hidden>Vendedor de Óleos</option></select></div></div>
     <div class="fgrid fg1"><div class="field"><label>Meta mensal atual (R$)</label><input type="number" id="mu-meta" placeholder="0,00"/></div></div>
     <input type="hidden" id="mu-uid"/>
     <div class="ffooter"><button class="btn-sec" id="mu-cancel">Cancelar</button><button class="btn-save" id="mu-save">Salvar</button></div>
@@ -3093,11 +3099,14 @@ onAuthStateChanged(auth, async user => {
     const isMasterRole = cp.role === 'master';
     const isSuperAdm   = cp.role === 'superadmin';
     const isSdr        = cp.role === 'sdr';
+    const moduloOleos  = _company?.modulo === 'oleos';           // módulo Óleos só liga por empresa
+    const isOleos      = cp.role === 'oleos' && moduloOleos;      // Vendedor de Óleos (Mario)
+    window._vapIsOleos = isOleos;
     window._vapIsSdr   = isSdr;
     // Master herda tudo que o Líder tem acesso — exceto que, ao contrário do Líder,
     // Master enxerga a Carteira de TODOS os vendedores (ver isGestorCarteira mais abaixo).
     const isGestor      = isLider || isMasterRole;
-    const roleLabel    = isSuperAdm ? 'Super Admin' : isMasterRole ? 'Master' : isLider ? 'Lider' : isSdr ? 'SDR' : 'Vendedor';
+    const roleLabel    = isSuperAdm ? 'Super Admin' : isMasterRole ? 'Master' : isLider ? 'Lider' : isSdr ? 'SDR' : isOleos ? 'Vendedor de Óleos' : 'Vendedor';
     $('role-badge').textContent = roleLabel;
     if (isGestor || isSuperAdm) $('role-badge').classList.add('role-lider');
     else                        $('role-badge').classList.remove('role-lider');
@@ -3137,6 +3146,8 @@ onAuthStateChanged(auth, async user => {
     // Só o Superadmin pode promover alguém a "Master" (evita autopromoção em cadeia)
     if($('adm-perfil-master-opt')) $('adm-perfil-master-opt').hidden = !isSuperAdm;
     if($('mu-perfil-master-opt'))  $('mu-perfil-master-opt').hidden  = !isSuperAdm;
+    if($('adm-perfil-oleos-opt'))  $('adm-perfil-oleos-opt').hidden  = !(isMasterRole && moduloOleos);
+    if($('mu-perfil-oleos-opt'))   $('mu-perfil-oleos-opt').hidden   = !(isMasterRole && moduloOleos);
 
     $('hist-data').value = tod();
     if($('hist-mes'))  $('hist-mes').value  = thisMes();
@@ -3154,15 +3165,16 @@ onAuthStateChanged(auth, async user => {
     // clicar nela explicitamente (é a tela que ele já vê ao entrar). Sem essa chamada, os dados
     // do Top 10 Clientes e demais campos da aba só carregavam ao clicar na aba manualmente —
     // por isso pareciam "sumir" após um novo login, mesmo estando salvos corretamente.
-    if (typeof window.switchTab === 'function') window.switchTab('lancar');
+    if (typeof window.switchTab === 'function') window.switchTab(isOleos ? 'oleos' : 'lancar');
     // Verifica banner dia 1 do mês
     setTimeout(checkBannerMesAnterior, 800);
 
     // ── Módulos Campanhas + Promoções ──────────────────
     window._vapCompanyId = cp.companyId || _companyId || null;
-    if (typeof vapIniciarModulos === 'function') vapIniciarModulos();
+    if (!isOleos && typeof vapIniciarModulos === 'function') vapIniciarModulos();
     // Pop-up de boas-vindas (vendedor, líder e master, 1x/dia)
     setTimeout(async () => {
+      if(isOleos) return;
       if(window.vapVerificarPopupPromo) await window.vapVerificarPopupPromo();
       // Se o pop-up de promoções não abriu (sem promoção ativa ou já visto hoje), o de
       // Pendências do CRM é disparado direto aqui; se abriu, é encadeado no fechamento dele.
@@ -3176,6 +3188,21 @@ onAuthStateChanged(auth, async user => {
     if (tabCamp)   tabCamp.style.display   = (isGestor || isSuperAdm || isSdr) ? '' : 'none';
     if (tabPromos) tabPromos.style.display  = (isGestor || isSuperAdm) ? '' : 'none';
     if (tabPromoV) tabPromoV.style.display  = (!isGestor && !isSuperAdm) ? '' : 'none';
+
+    // ── Módulo Óleos: menu por perfil (definido para todos, para reverter se outro usuário entrar) ──
+    // Vendedor de Óleos: só Óleos e Ajuda. Master de empresa com módulo Óleos: vê tudo + Óleos. Demais: sem mudança.
+    const tabOleosEl = $('tab-oleos');
+    if(tabOleosEl) tabOleosEl.style.display = (isOleos || (isMasterRole && moduloOleos)) ? '' : 'none';
+    ['lancar','prospeccao'].forEach(t=>{
+      const b = document.querySelector('[data-tab="'+t+'"]');
+      if(b) b.style.display = isOleos ? 'none' : '';
+    });
+    if(isOleos){
+      ['historico','carteira','dashboard','admin','campanhas','promocoes','promocoes-vendedor','sdr-painel'].forEach(t=>{
+        const b = document.querySelector('[data-tab="'+t+'"]');
+        if(b) b.style.display = 'none';
+      });
+    }
 
   } else {
     // Deslogado — volta para tela de login
@@ -5247,7 +5274,7 @@ function renderUsersTable(){
     <thead><tr><th style="width:16%">Nome</th><th style="width:20%">E-mail</th><th>Perfil</th><th>Meta mensal</th><th>Potencial</th><th>Ações</th></tr></thead>
     <tbody>${_users.map(u=>`<tr>
       <td>${u.name}</td><td>${u.email}</td>
-      <td><span class="badge ${u.role==='lider'?'bg-amber':u.role==='master'?'bg-teal':u.role==='superadmin'?'bg-purple':'bg-blue'}">${u.role==='lider'?'Líder':u.role==='master'?'Master':u.role==='superadmin'?'Super Admin':u.role==='sdr'?'SDR':'Vendedor'}</span></td>
+      <td><span class="badge ${u.role==='lider'?'bg-amber':u.role==='master'?'bg-teal':u.role==='superadmin'?'bg-purple':'bg-blue'}">${u.role==='lider'?'Líder':u.role==='master'?'Master':u.role==='superadmin'?'Super Admin':u.role==='sdr'?'SDR':u.role==='oleos'?'Vendedor de Óleos':'Vendedor'}</span></td>
       <td>${fC(u.meta||0)}</td>
       <td>${fC(u.potencial||0)}</td>
       <td><div class="act">
@@ -5714,6 +5741,7 @@ window.switchTab = tab => {
   }
   if(tab==='carteira'){ renderCarteiraLista(); }
   if(tab==='sdr-painel' && typeof vapSdrPainelAbrir === 'function') vapSdrPainelAbrir();
+  if(tab==='oleos' && typeof vapOleosAbrir === 'function') vapOleosAbrir();
   if(tab==='superadmin'){ loadEmpresas(); }
   if(tab==='dashboard') renderDashboard();
   if(tab==='admin')     { renderUsersTable(); checkBannerMesAnterior(); }
@@ -8158,6 +8186,20 @@ function vapSdrLeads(){
 window.vapSdrLeads = vapSdrLeads;
 
 function _sdrNovoLeadId(){ return 'L' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// ══════════════════════════════════════════════════════════
+//  MÓDULO ÓLEOS (Royal) — Fase 1, parte 1: perfil "Vendedor de Óleos" e aba Óleos
+//  • Só liga quando companies.modulo === 'oleos' (ver login); nenhuma outra empresa é afetada
+//  • Próximas partes: registro de visita, estabelecimentos, promoções, retornos e cards
+// ══════════════════════════════════════════════════════════
+function vapOleosAbrir(){
+  const el = $('oleos-conteudo'); if(!el) return;
+  const vendedor = !!window._vapIsOleos;
+  el.innerHTML = vendedor
+    ? '<div class="empty">Óleos — o registro de visitas chega na próxima etapa.</div>'
+    : '<div class="empty">Óleos — painel do Master (visão das visitas do vendedor) chega nas próximas etapas.</div>';
+}
+window.vapOleosAbrir = vapOleosAbrir;
 
 // Menu/telas conforme o perfil (chamado no login para TODOS os perfis, para reverter se outro usuário entrar)
 function vapAplicarPerfilSdrUI(isSdr){
