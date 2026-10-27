@@ -8193,12 +8193,13 @@ function _sdrNovoLeadId(){ return 'L' + Date.now().toString(36) + Math.random().
 //  • Só liga quando companies.modulo === 'oleos' (ver login); nenhuma outra empresa é afetada
 //  • Parte 1: perfil "Vendedor de Óleos" e aba Óleos
 //  • Parte 2: registro de visita + cadastro de estabelecimentos + retornos do dia (vendedor de óleos)
-//  • Próximas partes: lista de promoções (Master), dashboard do Master (cards)
+//  • Parte 3: Master — cards (total vendido em L, visitas, cadastros), retornos do dia, últimas visitas e gestão da lista de promoções
+//  • Fase 2 (depois): cobertura do território e mapa
 //  Coleções (regras em firestore_royal.rules):
 //    oleos_estabelecimentos {companyId, uid, nome, nomeNorm, segmento, via, bairro, potencial, lat, lng, acc, criadoEm, atualizadoEm}
 //    oleos_visitas          {companyId, uid, estabId, estabNome, segmento, via, bairro, contato, cargo, potencial, retorno, resultado,
 //                            litros, promocao, obs, lat, lng, acc, semGps, dia, criadoEm}
-//    oleos_promocoes        {companyId, nome, ativa, criadoEm}   (gerida pelo Master — parte 3)
+//    oleos_promocoes        {companyId, nome, ativa, criadoEm, atualizadoEm}   (gerida só pelo Master; "Outras" é opção fixa do app)
 // ══════════════════════════════════════════════════════════
 const OLEOS_SEGMENTOS  = ['Posto de troca','Revenda','Centro automotivo','Mecânica','Posto de gasolina','Outro comércio'];
 const OLEOS_CARGOS     = ['Proprietário','Gerente','Comprador','Mecânico','Atendente'];
@@ -8414,12 +8415,169 @@ function _oRenderVendedor(){
   _oCheckDup();
 }
 
+
+// ── Painel do Master (parte 3) ────────────────────────────────────────────
+const _oleosM = { uid:null, visitas:[], estabs:[], promos:[], carregado:false, periodo:'mes', vend:'' };
+
+async function _oMasterCarregar(){
+  const cid = _oCid(); if(!cid || !cu) return;
+  try{
+    const [v, e, p] = await Promise.all([
+      getDocs(query(collection(db,'oleos_visitas'),          where('companyId','==',cid))),
+      getDocs(query(collection(db,'oleos_estabelecimentos'), where('companyId','==',cid))),
+      getDocs(query(collection(db,'oleos_promocoes'),        where('companyId','==',cid)))
+    ]);
+    _oleosM.visitas = v.docs.map(d=>({id:d.id, ...d.data()}));
+    _oleosM.estabs  = e.docs.map(d=>({id:d.id, ...d.data()}));
+    _oleosM.promos  = p.docs.map(d=>({id:d.id, ...d.data()}));
+    _oleosM.carregado = true;
+  }catch(err){
+    console.error('[Óleos] master carregar:', err);
+    toast('Erro ao carregar o painel de Óleos. Recarregue a página.');
+  }
+}
+
+function _oPeriodoIntervalo(p){
+  const hoje = tod(), d = new Date();
+  if(p==='hoje') return [hoje, hoje];
+  if(p==='7d'){ const a = new Date(d.getFullYear(), d.getMonth(), d.getDate()-6); return [_isoLocal(a), hoje]; }
+  if(p==='mes') return [hoje.slice(0,8)+'01', hoje];
+  if(p==='mesant'){
+    const a = new Date(d.getFullYear(), d.getMonth()-1, 1), b = new Date(d.getFullYear(), d.getMonth(), 0);
+    return [_isoLocal(a), _isoLocal(b)];
+  }
+  return ['0000-00-00', '9999-99-99'];
+}
+
+function _oNomeUsuario(uid){
+  const u = (typeof _users!=='undefined' ? _users : []).find(x=>x.id===uid);
+  return u ? u.name : 'Vendedor';
+}
+
+function _oMasterRender(){
+  const el = $('oleos-conteudo'); if(!el) return;
+  const M = _oleosM, hoje = tod();
+  const [de, ate] = _oPeriodoIntervalo(M.periodo);
+  const uids = [...new Set(M.visitas.map(v=>v.uid))];
+  const doVend = v => !M.vend || v.uid===M.vend;
+  const vis = M.visitas.filter(v => v.dia>=de && v.dia<=ate && doVend(v));
+  const litros = vis.filter(v=>v.resultado==='Pedido').reduce((t,v)=>t+(Number(v.litros)||0),0);
+  const cadastros = vis.filter(v=>v.resultado==='Cadastro').length;
+  const fmtL = n => n.toLocaleString('pt-BR',{maximumFractionDigits:1});
+
+  // Retornos: vale o retorno mais recente de cada estabelecimento (independe do período)
+  const ult = {};
+  M.visitas.filter(doVend).forEach(v=>{ const a=ult[v.estabId]; if(!a || (v.criadoEm||'')>(a.criadoEm||'')) ult[v.estabId]=v; });
+  const rets = Object.values(ult).filter(v=>v.retorno && v.retorno<=hoje).sort((a,b)=>a.retorno.localeCompare(b.retorno));
+
+  const opP = (v,t) => `<option value="${v}"${M.periodo===v?' selected':''}>${t}</option>`;
+  const filtroVend = uids.length>1
+    ? `<div class="field"><label>Vendedor</label><select id="om-vend"><option value="">Todos</option>${uids.map(u=>`<option value="${_oEsc(u)}"${M.vend===u?' selected':''}>${_oEsc(_oNomeUsuario(u))}</option>`).join('')}</select></div>` : '';
+
+  const retHtml = rets.length ? rets.map(v=>`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><b>${_oEsc(v.estabNome)}</b>
+      <div class="sec-sub">${uids.length>1?_oEsc(_oNomeUsuario(v.uid))+' · ':''}${v.contato?_oEsc(v.contato)+' · ':''}retorno ${_oFmtData(v.retorno)}${v.retorno<hoje?' (atrasado)':''}</div></div>`).join('')
+    : '<div class="empty" style="padding:1rem">Nenhum retorno para hoje.</div>';
+
+  const ultimas = vis.slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||'')).slice(0,20);
+  const visHtml = ultimas.length ? ultimas.map(v=>`<div style="padding:6px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;gap:8px"><b>${_oEsc(v.estabNome)}</b><span class="sec-sub">${_oFmtData(v.dia)}</span></div>
+      <div class="sec-sub">${uids.length>1?_oEsc(_oNomeUsuario(v.uid))+' · ':''}${_oEsc(v.resultado)}${v.resultado==='Pedido'?' · '+v.litros+' L':''}${v.bairro?' · '+_oEsc(v.bairro):''}${v.promocao?' · '+_oEsc(v.promocao):''}${v.semGps?' · sem GPS':''}</div>
+      ${v.obs?`<div class="sec-sub" style="margin-top:2px">${_oEsc(v.obs)}</div>`:''}</div>`).join('')
+    : '<div class="empty" style="padding:1rem">Nenhuma visita neste período.</div>';
+
+  const usada = nome => M.visitas.some(v=>v.promocao===nome);
+  const promos = M.promos.slice().sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));
+  const promoHtml = promos.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <div><b>${_oEsc(p.nome)}</b> <span class="sec-sub">${p.ativa===false?'· encerrada':'· ativa'}${usada(p.nome)?' · já usada':''}</span></div>
+      <div style="display:flex;gap:6px">
+        ${p.ativa===false ? `<button type="button" class="btn-sec" data-om-reat="${_oEsc(p.id)}">Reativar</button>` : `<button type="button" class="btn-sec" data-om-enc="${_oEsc(p.id)}">Encerrar</button>`}
+        ${usada(p.nome) ? '' : `<button type="button" class="btn-danger" data-om-rem="${_oEsc(p.id)}">Remover</button>`}
+      </div></div>`).join('');
+
+  el.innerHTML = `
+    <div class="fcard">
+      <div class="fcard-title"><span class="bar" style="background:#1B6CA8"></span>Óleos — resultados</div>
+      <div class="fgrid ${uids.length>1?'fg2':'fg1'}">
+        <div class="field"><label>Período</label><select id="om-periodo">${opP('hoje','Hoje')}${opP('7d','Últimos 7 dias')}${opP('mes','Mês atual')}${opP('mesant','Mês anterior')}${opP('tudo','Tudo')}</select></div>
+        ${filtroVend}
+      </div>
+      <div class="mgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
+        <div class="mcard green"><div class="mcard-label">Total vendido (L)</div><div class="mcard-val">${fmtL(litros)}</div><div class="mcard-sub">Pedidos no período</div></div>
+        <div class="mcard blue"><div class="mcard-label">Visitas</div><div class="mcard-val">${vis.length}</div><div class="mcard-sub">Inclui retornos</div></div>
+        <div class="mcard"><div class="mcard-label">Cadastros</div><div class="mcard-val">${cadastros}</div><div class="mcard-sub">Resultado Cadastro</div></div>
+      </div>
+    </div>
+    <div class="fcard"><div class="fcard-title"><span class="bar" style="background:#F59E0B"></span>Retornos de hoje (${rets.length})</div>${retHtml}</div>
+    <div class="fcard"><div class="fcard-title"><span class="bar" style="background:#22C55E"></span>Últimas visitas do período</div>${visHtml}</div>
+    <div class="fcard">
+      <div class="fcard-title"><span class="bar" style="background:#8B5CF6"></span>Promoções (lista do campo Promoção)</div>
+      <div class="sec-sub" style="margin-bottom:8px">O vendedor só escolhe na lista. Encerrar tira da lista dele e mantém o nome nas visitas antigas. "Outras" é sempre disponível.</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px"><input id="om-promo-nome" type="text" autocomplete="off" placeholder="Nome da promoção" style="flex:1;padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--rsm);font-size:.88rem"/>
+        <button type="button" class="btn-save" id="om-promo-add">Adicionar</button></div>
+      ${promoHtml || '<div class="empty" style="padding:1rem">Nenhuma promoção cadastrada.</div>'}
+    </div>`;
+  _oMasterEventos();
+}
+
+function _oMasterEventos(){
+  const raiz = $('oleos-conteudo'); if(!raiz) return;
+  $('om-periodo').onchange = e => { _oleosM.periodo = e.target.value; _oMasterRender(); };
+  if($('om-vend')) $('om-vend').onchange = e => { _oleosM.vend = e.target.value; _oMasterRender(); };
+  $('om-promo-add').onclick = _oPromoAdicionar;
+  raiz.onclick = e => {
+    const enc = e.target.closest('[data-om-enc]'), rea = e.target.closest('[data-om-reat]'), rem = e.target.closest('[data-om-rem]');
+    if(enc) _oPromoAtiva(enc.getAttribute('data-om-enc'), false);
+    if(rea) _oPromoAtiva(rea.getAttribute('data-om-reat'), true);
+    if(rem) _oPromoRemover(rem.getAttribute('data-om-rem'));
+  };
+}
+
+async function _oPromoAdicionar(){
+  const inp = $('om-promo-nome'); const nome = (inp?.value||'').trim();
+  const cid = _oCid(); if(!cid) return;
+  if(!nome){ toast('Informe o nome da promoção.'); return; }
+  if(_oNorm(nome)==='outras'){ toast('"Outras" já existe como opção fixa.'); return; }
+  if(_oleosM.promos.some(p=>_oNorm(p.nome)===_oNorm(nome))){ toast('Essa promoção já está na lista.'); return; }
+  try{
+    const agora = new Date().toISOString();
+    const dados = { companyId:cid, nome, ativa:true, criadoEm:agora, atualizadoEm:agora };
+    const ref = await addDoc(collection(db,'oleos_promocoes'), dados);
+    _oleosM.promos.push({ id:ref.id, ...dados });
+    _oMasterRender(); toast('Promoção adicionada.');
+  }catch(err){ console.error('[Óleos] promo add:', err); toast('Erro ao adicionar a promoção.'); }
+}
+
+async function _oPromoAtiva(id, ativa){
+  try{
+    await updateDoc(doc(db,'oleos_promocoes',id), { ativa, atualizadoEm:new Date().toISOString() });
+    const p = _oleosM.promos.find(x=>x.id===id); if(p) p.ativa = ativa;
+    _oMasterRender(); toast(ativa ? 'Promoção reativada.' : 'Promoção encerrada.');
+  }catch(err){ console.error('[Óleos] promo ativa:', err); toast('Erro ao atualizar a promoção.'); }
+}
+
+function _oPromoRemover(id){
+  const p = _oleosM.promos.find(x=>x.id===id); if(!p) return;
+  if(_oleosM.visitas.some(v=>v.promocao===p.nome)){ toast('Essa promoção já foi usada em visitas. Encerre em vez de remover.'); return; }
+  confirm2('Remover a promoção "'+p.nome+'"?', async () => {
+    try{
+      await deleteDoc(doc(db,'oleos_promocoes',id));
+      _oleosM.promos = _oleosM.promos.filter(x=>x.id!==id);
+      _oMasterRender(); toast('Promoção removida.');
+    }catch(err){ console.error('[Óleos] promo remover:', err); toast('Erro ao remover a promoção.'); }
+  });
+}
+
+async function _oMasterAbrir(){
+  const el = $('oleos-conteudo'); if(!el) return;
+  if(_oleosM.uid !== cu?.uid){ Object.assign(_oleosM, { uid:cu?.uid||null, visitas:[], estabs:[], promos:[], carregado:false, periodo:'mes', vend:'' }); }
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+  await _oMasterCarregar();   // sempre atualiza ao abrir a aba
+  _oMasterRender();
+}
+
 async function vapOleosAbrir(){
   const el = $('oleos-conteudo'); if(!el) return;
-  if(!window._vapIsOleos){
-    el.innerHTML = '<div class="empty">Óleos — o painel do Master (visão das visitas do vendedor) chega nas próximas etapas.</div>';
-    return;
-  }
+  if(!window._vapIsOleos){ return _oMasterAbrir(); }   // Master da empresa com módulo Óleos
   if(_oleos.uid !== cu?.uid){   // outro usuário entrou sem recarregar a página
     Object.assign(_oleos, { uid:cu?.uid||null, estabs:[], visitas:[], promos:[], carregado:false, gps:null, estabSel:null, busy:false });
   }
