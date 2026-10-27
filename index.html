@@ -5265,6 +5265,7 @@ $('btn-adm-cancel').onclick = resetAdmForm;
 function _admPodeGerir(u){
   if(cp?.role==='superadmin') return true;
   if(u.role==='superadmin') return false;
+  if(u.role==='oleos') return cp?.role==='master';
   return cp?.role==='master' || u.role!=='master';
 }
 function renderUsersTable(){
@@ -5420,7 +5421,7 @@ function populateSelects(){
     const sel=$(id); if(!sel) return;
     const cur=sel.value;
     const opt0=(id==='hist-vendedor'||id==='exp-vendedor'||id==='cart-filtro-vendedor')?'<option value="">Todos</option>':'<option value="">Selecione...</option>';
-    sel.innerHTML=opt0+todos.map(u=>`<option value="${u.id}">${u.name}${u.role==='lider'?' (Lider)':u.role==='master'?' (Master)':u.role==='sdr'?' (SDR)':''}</option>`).join('');
+    sel.innerHTML=opt0+todos.map(u=>`<option value="${u.id}">${u.name}${u.role==='lider'?' (Lider)':u.role==='master'?' (Master)':u.role==='sdr'?' (SDR)':u.role==='oleos'?' (Óleos)':''}</option>`).join('');
     if(cur) sel.value=cur;
   });
 }
@@ -8188,16 +8189,247 @@ window.vapSdrLeads = vapSdrLeads;
 function _sdrNovoLeadId(){ return 'L' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
 // ══════════════════════════════════════════════════════════
-//  MÓDULO ÓLEOS (Royal) — Fase 1, parte 1: perfil "Vendedor de Óleos" e aba Óleos
+//  MÓDULO ÓLEOS (Royal) — Fase 1
 //  • Só liga quando companies.modulo === 'oleos' (ver login); nenhuma outra empresa é afetada
-//  • Próximas partes: registro de visita, estabelecimentos, promoções, retornos e cards
+//  • Parte 1: perfil "Vendedor de Óleos" e aba Óleos
+//  • Parte 2: registro de visita + cadastro de estabelecimentos + retornos do dia (vendedor de óleos)
+//  • Próximas partes: lista de promoções (Master), dashboard do Master (cards)
+//  Coleções (regras em firestore_royal.rules):
+//    oleos_estabelecimentos {companyId, uid, nome, nomeNorm, segmento, via, bairro, potencial, lat, lng, acc, criadoEm, atualizadoEm}
+//    oleos_visitas          {companyId, uid, estabId, estabNome, segmento, via, bairro, contato, cargo, potencial, retorno, resultado,
+//                            litros, promocao, obs, lat, lng, acc, semGps, dia, criadoEm}
+//    oleos_promocoes        {companyId, nome, ativa, criadoEm}   (gerida pelo Master — parte 3)
 // ══════════════════════════════════════════════════════════
-function vapOleosAbrir(){
+const OLEOS_SEGMENTOS  = ['Posto de troca','Revenda','Centro automotivo','Mecânica','Posto de gasolina','Outro comércio'];
+const OLEOS_CARGOS     = ['Proprietário','Gerente','Comprador','Mecânico','Atendente'];
+const OLEOS_RESULTADOS = ['Cotação','Cadastro','Pedido','Reclamação','Desinteresse','Promoção','Sem crédito'];
+const OLEOS_RAIO_DUP_M = 100;   // aviso de comércio já cadastrado por perto
+const _oleos = { uid:null, estabs:[], visitas:[], promos:[], carregado:false, carregando:false, gps:null, estabSel:null, busy:false };
+const _oEsc  = t => String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const _oNorm = t => String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+const _oFmtData = d => (d && d.length>=10) ? d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(2,4) : '';
+const _oCid = () => cp?.companyId || _companyId || null;
+
+function _oDist(a,b){
+  const R = 6371000, rad = x => x*Math.PI/180;
+  const dLat = rad(b.lat-a.lat), dLng = rad(b.lng-a.lng);
+  const h = Math.sin(dLat/2)**2 + Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+// Localização pontual (sem rastreamento contínuo). Devolve null se negada, indisponível ou sem sinal.
+function _oGps(timeout){
+  return new Promise(res=>{
+    if(!navigator.geolocation) return res(null);
+    navigator.geolocation.getCurrentPosition(
+      p => res({ lat:p.coords.latitude, lng:p.coords.longitude, acc:Math.round(p.coords.accuracy) }),
+      () => res(null),
+      { enableHighAccuracy:true, timeout: timeout||10000, maximumAge:30000 }
+    );
+  });
+}
+
+async function _oCarregar(){
+  const cid = _oCid(); if(!cid || !cu) return;
+  _oleos.carregando = true;
+  try{
+    const [e, v, p] = await Promise.all([
+      getDocs(query(collection(db,'oleos_estabelecimentos'), where('companyId','==',cid), where('uid','==',cu.uid))),
+      getDocs(query(collection(db,'oleos_visitas'),          where('companyId','==',cid), where('uid','==',cu.uid))),
+      getDocs(query(collection(db,'oleos_promocoes'),        where('companyId','==',cid)))
+    ]);
+    _oleos.estabs  = e.docs.map(d=>({id:d.id, ...d.data()}));
+    _oleos.visitas = v.docs.map(d=>({id:d.id, ...d.data()}));
+    _oleos.promos  = p.docs.map(d=>({id:d.id, ...d.data()}));
+    _oleos.carregado = true;
+  }catch(err){
+    console.error('[Óleos] carregar:', err);
+    toast('Erro ao carregar o módulo Óleos. Recarregue a página.');
+  }
+  _oleos.carregando = false;
+}
+
+// Retornos: vale o retorno mais recente de cada estabelecimento; aparece quando a data chegou (ou passou)
+function _oRetornosDoDia(){
+  const hoje = tod(), ult = {};
+  _oleos.visitas.forEach(v=>{
+    const a = ult[v.estabId];
+    if(!a || (v.criadoEm||'') > (a.criadoEm||'')) ult[v.estabId] = v;
+  });
+  return Object.values(ult).filter(v => v.retorno && v.retorno <= hoje)
+                           .sort((a,b)=> a.retorno.localeCompare(b.retorno));
+}
+
+function _oHtmlVendedor(){
+  const opt = (arr, ph) => '<option value="">'+ph+'</option>' + arr.map(x=>`<option value="${_oEsc(x)}">${_oEsc(x)}</option>`).join('');
+  const promos = _oleos.promos.filter(p=>p.ativa!==false).map(p=>p.nome).filter(n=>n && n!=='Outras');
+  const promoOpts = '<option value="">Nenhuma</option>' + promos.map(n=>`<option value="${_oEsc(n)}">${_oEsc(n)}</option>`).join('') + '<option value="Outras">Outras</option>';
+  const rets = _oRetornosDoDia();
+  const retHtml = rets.length ? `
+    <div class="fcard">
+      <div class="fcard-title"><span class="bar" style="background:#F59E0B"></span>Retornos de hoje (${rets.length})</div>
+      ${rets.map(v=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+        <div><b>${_oEsc(v.estabNome)}</b><div class="sec-sub">${v.contato?_oEsc(v.contato)+' · ':''}retorno ${_oFmtData(v.retorno)}${v.retorno<tod()?' (atrasado)':''}</div></div>
+        <button type="button" class="btn-sec" data-ol-visitar="${_oEsc(v.estabId)}">Visitar</button></div>`).join('')}
+    </div>` : '';
+  const ultimas = _oleos.visitas.slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||'')).slice(0,15);
+  const listaHtml = ultimas.length ? ultimas.map(v=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <div><b>${_oEsc(v.estabNome)}</b><div class="sec-sub">${_oFmtData(v.dia)} · ${_oEsc(v.resultado)}${v.resultado==='Pedido'?' · '+v.litros+' L':''}${v.semGps?' · sem GPS':''}</div></div>
+      <div class="sec-sub" style="text-align:right">${v.retorno?'Retorno '+_oFmtData(v.retorno):''}</div></div>`).join('')
+    : '<div class="empty" style="padding:1rem">Nenhuma visita registrada ainda.</div>';
+  return `
+    ${retHtml}
+    <div class="fcard">
+      <div class="fcard-title"><span class="bar" style="background:#1B6CA8"></span>Registrar visita</div>
+      <div id="ol-sel" class="sec-sub" style="display:none;margin-bottom:8px"></div>
+      <div class="fgrid fg1"><div class="field"><label>Comércio</label>
+        <input id="ol-nome" type="text" autocomplete="off" autocapitalize="words" placeholder="Nome do comércio"/></div></div>
+      <div id="ol-dup" style="display:none;margin-bottom:10px;padding:8px 10px;border:1.5px solid #F59E0B;background:#FFFBEB;border-radius:var(--rsm);font-size:.82rem"></div>
+      <div class="fgrid fg2">
+        <div class="field"><label>Segmento</label><select id="ol-segmento">${opt(OLEOS_SEGMENTOS,'Selecione...')}</select></div>
+        <div class="field"><label>Cargo do contato</label><select id="ol-cargo">${opt(OLEOS_CARGOS,'Selecione...')}</select></div>
+        <div class="field"><label>Via</label><input id="ol-via" type="text" autocomplete="off" placeholder="Rua / avenida"/></div>
+        <div class="field"><label>Bairro</label><input id="ol-bairro" type="text" autocomplete="off" placeholder="Bairro"/></div>
+        <div class="field"><label>Contato</label><input id="ol-contato" type="text" autocomplete="off" autocapitalize="words" placeholder="Nome da pessoa atendida"/></div>
+        <div class="field"><label>Potencial (L por mês)</label><input id="ol-potencial" type="number" inputmode="decimal" min="0" step="any" placeholder="0"/></div>
+        <div class="field"><label>Resultado</label><select id="ol-resultado">${opt(OLEOS_RESULTADOS,'Selecione...')}</select></div>
+        <div class="field" id="ol-litros-wrap" style="display:none"><label>Litros vendidos</label><input id="ol-litros" type="number" inputmode="decimal" min="0" step="any" placeholder="0"/></div>
+        <div class="field"><label>Retorno</label><input id="ol-retorno" type="date"/></div>
+        <div class="field"><label>Promoção (opcional)</label><select id="ol-promocao">${promoOpts}</select></div>
+      </div>
+      <div class="fgrid fg1"><div class="field"><label>Observações</label>
+        <textarea id="ol-obs" rows="3" autocapitalize="sentences" placeholder="Observações da visita"></textarea></div></div>
+      <div class="sec-sub" style="margin-bottom:8px">Ao salvar, o app registra a localização do aparelho neste momento (não há rastreamento contínuo).</div>
+      <div class="ffooter"><button type="button" class="btn-save" id="ol-salvar">Salvar visita</button></div>
+    </div>
+    <div class="fcard">
+      <div class="fcard-title"><span class="bar" style="background:#22C55E"></span>Minhas últimas visitas</div>
+      ${listaHtml}
+    </div>`;
+}
+
+function _oLigarEventos(){
+  const raiz = $('oleos-conteudo'); if(!raiz) return;
+  $('ol-nome').oninput = _oCheckDup;
+  $('ol-resultado').onchange = () => {
+    $('ol-litros-wrap').style.display = $('ol-resultado').value==='Pedido' ? '' : 'none';
+  };
+  $('ol-salvar').onclick = _oSalvar;
+  raiz.onclick = e => {
+    const b = e.target.closest('[data-ol-visitar]');
+    if(b){ _oUsarEstab(b.getAttribute('data-ol-visitar')); }
+    const d = e.target.closest('[data-ol-usar]');
+    if(d){ _oUsarEstab(d.getAttribute('data-ol-usar')); }
+    if(e.target.closest('#ol-desfazer')){ _oleos.estabSel = null; _oMostrarSel(); _oCheckDup(); }
+  };
+}
+
+function _oMostrarSel(){
+  const el = $('ol-sel'); if(!el) return;
+  const e = _oleos.estabSel;
+  if(!e){ el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = '';
+  el.innerHTML = `Visita ligada ao comércio já cadastrado: <b>${_oEsc(e.nome)}</b> <button type="button" class="btn-xs" id="ol-desfazer" style="margin-left:6px">Desfazer</button>`;
+}
+
+function _oUsarEstab(id){
+  const e = _oleos.estabs.find(x=>x.id===id); if(!e) return;
+  _oleos.estabSel = e;
+  const set = (i,v) => { const el=$(i); if(el) el.value = v==null?'':v; };
+  set('ol-nome', e.nome); set('ol-segmento', e.segmento); set('ol-via', e.via); set('ol-bairro', e.bairro);
+  set('ol-potencial', e.potencial || '');
+  _oMostrarSel(); _oCheckDup();
+  $('ol-nome')?.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+// Aviso de comércio já cadastrado: por perto (~100 m, quando há GPS) ou com nome parecido
+function _oCheckDup(){
+  const box = $('ol-dup'); if(!box) return;
+  if(_oleos.estabSel){ box.style.display='none'; return; }
+  const txt = _oNorm($('ol-nome')?.value);
+  const achados = _oleos.estabs.filter(e=>{
+    const perto = _oleos.gps && e.lat!=null && e.lng!=null && _oDist(_oleos.gps, {lat:e.lat, lng:e.lng}) <= OLEOS_RAIO_DUP_M;
+    const nome  = txt.length>=4 && (_oNorm(e.nome).includes(txt) || txt.includes(_oNorm(e.nome)));
+    return perto || nome;
+  }).slice(0,4);
+  if(!achados.length || txt.length<2){ box.style.display='none'; box.innerHTML=''; return; }
+  box.style.display = '';
+  box.innerHTML = '<b>Já cadastrado por aqui?</b> ' + achados.map(e=>
+    `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px"><span>${_oEsc(e.nome)}${e.via?' — '+_oEsc(e.via):''}</span>
+     <button type="button" class="btn-sec" data-ol-usar="${_oEsc(e.id)}">É este</button></div>`).join('');
+}
+
+async function _oSalvar(){
+  if(_oleos.busy) return;
+  const v = id => ($(id)?.value||'').trim();
+  const num = id => parseFloat(v(id).replace(',','.')) || 0;
+  const nome = v('ol-nome'), resultado = v('ol-resultado');
+  if(!nome){ toast('Informe o comércio.'); return; }
+  if(!resultado){ toast('Informe o resultado da visita.'); return; }
+  const litros = resultado==='Pedido' ? num('ol-litros') : 0;
+  if(resultado==='Pedido' && !(litros>0)){ toast('Informe os litros vendidos.'); return; }
+  const cid = _oCid(); if(!cid || !cu) return;
+  const btn = $('ol-salvar');
+  _oleos.busy = true; btn.disabled = true; btn.textContent = 'Salvando...';
+  try{
+    const gps = await _oGps(8000);
+    const agora = new Date().toISOString();
+    const potencial = num('ol-potencial');
+    const batch = writeBatch(db);
+    let estab = _oleos.estabSel, novoEstab = null;
+    if(estab){
+      if(potencial>0 && potencial!==estab.potencial) batch.update(doc(db,'oleos_estabelecimentos',estab.id), { potencial, atualizadoEm:agora });
+      else batch.update(doc(db,'oleos_estabelecimentos',estab.id), { atualizadoEm:agora });
+    } else {
+      const ref = doc(collection(db,'oleos_estabelecimentos'));
+      novoEstab = { companyId:cid, uid:cu.uid, nome, nomeNorm:_oNorm(nome), segmento:v('ol-segmento'), via:v('ol-via'), bairro:v('ol-bairro'),
+                    potencial, lat:gps?gps.lat:null, lng:gps?gps.lng:null, acc:gps?gps.acc:null, criadoEm:agora, atualizadoEm:agora };
+      batch.set(ref, novoEstab);
+      estab = { id:ref.id, ...novoEstab };
+    }
+    const vref = doc(collection(db,'oleos_visitas'));
+    const visita = { companyId:cid, uid:cu.uid, estabId:estab.id, estabNome:estab.nome, segmento:v('ol-segmento'), via:v('ol-via'), bairro:v('ol-bairro'),
+                     contato:v('ol-contato'), cargo:v('ol-cargo'), potencial, retorno:v('ol-retorno'), resultado, litros,
+                     promocao:v('ol-promocao'), obs:v('ol-obs'), lat:gps?gps.lat:null, lng:gps?gps.lng:null, acc:gps?gps.acc:null,
+                     semGps:!gps, dia:tod(), criadoEm:agora };
+    batch.set(vref, visita);
+    await batch.commit();
+    if(novoEstab) _oleos.estabs.push(estab);
+    else { const i = _oleos.estabs.findIndex(x=>x.id===estab.id); if(i>=0 && potencial>0) _oleos.estabs[i].potencial = potencial; }
+    _oleos.visitas.push({ id:vref.id, ...visita });
+    _oleos.estabSel = null;
+    _oRenderVendedor();
+    toast(gps ? 'Visita salva.' : 'Visita salva sem GPS (localização negada ou sem sinal).', 3600);
+  }catch(err){
+    console.error('[Óleos] salvar visita:', err);
+    toast('Erro ao salvar a visita. Tente de novo.');
+    btn.disabled = false; btn.textContent = 'Salvar visita';
+  }
+  _oleos.busy = false;
+}
+
+function _oRenderVendedor(){
   const el = $('oleos-conteudo'); if(!el) return;
-  const vendedor = !!window._vapIsOleos;
-  el.innerHTML = vendedor
-    ? '<div class="empty">Óleos — o registro de visitas chega na próxima etapa.</div>'
-    : '<div class="empty">Óleos — painel do Master (visão das visitas do vendedor) chega nas próximas etapas.</div>';
+  el.innerHTML = _oHtmlVendedor();
+  _oLigarEventos();
+  _oCheckDup();
+}
+
+async function vapOleosAbrir(){
+  const el = $('oleos-conteudo'); if(!el) return;
+  if(!window._vapIsOleos){
+    el.innerHTML = '<div class="empty">Óleos — o painel do Master (visão das visitas do vendedor) chega nas próximas etapas.</div>';
+    return;
+  }
+  if(_oleos.uid !== cu?.uid){   // outro usuário entrou sem recarregar a página
+    Object.assign(_oleos, { uid:cu?.uid||null, estabs:[], visitas:[], promos:[], carregado:false, gps:null, estabSel:null, busy:false });
+  }
+  if(!_oleos.carregado){
+    el.innerHTML = '<div class="empty">Carregando...</div>';
+    await _oCarregar();
+  }
+  _oRenderVendedor();
+  // localização para o aviso de comércio por perto (pede permissão na primeira vez)
+  _oGps(8000).then(g => { if(g){ _oleos.gps = g; _oCheckDup(); } });
 }
 window.vapOleosAbrir = vapOleosAbrir;
 
