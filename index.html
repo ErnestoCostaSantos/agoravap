@@ -70,6 +70,45 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
 .auth-divider{text-align:center;font-size:.75rem;color:var(--gray);margin:.75rem 0;position:relative}
 .auth-divider::before,.auth-divider::after{content:"";position:absolute;top:50%;width:40%;height:1px;background:var(--border)}
 .auth-divider::before{left:0}.auth-divider::after{right:0}
+/* ── Tema Royal (login) — aplicado só quando companies.tema === 'royal' ── */
+#auth-screen .royal-only{display:none}
+#auth-screen.auth-wait .auth-card{visibility:hidden}
+#auth-screen.auth-royal{background:#002873;padding:0;flex-direction:column;align-items:stretch;justify-content:flex-start;font-family:'Inter',sans-serif}
+#auth-screen.auth-royal .auth-bg,#auth-screen.auth-royal .auth-spacer,#auth-screen.auth-royal .auth-footer,#auth-screen.auth-royal #company-logo-wrap,#auth-screen.auth-royal .royal-hide{display:none!important}
+#auth-screen.auth-royal .royal-only{display:block}
+#auth-screen.auth-royal .royal-hero{position:relative;width:100%;max-width:560px;margin:0 auto;line-height:0}
+#auth-screen.auth-royal .royal-hero img{width:100%;height:auto;display:block;-webkit-mask-image:linear-gradient(to bottom,#000 80%,transparent 100%);mask-image:linear-gradient(to bottom,#000 80%,transparent 100%)}
+#auth-screen.auth-royal .auth-card{background:#fff;border-radius:28px;padding:1.5rem 1.4rem 1.3rem;width:calc(100% - 2rem);max-width:480px;margin:-36px auto 0;box-shadow:0 18px 50px rgba(0,0,0,.35);position:relative;z-index:3}
+#auth-screen.auth-royal .royal-head{display:flex;gap:12px;align-items:center;margin-bottom:1.1rem}
+#auth-screen.auth-royal .royal-head svg{flex:0 0 44px;width:44px;height:44px}
+#auth-screen.auth-royal .royal-head h2{font-size:1.45rem;font-weight:800;color:#0b2a8a;line-height:1.15;margin:0}
+#auth-screen.auth-royal .royal-head p{font-size:.88rem;color:#4b5a75;margin:.15rem 0 0}
+#auth-screen.auth-royal .auth-field{margin-bottom:.85rem}
+#auth-screen.auth-royal #step-credentials .auth-field label{display:none}
+#auth-screen.auth-royal .auth-field input{height:50px;border-radius:14px;background-color:#f3f5f8;border:1.5px solid #d9dee7;padding:0 14px;font-size:1rem;color:#16233f;background-repeat:no-repeat;background-position:14px center;background-size:22px}
+#auth-screen.auth-royal #li-email,#auth-screen.auth-royal #li-pass{padding-left:46px}
+#auth-screen.auth-royal .pw-wrap input{padding-right:44px}
+#auth-screen.auth-royal .auth-field input:focus{border-color:#0b3aa8;background-color:#fff}
+#auth-screen.auth-royal #li-email{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='m3 7 9 6 9-6'/%3E%3C/svg%3E")}
+#auth-screen.auth-royal #li-pass{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='2'/%3E%3Cpath d='M8 11V8a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E")}
+#auth-screen.auth-royal .royal-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:.2rem 0 1rem;font-size:.85rem;white-space:nowrap}
+#auth-screen.auth-royal .royal-row label{display:flex;align-items:center;gap:8px;color:#16233f;cursor:pointer}
+#auth-screen.auth-royal .royal-row input{width:20px;height:20px;accent-color:#0b3aa8;margin:0}
+#auth-screen.auth-royal .royal-row span{color:#0b3aa8;font-weight:600;cursor:pointer}
+#auth-screen.auth-royal .btn-auth{height:52px;border-radius:14px;background:linear-gradient(180deg,#ff9a1a,#f77f00);font-size:1.05rem;font-weight:700;margin-top:0}
+#auth-screen.auth-royal .btn-auth:hover{background:linear-gradient(180deg,#ffa633,#ee7600)}
+#auth-screen.auth-royal #btn-login::after{content:"\2192";margin-left:10px}
+#auth-screen.auth-royal .auth-divider{margin:1rem 0;color:#6b7a92}
+#auth-screen.auth-royal .royal-btn-outline{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:50px;border:1.8px solid #0b3aa8;background:#fff;color:#0b3aa8;border-radius:14px;font:600 .98rem 'Inter',sans-serif;cursor:pointer}
+#auth-screen.auth-royal .royal-foot{display:flex;align-items:center;justify-content:center;gap:8px;color:rgba(255,255,255,.88);font-size:.8rem;padding:1.1rem 1rem 1.4rem}
+@media(min-width:900px){
+  #auth-screen.auth-royal{flex-direction:row;align-items:stretch}
+  #auth-screen.auth-royal .royal-hero{flex:1 1 56%;max-width:none;margin:0}
+  #auth-screen.auth-royal .royal-hero img{-webkit-mask-image:linear-gradient(to bottom,#000 80%,transparent 100%),linear-gradient(to right,#000 90%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,#000 80%,transparent 100%),linear-gradient(to right,#000 90%,transparent 100%);mask-composite:intersect}
+  #auth-screen.auth-royal .auth-card{flex:0 0 440px;width:440px;max-width:440px;margin:auto 6vw auto 3vw}
+  #auth-screen.auth-royal .royal-foot{position:absolute;left:0;right:0;bottom:0}
+}
+
 .first-login-badge{background:#FFF9C4;border:1px solid #F9A825;border-radius:var(--rsm);padding:8px 12px;font-size:.8rem;color:#7B4F00;margin-bottom:.9rem;display:none}
 .inactivity-bar{position:fixed;bottom:0;left:0;right:0;background:#C53030;color:#fff;font-size:.78rem;text-align:center;padding:6px;z-index:9999;display:none}
 
@@ -398,6 +437,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
     </svg>
   </div>
 
+  <div class="royal-hero royal-only" id="royal-hero"><img id="royal-hero-img" alt="Royal Superlub e Dealer Pneus: juntos na estrada com você" width="952" height="788" decoding="async"/></div>
   <div class="auth-spacer"></div>
   <div class="auth-card">
     <!-- Logo dinâmico da empresa -->
@@ -434,7 +474,11 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
 
       <!-- PASSO 2: E-mail e senha (aparece após confirmar empresa) -->
       <div id="step-credentials" style="display:none">
-        <div id="company-info-bar" style="background:#F0FFF4;border:1px solid #68D391;border-radius:8px;padding:6px 12px;margin-bottom:.75rem;font-size:.82rem;color:#276749;text-align:center;font-weight:600"></div>
+        <div class="royal-head royal-only">
+          <svg viewBox="0 0 48 48" fill="none" stroke="#FFC20E" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="16" r="9"/><path d="M6 43c0-10 8-16 18-16s18 6 18 16z"/></svg>
+          <div><h2>Acesse sua conta</h2><p>Informe seu e-mail e senha para continuar.</p></div>
+        </div>
+        <div id="company-info-bar" class="royal-hide" style="background:#F0FFF4;border:1px solid #68D391;border-radius:8px;padding:6px 12px;margin-bottom:.75rem;font-size:.82rem;color:#276749;text-align:center;font-weight:600"></div>
         <div class="first-login-badge" id="badge-first-user" style="display:none;background:#E8F5E9;border-color:#2E7D32;color:#1B5E20">
           Nenhum usuário cadastrado. Crie a conta do primeiro <b>Líder</b> para começar.
         </div>
@@ -449,12 +493,20 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <button class="pw-eye" id="eye-login" type="button" title="Mostrar/ocultar senha"><svg class="eye-on" viewBox="0 0 24 24"><path fill="none" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle fill="none" cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24"><path fill="none" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line fill="none" x1="1" y1="1" x2="23" y2="23"/></svg></button>
           </div>
         </div>
+        <div class="royal-row royal-only">
+          <label><input type="checkbox" id="li-remember"/> Lembrar meu acesso</label>
+          <span id="royal-forgot" role="button" tabindex="0">Esqueci minha senha</span>
+        </div>
         <button class="btn-auth" id="btn-login">Entrar</button>
-        <div style="text-align:center;margin-top:.5rem">
+        <div class="royal-hide" style="text-align:center;margin-top:.5rem">
           <span id="btn-change-company" style="font-size:.78rem;color:rgba(255,255,255,0.85);cursor:pointer;text-decoration:underline">← Trocar empresa</span>
         </div>
         <div class="auth-divider">ou</div>
-        <div style="text-align:center;font-size:.82rem;color:rgba(255,255,255,0.9)">
+        <button type="button" class="royal-btn-outline royal-only" id="royal-primeiro">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="4"/><path d="M2 21c0-4 3.6-7 8-7"/><path d="M19 8v6M16 11h6"/></svg>
+          Primeiro acesso
+        </button>
+        <div class="royal-hide" style="text-align:center;font-size:.82rem;color:rgba(255,255,255,0.9)">
           Esqueceu a senha? <span id="go-forgot" style="color:#fff;cursor:pointer;font-weight:700;text-decoration:underline">Recuperar acesso</span>
         </div>
       </div>
@@ -518,6 +570,11 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
   </div>
 
   <div class="auth-spacer"></div>
+
+  <div class="royal-foot royal-only">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <span>Tratamento de dados conforme a LGPD</span>
+  </div>
 
   <!-- Rodapé institucional -->
   <div class="auth-footer">
@@ -2382,7 +2439,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          signOut, onAuthStateChanged, sendPasswordResetEmail, updatePassword, deleteUser,
-         browserSessionPersistence, setPersistence }
+         browserSessionPersistence, browserLocalPersistence, setPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc,
          query, where, orderBy, onSnapshot,
@@ -2636,7 +2693,22 @@ function showOk(m) {
   $('auth-err').style.display = 'none';
 }
 // ── Aplicar personalização visual da empresa ─────────────
+function applyRoyalSkin(on){
+  const sc = $('auth-screen'); if(!sc) return;
+  sc.classList.toggle('auth-royal', !!on);
+  const em = $('li-email'), pw = $('li-pass');
+  if(on){
+    const im = $('royal-hero-img');
+    if(im && !im.getAttribute('src')) im.src = 'login-royal-hero.webp';
+    if(em) em.placeholder = 'E-mail';
+    if(pw) pw.placeholder = 'Senha';
+  } else {
+    if(em) em.placeholder = 'seu@email.com';
+    if(pw) pw.placeholder = '••••••••';
+  }
+}
 function applyCompanyTheme(company){
+  applyRoyalSkin(!!(company && company.tema === 'royal'));
   // Logo
   const logoImg  = $('company-logo-img');
   const logoText = $('company-logo-text');
@@ -2666,6 +2738,7 @@ function applyCompanyTheme(company){
 }
 
 function resetCompanyTheme(){
+  applyRoyalSkin(false);
   const logoImg  = $('company-logo-img');
   const logoText = $('company-logo-text');
   if(logoImg)  { logoImg.src = ''; logoImg.style.display = 'none'; }
@@ -2730,6 +2803,24 @@ $('btn-change-company') && ($('btn-change-company').onclick = () => {
 $('li-company') && ($('li-company').onkeydown = e => {
   if(e.key === 'Enter') $('btn-verify-company').click();
 });
+
+// ── Tema Royal: atalhos do login ──────────────────────────
+$('royal-forgot') && ($('royal-forgot').onclick = () => { const g = $('go-forgot'); if(g) g.click(); });
+$('royal-forgot') && ($('royal-forgot').onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('royal-forgot').click(); } });
+$('royal-primeiro') && ($('royal-primeiro').onclick = () => {
+  showOk('Primeiro acesso: entre com o e-mail cadastrado e a senha provisória enviada pelo seu gestor. Em seguida você cria a sua senha.');
+});
+// Endereço próprio da empresa: https://.../?empresa=CODIGO já confirma a empresa e abre o login
+(function(){
+  try{
+    const c = (new URLSearchParams(location.search).get('empresa') || '').trim().toLowerCase();
+    if(!c) return;
+    $('li-company').value = c;
+    $('auth-screen').classList.add('auth-wait');
+    Promise.resolve($('btn-verify-company').onclick())
+      .finally(() => $('auth-screen').classList.remove('auth-wait'));
+  }catch(e){ $('auth-screen').classList.remove('auth-wait'); }
+})();
 
 function clearFields() {
   ['li-email','li-pass','fg-email','pr-nome','pr-pass','pr-pass2'].forEach(id => {
@@ -2827,6 +2918,10 @@ $('btn-login').onclick = async () => {
   if (!e || !p) { showErr('Preencha e-mail e senha.'); return; }
   $('btn-login').textContent = 'Entrando...'; $('btn-login').disabled = true;
   try {
+    try{
+      const _rem = $('li-remember');
+      await setPersistence(auth, (_rem && _rem.checked) ? browserLocalPersistence : browserSessionPersistence);
+    }catch(_){}
     await signInWithEmailAndPassword(auth, e, p);
     // onAuthStateChanged cuida do redirecionamento
   } catch (err) {
