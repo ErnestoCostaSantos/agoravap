@@ -8199,17 +8199,52 @@ function _sdrNovoLeadId(){ return 'L' + Date.now().toString(36) + Math.random().
 //  • Parte 2: registro de visita + cadastro de estabelecimentos + retornos do dia (vendedor de óleos)
 //  • Parte 3: Master — cards (total vendido em L, visitas, cadastros), retornos do dia e últimas visitas
 //  • Parte 4: as promoções vêm do módulo Promoções da própria empresa (Master cria; Vendedor de Óleos vê, com pop-up); sem lista manual
-//  • Fase 2 (depois): cobertura do território e mapa
+//  • Via por ditado do teclado e com sugestões da planilha; bloco 'estabelecimentos visitados por via' (13 artérias)
+//  • Fase 2: mapa de cobertura (grade de ~400 m, 12 distritos, 3 subzonas) e cobertura por distrito, só para o Master; exclusões em companies.oleosExcluidos
 //  Coleções (regras em firestore_royal.rules):
 //    oleos_estabelecimentos {companyId, uid, nome, nomeNorm, segmento, via, bairro, potencial, lat, lng, acc, criadoEm, atualizadoEm}
 //    oleos_visitas          {companyId, uid, estabId, estabNome, segmento, via, bairro, contato, cargo, potencial, retorno, resultado,
 //                            litros, promocao, obs, lat, lng, acc, semGps, dia, criadoEm}
 //    (a coleção oleos_promocoes das partes anteriores não é mais usada; o campo Promoção lê a coleção promocoes da empresa)
 // ══════════════════════════════════════════════════════════
-const OLEOS_SEGMENTOS  = ['Posto de troca','Revenda','Centro automotivo','Mecânica','Posto de gasolina','Outro comércio'];
+const OLEOS_SEGMENTOS  = ['Posto de troca','Revenda','Centro automotivo','Mecânica','Posto de gasolina','Transportadora','Pit stop / similar','Outro comércio'];
 const OLEOS_CARGOS     = ['Proprietário','Gerente','Comprador','Mecânico','Atendente'];
 const OLEOS_RESULTADOS = ['Cotação','Cadastro','Pedido','Reclamação','Desinteresse','Promoção','Sem crédito'];
 const OLEOS_RAIO_DUP_M = 100;   // aviso de comércio já cadastrado por perto
+
+// ── Vias: sugestões e artérias da planilha "Artérias e vias 400 m" (estimativas Econodata/CNAE; N = subtotal + adjacências) ──
+const OLEOS_VIAS = {"art":[["a1","Av. Cruzeiro do Sul",601],["a2","Av. Braz Leme",510],["a3","Rua Voluntários da Pátria",435],["a4","Av. Zaki Narchi",422],["a5","Av. General Ataliba Leonel",400],["a6","Av. Luiz Dumont Villares",334],["a7","Av. Água Fria",291],["a8","Av. Nadir Dias de Figueiredo",347],["a9","Av. Engenheiro Caetano Álvares",477],["a10","Av. Inajar de Souza",364],["a11","Av. Morvan Dias de Figueiredo",327],["a12","Marginal do Rio Tietê",441],["a13","Rod. Presidente Dutra",335]],"sug":[["Av. Cruzeiro do Sul","a1"],["Av. Braz Leme","a2"],["Rua Voluntários da Pátria","a3"],["Av. Zaki Narchi","a4"],["Av. General Ataliba Leonel","a5"],["Av. Luiz Dumont Villares","a6"],["Av. Água Fria","a7"],["Av. Nadir Dias de Figueiredo","a8"],["Av. Engenheiro Caetano Álvares","a9"],["Av. Inajar de Souza","a10"],["Av. Morvan Dias de Figueiredo","a11"],["Marginal do Rio Tietê","a12"],["Rod. Presidente Dutra","a13"],["R. Alfredo Pujol","a1"],["Av. Santos Dumont","a1"],["Av. Olavo Fontoura","a1"],["R. Conselheiro Moreira de Barros","a2"],["Av. Parada Inglesa","a2"],["R. Baruel","a2"],["R. Dr. Zuquim","a3"],["Av. Leôncio de Magalhães","a3"],["Av. Otto Baumgart","a4"],["R. Silva Bueno","a4"],["Av. Tucuruvi","a5"],["R. Goiás","a5"],["Av. Mazzei","a5"],["Av. Nova Cantareira","a6"],["R. Álvaro Machado Pedrosa","a6"],["R. do Horto","a7"],["Av. Santa Inês","a7"],["Av. Joaquina Ramalho","a9"],["Av. Raimundo Pereira de Magalhães","a10"],["R. Nossa Senhora do Ó","a10"],["R. Dutra Rodrigues","a11"]]};
+const _oVSyn = { eng:'engenheiro', gen:'general', cel:'coronel', pres:'presidente', dr:'doutor', prof:'professor', dep:'deputado', min:'ministro' };
+const _oVStop = new Set(['avenida','av','rua','r','rodovia','rod','alameda','al','estrada','estr','travessa','tv','praca','pca','largo','do','da','de','dos','das']);
+function _oViaTokens(t){
+  t = String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\(.*?\)/g,' ').split('\u2014')[0].replace(/[^a-z0-9 ]/g,' ');
+  return t.split(/\s+/).filter(w=>w && !_oVStop.has(w)).map(w=>_oVSyn[w]||w);
+}
+const _oViaSug = OLEOS_VIAS.sug.map(a=>({ nome:a[0], art:a[1], t:_oViaTokens(a[0]) }));
+// Acha a via da planilha mais parecida com o texto digitado ou falado (um conjunto de palavras contido no outro)
+function _oViaAchar(texto){
+  const q = _oViaTokens(texto); if(!q.length) return null;
+  let melhor = null, mo = 0, md = 1e9;
+  _oViaSug.forEach(s=>{
+    const ov = q.filter(w=>s.t.includes(w)).length;
+    if(ov === 0 || ov < Math.min(q.length, s.t.length)) return;
+    if(ov < 2 && q.length===1 && q[0].length < 5) return;
+    const dif = Math.abs(s.t.length - q.length);
+    if(ov > mo || (ov===mo && dif < md)){ melhor = s; mo = ov; md = dif; }
+  });
+  return melhor;
+}
+const _oViaArteriaId = texto => { const m = _oViaAchar(texto); return m ? m.art : null; };
+// Sugestões enquanto digita ou fala: cada palavra do texto é o começo de alguma palavra da via
+function _oViaSugerir(){
+  const box = $('ol-via-sug'), inp = $('ol-via'); if(!box || !inp) return;
+  const q = _oViaTokens(inp.value);
+  if(!q.length || q.join('').length < 2){ box.style.display='none'; box.innerHTML=''; return; }
+  const ach = _oViaSug.filter(s=>q.every(w=>s.t.some(x=>x.startsWith(w)))).slice(0,6);
+  if(!ach.length || (ach.length===1 && ach[0].nome===inp.value.trim())){ box.style.display='none'; box.innerHTML=''; return; }
+  box.style.display = '';
+  box.innerHTML = ach.map(a=>`<button type="button" data-ol-via="${_oEsc(a.nome)}" style="display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-top:1px solid #F1DDD8;background:#fff;font:inherit;min-height:44px;cursor:pointer">${_oEsc(a.nome)}</button>`).join('');
+}
 const _oleos = { uid:null, estabs:[], visitas:[], promos:[], carregado:false, carregando:false, gps:null, estabSel:null, busy:false };
 const _oEsc  = t => String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const _oNorm = t => String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
@@ -8303,8 +8338,8 @@ function _oHtmlVendedor(){
       <div class="fgrid fg2">
         <div class="field"><label>Segmento</label><select id="ol-segmento">${opt(OLEOS_SEGMENTOS,'Selecione...')}</select></div>
         <div class="field"><label>Cargo do contato</label><select id="ol-cargo">${opt(OLEOS_CARGOS,'Selecione...')}</select></div>
-        <div class="field"><label>Via</label><input id="ol-via" type="text" autocomplete="off" placeholder="Rua / avenida"/></div>
-        <div class="field"><label>Bairro</label><input id="ol-bairro" type="text" autocomplete="off" placeholder="Bairro"/></div>
+        <div class="field" style="position:relative"><label>Via</label><input id="ol-via" type="text" autocomplete="off" autocapitalize="words" placeholder="Rua / avenida (pode falar)"/><div id="ol-via-sug" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:5;background:#fff;border:1.5px solid #E7CFC9;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.12)"></div></div>
+        <div class="field"><label>Bairro</label><input id="ol-bairro" type="text" autocomplete="off" autocapitalize="words" placeholder="Bairro (pode falar)"/></div>
         <div class="field"><label>Contato</label><input id="ol-contato" type="text" autocomplete="off" autocapitalize="words" placeholder="Nome da pessoa atendida"/></div>
         <div class="field"><label>Potencial (L por mês)</label><input id="ol-potencial" type="number" inputmode="decimal" min="0" step="any" placeholder="0"/></div>
         <div class="field"><label>Resultado</label><select id="ol-resultado">${opt(OLEOS_RESULTADOS,'Selecione...')}</select></div>
@@ -8326,6 +8361,7 @@ function _oHtmlVendedor(){
 function _oLigarEventos(){
   const raiz = $('oleos-conteudo'); if(!raiz) return;
   $('ol-nome').oninput = _oCheckDup;
+  $('ol-via').oninput = _oViaSugerir;
   $('ol-resultado').onchange = () => {
     $('ol-litros-wrap').style.display = $('ol-resultado').value==='Pedido' ? '' : 'none';
   };
@@ -8335,6 +8371,8 @@ function _oLigarEventos(){
     if(b){ _oUsarEstab(b.getAttribute('data-ol-visitar')); }
     const d = e.target.closest('[data-ol-usar]');
     if(d){ _oUsarEstab(d.getAttribute('data-ol-usar')); }
+    const sv = e.target.closest('[data-ol-via]');
+    if(sv){ $('ol-via').value = sv.getAttribute('data-ol-via'); $('ol-via-sug').style.display='none'; }
     if(e.target.closest('#ol-desfazer')){ _oleos.estabSel = null; _oMostrarSel(); _oCheckDup(); }
   };
 }
@@ -8431,8 +8469,18 @@ function _oRenderVendedor(){
 }
 
 
-// ── Painel do Master (parte 3) ────────────────────────────────────────────
-const _oleosM = { uid:null, visitas:[], estabs:[], carregado:false, periodo:'mes', vend:'' };
+// ── Painel do Master (parte 3 + Fase 2: mapa de cobertura) ─────────────────────────────
+// Geometria da Zona Norte (12 distritos mais densos), grade de ~400 m. Fonte dos limites: GeoSampa / Prefeitura de São Paulo (CC BY-SA 4.0)
+const OLEOS_GEO = {"lat0":-23.414947035160928,"lng0":-46.7155038840649,"dlat":0.0036174869318284586,"dlng":0.003917402204210506,"w":42,"h":33,"cells":"9,0,11;10,0,8;8,1,11;9,1,11;10,1,8;11,1,8;12,1,8;3,2,11;4,2,11;5,2,11;6,2,11;7,2,11;8,2,11;9,2,11;10,2,11;11,2,8;12,2,8;13,2,8;3,3,11;4,3,11;5,3,11;6,3,11;7,3,11;8,3,11;9,3,11;10,3,11;11,3,11;12,3,8;13,3,8;14,3,8;18,3,2;19,3,2;20,3,2;3,4,11;4,4,11;5,4,11;6,4,11;7,4,11;8,4,11;9,4,11;10,4,11;11,4,11;12,4,11;13,4,8;14,4,8;15,4,8;16,4,2;17,4,2;18,4,2;19,4,2;20,4,2;37,4,3;3,5,11;4,5,11;5,5,11;6,5,11;7,5,11;8,5,11;9,5,11;10,5,11;11,5,11;12,5,8;13,5,8;14,5,8;15,5,8;16,5,2;17,5,2;18,5,2;19,5,2;20,5,2;36,5,3;37,5,3;1,6,11;2,6,11;3,6,11;4,6,11;5,6,11;6,6,11;7,6,11;8,6,11;9,6,11;10,6,11;11,6,11;12,6,8;13,6,8;14,6,8;15,6,8;16,6,2;17,6,2;18,6,2;19,6,2;20,6,2;21,6,2;35,6,3;36,6,3;37,6,3;38,6,3;1,7,11;2,7,11;3,7,11;4,7,11;5,7,11;6,7,11;7,7,11;8,7,11;9,7,11;10,7,11;11,7,8;12,7,8;13,7,8;14,7,8;15,7,8;16,7,2;17,7,2;18,7,2;19,7,2;20,7,2;35,7,3;36,7,3;37,7,3;2,8,11;3,8,11;4,8,11;5,8,11;6,8,11;7,8,11;8,8,11;9,8,11;10,8,11;11,8,8;12,8,8;13,8,8;14,8,8;15,8,8;16,8,2;17,8,2;18,8,2;19,8,2;35,8,3;36,8,3;37,8,3;2,9,11;3,9,11;4,9,11;5,9,11;6,9,11;7,9,11;8,9,11;9,9,11;10,9,8;11,9,8;12,9,8;13,9,8;14,9,8;15,9,8;16,9,2;17,9,2;18,9,2;19,9,2;34,9,3;35,9,3;36,9,3;37,9,3;1,10,11;2,10,11;3,10,11;4,10,11;5,10,11;6,10,11;7,10,11;8,10,11;9,10,11;10,10,11;11,10,8;12,10,8;13,10,8;14,10,8;15,10,8;16,10,2;17,10,2;18,10,2;19,10,2;34,10,3;35,10,3;36,10,3;37,10,3;0,11,11;1,11,11;2,11,11;3,11,11;4,11,11;5,11,11;6,11,11;7,11,11;8,11,11;9,11,11;10,11,8;11,11,8;12,11,8;13,11,8;14,11,8;15,11,8;16,11,8;17,11,2;18,11,2;19,11,2;20,11,2;33,11,3;34,11,3;35,11,3;36,11,3;0,12,11;1,12,11;2,12,11;3,12,11;4,12,11;5,12,11;6,12,11;7,12,11;8,12,11;9,12,11;10,12,11;11,12,8;12,12,8;13,12,8;14,12,8;15,12,8;16,12,8;17,12,2;18,12,2;19,12,2;20,12,2;21,12,2;33,12,3;34,12,3;35,12,3;36,12,3;0,13,10;1,13,10;2,13,10;3,13,10;4,13,11;5,13,11;6,13,11;7,13,11;8,13,11;9,13,11;10,13,11;11,13,8;12,13,8;13,13,8;14,13,8;15,13,8;16,13,8;17,13,2;18,13,2;19,13,2;20,13,2;21,13,2;22,13,1;23,13,1;24,13,1;25,13,1;26,13,1;27,13,1;28,13,1;29,13,1;31,13,3;32,13,3;33,13,3;34,13,3;35,13,3;36,13,3;37,13,3;1,14,10;2,14,10;3,14,10;4,14,11;5,14,11;6,14,11;7,14,11;8,14,11;9,14,11;10,14,11;11,14,11;12,14,8;13,14,8;14,14,8;15,14,8;16,14,8;17,14,2;18,14,2;19,14,2;20,14,2;21,14,2;22,14,1;23,14,1;24,14,1;25,14,1;26,14,1;27,14,1;28,14,1;29,14,1;30,14,1;31,14,3;32,14,3;33,14,3;34,14,3;35,14,3;36,14,3;37,14,3;1,15,10;2,15,10;3,15,10;4,15,10;5,15,11;6,15,11;7,15,11;8,15,11;9,15,11;10,15,11;11,15,8;12,15,8;13,15,8;14,15,8;15,15,8;16,15,8;17,15,2;18,15,2;19,15,2;20,15,2;21,15,2;22,15,1;23,15,1;24,15,1;25,15,1;26,15,1;27,15,1;28,15,1;29,15,1;30,15,1;31,15,1;32,15,1;33,15,3;34,15,3;35,15,3;36,15,3;37,15,3;38,15,3;1,16,10;2,16,10;3,16,10;4,16,10;5,16,11;6,16,11;7,16,11;8,16,11;9,16,11;10,16,11;11,16,10;12,16,8;13,16,8;14,16,8;15,16,8;16,16,8;17,16,2;18,16,2;19,16,2;20,16,2;21,16,2;22,16,2;23,16,2;24,16,2;25,16,1;26,16,1;27,16,1;28,16,1;29,16,1;30,16,1;31,16,1;32,16,1;33,16,3;34,16,3;35,16,6;36,16,6;37,16,3;38,16,3;39,16,3;2,17,10;3,17,10;4,17,10;5,17,10;6,17,10;7,17,11;8,17,10;9,17,10;10,17,10;11,17,8;12,17,8;13,17,8;14,17,8;15,17,8;16,17,8;17,17,2;18,17,2;19,17,2;20,17,2;21,17,2;22,17,2;23,17,2;24,17,1;25,17,1;26,17,1;27,17,1;28,17,1;29,17,1;30,17,1;31,17,1;32,17,1;33,17,1;34,17,6;35,17,6;36,17,6;37,17,6;38,17,3;39,17,3;2,18,10;3,18,10;4,18,10;5,18,10;6,18,10;7,18,10;8,18,10;9,18,10;10,18,9;11,18,8;12,18,8;13,18,8;14,18,8;15,18,2;16,18,2;17,18,2;18,18,2;19,18,2;20,18,2;21,18,2;22,18,0;23,18,0;24,18,0;25,18,0;26,18,1;27,18,1;28,18,1;29,18,1;30,18,1;31,18,1;32,18,6;33,18,6;34,18,6;35,18,6;36,18,6;37,18,6;38,18,3;39,18,3;1,19,10;2,19,10;3,19,10;4,19,10;5,19,10;6,19,10;7,19,10;8,19,10;9,19,9;10,19,9;11,19,9;12,19,9;13,19,7;14,19,7;15,19,7;16,19,2;17,19,2;18,19,2;19,19,2;20,19,0;21,19,0;22,19,0;23,19,0;24,19,0;25,19,0;26,19,1;27,19,1;28,19,1;29,19,1;30,19,1;31,19,6;32,19,6;33,19,6;34,19,6;35,19,6;36,19,6;37,19,6;38,19,6;39,19,3;1,20,10;2,20,10;3,20,10;4,20,10;5,20,10;6,20,10;7,20,10;8,20,9;9,20,9;10,20,9;11,20,9;12,20,9;13,20,7;14,20,7;15,20,7;16,20,0;17,20,0;18,20,0;19,20,0;20,20,0;21,20,0;22,20,0;23,20,0;24,20,0;25,20,0;26,20,0;27,20,1;28,20,1;29,20,1;30,20,1;31,20,6;32,20,6;33,20,6;34,20,6;35,20,6;36,20,6;37,20,6;38,20,6;39,20,6;1,21,10;2,21,10;3,21,10;4,21,10;5,21,10;6,21,10;7,21,10;8,21,9;9,21,9;10,21,9;11,21,9;12,21,7;13,21,7;14,21,7;15,21,7;16,21,7;17,21,0;18,21,0;19,21,0;20,21,0;21,21,0;22,21,0;23,21,0;24,21,0;25,21,0;26,21,0;27,21,1;28,21,5;29,21,5;30,21,6;31,21,6;32,21,6;33,21,6;34,21,6;35,21,6;36,21,6;37,21,6;38,21,6;39,21,6;2,22,10;3,22,10;4,22,10;5,22,10;6,22,10;7,22,10;8,22,9;9,22,9;10,22,9;11,22,9;12,22,7;13,22,7;14,22,7;15,22,7;16,22,7;17,22,7;18,22,0;19,22,0;20,22,0;21,22,0;22,22,0;23,22,0;24,22,0;25,22,0;26,22,5;27,22,5;28,22,5;29,22,5;30,22,6;31,22,6;32,22,6;33,22,4;34,22,4;35,22,4;36,22,6;37,22,6;38,22,6;39,22,6;2,23,10;3,23,10;4,23,10;5,23,10;6,23,10;7,23,9;8,23,9;9,23,9;10,23,9;11,23,9;12,23,9;13,23,7;14,23,7;15,23,7;16,23,7;17,23,7;18,23,0;19,23,0;20,23,0;21,23,0;22,23,0;23,23,0;24,23,0;25,23,0;26,23,5;27,23,5;28,23,5;29,23,5;30,23,5;31,23,6;32,23,4;33,23,4;34,23,4;35,23,4;36,23,4;37,23,6;38,23,6;2,24,10;3,24,10;4,24,10;5,24,10;6,24,10;7,24,9;8,24,9;9,24,9;10,24,9;11,24,9;12,24,7;13,24,7;14,24,7;15,24,7;16,24,7;17,24,7;18,24,7;19,24,0;20,24,0;21,24,0;22,24,0;23,24,0;24,24,0;25,24,0;26,24,5;27,24,5;28,24,5;29,24,5;30,24,5;31,24,4;32,24,4;33,24,4;34,24,4;35,24,4;36,24,4;37,24,6;38,24,4;39,24,4;2,25,10;3,25,10;4,25,10;5,25,10;6,25,10;7,25,9;8,25,9;9,25,9;10,25,9;11,25,7;12,25,7;13,25,7;14,25,7;15,25,7;16,25,7;17,25,7;18,25,0;19,25,0;20,25,0;21,25,0;22,25,0;23,25,0;24,25,0;25,25,0;26,25,5;27,25,5;28,25,5;29,25,5;30,25,4;31,25,4;32,25,4;33,25,4;34,25,4;35,25,4;36,25,4;37,25,4;38,25,4;39,25,4;8,26,9;9,26,9;10,26,9;11,26,7;12,26,7;13,26,7;14,26,7;15,26,7;16,26,7;17,26,0;18,26,0;19,26,0;20,26,0;21,26,0;22,26,0;23,26,0;24,26,5;25,26,5;26,26,5;27,26,5;28,26,5;29,26,5;30,26,5;31,26,4;32,26,4;33,26,4;34,26,4;35,26,4;36,26,4;37,26,4;38,26,4;39,26,4;40,26,4;10,27,9;11,27,7;12,27,7;13,27,7;14,27,7;15,27,7;16,27,7;17,27,0;18,27,0;19,27,0;20,27,0;21,27,0;22,27,0;23,27,0;24,27,5;25,27,5;26,27,5;27,27,5;28,27,5;29,27,5;30,27,5;31,27,4;32,27,4;33,27,4;34,27,4;35,27,4;36,27,4;37,27,4;38,27,4;39,27,4;40,27,4;16,28,0;17,28,0;18,28,0;19,28,0;20,28,0;21,28,0;22,28,0;23,28,0;24,28,0;25,28,5;26,28,5;27,28,5;28,28,5;29,28,5;30,28,5;31,28,4;32,28,4;33,28,4;34,28,4;35,28,4;36,28,4;37,28,4;38,28,4;39,28,4;40,28,4;26,29,5;27,29,5;28,29,5;29,29,5;30,29,4;31,29,4;32,29,4;33,29,4;34,29,4;35,29,4;36,29,4;37,29,4;38,29,4;39,29,4;40,29,4;29,30,5;30,30,5;31,30,4;32,30,4;33,30,4;34,30,4;35,30,4;36,30,4;37,30,4;30,31,4;31,31,4;32,31,4;33,31,4","dist":[{"n":"Santana","s":1,"p":"M24.65 28.72L23.28 28.88L19.00 28.63L15.72 28.15L15.75 27.92L16.76 27.81L16.57 26.27L16.85 26.20L16.68 25.96L16.97 25.82L16.77 25.67L18.42 25.31L18.99 24.87L18.38 23.86L17.93 22.42L17.04 21.85L17.15 21.61L16.52 20.82L16.40 20.42L17.30 20.26L17.88 19.93L19.25 19.82L20.34 18.94L21.78 18.75L22.80 18.08L23.18 18.10L23.81 18.62L23.89 17.78L26.33 18.31L25.94 18.99L25.52 19.34L26.57 20.06L27.07 20.18L26.55 21.46L26.32 22.68L25.53 23.84L25.66 24.73L25.56 25.78L24.08 26.70L24.11 27.49L24.66 28.29L24.65 28.72Z","lx":22.06,"ly":23.97},{"n":"Tucuruvi","s":1,"p":"M25.84 12.98L26.37 13.05L26.75 13.61L28.35 13.16L28.89 13.50L29.32 13.52L29.64 13.88L31.28 14.78L31.59 14.86L31.96 14.71L32.11 15.23L32.24 15.18L33.28 16.30L33.36 17.15L33.70 17.45L31.65 18.78L30.76 20.58L29.85 21.21L27.85 21.62L26.55 21.46L27.07 20.18L26.57 20.06L25.52 19.34L26.35 18.34L23.89 17.78L24.75 16.21L22.37 15.78L22.46 15.23L21.72 15.07L21.62 14.43L22.08 13.67L21.96 13.04L22.45 13.52L23.18 13.22L23.73 13.45L24.52 13.41L25.23 13.73L25.22 13.50L25.50 13.56L25.84 12.98Z","lx":28.84,"ly":17.27},{"n":"Mandaqui","s":1,"p":"M15.52 4.34L16.52 3.76L17.51 3.91L19.52 3.40L20.06 3.60L20.39 3.54L20.61 3.83L20.86 3.69L20.77 5.02L21.14 5.70L21.07 6.18L21.35 6.34L21.42 6.76L20.94 7.57L20.14 8.33L19.82 9.14L20.30 9.42L20.12 9.71L20.09 10.39L20.73 11.56L20.92 12.24L21.62 12.41L21.99 13.13L22.08 13.67L21.62 14.42L21.72 15.07L22.46 15.23L22.37 15.78L24.75 16.21L23.90 17.77L23.81 18.62L23.18 18.10L22.80 18.08L21.78 18.75L20.34 18.94L19.25 19.82L17.88 19.93L17.30 20.26L16.41 20.42L16.09 20.06L15.90 19.22L15.36 18.45L15.66 18.06L16.49 17.68L16.76 16.28L16.35 15.55L17.77 15.06L17.01 13.72L17.38 12.57L17.00 11.58L16.14 10.83L16.27 9.97L15.98 9.42L16.17 9.18L16.13 8.76L15.74 8.59L15.64 8.26L15.85 7.81L15.45 6.83L15.65 6.41L16.17 6.08L16.44 5.54L16.44 4.92L15.97 4.34L15.52 4.34Z","lx":18.94,"ly":11.92},{"n":"Jaçanã","s":1,"p":"M39.41 19.99L38.48 19.33L36.70 15.86L36.12 16.13L34.79 16.32L33.70 17.45L33.36 17.15L33.28 16.30L32.24 15.18L32.11 15.23L31.96 14.71L31.47 14.85L30.62 14.33L30.78 14.04L31.08 14.10L31.84 13.40L32.44 13.52L33.32 12.11L34.06 11.65L32.98 11.42L33.02 11.19L33.29 11.14L34.43 9.90L34.69 9.21L35.04 8.87L34.94 8.74L35.19 8.64L35.19 7.93L35.56 7.27L35.34 7.04L35.17 5.92L36.62 5.59L36.98 5.80L37.15 5.58L37.37 5.74L37.51 5.62L36.86 3.88L37.13 3.81L37.62 3.91L37.88 4.23L37.54 4.90L37.79 5.02L38.02 5.56L38.48 5.80L38.34 7.33L37.98 7.57L37.90 8.75L37.48 9.55L37.53 10.11L37.05 10.70L36.99 12.04L38.28 14.80L39.26 16.00L39.50 17.23L39.35 17.84L39.41 19.99Z","lx":36.1,"ly":11.89},{"n":"Vila Maria","s":2,"p":"M40.84 26.28L40.59 27.46L40.78 29.08L40.48 29.61L40.02 29.93L38.69 30.00L37.09 30.74L35.31 30.79L31.78 31.76L30.84 31.61L30.23 31.15L30.68 30.49L30.42 29.63L30.68 29.07L30.79 26.31L30.29 25.17L30.50 24.63L31.13 24.14L31.21 23.52L31.46 23.63L32.39 23.21L33.38 22.17L33.84 22.07L35.30 22.27L37.51 24.60L39.14 23.40L39.84 24.68L39.92 25.48L40.84 26.28Z","lx":35.68,"ly":26.96},{"n":"Vila Guilherme","s":2,"p":"M28.78 29.93L26.59 29.86L25.22 28.87L24.65 28.72L24.66 28.29L24.11 27.49L24.08 26.70L25.56 25.78L25.66 24.73L25.53 23.84L26.31 22.69L26.55 21.46L27.85 21.62L29.64 21.22L30.08 21.50L29.93 22.41L30.25 22.62L30.27 23.00L30.61 23.01L31.22 23.49L31.13 24.14L30.50 24.63L30.28 25.17L30.78 26.16L30.68 29.07L30.42 29.64L30.68 30.50L30.23 31.15L28.78 29.93Z","lx":27.91,"ly":26.18},{"n":"Vila Medeiros","s":2,"p":"M39.41 19.99L39.70 20.69L39.53 22.59L39.14 23.40L37.56 24.60L37.17 24.38L36.98 23.92L35.20 22.23L33.47 22.13L32.39 23.21L31.46 23.63L31.21 23.52L30.61 23.01L30.27 23.00L30.25 22.62L29.93 22.41L30.08 21.50L29.64 21.22L30.76 20.58L31.65 18.78L33.78 17.40L34.56 16.49L36.70 15.86L38.48 19.33L39.41 19.99Z","lx":35.21,"ly":20.23},{"n":"Casa Verde","s":2,"p":"M12.91 19.63L13.69 18.55L14.36 19.01L15.20 18.47L15.43 18.50L15.90 19.22L16.09 20.06L17.15 21.61L17.04 21.85L17.93 22.42L18.38 23.86L18.99 24.87L18.42 25.31L16.77 25.67L16.97 25.82L16.68 25.96L16.85 26.20L16.57 26.27L16.76 27.81L15.75 27.92L15.72 28.15L11.33 27.57L11.46 25.50L13.16 23.07L12.49 22.52L12.30 21.20L12.75 20.77L12.91 19.63Z","lx":15.14,"ly":23.3},{"n":"Cachoeirinha","s":2,"p":"M15.36 18.45L14.36 19.01L13.69 18.55L13.45 18.88L12.29 18.41L10.84 18.59L10.83 18.02L10.69 17.99L10.93 17.07L11.56 16.45L11.54 14.61L10.95 13.42L10.77 12.52L10.30 11.95L10.28 11.30L10.54 10.48L10.21 9.79L10.98 8.69L11.10 7.65L11.68 7.15L11.51 6.75L11.87 5.93L11.85 5.52L12.21 5.23L13.04 5.03L13.27 4.56L12.91 3.89L12.25 4.13L11.79 4.08L11.63 3.39L11.32 3.41L11.01 3.08L10.10 1.61L10.10 1.32L9.84 1.12L9.67 0.01L9.90 0.04L10.23 0.37L10.18 0.58L11.00 1.11L11.28 1.17L11.65 0.97L11.95 1.07L12.47 1.54L13.25 2.67L13.73 2.74L14.15 3.17L14.53 3.25L14.54 3.62L14.94 4.25L15.96 4.33L16.42 4.84L16.42 5.60L16.14 6.13L15.65 6.41L15.45 6.84L15.85 7.81L15.64 8.26L15.74 8.59L16.13 8.76L16.17 9.18L15.98 9.42L16.27 9.97L16.14 10.83L17.00 11.58L17.38 12.57L17.01 13.72L17.77 15.06L16.35 15.55L16.76 16.28L16.49 17.68L15.66 18.06L15.36 18.45Z","lx":13.22,"ly":9.5},{"n":"Limão","s":2,"p":"M10.50 18.25L10.83 18.02L10.84 18.60L12.29 18.41L13.45 18.88L12.91 19.63L12.75 20.77L12.30 21.20L12.49 22.52L13.16 23.07L11.46 25.50L11.33 27.57L9.54 27.29L8.19 26.37L6.57 26.01L6.84 24.74L7.84 22.70L7.64 21.22L7.76 20.71L9.26 18.92L10.50 18.25Z","lx":9.6,"ly":23.06},{"n":"Freguesia do Ó","s":3,"p":"M6.57 26.01L4.82 25.73L2.48 25.93L2.12 22.91L1.43 21.63L1.16 19.86L1.81 18.78L2.07 17.49L1.29 16.84L1.23 16.45L1.39 16.13L1.14 15.66L1.23 15.22L0.93 14.95L1.03 14.42L0.29 13.09L1.00 12.75L1.21 12.91L2.97 12.87L3.60 13.23L4.65 14.77L4.55 15.00L4.77 15.26L5.14 17.41L6.88 17.43L6.85 17.55L7.31 17.61L7.55 17.83L7.41 18.23L8.37 18.35L8.52 18.10L8.36 17.58L8.71 17.23L10.02 17.21L10.88 16.41L11.55 16.35L11.48 16.62L10.95 17.02L10.60 18.16L9.29 18.90L7.78 20.68L7.64 21.22L7.84 22.70L6.84 24.74L6.57 26.01Z","lx":5.15,"ly":19.38},{"n":"Brasilândia","s":3,"p":"M0.29 13.09L0.02 12.60L0.16 11.89L1.28 10.48L2.11 10.06L2.27 9.61L2.33 8.58L1.24 7.82L0.95 7.05L1.24 6.76L1.71 6.63L2.00 6.12L3.13 6.47L3.22 4.57L3.08 2.10L3.77 2.00L4.11 2.39L4.73 2.61L6.08 2.31L6.72 2.97L7.34 3.32L7.85 1.89L7.64 1.51L7.81 1.15L9.23 0.49L9.67 0.01L9.73 0.86L10.10 1.32L10.10 1.61L11.18 3.29L11.63 3.39L11.82 4.11L12.29 4.12L12.89 3.89L13.09 4.03L13.27 4.54L13.16 4.88L11.85 5.52L11.87 5.93L11.51 6.75L11.68 7.15L11.10 7.65L10.98 8.69L10.21 9.79L10.54 10.48L10.28 11.30L10.30 11.95L10.77 12.52L10.96 13.46L11.51 14.41L11.54 16.37L10.88 16.41L10.02 17.21L8.71 17.23L8.36 17.58L8.52 18.10L8.37 18.35L7.41 18.23L7.55 17.83L7.31 17.61L6.85 17.55L6.88 17.43L5.14 17.41L4.77 15.26L4.55 15.00L4.65 14.77L3.60 13.23L2.97 12.87L1.21 12.91L1.00 12.75L0.29 13.09Z","lx":6.43,"ly":8.44}],"sub":["M24.65 28.72L23.28 28.88L19.00 28.63L15.72 28.15L15.75 27.92L16.76 27.81L16.57 26.27L16.85 26.20L16.68 25.96L16.97 25.82L16.77 25.67L18.42 25.31L18.99 24.87L18.38 23.86L17.93 22.42L17.04 21.85L17.15 21.61L16.52 20.82L16.07 20.01L15.89 19.20L15.36 18.45L15.66 18.06L16.49 17.68L16.76 16.28L16.35 15.55L17.77 15.06L17.01 13.72L17.38 12.57L17.00 11.58L16.14 10.83L16.27 9.97L15.98 9.42L16.17 9.18L16.13 8.76L15.74 8.59L15.64 8.26L15.85 7.81L15.45 6.83L15.65 6.41L16.17 6.08L16.44 5.54L16.44 4.92L15.97 4.34L15.52 4.34L16.52 3.76L17.51 3.91L19.52 3.40L20.06 3.60L20.39 3.54L20.61 3.83L20.86 3.69L20.77 5.02L21.14 5.70L21.07 6.18L21.35 6.34L21.42 6.76L20.94 7.57L20.14 8.33L19.82 9.14L20.30 9.42L20.12 9.71L20.09 10.39L20.73 11.56L20.92 12.24L21.62 12.41L21.80 12.95L22.42 13.50L23.18 13.22L23.73 13.45L24.52 13.41L25.23 13.73L25.22 13.50L25.50 13.56L25.84 12.98L26.13 12.94L26.75 13.61L28.35 13.16L28.89 13.50L29.32 13.52L29.64 13.89L30.62 14.33L30.78 14.04L31.08 14.10L31.84 13.40L32.44 13.52L33.32 12.11L34.06 11.65L32.96 11.41L33.02 11.19L33.29 11.14L34.43 9.90L34.69 9.21L35.04 8.87L34.94 8.74L35.19 8.64L35.19 7.93L35.56 7.27L35.34 7.04L35.17 5.92L36.62 5.59L36.98 5.80L37.15 5.57L37.37 5.74L37.51 5.62L37.41 5.21L36.86 3.88L37.62 3.91L37.88 4.26L37.54 4.90L37.79 5.02L38.02 5.56L38.47 5.84L38.34 7.33L37.98 7.57L37.90 8.75L37.48 9.55L37.53 10.11L37.05 10.70L36.99 12.04L38.28 14.80L39.26 16.00L39.50 17.23L39.35 17.84L39.41 19.99L38.48 19.33L36.70 15.86L36.12 16.13L34.79 16.32L34.21 16.78L33.78 17.40L32.00 18.48L31.64 18.80L30.76 20.58L29.85 21.21L27.76 21.62L26.55 21.46L26.72 21.01L26.55 21.46L26.50 21.64L26.32 22.68L25.53 23.84L25.66 24.73L25.56 25.78L24.08 26.70L24.12 27.52L24.70 28.46L24.65 28.72Z","M40.84 26.28L40.59 27.67L40.78 29.08L40.48 29.61L40.11 29.88L38.69 30.00L37.09 30.74L35.31 30.79L31.64 31.77L30.84 31.61L28.78 29.93L28.31 29.81L26.98 29.97L26.32 29.75L25.22 28.87L24.65 28.72L24.66 28.29L24.09 27.37L24.08 26.70L25.56 25.78L25.66 24.73L25.53 23.84L26.31 22.69L26.55 21.46L27.85 21.62L29.85 21.21L30.76 20.58L31.64 18.80L32.00 18.48L33.78 17.40L34.21 16.78L34.79 16.32L36.12 16.13L36.70 15.86L38.48 19.33L39.41 19.99L39.67 20.49L39.67 21.96L39.14 23.49L39.84 24.68L39.92 25.48L40.84 26.28ZM15.36 18.45L15.89 19.20L16.07 20.01L16.52 20.82L17.15 21.61L17.04 21.85L17.93 22.42L18.38 23.86L18.99 24.87L18.42 25.31L16.77 25.67L16.97 25.82L16.68 25.96L16.85 26.20L16.57 26.27L16.76 27.81L15.75 27.92L15.72 28.15L9.69 27.33L9.20 27.14L8.19 26.37L6.57 26.01L6.84 24.74L7.84 22.70L7.64 21.22L7.78 20.68L9.29 18.90L10.60 18.16L10.97 16.98L11.55 16.47L11.51 14.41L10.96 13.46L10.77 12.52L10.30 11.95L10.28 11.30L10.54 10.48L10.21 9.79L10.98 8.69L11.10 7.65L11.68 7.15L11.51 6.75L11.87 5.93L11.85 5.52L12.21 5.23L13.04 5.03L13.27 4.57L12.91 3.89L12.25 4.13L11.79 4.08L11.63 3.39L11.32 3.41L11.01 3.08L10.10 1.61L10.10 1.32L9.84 1.12L9.67 0.01L9.90 0.04L10.23 0.37L10.18 0.58L11.00 1.11L11.28 1.17L11.65 0.97L11.95 1.07L12.47 1.54L13.25 2.67L13.73 2.74L14.15 3.17L14.53 3.25L14.54 3.62L14.94 4.25L15.96 4.33L16.42 4.84L16.42 5.60L16.14 6.13L15.65 6.41L15.45 6.84L15.85 7.81L15.64 8.26L15.74 8.59L16.13 8.76L16.17 9.18L15.98 9.42L16.27 9.97L16.14 10.83L17.00 11.58L17.38 12.57L17.01 13.72L17.77 15.06L16.35 15.55L16.76 16.28L16.49 17.68L15.66 18.06L15.36 18.45Z","M6.52 26.00L4.82 25.73L2.48 25.93L2.12 22.91L1.43 21.63L1.16 19.86L1.81 18.78L2.07 17.49L1.29 16.84L1.23 16.45L1.39 16.13L1.14 15.66L1.23 15.22L0.93 14.95L1.03 14.42L0.44 13.54L0.00 12.38L0.48 11.36L1.30 10.46L2.11 10.06L2.26 9.66L2.33 8.58L1.28 7.86L0.94 7.09L1.24 6.76L1.71 6.63L2.00 6.12L3.13 6.47L3.22 4.57L3.05 2.14L3.77 2.00L4.11 2.39L4.73 2.61L6.08 2.31L6.72 2.97L7.34 3.32L7.85 1.89L7.64 1.51L7.81 1.15L9.23 0.49L9.67 0.01L9.84 1.12L10.10 1.32L10.10 1.61L11.01 3.08L11.32 3.41L11.63 3.39L11.79 4.08L12.25 4.13L12.91 3.89L13.27 4.57L13.04 5.03L12.21 5.23L11.85 5.52L11.87 5.93L11.51 6.75L11.68 7.15L11.10 7.65L10.98 8.69L10.21 9.79L10.54 10.48L10.28 11.30L10.30 11.95L10.77 12.52L10.96 13.46L11.51 14.41L11.55 16.47L10.97 16.98L10.60 18.16L9.29 18.90L7.79 20.65L7.64 21.22L7.83 22.75L6.87 24.67L6.52 26.00Z"]};
+const OLEOS_SUBNOME = { 1:'Subzona 1 Nordeste', 2:'Subzona 2 Centro-Norte', 3:'Subzona 3 Noroeste' };
+const OLEOS_PRECISAO_MAX = 100;   // GPS com precisão pior que isso (em metros) não conta para a cobertura
+const OLEOS_COR = { 'Pedido':'#15803D', 'Cadastro':'#1D4ED8', 'Cotação':'#B45309', 'Promoção':'#0E7490', 'Desinteresse':'#4B5563', 'Sem crédito':'#7C3AED', 'Reclamação':'#B91C1C' };
+const _oCel = new Map();
+OLEOS_GEO.cells.split(';').forEach(t => { const a = t.split(',').map(Number); _oCel.set(a[0]+':'+a[1], a[2]); });
+const _oCelDe  = (lat,lng) => Math.floor((lng-OLEOS_GEO.lng0)/OLEOS_GEO.dlng)+':'+Math.floor((OLEOS_GEO.lat0-lat)/OLEOS_GEO.dlat);
+const _oXY     = (lat,lng) => [ (lng-OLEOS_GEO.lng0)/OLEOS_GEO.dlng, (OLEOS_GEO.lat0-lat)/OLEOS_GEO.dlat ];
+const _oCelCod = k => { const a = k.split(':').map(Number); return (a[0]<26 ? String.fromCharCode(65+a[0]) : 'A'+String.fromCharCode(65+a[0]-26)) + (a[1]+1); };
+const _oleosM = { uid:null, visitas:[], estabs:[], carregado:false, periodo:'mes', vend:'', zona:0, sel:null, editar:false, exclTmp:null };
 
 async function _oMasterCarregar(){
   const cid = _oCid(); if(!cid || !cu) return;
@@ -8466,17 +8514,97 @@ function _oNomeUsuario(uid){
   const u = (typeof _users!=='undefined' ? _users : []).find(x=>x.id===uid);
   return u ? u.name : 'Vendedor';
 }
+const _oPct = n => (n>0 && n<10) ? n.toFixed(1).replace('.',',') : String(Math.round(n));   // cobertura baixa mostra uma casa decimal
+const _oExcluidos = () => new Set((_company && _company.oleosExcluidos) || []);
+const _oPill = (res,lit) => `<span style="display:inline-block;padding:2px 9px;border-radius:999px;background:${OLEOS_COR[res]||'#4B5563'};color:#fff;font-size:12px;font-weight:600;white-space:nowrap">${_oEsc(res)}${res==='Pedido'&&lit?' · '+lit+' L':''}</span>`;
+
+// Por que uma visita (ou ponto) conta ou não na cobertura
+function _oMotivoCobertura(lat,lng,acc,semGps,excl){
+  if(semGps || lat==null || lng==null) return 'Não: visita sem GPS';
+  if(acc!=null && acc>OLEOS_PRECISAO_MAX) return 'Não: precisão pior que '+OLEOS_PRECISAO_MAX+' m';
+  const k = _oCelDe(lat,lng);
+  if(!_oCel.has(k)) return 'Não: fora da área mapeada';
+  if(excl.has(k)) return 'Não: quadrado excluído pelo Master';
+  return 'Sim: precisão melhor que '+OLEOS_PRECISAO_MAX+' m';
+}
+
+function _oMapaSvg(zona, cobertos, excl, pins, selKey, editar){
+  const G = OLEOS_GEO, noZona = d => !zona || G.dist[d].s===zona;
+  const vazios=[], cobs=[], exs=[];
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  _oCel.forEach((d,k)=>{
+    if(!noZona(d)) return;
+    const a=k.split(':').map(Number);
+    x0=Math.min(x0,a[0]); y0=Math.min(y0,a[1]); x1=Math.max(x1,a[0]+1); y1=Math.max(y1,a[1]+1);
+    const r=`<rect x="${a[0]}" y="${a[1]}" width="1" height="1" data-om-cel="${k}"/>`;
+    (excl.has(k) ? exs : cobertos.has(k) ? cobs : vazios).push(r);
+  });
+  const m=1.2; x0-=m; y0-=m; x1+=m; y1+=m;
+  const vb=`${x0.toFixed(1)} ${y0.toFixed(1)} ${(x1-x0).toFixed(1)} ${(y1-y0).toFixed(1)}`;
+  const cur = editar ? 'cursor:pointer;' : '';
+  let dp='', lb='';
+  G.dist.forEach((D,i)=>{ if(!noZona(i)) return; dp+=`<path d="${D.p}"/>`; lb+=`<text x="${D.lx}" y="${D.ly}">${_oEsc(D.n)}</text>`; });
+  let sp=''; G.sub.forEach((p,i)=>{ if(!zona || zona===i+1) sp+=`<path d="${p}"/>`; });
+  let selR='';
+  if(selKey && _oCel.has(selKey) && noZona(_oCel.get(selKey))){ const a=selKey.split(':').map(Number); selR=`<rect x="${a[0]}" y="${a[1]}" width="1" height="1" fill="none" stroke="#1F2933" stroke-width=".12"/>`; }
+  let pn='';
+  pins.forEach(p=>{
+    const xy=_oXY(p.lat,p.lng), k=_oCelDe(p.lat,p.lng);
+    if(!_oCel.has(k) || !noZona(_oCel.get(k))) return;
+    const sel = p.id===p.selId;
+    pn+=`<g data-om-est="${_oEsc(p.id)}" style="cursor:pointer">${sel?`<circle cx="${xy[0].toFixed(2)}" cy="${xy[1].toFixed(2)}" r="1.25" fill="none" stroke="#1F2933" stroke-width=".14"/>`:''}<circle cx="${xy[0].toFixed(2)}" cy="${xy[1].toFixed(2)}" r=".78" fill="${OLEOS_COR[p.res]||'#4B5563'}" stroke="#fff" stroke-width=".16"/><text x="${xy[0].toFixed(2)}" y="${(xy[1]+0.28).toFixed(2)}" text-anchor="middle" font-size=".8" font-weight="700" fill="#fff">${p.n}</text></g>`;
+  });
+  return `<svg viewBox="${vb}" width="100%" role="img" aria-label="Mapa de cobertura da Zona Norte em quadrados de 400 metros, com os comércios visitados numerados" style="display:block;background:#fff;border-radius:10px;border:1px solid #F1DDD8;${cur}">
+<defs><pattern id="om-hach" width=".4" height=".4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width=".4" height=".4" fill="#ECEAE8"/><line x1="0" y1="0" x2="0" y2=".4" stroke="#B9B3AF" stroke-width=".14"/></pattern></defs>
+<g fill="#fff" stroke="#E2D7D3" stroke-width=".04">${vazios.join('')}</g>
+<g fill="#CDEBD6" stroke="#4FA56B" stroke-width=".04">${cobs.join('')}</g>
+<g fill="url(#om-hach)" stroke="#A8A19C" stroke-width=".04">${exs.join('')}</g>
+<g fill="none" stroke="#8A7F7A" stroke-width=".06">${dp}</g>
+<g fill="none" stroke="#3D3431" stroke-width=".12">${sp}</g>
+${selR}
+<g font-size=".85" font-weight="600" fill="#3D3431" text-anchor="middle" stroke="#fff" stroke-width=".25" paint-order="stroke" style="pointer-events:none">${lb}</g>
+${pn}
+</svg>`;
+}
 
 function _oMasterRender(){
   const el = $('oleos-conteudo'); if(!el) return;
-  const M = _oleosM, hoje = tod();
+  const M = _oleosM, hoje = tod(), G = OLEOS_GEO;
   const [de, ate] = _oPeriodoIntervalo(M.periodo);
   const uids = [...new Set(M.visitas.map(v=>v.uid))];
   const doVend = v => !M.vend || v.uid===M.vend;
   const vis = M.visitas.filter(v => v.dia>=de && v.dia<=ate && doVend(v));
+  const estById = {}; M.estabs.forEach(e=>{ estById[e.id]=e; });
+  const noZona = d => !M.zona || G.dist[d].s===M.zona;
+  const excl = M.editar ? M.exclTmp : _oExcluidos();
   const litros = vis.filter(v=>v.resultado==='Pedido').reduce((t,v)=>t+(Number(v.litros)||0),0);
   const cadastros = vis.filter(v=>v.resultado==='Cadastro').length;
   const fmtL = n => n.toLocaleString('pt-BR',{maximumFractionDigits:1});
+
+  // Cobertura: quadrados com ao menos uma visita de GPS confiável no período
+  const cobertos = new Set(); let semGps=0, foraArea=0, impreciso=0;
+  vis.forEach(v=>{
+    if(v.semGps || v.lat==null || v.lng==null){ semGps++; return; }
+    if(v.acc!=null && v.acc>OLEOS_PRECISAO_MAX){ impreciso++; return; }
+    const k = _oCelDe(v.lat, v.lng);
+    if(!_oCel.has(k)){ foraArea++; return; }
+    cobertos.add(k);
+  });
+  const porDist = G.dist.map(()=>({t:0,e:0,c:0}));
+  _oCel.forEach((d,k)=>{ const o=porDist[d]; o.t++; if(excl.has(k)) o.e++; else if(cobertos.has(k)) o.c++; });
+  const ds = porDist.map((o,i)=>({i, n:G.dist[i].n, ...o, pct:(o.t-o.e)>0 ? 100*o.c/(o.t-o.e) : 0})).filter(o=>noZona(o.i));
+  const tot = ds.reduce((a,o)=>({t:a.t+o.t,e:a.e+o.e,c:a.c+o.c}),{t:0,e:0,c:0});
+  const den = tot.t-tot.e, pctCob = den>0 ? 100*tot.c/den : 0;
+
+  // Visitas recentes (a tabela) e a numeração dos comércios (liga a linha ao ponto do mapa)
+  const recentes = vis.slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||'')).slice(0,12);
+  const num = {}; let nn=0;
+  recentes.forEach(v=>{ if(!num[v.estabId]) num[v.estabId] = ++nn; });
+  const selId = (M.sel && num[M.sel]) ? M.sel : (recentes[0] ? recentes[0].estabId : null);
+  const ultPorEst = {}; recentes.forEach(v=>{ if(!ultPorEst[v.estabId]) ultPorEst[v.estabId]=v; });
+  const posDe = id => { const e=estById[id], v=ultPorEst[id]; if(e && e.lat!=null && e.lng!=null) return {lat:e.lat,lng:e.lng}; if(v && v.lat!=null && v.lng!=null) return {lat:v.lat,lng:v.lng}; return null; };
+  const pins = Object.keys(num).map(id=>{ const p=posDe(id); return p ? {id, n:num[id], lat:p.lat, lng:p.lng, res:ultPorEst[id].resultado, selId} : null; }).filter(Boolean);
+  const selKey = (() => { const p = selId ? posDe(selId) : null; return p ? _oCelDe(p.lat,p.lng) : null; })();
 
   // Retornos: vale o retorno mais recente de cada estabelecimento (independe do período)
   const ult = {};
@@ -8485,46 +8613,130 @@ function _oMasterRender(){
 
   const opP = (v,t) => `<option value="${v}"${M.periodo===v?' selected':''}>${t}</option>`;
   const filtroVend = uids.length>1
-    ? `<div class="field"><label>Vendedor</label><select id="om-vend"><option value="">Todos</option>${uids.map(u=>`<option value="${_oEsc(u)}"${M.vend===u?' selected':''}>${_oEsc(_oNomeUsuario(u))}</option>`).join('')}</select></div>` : '';
+    ? `<div class="field"><label for="om-vend">Vendedor</label><select id="om-vend"><option value="">Todos</option>${uids.map(u=>`<option value="${_oEsc(u)}"${M.vend===u?' selected':''}>${_oEsc(_oNomeUsuario(u))}</option>`).join('')}</select></div>` : '';
+  const titulo = (M.vend ? _oNomeUsuario(M.vend) : (uids.length===1 ? _oNomeUsuario(uids[0]) : '')) ;
 
-  const retHtml = rets.length ? rets.map(v=>`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><b>${_oEsc(v.estabNome)}</b>
-      <div class="sec-sub">${uids.length>1?_oEsc(_oNomeUsuario(v.uid))+' · ':''}${v.contato?_oEsc(v.contato)+' · ':''}retorno ${_oFmtData(v.retorno)}${v.retorno<hoje?' (atrasado)':''}</div></div>`).join('')
+  const chip = (z,t) => `<button type="button" data-om-zona="${z}" style="padding:8px 14px;border-radius:999px;min-height:36px;cursor:pointer;font:600 13px inherit;border:1.5px solid ${M.zona===z?'#E53E3E':'#E7CFC9'};background:${M.zona===z?'#E53E3E':'#fff'};color:${M.zona===z?'#fff':'#3D3431'}">${t}</button>`;
+  const chips = chip(0,'Toda a Zona Norte')+chip(1,'1 Nordeste')+chip(2,'2 Centro-Norte')+chip(3,'3 Noroeste');
+  const barraEdit = M.editar
+    ? `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;padding:8px 10px;border:1.5px solid #F59E0B;background:#FFFBEB;border-radius:8px;font-size:13px">Clique nos quadrados para excluir ou incluir. <button type="button" class="btn-save" id="om-salvar-excl">Salvar</button><button type="button" class="btn-sec" id="om-cancelar-excl">Cancelar</button></div>`
+    : `<div style="margin-bottom:10px"><button type="button" class="btn-sec" id="om-editar-excl">Editar áreas excluídas</button></div>`;
+  const leg = (bg,t,b) => `<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px"><span style="width:14px;height:14px;border-radius:3px;background:${bg};border:1px solid ${b}"></span>${t}</span>`;
+  const legenda = leg('#CDEBD6','Coberto','#4FA56B')+leg('#fff','Sem visita','#CBBDB8')+leg('repeating-linear-gradient(45deg,#ECEAE8 0 3px,#B9B3AF 3px 5px)','Excluído pelo Master','#A8A19C');
+  const legPins = ['Pedido','Cadastro','Cotação','Promoção','Desinteresse','Sem crédito','Reclamação'].map(r=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px"><span style="width:12px;height:12px;border-radius:50%;background:${OLEOS_COR[r]}"></span>${r}</span>`).join('');
+  const avisos = [semGps?`${semGps} visita(s) sem GPS`:'', foraArea?`${foraArea} fora da área mapeada`:'', impreciso?`${impreciso} com precisão pior que ${OLEOS_PRECISAO_MAX} m`:''].filter(Boolean);
+  const avisoHtml = avisos.length ? `<div class="sec-sub" style="margin-top:8px">Não contam na cobertura: ${avisos.join(' · ')}.</div>` : '';
+
+  // Ficha do comércio selecionado
+  let ficha = '<div class="empty" style="padding:1rem">Nenhuma visita neste período.</div>', histor = '';
+  if(selId){
+    const e = estById[selId] || {}, uv = ultPorEst[selId], p = posDe(selId);
+    const k = p ? _oCelDe(p.lat,p.lng) : null, d = (k && _oCel.has(k)) ? _oCel.get(k) : null;
+    const row = (a,b) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid #F1DDD8"><dt style="color:#4B5563;font-size:13px">${a}</dt><dd style="margin:0;font-size:14px;font-weight:600;text-align:right">${b}</dd></div>`;
+    const motivo = _oMotivoCobertura(uv.lat, uv.lng, uv.acc, uv.semGps, excl);
+    ficha = `<div style="display:flex;align-items:center;gap:12px"><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${OLEOS_COR[uv.resultado]||'#4B5563'};color:#fff;font-weight:700;flex:none">${num[selId]}</span>
+      <div><div style="font-size:16px;font-weight:700">${_oEsc(uv.estabNome)}</div><div style="margin-top:4px">${_oPill(uv.resultado,uv.litros)}</div></div></div>
+      <div class="sec-sub" style="margin:14px 0 2px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">Local</div>
+      <dl style="margin:0">${row('Via',_oEsc(e.via||uv.via||'—'))}${row('Bairro (digitado)',_oEsc(e.bairro||uv.bairro||'—'))}${row('Distrito',d!=null?_oEsc(G.dist[d].n):'—')}${row('Subzona',d!=null?OLEOS_SUBNOME[G.dist[d].s]:'—')}${row('Quadrado do mapa',k&&_oCel.has(k)?_oCelCod(k)+' · 400 m':'—')}${row('Localização (GPS)',uv.semGps?'Sem GPS':'precisão '+(uv.acc!=null?uv.acc+' m':'—'))}${row('Entra na cobertura',_oEsc(motivo))}</dl>`;
+    const hv = M.visitas.filter(v=>v.estabId===selId).sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
+    histor = hv.map(v=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid #F1DDD8"><div><div style="font-weight:600">${_oFmtData(v.dia)} · ${_oEsc(v.resultado)}${v.resultado==='Pedido'?' · '+v.litros+' L':''}</div>${v.retorno?`<div class="sec-sub">Retorno marcado para ${_oFmtData(v.retorno)}</div>`:''}</div><span class="sec-sub" style="white-space:nowrap">${v.semGps?'sem GPS':'GPS '+(v.acc!=null?v.acc+' m':'—')}</span></div>`).join('');
+  }
+
+  // Estabelecimentos distintos visitados no período, por artéria da planilha (um retorno ao mesmo comércio não conta de novo)
+  const viaEst = {}; OLEOS_VIAS.art.forEach(a=>{ viaEst[a[0]] = new Set(); });
+  const semVia = new Set();
+  vis.forEach(v=>{ const e = estById[v.estabId]||{}; const id = _oViaArteriaId(e.via||v.via); if(id && viaEst[id]) viaEst[id].add(v.estabId); else semVia.add(v.estabId); });
+  const linhasVia = OLEOS_VIAS.art.map(a=>({nome:a[1], n:a[2], x:viaEst[a[0]].size})).sort((p,q)=>(q.x/q.n)-(p.x/p.n)||q.x-p.x)
+    .map(o=>`<div style="display:flex;align-items:center;gap:10px;padding:5px 0"><div style="width:210px;font-size:13px">${_oEsc(o.nome)}</div><div style="flex:1;height:10px;background:#F1E7E4;border-radius:6px;overflow:hidden"><div style="width:${Math.min(100,100*o.x/o.n).toFixed(1)}%;height:100%;background:#3E8E41"></div></div><div style="width:92px;text-align:right;font-size:13px;font-weight:600">${o.x} de ${o.n}</div></div>`).join('');
+  const barras = ds.slice().sort((a,b)=>b.pct-a.pct).map(o=>`<div style="display:flex;align-items:center;gap:10px;padding:5px 0"><div style="width:130px;font-size:13px">${_oEsc(o.n)}</div><div style="flex:1;height:10px;background:#F1E7E4;border-radius:6px;overflow:hidden"><div style="width:${o.pct.toFixed(1)}%;height:100%;background:#3E8E41"></div></div><div style="width:44px;text-align:right;font-size:13px;font-weight:600">${_oPct(o.pct)}%</div></div>`).join('');
+
+  const retHtml = rets.length ? rets.map(v=>`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><b>${_oEsc(v.estabNome)}</b><div class="sec-sub">${uids.length>1?_oEsc(_oNomeUsuario(v.uid))+' · ':''}${v.contato?_oEsc(v.contato)+' · ':''}${_oEsc(v.resultado)} · retorno ${_oFmtData(v.retorno)}${v.retorno<hoje?' (atrasado)':''}</div></div>`).join('')
     : '<div class="empty" style="padding:1rem">Nenhum retorno para hoje.</div>';
 
-  const ultimas = vis.slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||'')).slice(0,20);
-  const visHtml = ultimas.length ? ultimas.map(v=>`<div style="padding:6px 0;border-bottom:1px solid var(--border)">
-      <div style="display:flex;justify-content:space-between;gap:8px"><b>${_oEsc(v.estabNome)}</b><span class="sec-sub">${_oFmtData(v.dia)}</span></div>
-      <div class="sec-sub">${uids.length>1?_oEsc(_oNomeUsuario(v.uid))+' · ':''}${_oEsc(v.resultado)}${v.resultado==='Pedido'?' · '+v.litros+' L':''}${v.bairro?' · '+_oEsc(v.bairro):''}${v.promocao?' · '+_oEsc(v.promocao):''}${v.semGps?' · sem GPS':''}</div>
-      ${v.obs?`<div class="sec-sub" style="margin-top:2px">${_oEsc(v.obs)}</div>`:''}</div>`).join('')
-    : '<div class="empty" style="padding:1rem">Nenhuma visita neste período.</div>';
+  const linhas = recentes.map(v=>{
+    const n = num[v.estabId], e = estById[v.estabId]||{}, p = posDe(v.estabId), k = p ? _oCelDe(p.lat,p.lng) : null, d = (k && _oCel.has(k)) ? _oCel.get(k) : null;
+    const sel = v.estabId===selId;
+    return `<tr style="${sel?'background:#FDEFEA;':''}border-top:1px solid #F1DDD8"><td style="padding:10px 12px"><button type="button" data-om-est="${_oEsc(v.estabId)}" aria-label="Mostrar ${_oEsc(v.estabNome)} no mapa" style="width:28px;height:28px;border-radius:50%;border:0;cursor:pointer;background:${OLEOS_COR[v.resultado]||'#4B5563'};color:#fff;font-weight:700;font-size:12px">${n}</button></td>
+      <td style="padding:10px 12px;color:#4B5563">${_oFmtData(v.dia)}</td><td style="padding:10px 12px;font-weight:600">${_oEsc(v.estabNome)}</td><td style="padding:10px 12px">${_oPill(v.resultado,v.litros)}</td>
+      <td style="padding:10px 12px">${_oEsc(e.via||v.via||'—')}<div class="sec-sub">${d!=null?_oEsc(G.dist[d].n):(v.bairro?_oEsc(v.bairro):'')}</div></td>
+      <td style="padding:10px 12px">${d!=null?OLEOS_SUBNOME[G.dist[d].s]:'—'}</td>
+      <td style="padding:10px 12px;text-align:right">${v.semGps?'<span style="padding:2px 9px;border-radius:999px;background:#FDE8E8;color:#9B1C1C;font-size:12px;font-weight:600">Sem GPS</span>':'<span style="color:#166534;font-weight:600">'+(v.acc!=null?v.acc+' m':'—')+'</span>'}</td></tr>`;
+  }).join('') || '<tr><td colspan="7"><div class="empty" style="padding:1rem">Nenhuma visita neste período.</div></td></tr>';
 
   el.innerHTML = `
     <div class="fcard">
-      <div class="fcard-title"><span class="bar" style="background:#1B6CA8"></span>Óleos — resultados</div>
+      <div class="fcard-title"><span class="bar" style="background:#1B6CA8"></span>Óleos${titulo?' · '+_oEsc(titulo):''} — resultados</div>
       <div class="fgrid ${uids.length>1?'fg2':'fg1'}">
-        <div class="field"><label>Período</label><select id="om-periodo">${opP('hoje','Hoje')}${opP('7d','Últimos 7 dias')}${opP('mes','Mês atual')}${opP('mesant','Mês anterior')}${opP('tudo','Tudo')}</select></div>
+        <div class="field"><label for="om-periodo">Período</label><select id="om-periodo">${opP('hoje','Hoje')}${opP('7d','Últimos 7 dias')}${opP('mes','Mês atual')}${opP('mesant','Mês anterior')}${opP('tudo','Tudo')}</select></div>
         ${filtroVend}
       </div>
-      <div class="mgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
+      <div class="mgrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:0">
         <div class="mcard green"><div class="mcard-label">Total vendido (L)</div><div class="mcard-val">${fmtL(litros)}</div><div class="mcard-sub">Pedidos no período</div></div>
         <div class="mcard blue"><div class="mcard-label">Visitas</div><div class="mcard-val">${vis.length}</div><div class="mcard-sub">Inclui retornos</div></div>
         <div class="mcard"><div class="mcard-label">Cadastros</div><div class="mcard-val">${cadastros}</div><div class="mcard-sub">Resultado Cadastro</div></div>
+        <div class="mcard"><div class="mcard-label">Cobertura do território</div><div class="mcard-val">${_oPct(pctCob)}%</div><div class="mcard-sub">${tot.c} de ${den} quadrados${M.zona?' · '+OLEOS_SUBNOME[M.zona]:''}</div></div>
       </div>
     </div>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <div class="fcard" style="flex:999 1 620px;min-width:0;margin-bottom:0">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+          <div><div class="fcard-title" style="margin-bottom:2px"><span class="bar" style="background:#22C55E"></span>Mapa de cobertura da Zona Norte</div><div class="sec-sub">Quadrados de 400 m · 12 distritos mais densos</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">${chips}</div>
+        </div>
+        ${barraEdit}
+        ${_oMapaSvg(M.zona, cobertos, excl, pins, selKey, M.editar)}
+        <div style="display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;align-items:center">${legenda}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:8px;align-items:center">${legPins}</div>
+        ${avisoHtml}
+        <div class="sec-sub" style="margin-top:6px">Limites dos distritos: GeoSampa / Prefeitura de São Paulo (CC BY-SA 4.0).</div>
+      </div>
+      <div style="flex:1 1 340px;min-width:0;max-width:420px;display:flex;flex-direction:column;gap:16px">
+        <div class="fcard" style="margin-bottom:0">${ficha}</div>
+        <div class="fcard" style="margin-bottom:0"><div class="fcard-title" style="margin-bottom:4px">Visitas a este comércio</div>${histor||'<div class="empty" style="padding:1rem">—</div>'}</div>
+      </div>
+    </div>
+    <div class="fcard" style="margin-top:16px"><div class="fcard-title"><span class="bar" style="background:#3E8E41"></span>Cobertura por distrito${M.zona?' · '+OLEOS_SUBNOME[M.zona]:''}</div>${barras}</div>
+    <div class="fcard"><div class="fcard-title"><span class="bar" style="background:#8B5CF6"></span>Estabelecimentos visitados por via</div>${linhasVia}<div class="sec-sub" style="margin-top:8px">Cada comércio conta uma vez no período. O total de cada via é estimativa da planilha (Econodata/CNAE), e as vias se sobrepõem, então não some as linhas.${semVia.size?' '+semVia.size+' comércio(s) com via fora da lista não entram aqui.':''}</div></div>
     <div class="fcard"><div class="fcard-title"><span class="bar" style="background:#F59E0B"></span>Retornos de hoje (${rets.length})</div>${retHtml}</div>
-    <div class="fcard"><div class="fcard-title"><span class="bar" style="background:#22C55E"></span>Últimas visitas do período</div>${visHtml}</div>`;
+    <div class="fcard"><div class="fcard-title"><span class="bar" style="background:#22C55E"></span>Visitas recentes e onde foram</div>
+      <div class="sec-sub" style="margin-bottom:8px">O número liga a visita ao ponto no mapa. Visita sem GPS aparece aqui, mas não entra na cobertura.</div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px;min-width:760px"><thead><tr style="text-align:left;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#4B5563"><th scope="col" style="padding:8px 12px">Nº</th><th scope="col" style="padding:8px 12px">Data</th><th scope="col" style="padding:8px 12px">Comércio</th><th scope="col" style="padding:8px 12px">Resultado</th><th scope="col" style="padding:8px 12px">Local</th><th scope="col" style="padding:8px 12px">Subzona</th><th scope="col" style="padding:8px 12px;text-align:right">Precisão do GPS</th></tr></thead><tbody>${linhas}</tbody></table></div>
+    </div>`;
   _oMasterEventos();
 }
 
 function _oMasterEventos(){
   const raiz = $('oleos-conteudo'); if(!raiz) return;
-  $('om-periodo').onchange = e => { _oleosM.periodo = e.target.value; _oMasterRender(); };
-  if($('om-vend')) $('om-vend').onchange = e => { _oleosM.vend = e.target.value; _oMasterRender(); };
+  const M = _oleosM;
+  $('om-periodo').onchange = e => { M.periodo = e.target.value; _oMasterRender(); };
+  if($('om-vend')) $('om-vend').onchange = e => { M.vend = e.target.value; _oMasterRender(); };
+  raiz.onclick = e => {
+    const z = e.target.closest('[data-om-zona]'); if(z){ M.zona = Number(z.getAttribute('data-om-zona')); _oMasterRender(); return; }
+    if(M.editar){
+      const c = e.target.closest('[data-om-cel]');
+      if(c){ const k = c.getAttribute('data-om-cel'); if(M.exclTmp.has(k)) M.exclTmp.delete(k); else M.exclTmp.add(k); _oMasterRender(); return; }
+    }
+    const s = e.target.closest('[data-om-est]'); if(s){ M.sel = s.getAttribute('data-om-est'); _oMasterRender(); return; }
+    if(e.target.closest('#om-editar-excl')){ M.editar = true; M.exclTmp = new Set(_oExcluidos()); _oMasterRender(); return; }
+    if(e.target.closest('#om-cancelar-excl')){ M.editar = false; M.exclTmp = null; _oMasterRender(); return; }
+    if(e.target.closest('#om-salvar-excl')){ _oSalvarExcl(); return; }
+  };
+}
+
+async function _oSalvarExcl(){
+  const cid = _oCid(); if(!cid || !_oleosM.exclTmp) return;
+  try{
+    const lista = [..._oleosM.exclTmp].sort();
+    await updateDoc(doc(db,'companies',cid), { oleosExcluidos: lista, updatedAt: new Date().toISOString() });
+    if(_company) _company.oleosExcluidos = lista;
+    _oleosM.editar = false; _oleosM.exclTmp = null;
+    _oMasterRender(); toast('Áreas excluídas salvas.');
+  }catch(err){ console.error('[Óleos] salvar exclusões:', err); toast('Erro ao salvar as áreas excluídas.'); }
 }
 
 async function _oMasterAbrir(){
   const el = $('oleos-conteudo'); if(!el) return;
-  if(_oleosM.uid !== cu?.uid){ Object.assign(_oleosM, { uid:cu?.uid||null, visitas:[], estabs:[], carregado:false, periodo:'mes', vend:'' }); }
+  if(_oleosM.uid !== cu?.uid){ Object.assign(_oleosM, { uid:cu?.uid||null, visitas:[], estabs:[], carregado:false, periodo:'mes', vend:'', zona:0, sel:null, editar:false, exclTmp:null }); }
   el.innerHTML = '<div class="empty">Carregando...</div>';
   await _oMasterCarregar();   // sempre atualiza ao abrir a aba
   _oMasterRender();
