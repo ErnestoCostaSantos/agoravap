@@ -1551,7 +1551,8 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <p>A <b>versão 4.0</b> adiciona os módulos de <b>Campanhas</b>, <b>Promoções</b>, <b>Ranking de Clientes</b> e <b>Top 10 Clientes</b>, permitindo ao Líder criar ações de relacionamento e ao Vendedor registrar resultados e acompanhar seus principais clientes diariamente.</p>
           <p>Atualizações recentes adicionam o módulo <b>Carteira de Clientes</b> (com importação em massa via agenda, CSV ou VCF) e o novo nível de acesso <b>Master</b>, que enxerga a carteira de todos os vendedores da empresa.</p>
           <p>Também foi adicionado o perfil <b>SDR</b> (prospecção por telefone): uma profissional que liga para listas externas de empresas, qualifica o interesse e <b>transfere o lead ao vendedor</b>, que passa a acompanhá-lo na própria Carteira e no CRM. Veja o capítulo <b>5.2 — Perfil SDR</b>.</p>
-          <div class="help-tip">O sistema é indicado para equipes com ciclo de vendas consultivo, onde o acompanhamento de funil, taxas de conversão e ticket médio são indicadores críticos de performance.</div>
+            <p>O módulo <b>Óleos</b> (perfil <b>Vendedor de Óleos</b>) registra as visitas de campo do vendedor de lubrificantes, com GPS, e dá ao Master um painel de cobertura da Zona Norte. Ele só aparece em empresas com o módulo ligado (ver capítulo 5.3).</p>
+        <div class="help-tip">O sistema é indicado para equipes com ciclo de vendas consultivo, onde o acompanhamento de funil, taxas de conversão e ticket médio são indicadores críticos de performance.</div>
         </div>
         <div class="divider"></div>
 
@@ -1791,7 +1792,8 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <ul>
             <li><b>Vendedor / Profissional</b> — Lança e consulta apenas seus próprios dados. Registra vendas por promoção e clientes no ranking. Gerencia a própria Carteira de Clientes. Abas: Lançar, Histórico, Dashboard, Promoções (inclui Ranking de Clientes), Carteira, Ajuda.</li>
             <li><b>SDR</b> — Prospecção por telefone para gerar leads qualificados. Lança só os "Internos de Prospecção", registra os contatos dos leads (até 3 por lead) e transfere o lead qualificado ao vendedor. Não acessa Carteira, Histórico, Dashboard nem Administrativo, e não edita nem apaga o que lança. Abas: Lançar, Prospecção, Painel, Campanhas (só consulta), Promoções (só consulta), Ajuda. Detalhes no capítulo 5.2.</li>
-            <li><b>Líder</b> — Visualiza dados de toda a equipe, gerencia profissionais, metas e exportações. Cria e gerencia Campanhas e Promoções. Na Carteira de Clientes, porém, é tratado como um vendedor comum: só vê e gerencia a própria carteira, não a dos demais vendedores. Acessa todas as abas (exceto Super Admin).</li>
+            <li><b>Vendedor de Óleos</b> — Perfil do módulo Óleos (empresas com o módulo ligado, hoje a Royal). Registra visitas de campo com GPS, acompanha os retornos do dia e consulta as promoções da empresa. Abas: Óleos, Promoções, Ajuda. Não acessa Lançar, CRM, Histórico, Carteira, Dashboard nem Administrativo. Detalhes no capítulo 5.3.</li>
+          <li><b>Líder</b> — Visualiza dados de toda a equipe, gerencia profissionais, metas e exportações. Cria e gerencia Campanhas e Promoções. Na Carteira de Clientes, porém, é tratado como um vendedor comum: só vê e gerencia a própria carteira, não a dos demais vendedores. Acessa todas as abas (exceto Super Admin).</li>
             <li><b>Master</b> — Nível acima do Líder. Tem todo o acesso do Líder em todos os módulos, e é o único perfil (além do Super Admin) que enxerga e gerencia a <b>Carteira de Clientes de todos os vendedores da empresa</b>, com filtro por vendedor e botão "Limpar Carteira". A promoção de um usuário a Master só pode ser feita pelo Super Admin, para evitar autopromoções em cadeia.</li>
             <li><b>Super Admin</b> — Perfil exclusivo ECS. Gerencia todas as empresas da plataforma e visualiza dados de qualquer empresa.</li>
           </ul>
@@ -1889,6 +1891,68 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Correções</b> — o Líder e o Master podem corrigir os lançamentos da SDR (ela só cria). No Histórico, o lançamento diário de Internos dela aparece com o nome dela.</li>
           </ul>
           <div class="help-tip">Resumo da regra de ouro: a SDR <b>só cria</b>. Quem corrige é o Líder; quem acompanha o lead depois da transferência é o vendedor.</div>
+        </div>
+        <div class="divider"></div>
+
+        <!-- 5.3 MÓDULO ÓLEOS -->
+        <div class="help-section" id="ajuda-oleos">
+          <h2>5.3 Módulo Óleos (Royal)</h2>
+          <p>O Óleos organiza a rotina do vendedor de lubrificantes: um “pente fino” de visitas na Zona Norte de São Paulo, via a via. O vendedor registra cada visita no celular, e o <b>Master</b> acompanha, num painel, o total vendido, as visitas, os cadastros e <b>quanto do território já foi coberto</b>. O módulo só aparece em empresas com o módulo Óleos ligado; as demais empresas não mudam.</p>
+
+          <h3>5.3.1 Acesso e primeiro login</h3>
+          <ul>
+            <li><b>Endereço:</b> <i>www.agoravap.com.br/?empresa=royal</i> — abre direto o login da Royal.</li>
+            <li><b>Cadastro (Master):</b> Administrativo → Profissionais → perfil <b>Vendedor de Óleos</b> (a opção só aparece para o Master de uma empresa com o módulo). Cadastre sempre pelo Master da empresa. O app mostra a <b>senha provisória</b>; copie exatamente como aparece (maiúsculas e minúsculas contam) e envie ao vendedor junto com o endereço.</li>
+            <li><b>Primeiro acesso (vendedor):</b> entrar com o e-mail e a senha provisória, informar o <b>nome completo</b> e criar a senha definitiva (mínimo de 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial). Em seguida o app abre na aba <b>Óleos</b>. Quando o celular pedir a localização, toque em <b>Permitir</b>.</li>
+            <li><b>Menu do vendedor:</b> Óleos · Promoções · Ajuda.</li>
+          </ul>
+          <div class="help-tip">Após <b>4 minutos sem atividade</b> o app encerra a sessão (vale para todos os perfis). Se acontecer, basta entrar de novo; as visitas já salvas não se perdem. Registre a visita logo depois do atendimento.</div>
+
+          <h3>5.3.2 Registrar uma visita (vendedor)</h3>
+          <p>A aba Óleos tem três blocos: <b>Retornos de hoje</b>, <b>Registrar visita</b> e <b>Minhas últimas visitas</b> (as 15 últimas).</p>
+          <ul>
+            <li><b>Comércio</b> (obrigatório) — digite ou fale o nome. Se aparecer <b>“Já cadastrado por aqui?”</b> (nome parecido ou comércio a cerca de 100 m), toque em <b>É este</b> para ligar a visita ao cadastro existente; <b>Desfazer</b> volta atrás.</li>
+            <li><b>Segmento</b> — Posto de troca · Revenda · Centro automotivo · Mecânica · Posto de gasolina · Transportadora · Pit stop / similar · Outro comércio.</li>
+            <li><b>Cargo do contato</b> — Proprietário · Gerente · Comprador · Mecânico · Atendente. <b>Contato</b> — nome de quem atendeu.</li>
+            <li><b>Via</b> e <b>Bairro</b> — digite ou fale. A Via mostra <b>sugestões</b> das avenidas da planilha enquanto você escreve; toque numa sugestão para preencher.</li>
+            <li><b>Potencial (L por mês)</b> — quanto o comércio pode comprar por mês.</li>
+            <li><b>Resultado</b> (obrigatório, um por visita) — Cotação · Cadastro · Pedido · Reclamação · Desinteresse · Promoção · Sem crédito. Em <b>Pedido</b> aparece o campo <b>Litros vendidos</b>, obrigatório e maior que zero.</li>
+            <li><b>Retorno</b> — data combinada para voltar; alimenta a lista “Retornos de hoje”.</li>
+            <li><b>Promoção</b> (opcional) — lista as promoções da empresa em vigor, mais <i>Nenhuma</i> e <i>Outras</i>.</li>
+            <li><b>Observações</b> — texto livre. Toque em <b>Salvar visita</b> para gravar.</li>
+          </ul>
+          <div class="help-tip"><b>Falar em vez de digitar:</b> use o microfone do teclado do celular (iPhone ou Android). O app não tem botão de microfone próprio.</div>
+
+          <h3>5.3.3 Localização (GPS)</h3>
+          <ul>
+            <li>O app captura a localização <b>uma única vez, ao tocar em Salvar visita</b>. Não há rastreamento contínuo.</li>
+            <li>Sem permissão ou sem sinal, a visita é salva como <b>“sem GPS”</b> e <b>não entra na cobertura</b>.</li>
+            <li>Para contar na cobertura, a precisão do sinal precisa ser melhor que <b>100 m</b>. Salve do lado de fora do comércio, com o celular desbloqueado.</li>
+          </ul>
+
+          <h3>5.3.4 Retornos do dia</h3>
+          <p>Vale o retorno mais recente de cada comércio. Ele aparece quando a data chegou ou passou (os vencidos mostram “atrasado”). Toque em <b>Visitar</b> para abrir o registro com os dados do comércio já preenchidos.</p>
+
+          <h3>5.3.5 Promoções</h3>
+          <p>As promoções da Royal ficam na aba <b>Promoções</b> da própria empresa: o <b>Master cria</b> (como no Anexo B do Manual do Usuário) e o vendedor consulta, com o pop-up de uma vez por dia. As promoções da Dealer não aparecem para a Royal. A arte personalizada é baixada e enviada pelo Master.</p>
+
+          <h3>5.3.6 Painel do Master</h3>
+          <p>Na aba <b>Óleos</b>, o Master vê o painel (pensado para o computador). Escolha o <b>Período</b> (Hoje, Últimos 7 dias, Mês atual, Mês anterior, Tudo) e, havendo mais de um vendedor, o <b>Vendedor</b>.</p>
+          <ul>
+            <li><b>Total vendido (L)</b> — soma dos litros das visitas com resultado Pedido.</li>
+            <li><b>Visitas</b> — todas as do período, inclusive retornos ao mesmo comércio.</li>
+            <li><b>Cadastros</b> — visitas com resultado Cadastro.</li>
+            <li><b>Cobertura do território</b> — quadrados cobertos ÷ (quadrados da área menos os excluídos).</li>
+          </ul>
+          <p><b>Mapa de cobertura.</b> A Zona Norte (12 distritos: Santana, Tucuruvi, Mandaqui, Jaçanã, Vila Maria, Vila Guilherme, Vila Medeiros, Casa Verde, Cachoeirinha, Limão, Freguesia do Ó e Brasilândia) é dividida em <b>quadrados de 400 m</b>. Verde = coberto, branco = sem visita, hachurado = excluído pelo Master. Os pontos numerados são os comércios das visitas recentes, na cor do resultado. Os botões <b>1 Nordeste, 2 Centro-Norte e 3 Noroeste</b> filtram por subzona. Toque num ponto (ou no número da tabela) para abrir a <b>ficha do comércio</b>: via, bairro, distrito, subzona, quadrado, GPS e se a visita entra na cobertura, com o motivo.</p>
+          <p><b>Quadrado coberto</b> = ao menos uma visita do período com GPS, precisão melhor que 100 m e dentro da área mapeada.</p>
+          <p><b>Excluir áreas sem alvo.</b> Toque em <b>Editar áreas excluídas</b>, toque nos quadrados (cada toque exclui ou inclui) e em <b>Salvar</b>. <b>Cancelar</b> descarta.</p>
+          <ul>
+            <li><b>Cobertura por distrito</b> — avanço de cada distrito.</li>
+            <li><b>Estabelecimentos visitados por via</b> — comércios distintos visitados ÷ empresas estimadas da planilha, nas 13 artérias. Retorno ao mesmo comércio não conta de novo. Os totais são estimativas e as vias se sobrepõem.</li>
+            <li><b>Retornos de hoje</b> e <b>Visitas recentes e onde foram</b> (12 últimas, com a precisão do GPS ou “Sem GPS”).</li>
+          </ul>
+          <div class="help-tip">Limites da medida: a cobertura só enxerga pontos de visita (não a rota), GPS ruim marca o quadrado errado, localização falsa burla a medida e as quantidades da planilha são estimativas. Detalhes e passo a passo de treinamento: documento “Óleos Royal – Versão Técnica”.</div>
         </div>
         <div class="divider"></div>
 
