@@ -1945,7 +1945,8 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Cobertura do território</b> — quadrados cobertos ÷ (quadrados da área menos os excluídos).</li>
           </ul>
           <p><b>Mapa de cobertura.</b> A Zona Norte (12 distritos: Santana, Tucuruvi, Mandaqui, Jaçanã, Vila Maria, Vila Guilherme, Vila Medeiros, Casa Verde, Cachoeirinha, Limão, Freguesia do Ó e Brasilândia) é dividida em <b>quadrados de 400 m</b>. Verde = coberto, branco = sem visita, hachurado = excluído pelo Master. Os pontos numerados são os comércios das visitas recentes, na cor do resultado. Os botões <b>1 Nordeste, 2 Centro-Norte e 3 Noroeste</b> filtram por subzona. Toque num ponto (ou no número da tabela) para abrir a <b>ficha do comércio</b>: via, bairro, distrito, subzona, quadrado, GPS e se a visita entra na cobertura, com o motivo.</p>
-          <p><b>Quadrado coberto</b> = ao menos uma visita do período com GPS, precisão melhor que 100 m e dentro da área mapeada.</p>
+          <p><b>Quadrado coberto</b> = ao menos uma visita com GPS, precisão melhor que 100 m e dentro da área mapeada.</p>
+          <p><b>Acumulado × Só o período.</b> Acima do mapa, os botões <b>Acumulado</b> (padrão) e <b>Só o período</b> escolhem o que o mapa, o card de cobertura e a cobertura por distrito mostram. No <b>Acumulado</b>, o mapa soma todas as visitas já feitas e não zera na virada do mês; cada comércio aparece como um ponto (com número só nos das visitas recentes da tabela). Em <b>Só o período</b>, vale o filtro de Período, como antes. Os cards de litros, visitas e cadastros e a lista de estabelecimentos por via seguem sempre o Período escolhido.</p>
           <p><b>Excluir áreas sem alvo.</b> Toque em <b>Editar áreas excluídas</b>, toque nos quadrados (cada toque exclui ou inclui) e em <b>Salvar</b>. <b>Cancelar</b> descarta.</p>
           <ul>
             <li><b>Cobertura por distrito</b> — avanço de cada distrito.</li>
@@ -8552,7 +8553,7 @@ OLEOS_GEO.cells.split(';').forEach(t => { const a = t.split(',').map(Number); _o
 const _oCelDe  = (lat,lng) => Math.floor((lng-OLEOS_GEO.lng0)/OLEOS_GEO.dlng)+':'+Math.floor((OLEOS_GEO.lat0-lat)/OLEOS_GEO.dlat);
 const _oXY     = (lat,lng) => [ (lng-OLEOS_GEO.lng0)/OLEOS_GEO.dlng, (OLEOS_GEO.lat0-lat)/OLEOS_GEO.dlat ];
 const _oCelCod = k => { const a = k.split(':').map(Number); return (a[0]<26 ? String.fromCharCode(65+a[0]) : 'A'+String.fromCharCode(65+a[0]-26)) + (a[1]+1); };
-const _oleosM = { uid:null, visitas:[], estabs:[], carregado:false, periodo:'mes', vend:'', zona:0, sel:null, editar:false, exclTmp:null };
+const _oleosM = { uid:null, visitas:[], estabs:[], carregado:false, periodo:'mes', mapa:'acum', vend:'', zona:0, sel:null, editar:false, exclTmp:null };
 
 async function _oMasterCarregar(){
   const cid = _oCid(); if(!cid || !cu) return;
@@ -8624,7 +8625,7 @@ function _oMapaSvg(zona, cobertos, excl, pins, selKey, editar){
     const xy=_oXY(p.lat,p.lng), k=_oCelDe(p.lat,p.lng);
     if(!_oCel.has(k) || !noZona(_oCel.get(k))) return;
     const sel = p.id===p.selId;
-    pn+=`<g data-om-est="${_oEsc(p.id)}" style="cursor:pointer">${sel?`<circle cx="${xy[0].toFixed(2)}" cy="${xy[1].toFixed(2)}" r="1.25" fill="none" stroke="#1F2933" stroke-width=".14"/>`:''}<circle cx="${xy[0].toFixed(2)}" cy="${xy[1].toFixed(2)}" r=".78" fill="${OLEOS_COR[p.res]||'#4B5563'}" stroke="#fff" stroke-width=".16"/><text x="${xy[0].toFixed(2)}" y="${(xy[1]+0.28).toFixed(2)}" text-anchor="middle" font-size=".8" font-weight="700" fill="#fff">${p.n}</text></g>`;
+    pn+=`<g data-om-est="${_oEsc(p.id)}" style="cursor:pointer">${sel?`<circle cx="${xy[0].toFixed(2)}" cy="${xy[1].toFixed(2)}" r="1.25" fill="none" stroke="#1F2933" stroke-width=".14"/>`:''}<circle cx="${xy[0].toFixed(2)}" cy="${xy[1].toFixed(2)}" r="${p.n?'.78':'.5'}" fill="${OLEOS_COR[p.res]||'#4B5563'}" stroke="#fff" stroke-width=".16"/>${p.n?`<text x="${xy[0].toFixed(2)}" y="${(xy[1]+0.28).toFixed(2)}" text-anchor="middle" font-size=".8" font-weight="700" fill="#fff">${p.n}</text>`:''}</g>`;
   });
   return `<svg viewBox="${vb}" width="100%" role="img" aria-label="Mapa de cobertura da Zona Norte em quadrados de 400 metros, com os comércios visitados numerados" style="display:block;background:#fff;border-radius:10px;border:1px solid #F1DDD8;${cur}">
 <defs><pattern id="om-hach" width=".4" height=".4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width=".4" height=".4" fill="#ECEAE8"/><line x1="0" y1="0" x2="0" y2=".4" stroke="#B9B3AF" stroke-width=".14"/></pattern></defs>
@@ -8646,6 +8647,9 @@ function _oMasterRender(){
   const uids = [...new Set(M.visitas.map(v=>v.uid))];
   const doVend = v => !M.vend || v.uid===M.vend;
   const vis = M.visitas.filter(v => v.dia>=de && v.dia<=ate && doVend(v));
+  // Mapa e cobertura: "Acumulado" (todas as visitas, padrão) ou só o período escolhido
+  const visMapa = M.mapa==='periodo' ? vis : M.visitas.filter(doVend);
+  const nomePeriodo = {hoje:'Hoje','7d':'Últimos 7 dias',mes:'Mês atual',mesant:'Mês anterior',tudo:'Tudo'}[M.periodo]||'Período';
   const estById = {}; M.estabs.forEach(e=>{ estById[e.id]=e; });
   const noZona = d => !M.zona || G.dist[d].s===M.zona;
   const excl = M.editar ? M.exclTmp : _oExcluidos();
@@ -8655,7 +8659,7 @@ function _oMasterRender(){
 
   // Cobertura: quadrados com ao menos uma visita de GPS confiável no período
   const cobertos = new Set(); let semGps=0, foraArea=0, impreciso=0;
-  vis.forEach(v=>{
+  visMapa.forEach(v=>{
     if(v.semGps || v.lat==null || v.lng==null){ semGps++; return; }
     if(v.acc!=null && v.acc>_oPrecMax()){ impreciso++; return; }
     const k = _oCelDe(v.lat, v.lng);
@@ -8672,10 +8676,11 @@ function _oMasterRender(){
   const recentes = vis.slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||'')).slice(0,12);
   const num = {}; let nn=0;
   recentes.forEach(v=>{ if(!num[v.estabId]) num[v.estabId] = ++nn; });
-  const selId = (M.sel && num[M.sel]) ? M.sel : (recentes[0] ? recentes[0].estabId : null);
-  const ultPorEst = {}; recentes.forEach(v=>{ if(!ultPorEst[v.estabId]) ultPorEst[v.estabId]=v; });
+  const ultPorEst = {}; visMapa.slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||'')).forEach(v=>{ if(!ultPorEst[v.estabId]) ultPorEst[v.estabId]=v; });
+  const selId = (M.sel && ultPorEst[M.sel]) ? M.sel : (recentes[0] ? recentes[0].estabId : (Object.keys(ultPorEst)[0]||null));
   const posDe = id => { const e=estById[id], v=ultPorEst[id]; if(e && e.lat!=null && e.lng!=null) return {lat:e.lat,lng:e.lng}; if(v && v.lat!=null && v.lng!=null) return {lat:v.lat,lng:v.lng}; return null; };
-  const pins = Object.keys(num).map(id=>{ const p=posDe(id); return p ? {id, n:num[id], lat:p.lat, lng:p.lng, res:ultPorEst[id].resultado, selId} : null; }).filter(Boolean);
+  const idsPins = M.mapa==='periodo' ? Object.keys(num) : Object.keys(ultPorEst);
+  const pins = idsPins.map(id=>{ const p=posDe(id); return p ? {id, n:num[id], lat:p.lat, lng:p.lng, res:ultPorEst[id].resultado, selId} : null; }).filter(Boolean);
   const selKey = (() => { const p = selId ? posDe(selId) : null; return p ? _oCelDe(p.lat,p.lng) : null; })();
 
   // Retornos: vale o retorno mais recente de cada estabelecimento (independe do período)
@@ -8683,6 +8688,7 @@ function _oMasterRender(){
   M.visitas.filter(doVend).forEach(v=>{ const a=ult[v.estabId]; if(!a || (v.criadoEm||'')>(a.criadoEm||'')) ult[v.estabId]=v; });
   const rets = Object.values(ult).filter(v=>v.retorno && v.retorno<=hoje).sort((a,b)=>a.retorno.localeCompare(b.retorno));
 
+  const mbtn = (k,t) => `<button type="button" data-om-mapa="${k}" style="padding:7px 14px;border-radius:8px;min-height:36px;cursor:pointer;font:600 13px inherit;border:1.5px solid ${M.mapa===k?'#1B6CA8':'#D5DEE7'};background:${M.mapa===k?'#1B6CA8':'#fff'};color:${M.mapa===k?'#fff':'#3D3431'}">${t}</button>`;
   const opP = (v,t) => `<option value="${v}"${M.periodo===v?' selected':''}>${t}</option>`;
   const filtroVend = uids.length>1
     ? `<div class="field"><label for="om-vend">Vendedor</label><select id="om-vend"><option value="">Todos</option>${uids.map(u=>`<option value="${_oEsc(u)}"${M.vend===u?' selected':''}>${_oEsc(_oNomeUsuario(u))}</option>`).join('')}</select></div>` : '';
@@ -8700,13 +8706,13 @@ function _oMasterRender(){
   const avisoHtml = avisos.length ? `<div class="sec-sub" style="margin-top:8px">Não contam na cobertura: ${avisos.join(' · ')}.</div>` : '';
 
   // Ficha do comércio selecionado
-  let ficha = '<div class="empty" style="padding:1rem">Nenhuma visita neste período.</div>', histor = '';
+  let ficha = '<div class="empty" style="padding:1rem">Nenhuma visita registrada.</div>', histor = '';
   if(selId){
     const e = estById[selId] || {}, uv = ultPorEst[selId], p = posDe(selId);
     const k = p ? _oCelDe(p.lat,p.lng) : null, d = (k && _oCel.has(k)) ? _oCel.get(k) : null;
     const row = (a,b) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid #F1DDD8"><dt style="color:#4B5563;font-size:13px">${a}</dt><dd style="margin:0;font-size:14px;font-weight:600;text-align:right">${b}</dd></div>`;
     const motivo = _oMotivoCobertura(uv.lat, uv.lng, uv.acc, uv.semGps, excl);
-    ficha = `<div style="display:flex;align-items:center;gap:12px"><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${OLEOS_COR[uv.resultado]||'#4B5563'};color:#fff;font-weight:700;flex:none">${num[selId]}</span>
+    ficha = `<div style="display:flex;align-items:center;gap:12px"><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:${OLEOS_COR[uv.resultado]||'#4B5563'};color:#fff;font-weight:700;flex:none">${num[selId]||'•'}</span>
       <div><div style="font-size:16px;font-weight:700">${_oEsc(uv.estabNome)}</div><div style="margin-top:4px">${_oPill(uv.resultado,uv.litros)}</div></div></div>
       <div class="sec-sub" style="margin:14px 0 2px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">Local</div>
       <dl style="margin:0">${row('Via',_oEsc(e.via||uv.via||'—'))}${row('Bairro (digitado)',_oEsc(e.bairro||uv.bairro||'—'))}${row('Distrito',d!=null?_oEsc(G.dist[d].n):'—')}${row('Subzona',d!=null?OLEOS_SUBNOME[G.dist[d].s]:'—')}${row('Quadrado do mapa',k&&_oCel.has(k)?_oCelCod(k)+' · 400 m':'—')}${row('Localização (GPS)',uv.semGps?'Sem GPS':'precisão '+(uv.acc!=null?uv.acc+' m':'—'))}${row('Entra na cobertura',_oEsc(motivo))}</dl>`;
@@ -8746,19 +8752,21 @@ function _oMasterRender(){
         <div class="mcard green"><div class="mcard-label">Total vendido (L)</div><div class="mcard-val">${fmtL(litros)}</div><div class="mcard-sub">Pedidos no período</div></div>
         <div class="mcard blue"><div class="mcard-label">Visitas</div><div class="mcard-val">${vis.length}</div><div class="mcard-sub">Inclui retornos</div></div>
         <div class="mcard"><div class="mcard-label">Cadastros</div><div class="mcard-val">${cadastros}</div><div class="mcard-sub">Resultado Cadastro</div></div>
-        <div class="mcard"><div class="mcard-label">Cobertura do território</div><div class="mcard-val">${_oPct(pctCob)}%</div><div class="mcard-sub">${tot.c} de ${den} quadrados${M.zona?' · '+OLEOS_SUBNOME[M.zona]:''}</div></div>
+        <div class="mcard"><div class="mcard-label">Cobertura do território</div><div class="mcard-val">${_oPct(pctCob)}%</div><div class="mcard-sub">${tot.c} de ${den} quadrados${M.zona?' · '+OLEOS_SUBNOME[M.zona]:''} · ${M.mapa==='periodo'?'só o período':'acumulado'}</div></div>
       </div>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
       <div class="fcard" style="flex:999 1 620px;min-width:0;margin-bottom:0">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px">
-          <div><div class="fcard-title" style="margin-bottom:2px"><span class="bar" style="background:#22C55E"></span>Mapa de cobertura da Zona Norte</div><div class="sec-sub">Quadrados de 400 m · 12 distritos mais densos</div></div>
+          <div><div class="fcard-title" style="margin-bottom:2px"><span class="bar" style="background:#22C55E"></span>Mapa de cobertura da Zona Norte</div><div class="sec-sub">Quadrados de 400 m · 12 distritos mais densos · ${M.mapa==='periodo'?'só o período: '+nomePeriodo:'acumulado (todas as visitas)'}</div></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">${chips}</div>
         </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">${mbtn('acum','Acumulado')}${mbtn('periodo','Só o período')}</div>
         ${barraEdit}
         ${_oMapaSvg(M.zona, cobertos, excl, pins, selKey, M.editar)}
         <div style="display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;align-items:center">${legenda}</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:8px;align-items:center">${legPins}</div>
+        ${M.mapa==='periodo'?'':'<div class="sec-sub" style="margin-top:8px">No mapa acumulado, o número aparece só nos comércios das visitas recentes da tabela; os demais são pontos menores. Toque num ponto para ver a ficha.</div>'}
         ${avisoHtml}
         <div class="sec-sub" style="margin-top:6px">Limites dos distritos: GeoSampa / Prefeitura de São Paulo (CC BY-SA 4.0).</div>
       </div>
@@ -8767,7 +8775,7 @@ function _oMasterRender(){
         <div class="fcard" style="margin-bottom:0"><div class="fcard-title" style="margin-bottom:4px">Visitas a este comércio</div>${histor||'<div class="empty" style="padding:1rem">—</div>'}</div>
       </div>
     </div>
-    <div class="fcard" style="margin-top:16px"><div class="fcard-title"><span class="bar" style="background:#3E8E41"></span>Cobertura por distrito${M.zona?' · '+OLEOS_SUBNOME[M.zona]:''}</div>${barras}</div>
+    <div class="fcard" style="margin-top:16px"><div class="fcard-title"><span class="bar" style="background:#3E8E41"></span>Cobertura por distrito${M.zona?' · '+OLEOS_SUBNOME[M.zona]:''} · ${M.mapa==='periodo'?'só o período':'acumulado'}</div>${barras}</div>
     <div class="fcard"><div class="fcard-title"><span class="bar" style="background:#8B5CF6"></span>Estabelecimentos visitados por via</div>${linhasVia}<div class="sec-sub" style="margin-top:8px">Cada comércio conta uma vez no período. O total de cada via é estimativa da planilha (Econodata/CNAE), e as vias se sobrepõem, então não some as linhas.${semVia.size?' '+semVia.size+' comércio(s) com via fora da lista não entram aqui.':''}</div></div>
     <div class="fcard"><div class="fcard-title"><span class="bar" style="background:#F59E0B"></span>Retornos de hoje (${rets.length})</div>${retHtml}</div>
     <div class="fcard"><div class="fcard-title"><span class="bar" style="background:#22C55E"></span>Visitas recentes e onde foram</div>
@@ -8783,6 +8791,7 @@ function _oMasterEventos(){
   $('om-periodo').onchange = e => { M.periodo = e.target.value; _oMasterRender(); };
   if($('om-vend')) $('om-vend').onchange = e => { M.vend = e.target.value; _oMasterRender(); };
   raiz.onclick = e => {
+    const mp = e.target.closest('[data-om-mapa]'); if(mp){ M.mapa = mp.getAttribute('data-om-mapa'); _oMasterRender(); return; }
     const z = e.target.closest('[data-om-zona]'); if(z){ M.zona = Number(z.getAttribute('data-om-zona')); _oMasterRender(); return; }
     if(M.editar){
       const c = e.target.closest('[data-om-cel]');
@@ -8808,7 +8817,7 @@ async function _oSalvarExcl(){
 
 async function _oMasterAbrir(){
   const el = $('oleos-conteudo'); if(!el) return;
-  if(_oleosM.uid !== cu?.uid){ Object.assign(_oleosM, { uid:cu?.uid||null, visitas:[], estabs:[], carregado:false, periodo:'mes', vend:'', zona:0, sel:null, editar:false, exclTmp:null }); }
+  if(_oleosM.uid !== cu?.uid){ Object.assign(_oleosM, { uid:cu?.uid||null, visitas:[], estabs:[], carregado:false, periodo:'mes', mapa:'acum', vend:'', zona:0, sel:null, editar:false, exclTmp:null }); }
   el.innerHTML = '<div class="empty">Carregando...</div>';
   await _oMasterCarregar();   // sempre atualiza ao abrir a aba
   _oMasterRender();
