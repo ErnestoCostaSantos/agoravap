@@ -1913,10 +1913,10 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <ul>
             <li><b>Comércio</b> (obrigatório) — digite ou fale o nome. Se aparecer <b>“Já cadastrado por aqui?”</b> (nome parecido ou comércio a cerca de 100 m), toque em <b>É este</b> para ligar a visita ao cadastro existente; <b>Desfazer</b> volta atrás.</li>
             <li><b>Segmento</b> — Posto de troca · Revenda · Centro automotivo · Mecânica · Posto de gasolina · Transportadora · Pit stop / similar · Outro comércio.</li>
-            <li><b>Cargo do contato</b> — Proprietário · Gerente · Comprador · Mecânico · Atendente. <b>Contato</b> — nome de quem atendeu.</li>
+            <li><b>Cargo do contato</b> — Proprietário · Gerente · Comprador · Mecânico · Atendente. Logo abaixo fica o <b>Contato</b> — nome de quem atendeu.</li>
             <li><b>Via</b> e <b>Bairro</b> — digite ou fale. A Via mostra <b>sugestões</b> das avenidas da planilha enquanto você escreve; toque numa sugestão para preencher.</li>
             <li><b>Potencial (L por mês)</b> — quanto o comércio pode comprar por mês.</li>
-            <li><b>Resultado</b> (obrigatório, um por visita) — Cotação · Cadastro · Pedido · Reclamação · Desinteresse · Promoção · Sem crédito. Em <b>Pedido</b> aparece o campo <b>Litros vendidos</b>, obrigatório e maior que zero.</li>
+            <li><b>Resultado</b> (obrigatório, um por visita) — Cotação · Cadastro · Pedido · Retornar · Reclamação · Desinteresse · Promoção · Sem crédito. Em <b>Pedido</b> aparece o campo <b>Litros vendidos</b>, obrigatório e maior que zero. Em <b>Retornar</b> (por exemplo, o responsável não estava), a data de <b>Retorno</b> é obrigatória.</li>
             <li><b>Retorno</b> — data combinada para voltar; alimenta a lista “Retornos de hoje”.</li>
             <li><b>Promoção</b> (opcional) — lista as promoções da empresa em vigor, mais <i>Nenhuma</i> e <i>Outras</i>.</li>
             <li><b>Observações</b> — texto livre. Toque em <b>Salvar visita</b> para gravar.</li>
@@ -1934,7 +1934,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <p>Vale o retorno mais recente de cada comércio. Ele aparece quando a data chegou ou passou (os vencidos mostram “atrasado”). Toque em <b>Visitar</b> para abrir o registro com os dados do comércio já preenchidos.</p>
 
           <h3>5.3.5 Promoções</h3>
-          <p>As promoções da Royal ficam na aba <b>Promoções</b> da própria empresa: o <b>Master cria</b> (como no Anexo B do Manual do Usuário) e o vendedor consulta, com o pop-up de uma vez por dia. As promoções da Dealer não aparecem para a Royal. A arte personalizada é baixada e enviada pelo Master.</p>
+          <p>As promoções da Royal ficam na aba <b>Promoções</b> da própria empresa: o <b>Master cria</b> (como no Anexo B do Manual do Usuário) e o vendedor consulta, com o pop-up de uma vez por dia. As promoções da Dealer não aparecem para a Royal. O vendedor vê a arte <b>em tamanho real, sem marca d'água</b>, e os dados da promoção (itens, preço e validade). Para enviar ao cliente: toque em <b>Baixar imagem</b>, depois em <b>Enviar por WhatsApp</b> (o texto já vem pronto) e anexe a imagem na conversa. O WhatsApp não aceita anexar a imagem pelo link, por isso o anexo é manual (mesmo passo a passo do capítulo de Promoções).</p>
 
           <h3>5.3.6 Painel do Master</h3>
           <p>Na aba <b>Óleos</b>, o Master vê o painel (pensado para o computador). Escolha o <b>Período</b> (Hoje, Últimos 7 dias, Mês atual, Mês anterior, Tudo) e, havendo mais de um vendedor, o <b>Vendedor</b>.</p>
@@ -6557,7 +6557,7 @@ window.vapAbrirWpp=vapAbrirWpp;
 // separadamente e anexada à mão na conversa.
 async function vapBaixarImagemPromoVendedor(promoId){
   const p=(window._vapPromosAtuais||[]).find(x=>x.id===promoId);
-  if(!_vapVeArteCompleta()||!p||!p.imagemUrl)return; // download da arte: só Master/SuperAdmin
+  if(!_vapArteLivre()||!p||!p.imagemUrl)return; // download da arte: só Master/SuperAdmin
   const nomeArq=(p.nome||'promocao').replace(/[^a-z0-9]+/gi,'_').toLowerCase()+'.jpg';
   const _res=await _vapBaixarImagemUrl(p.imagemUrl,nomeArq);
   if(_res==='aberta'){alert(_VAP_MSG_IMG_ABERTA);return;}
@@ -6919,6 +6919,8 @@ function _vapImgParaBlob(file,MAX=800,Q=0.75,marca=false){
 // de consulta (imagemMiniUrl: baixa resolução, com a marca "SOMENTE CONSULTA" gravada na própria imagem).
 // A arte completa chega ao cliente pelo botão WhatsApp da Carteira/CRM, já personalizada (vapAbrirModalPromoCliente).
 function _vapVeArteCompleta(){ return cp?.role==='master' || cp?.role==='superadmin'; }
+// Arte em tamanho real, sem marca "SOMENTE CONSULTA": Master, SuperAdmin e Vendedor de Óleos (o Mario envia a arte aos clientes). Não libera gestão (miniaturas, campanhas).
+function _vapArteLivre(){ return cp?.role==='master' || cp?.role==='superadmin' || cp?.role==='oleos'; }
 
 // Marca diagonal repetida "SOMENTE CONSULTA" — deixa a miniatura inadequada para encaminhar a clientes.
 function _vapMarcaConsulta(ctx,w,h){
@@ -7122,13 +7124,13 @@ function _vapRenderPromosPro(promos){
     const det=[p.campanha?`Campanha: ${p.campanha}`:'',p.responsavel?`Responsável: ${p.responsavel}`:'',p.canal?`Canal: ${p.canal}`:'',p.servicos?`Itens: ${p.servicos.replace(/\n/g,', ')}`:'',((p.validadeIni||p.validadeFim)?`Validade: ${p.validadeIni||''} → ${p.validadeFim||'—'}`:''),p.precoDe?`De R$ ${p.precoDe} por R$ ${p.precoPor}`:(p.precoPor?`R$ ${p.precoPor}`:'')].filter(Boolean).join(' · ');
     const imgDetalhe=p.tipoMidia==='video'&&p.videoUrl
       ?`<div style="position:relative;width:100%;aspect-ratio:1/1;border-radius:var(--rsm);margin-bottom:8px;cursor:pointer;overflow:hidden;background:#1a1a1a" onclick="event.stopPropagation();vapAbrirVideoPromo('${p.videoUrl}','${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para assistir"><video src="${p.videoUrl}#t=0.1" preload="metadata" muted style="width:100%;height:100%;object-fit:cover;pointer-events:none"></video><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center"><i class="ti ti-player-play-filled" style="font-size:20px;color:#C53030"></i></div></div></div>`
-      :(p.imagemUrl?(_vapVeArteCompleta()?`<img src="${p.imagemUrl}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar"><button class="btn-vap-tl btn-vap-sm" onclick="event.stopPropagation();vapBaixarImagemPromoVendedor('${p.id}')" style="font-size:11px;margin-bottom:8px"><i class="ti ti-download"></i> Baixar imagem</button>`:_vapMiniHtml(p,'width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px')):'');
+      :(p.imagemUrl?(_vapArteLivre()?`<img src="${p.imagemUrl}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar"><button class="btn-vap-tl btn-vap-sm" onclick="event.stopPropagation();vapBaixarImagemPromoVendedor('${p.id}')" style="font-size:11px;margin-bottom:8px"><i class="ti ti-download"></i> Baixar imagem</button>`:_vapMiniHtml(p,'width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px')):'');
     return `
       <div class="rec-item" style="margin-bottom:6px;flex-direction:column;align-items:stretch">
         <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="vapTogglePromoDetalhe('${p.id}')">
           ${p.tipoMidia==='video'&&p.videoUrl
             ?`<div style="position:relative;width:44px;height:44px;border-radius:var(--rsm);flex-shrink:0;cursor:pointer;overflow:hidden;background:#1a1a1a" onclick="event.stopPropagation();vapAbrirVideoPromo('${p.videoUrl}','${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para assistir"><i class="ti ti-player-play-filled" style="position:absolute;inset:0;margin:auto;font-size:16px;color:#fff;width:16px;height:16px"></i></div>`
-            :(p.imagemUrl?(_vapVeArteCompleta()?`<img src="${p.imagemUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:_vapMiniHtml(p,'width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0')):'')}
+            :(p.imagemUrl?(_vapArteLivre()?`<img src="${p.imagemUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0;cursor:zoom-in" onclick="event.stopPropagation();vapAbrirImagemPromo(this.src,'${(p.nome||'').replace(/'/g,"\\'")}')" title="Clique para ampliar">`:_vapMiniHtml(p,'width:44px;height:44px;object-fit:cover;border-radius:var(--rsm);flex-shrink:0')):'')}
           <div style="flex:1;min-width:0">
             <div class="rec-title">${p.nome}${p.campanha?` <span style="font-size:10px;color:var(--pu600);font-weight:500">· ${p.campanha}</span>`:''}${p.status==='pausada'?' <span style="font-size:10px;background:#FEF3C7;color:#B45309;border-radius:10px;padding:1px 8px;font-weight:600">⏸ Pausada</span>':''}</div>
             <div class="rec-meta">${p.validadeIni||''} → ${p.validadeFim||'—'} · R$ ${p.precoPor||'—'}${p.responsavel?' · '+p.responsavel:''}</div>
@@ -7201,7 +7203,7 @@ let _vapUnsubVendas = null;
 // Lightbox de imagem da promoção (vendedor)
 function vapAbrirImagemPromo(url, nome){
   if(!url) return;
-  if(!_vapVeArteCompleta()) return; // zoom em tamanho real: só Master/SuperAdmin
+  if(!_vapArteLivre()) return; // zoom em tamanho real: só Master/SuperAdmin
   const ov = document.getElementById('vap-lb-ov');
   const img = document.getElementById('vap-lb-img');
   const video = document.getElementById('vap-lb-video');
@@ -7285,7 +7287,9 @@ function _vapRenderPromosVendedor(promos){
     const msgWpp=`Olá! Tenho uma oferta especial pra você:\n\n*${(p.nome||'').replace(/\*/g,'')}*${itensTxt?'\n'+itensTxt:''}${precoTxt}${p.validadeFim?`\n\nVálido até ${p.validadeFim}.`:''}`;
     const msgWppEsc=msgWpp.replace(/'/g,"\\'").replace(/\n/g,'\\n');
     // WhatsApp só aceita texto por link — se houver imagem, orienta baixar e anexar manualmente (mesma limitação/fluxo de Campanhas)
-    const wppImgRow=p.imagemUrl?`<div style="margin-top:6px;font-size:10px;color:#95A5A6;line-height:1.4"><i class="ti ti-info-circle" style="font-size:11px"></i> A arte desta promoção é enviada pelo botão <b>WhatsApp</b> do cliente (Carteira ou CRM), já personalizada com o nome dele. Este botão envia só o texto.</div>`:'';
+    const _ehOleos=cp?.role==='oleos';
+    const wppImgRow=p.imagemUrl?(_ehOleos?`<div style="margin-top:6px;font-size:10px;color:#95A5A6;line-height:1.4"><i class="ti ti-info-circle" style="font-size:11px"></i> Toque em <b>Baixar imagem</b>, depois em <b>Enviar por WhatsApp</b> (o texto já vem pronto) e anexe a imagem na conversa.</div>`:`<div style="margin-top:6px;font-size:10px;color:#95A5A6;line-height:1.4"><i class="ti ti-info-circle" style="font-size:11px"></i> A arte desta promoção é enviada pelo botão <b>WhatsApp</b> do cliente (Carteira ou CRM), já personalizada com o nome dele. Este botão envia só o texto.</div>`):'';
+    const btnBaixarOleos=(_ehOleos&&p.imagemUrl&&p.tipoMidia!=='video')?`<button class="btn-vap-tl btn-vap-sm" onclick="vapBaixarImagemPromoVendedor('${p.id}')" style="width:100%;justify-content:center;margin-bottom:6px"><i class="ti ti-download"></i> Baixar imagem</button>`:'';
     return `
       <div class="promo-card">
         <div class="promo-top">
@@ -7302,6 +7306,7 @@ function _vapRenderPromosVendedor(promos){
 
           <!-- Enviar promoção por WhatsApp -->
           <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            ${btnBaixarOleos}
             <button class="btn-vap-tl btn-vap-sm" onclick="vapAbrirWpp('${msgWppEsc}')" style="width:100%;justify-content:center"><i class="ti ti-brand-whatsapp"></i> Enviar por WhatsApp</button>
             ${wppImgRow}
           </div>
@@ -7475,13 +7480,13 @@ function _vapPopupRenderDots(){
   dots.style.display='block';
 }
 
-function _vapImgPopup(p){ return _vapVeArteCompleta()?(p.imagemUrl||''):(p.imagemMiniUrl||''); }
+function _vapImgPopup(p){ return _vapArteLivre()?(p.imagemUrl||''):(p.imagemMiniUrl||''); }
 function _vapPopupMostrarSlideAtual(){
   const imgEl=document.getElementById('vap-popup-img');
   const slide=_vapPopupSlides[_vapPopupSlideIdx];
   if(!imgEl||!slide)return;
   imgEl.src=_vapImgPopup(slide);
-  imgEl.oncontextmenu=_vapVeArteCompleta()?null:()=>false;
+  imgEl.oncontextmenu=_vapArteLivre()?null:()=>false;
   _vapPopupRenderDots();
 }
 
@@ -7569,7 +7574,7 @@ async function vapVerificarPopupPromo(){
       if(noImg)noImg.style.display='none';
     }else if(_vapImgPopup(promo)){
       imgEl.src=_vapImgPopup(promo);
-      imgEl.oncontextmenu=_vapVeArteCompleta()?null:()=>false;
+      imgEl.oncontextmenu=_vapArteLivre()?null:()=>false;
       imgEl.style.display='block';
       if(videoEl)videoEl.style.display='none';
       if(noImg)noImg.style.display='none';
@@ -8273,7 +8278,7 @@ function _sdrNovoLeadId(){ return 'L' + Date.now().toString(36) + Math.random().
 // ══════════════════════════════════════════════════════════
 const OLEOS_SEGMENTOS  = ['Posto de troca','Revenda','Centro automotivo','Mecânica','Posto de gasolina','Transportadora','Pit stop / similar','Outro comércio'];
 const OLEOS_CARGOS     = ['Proprietário','Gerente','Comprador','Mecânico','Atendente'];
-const OLEOS_RESULTADOS = ['Cotação','Cadastro','Pedido','Reclamação','Desinteresse','Promoção','Sem crédito'];
+const OLEOS_RESULTADOS = ['Cotação','Cadastro','Pedido','Retornar','Reclamação','Desinteresse','Promoção','Sem crédito'];
 const OLEOS_RAIO_DUP_M = 100;   // aviso de comércio já cadastrado por perto
 
 // ── Vias: sugestões e artérias da planilha "Artérias e vias 400 m" (estimativas Econodata/CNAE; N = subtotal + adjacências) ──
@@ -8403,8 +8408,8 @@ function _oHtmlVendedor(){
         <div class="field"><label>Segmento</label><select id="ol-segmento">${opt(OLEOS_SEGMENTOS,'Selecione...')}</select></div>
         <div class="field"><label>Cargo do contato</label><select id="ol-cargo">${opt(OLEOS_CARGOS,'Selecione...')}</select></div>
         <div class="field" style="position:relative"><label>Via</label><input id="ol-via" type="text" autocomplete="off" autocapitalize="words" placeholder="Rua / avenida (pode falar)"/><div id="ol-via-sug" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:5;background:#fff;border:1.5px solid #E7CFC9;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.12)"></div></div>
-        <div class="field"><label>Bairro</label><input id="ol-bairro" type="text" autocomplete="off" autocapitalize="words" placeholder="Bairro (pode falar)"/></div>
         <div class="field"><label>Contato</label><input id="ol-contato" type="text" autocomplete="off" autocapitalize="words" placeholder="Nome da pessoa atendida"/></div>
+        <div class="field"><label>Bairro</label><input id="ol-bairro" type="text" autocomplete="off" autocapitalize="words" placeholder="Bairro (pode falar)"/></div>
         <div class="field"><label>Potencial (L por mês)</label><input id="ol-potencial" type="number" inputmode="decimal" min="0" step="any" placeholder="0"/></div>
         <div class="field"><label>Resultado</label><select id="ol-resultado">${opt(OLEOS_RESULTADOS,'Selecione...')}</select></div>
         <div class="field" id="ol-litros-wrap" style="display:none"><label>Litros vendidos</label><input id="ol-litros" type="number" inputmode="decimal" min="0" step="any" placeholder="0"/></div>
@@ -8485,6 +8490,7 @@ async function _oSalvar(){
   if(!resultado){ toast('Informe o resultado da visita.'); return; }
   const litros = resultado==='Pedido' ? num('ol-litros') : 0;
   if(resultado==='Pedido' && !(litros>0)){ toast('Informe os litros vendidos.'); return; }
+  if(resultado==='Retornar' && !v('ol-retorno')){ toast('Resultado "Retornar": informe a data de retorno.'); return; }
   const cid = _oCid(); if(!cid || !cu) return;
   const btn = $('ol-salvar');
   _oleos.busy = true; btn.disabled = true; btn.textContent = 'Salvando...';
@@ -8540,7 +8546,7 @@ const OLEOS_SUBNOME = { 1:'Subzona 1 Nordeste', 2:'Subzona 2 Centro-Norte', 3:'S
 const OLEOS_PRECISAO_PADRAO = 100;   // GPS com precisão pior que isso (em metros) não conta para a cobertura
 // O Master/SuperAdmin pode ajustar no documento da empresa (campo companies.oleosPrecisaoMax, em metros); sem o campo vale 100 m
 const _oPrecMax = () => Number(_company && _company.oleosPrecisaoMax) > 0 ? Number(_company.oleosPrecisaoMax) : OLEOS_PRECISAO_PADRAO;
-const OLEOS_COR = { 'Pedido':'#15803D', 'Cadastro':'#1D4ED8', 'Cotação':'#B45309', 'Promoção':'#0E7490', 'Desinteresse':'#4B5563', 'Sem crédito':'#7C3AED', 'Reclamação':'#B91C1C' };
+const OLEOS_COR = { 'Pedido':'#15803D', 'Cadastro':'#1D4ED8', 'Cotação':'#B45309', 'Promoção':'#0E7490', 'Desinteresse':'#4B5563', 'Sem crédito':'#7C3AED', 'Reclamação':'#B91C1C', 'Retornar':'#BE185D' };
 const _oCel = new Map();
 OLEOS_GEO.cells.split(';').forEach(t => { const a = t.split(',').map(Number); _oCel.set(a[0]+':'+a[1], a[2]); });
 const _oCelDe  = (lat,lng) => Math.floor((lng-OLEOS_GEO.lng0)/OLEOS_GEO.dlng)+':'+Math.floor((OLEOS_GEO.lat0-lat)/OLEOS_GEO.dlat);
@@ -8689,7 +8695,7 @@ function _oMasterRender(){
     : `<div style="margin-bottom:10px"><button type="button" class="btn-sec" id="om-editar-excl">Editar áreas excluídas</button></div>`;
   const leg = (bg,t,b) => `<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px"><span style="width:14px;height:14px;border-radius:3px;background:${bg};border:1px solid ${b}"></span>${t}</span>`;
   const legenda = leg('#CDEBD6','Coberto','#4FA56B')+leg('#fff','Sem visita','#CBBDB8')+leg('repeating-linear-gradient(45deg,#ECEAE8 0 3px,#B9B3AF 3px 5px)','Excluído pelo Master','#A8A19C');
-  const legPins = ['Pedido','Cadastro','Cotação','Promoção','Desinteresse','Sem crédito','Reclamação'].map(r=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px"><span style="width:12px;height:12px;border-radius:50%;background:${OLEOS_COR[r]}"></span>${r}</span>`).join('');
+  const legPins = ['Pedido','Cadastro','Cotação','Retornar','Promoção','Desinteresse','Sem crédito','Reclamação'].map(r=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px"><span style="width:12px;height:12px;border-radius:50%;background:${OLEOS_COR[r]}"></span>${r}</span>`).join('');
   const avisos = [semGps?`${semGps} visita(s) sem GPS`:'', foraArea?`${foraArea} fora da área mapeada`:'', impreciso?`${impreciso} com precisão pior que ${_oPrecMax()} m`:''].filter(Boolean);
   const avisoHtml = avisos.length ? `<div class="sec-sub" style="margin-top:8px">Não contam na cobertura: ${avisos.join(' · ')}.</div>` : '';
 
@@ -8736,7 +8742,7 @@ function _oMasterRender(){
         <div class="field"><label for="om-periodo">Período</label><select id="om-periodo">${opP('hoje','Hoje')}${opP('7d','Últimos 7 dias')}${opP('mes','Mês atual')}${opP('mesant','Mês anterior')}${opP('tudo','Tudo')}</select></div>
         ${filtroVend}
       </div>
-      <div class="mgrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:0">
+      <div class="mgrid" style="grid-template-columns:repeat(auto-fit,minmax(135px,1fr));margin-bottom:0">
         <div class="mcard green"><div class="mcard-label">Total vendido (L)</div><div class="mcard-val">${fmtL(litros)}</div><div class="mcard-sub">Pedidos no período</div></div>
         <div class="mcard blue"><div class="mcard-label">Visitas</div><div class="mcard-val">${vis.length}</div><div class="mcard-sub">Inclui retornos</div></div>
         <div class="mcard"><div class="mcard-label">Cadastros</div><div class="mcard-val">${cadastros}</div><div class="mcard-sub">Resultado Cadastro</div></div>
