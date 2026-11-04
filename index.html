@@ -851,7 +851,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
           <div class="ff" style="min-width:160px;flex:1">
             <label>Buscar</label>
-            <input type="text" id="cart-busca" placeholder="Nome, responsável..." style="width:100%"/>
+            <input type="text" id="cart-busca" placeholder="Nome, responsável, e-mail, CEP..." style="width:100%"/>
           </div>
           <div class="ff" style="min-width:150px">
             <label>Segmento</label>
@@ -1673,14 +1673,14 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Campos do cliente</b> — Nome, Telefone, E-mail (opcional — habilita o botão ✉️ de envio de promoção por e-mail), Segmento (6 opções), Responsável, Cidade, Bairro, Data da Última Compra (formato DD/MM/AAAA com máscara automática) e Observações. <b>Resultado do Último Contato</b> e <b>Data do Último Contato</b> só ficam disponíveis para edição enquanto o cliente não tem nenhum lançamento no histórico do CRM — assim que o primeiro lançamento é feito, esses dois campos somem da edição e passam a ser calculados automaticamente (veja abaixo)</li>
             <li><b>Status Ativo/Inativo</b> — Calculado automaticamente: um cliente fica <b>Inativo</b> quando a Data da Última Compra está há mais de 6 meses; sem necessidade de marcar manualmente</li>
             <li><b>Busca e filtros</b> — Por nome/responsável, Segmento, Status (Ativo/Inativo) e Resultado do Último Contato</li>
-            <li><b>Adicionar / Editar / Excluir</b> — Cadastro manual pelo formulário, ou clique em Editar na lista</li>
+            <li><b>Adicionar / Editar / Excluir</b> — Cadastro manual pelo formulário (inclui e-mail e CEP), ou clique em Editar na lista</li>
             <li><b>Histórico de Relacionamento (CRM)</b> — Dois atalhos na coluna Ações de cada cliente: 🕘 <b>Histórico</b> abre o módulo CRM já filtrado nos lançamentos daquele cliente (do mais recente para o mais antigo), com um aviso "Histórico de: [nome]" mostrando todo o histórico dele, sem recorte de mês. Para sair desse modo, basta abrir a aba CRM novamente pelo menu superior (ela sempre volta à visão geral) ou navegar para outro módulo. O botão "+ Novo Lançamento", usado dentro desse histórico, já abre o lançamento vinculado a esse mesmo cliente, com Empresa/Responsável/Telefone/Segmento pré-preenchidos — igual ao atalho 📝 <b>Lançar</b> da Carteira, que faz o mesmo diretamente da lista. O "Resultado do Último Contato" mostrado na lista passa a refletir automaticamente o lançamento mais recente do histórico assim que existir um, e quando esse resultado é "Vendeu" a Data da Última Compra é atualizada sozinha</li>
             <li><b>Botão E-mail (✉️)</b> — Aparece na Carteira (e na lista do CRM, em lançamentos ligados a um cliente da Carteira) <b>só quando o cliente tem e-mail cadastrado</b>. Havendo promoção ativa, abre a mesma janela "Enviar promoção a [cliente]": escolha a promoção, toque em <b>"Baixar imagem"</b> e depois em <b>"Abrir e-mail"</b>. O app de e-mail do seu aparelho abre com assunto, "A/C [cliente]", nome da promoção, validade e a sua assinatura (nome, WhatsApp comercial, se cadastrado, e e-mail). <b>Anexe a imagem baixada</b> antes de enviar. O remetente é a conta de e-mail configurada no seu aparelho. O registro "Promo via E-mail" é gravado no histórico ao abrir o e-mail (registra a intenção de envio; o app não confirma que o e-mail saiu). O mesmo cliente pode receber a promoção por WhatsApp e por e-mail: cada canal gera o seu registro. O botão "Baixar imagem" sozinho não grava registro. A imagem que você anexa leva a marca d'água diagonal com o nome do cliente e o seu. <b>Resumo:</b> toque no ✉️, escolha a promoção, toque em Baixar imagem, depois em Abrir e-mail, anexe a imagem e envie.</li>
             <li><b>Botão WhatsApp</b> — Abre conversa direta com o cliente a partir do telefone cadastrado e <b>registra automaticamente</b> um lançamento no histórico dele (módulo CRM), Tipo <b>Acompanhamento</b> e Resultado <b>Promo via Whats</b>, em nome do vendedor logado, com Empresa/Responsável/Telefone/Segmento do cadastro e sem Próximo Contato. <b>Havendo promoção ativa</b>, o clique abre antes a janela <b>"Enviar promoção a [cliente]"</b>: escolha a promoção (a primeira já vem marcada) e o AgoraVAP! monta a <b>imagem personalizada</b> daquele cliente — a arte original com uma <b>marca d'água diagonal</b> (nome do cliente e do vendedor) e uma faixa embaixo, "Preparada para [cliente] · Vendedor(a): [seu nome] · WhatsApp [seu WhatsApp comercial]". Toque em <b>"Baixar imagem"</b> (se não baixar, toque e segure a prévia e salve), depois em <b>"Abrir WhatsApp"</b> — a conversa já abre com o cliente e o texto pronto — "A/C [nome completo do cliente]" (se o nome estiver em branco, usa o Responsável) o nome da promoção e a validade, pois preços e itens já vão na imagem — e anexe a imagem. "Só mensagem" envia apenas a saudação, sem promoção. O nome da promoção fica gravado no campo Local do lançamento ("Promoção: ..."). Se a imagem não puder ser preparada, o envio só do texto continua funcionando; avise o Master. O registro acontece ao abrir o WhatsApp (uma vez por promoção escolhida); o botão "Baixar imagem" sozinho não registra — sem promoção ativa, no momento do clique: o WhatsApp não informa ao AgoraVAP! se a mensagem foi realmente enviada, então ele indica a <i>intenção</i> de contato. Cliques repetidos no mesmo cliente, na mesma promoção e no mesmo canal (WhatsApp ou e-mail) em até 1 minuto geram um único registro; promoções ou canais diferentes geram registros separados. O "Resultado do Último Contato" da lista passa a mostrar "Promo via Whats" até que um novo lançamento seja feito. Os botões "Enviar por WhatsApp" de Promoções e das etapas de Campanhas não registram nada, pois não têm cliente específico</li>
             <li><b>Importar Contatos</b> — Botão que abre um modal com três formas de importação em massa:
               <ul style="margin-top:6px">
                 <li><b>Agenda do celular</b> — Usa a agenda de contatos do próprio aparelho (só funciona em Chrome/Android; não disponível em iPhone/Safari)</li>
-                <li><b>Planilha/CSV</b> — Envie um arquivo .csv com colunas de Nome e Telefone (aceita variações como WhatsApp, Celular, Fone)</li>
+                <li><b>Planilha/CSV</b> — Envie um arquivo .csv com colunas de Nome e Telefone (aceita variações como WhatsApp, Celular, Fone). Colunas opcionais: <b>Email</b> e <b>CEP</b> (o CEP com 7 dígitos, sem o zero da frente, é corrigido sozinho). Cliente já cadastrado que estiver sem e-mail ou CEP recebe esses dados ao importar de novo o mesmo arquivo; o que já estava preenchido não é alterado</li>
                 <li><b>Arquivo VCF</b> — Envie um arquivo .vcf exportado de qualquer agenda de contatos (Google, iPhone, Outlook etc.)</li>
               </ul>
               Em qualquer uma das três formas, o sistema mostra uma prévia com os contatos encontrados antes de importar — todos vêm marcados por padrão, e dá pra desmarcar individualmente. Só o <b>Nome</b> é obrigatório: contatos sem telefone, com telefone fixo, ou com um número em formato não reconhecido também são importados normalmente (o telefone entra do jeito que veio, para edição posterior). Contatos com o mesmo telefone já cadastrado na Carteira são ignorados automaticamente (a tela mostra quantos). <b>Master e Super Admin</b> veem ainda dois campos extras: "Importar para o vendedor" (escolhe para quem os contatos serão vinculados, em vez de sempre o próprio usuário logado) e "Observação" (opcional, aplica o mesmo texto às Observações de todos os clientes daquele lote — útil para marcar a origem, ex: "Migrado do ERP antigo")
@@ -1958,6 +1958,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Estabelecimentos visitados por via</b> — comércios distintos visitados ÷ empresas estimadas da planilha, nas 13 artérias. Retorno ao mesmo comércio não conta de novo. Os totais são estimativas e as vias se sobrepõem.</li>
             <li><b>Retornos de hoje</b> e <b>Visitas recentes e onde foram</b> (12 últimas, com a precisão do GPS ou “Sem GPS”).</li>
           </ul>
+          <p><b>Carteira no mapa.</b> Ao lado de Acumulado e Só o período, o botão <b>◆ Carteira</b> mostra no mapa os clientes da carteira do(s) vendedor(es) de óleos, como losangos roxos (toque num losango para ver a ficha: telefone, e-mail, CEP, bairro, distrito e se o comércio já foi visitado). A posição vem do <b>CEP</b>: toque em <b>Localizar CEPs</b> e o app consulta cada CEP uma única vez em serviço público (só o CEP é enviado), guarda as coordenadas e preenche <b>Bairro</b> e <b>Cidade</b> do cliente quando estiverem vazios. É a posição da rua, não do número, então serve para ver a distribuição da carteira na Zona Norte e comparar com o território já coberto. Clientes sem CEP ou fora dos 12 distritos entram só na contagem.</p>
           <div class="help-tip">Limites da medida: a cobertura só enxerga pontos de visita (não a rota), GPS ruim marca o quadrado errado, localização falsa burla a medida e as quantidades da planilha são estimativas. Detalhes e passo a passo de treinamento: documento “Óleos Royal – Versão Técnica”.</div>
 
           <h3>5.3.7 Carteira do vendedor de óleos</h3>
@@ -2282,8 +2283,9 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
       <div class="field"><label>Nome *</label><input type="text" id="cart-cli-nome" placeholder="Nome do cliente"/></div>
       <div class="field"><label>Telefone</label><input type="text" id="cart-cli-telefone" placeholder="(11) 91234-5678" maxlength="16"/></div>
     </div>
-    <div class="fgrid fg1">
+    <div class="fgrid fg2">
       <div class="field"><label>E-mail <span style="font-weight:400;color:var(--gray)">(opcional — habilita o envio de promoção por e-mail)</span></label><input type="email" id="cart-cli-email" placeholder="contato@empresa.com" autocomplete="off" autocapitalize="off" spellcheck="false"/></div>
+      <div class="field"><label>CEP</label><input type="text" id="cart-cli-cep" inputmode="numeric" placeholder="00000-000" maxlength="9" autocomplete="off" oninput="window.cartCepMask(this)"/></div>
     </div>
     <div class="fgrid fg2">
       <div class="field"><label>Segmento</label>
@@ -2479,7 +2481,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
       <div style="font-size:.76rem;color:var(--gray);margin-bottom:.6rem;line-height:1.5">
         <b>Do Google Contatos:</b> Contatos → Exportar → Google CSV<br>
         <b>Do Excel/Sheets:</b> Arquivo → Baixar → CSV<br>
-        O arquivo precisa ter colunas com Nome e Telefone/WhatsApp (detectamos automaticamente).
+        O arquivo precisa ter colunas com Nome e Telefone/WhatsApp (detectamos automaticamente). Colunas opcionais: <b>Email</b> e <b>CEP</b>.
       </div>
       <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:2px dashed var(--border);border-radius:var(--rsm);cursor:pointer;font-size:.8rem;color:var(--gray);justify-content:center">
         📤 <span id="cart-imp-csv-label">Selecionar arquivo .csv</span>
@@ -8185,6 +8187,7 @@ function vapIniciarListenerCarteira(){
     _vapMedir('carteira_clientes', snap);
     _cartClientes = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderCarteiraLista();
+    if(typeof window._oCartAtualizou==='function') window._oCartAtualizou();
   }, err => {
     console.error('[Carteira] Erro no listener:', err);
     // Se o erro for de índice ausente, o Firestore imprime no console o link para criá-lo.
@@ -8631,7 +8634,7 @@ OLEOS_GEO.cells.split(';').forEach(t => { const a = t.split(',').map(Number); _o
 const _oCelDe  = (lat,lng) => Math.floor((lng-OLEOS_GEO.lng0)/OLEOS_GEO.dlng)+':'+Math.floor((OLEOS_GEO.lat0-lat)/OLEOS_GEO.dlat);
 const _oXY     = (lat,lng) => [ (lng-OLEOS_GEO.lng0)/OLEOS_GEO.dlng, (OLEOS_GEO.lat0-lat)/OLEOS_GEO.dlat ];
 const _oCelCod = k => { const a = k.split(':').map(Number); return (a[0]<26 ? String.fromCharCode(65+a[0]) : 'A'+String.fromCharCode(65+a[0]-26)) + (a[1]+1); };
-const _oleosM = { uid:null, visitas:[], estabs:[], carregado:false, periodo:'mes', mapa:'acum', vend:'', zona:0, sel:null, editar:false, exclTmp:null };
+const _oleosM = { uid:null, visitas:[], estabs:[], carregado:false, periodo:'mes', mapa:'acum', vend:'', zona:0, sel:null, editar:false, exclTmp:null, cart:false, selCli:null, locBusy:false };
 
 async function _oMasterCarregar(){
   const cid = _oCid(); if(!cid || !cu) return;
@@ -8679,7 +8682,7 @@ function _oMotivoCobertura(lat,lng,acc,semGps,excl){
   return 'Sim: precisão melhor que '+_oPrecMax()+' m';
 }
 
-function _oMapaSvg(zona, cobertos, excl, pins, selKey, editar){
+function _oMapaSvg(zona, cobertos, excl, pins, selKey, editar, clis){
   const G = OLEOS_GEO, noZona = d => !zona || G.dist[d].s===zona;
   const vazios=[], cobs=[], exs=[];
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
@@ -8698,6 +8701,14 @@ function _oMapaSvg(zona, cobertos, excl, pins, selKey, editar){
   let sp=''; G.sub.forEach((p,i)=>{ if(!zona || zona===i+1) sp+=`<path d="${p}"/>`; });
   let selR='';
   if(selKey && _oCel.has(selKey) && noZona(_oCel.get(selKey))){ const a=selKey.split(':').map(Number); selR=`<rect x="${a[0]}" y="${a[1]}" width="1" height="1" fill="none" stroke="#1F2933" stroke-width=".12"/>`; }
+  // Clientes da carteira (losangos roxos), desenhados por baixo dos pontos de visita
+  let cpn='';
+  (clis||[]).forEach(p=>{
+    const xy=_oXY(p.lat,p.lng), k=_oCelDe(p.lat,p.lng);
+    if(!_oCel.has(k) || !noZona(_oCel.get(k))) return;
+    const cx=xy[0].toFixed(2), cy=xy[1].toFixed(2);
+    cpn+=`<g data-om-cli="${_oEsc(p.id)}" style="cursor:pointer">${p.sel?`<circle cx="${cx}" cy="${cy}" r=".95" fill="none" stroke="#1F2933" stroke-width=".14"/>`:''}<rect x="${(xy[0]-.38).toFixed(2)}" y="${(xy[1]-.38).toFixed(2)}" width=".76" height=".76" transform="rotate(45 ${cx} ${cy})" fill="${p.sel?'#4C1D95':'#8B5CF6'}" stroke="#fff" stroke-width=".1"/></g>`;
+  });
   let pn='';
   pins.forEach(p=>{
     const xy=_oXY(p.lat,p.lng), k=_oCelDe(p.lat,p.lng);
@@ -8714,6 +8725,7 @@ function _oMapaSvg(zona, cobertos, excl, pins, selKey, editar){
 <g fill="none" stroke="#3D3431" stroke-width=".12">${sp}</g>
 ${selR}
 <g font-size=".85" font-weight="600" fill="#3D3431" text-anchor="middle" stroke="#fff" stroke-width=".25" paint-order="stroke" style="pointer-events:none">${lb}</g>
+${cpn}
 ${pn}
 </svg>`;
 }
@@ -8760,6 +8772,43 @@ function _oMasterRender(){
   const idsPins = M.mapa==='periodo' ? Object.keys(num) : Object.keys(ultPorEst);
   const pins = idsPins.map(id=>{ const p=posDe(id); return p ? {id, n:num[id], lat:p.lat, lng:p.lng, res:ultPorEst[id].resultado, selId} : null; }).filter(Boolean);
   const selKey = (() => { const p = selId ? posDe(selId) : null; return p ? _oCelDe(p.lat,p.lng) : null; })();
+
+  // Carteira no mapa (opção do Master): clientes com CEP localizado viram losangos; os demais entram na contagem
+  const cliAll = M.cart ? _oCartLista() : [];
+  const cliPins = []; const cliPorDist = {};
+  let cSemCep=0, cALocalizar=0, cSemCoord=0, cFora=0, cDentro=0;
+  cliAll.forEach(c=>{
+    if(!c.cep){ cSemCep++; return; }
+    if(c.geoLat==null || c.geoLng==null){ if(c.geoEm) cSemCoord++; else cALocalizar++; return; }
+    const k = _oCelDe(c.geoLat,c.geoLng);
+    if(!_oCel.has(k)){ cFora++; return; }
+    const d = _oCel.get(k); cDentro++; cliPorDist[d] = (cliPorDist[d]||0)+1;
+    if(noZona(d)) cliPins.push({ id:c.id, lat:c.geoLat, lng:c.geoLng, sel:c.id===M.selCli });
+  });
+  const porDistTxt = Object.keys(cliPorDist).length
+    ? '<div style="margin-top:4px">Por distrito: '+Object.keys(cliPorDist).sort((a,b)=>cliPorDist[b]-cliPorDist[a]).map(d=>_oEsc(G.dist[d].n)+' <b>'+cliPorDist[d]+'</b>').join(' · ')+'</div>' : '';
+  const botLoc = M.locBusy ? '' : (cALocalizar>0
+    ? `<button type="button" class="btn-sec" id="om-loc-cep">Localizar ${cALocalizar} CEP${cALocalizar>1?'s':''}</button>`
+    : (cSemCoord>0 ? `<button type="button" class="btn-sec" id="om-loc-cep" data-refazer="1">Tentar de novo os ${cSemCoord} sem coordenada</button>` : ''));
+  const cartInfo = `<div style="margin-top:10px;padding:10px 12px;border:1.5px solid #DDD6FE;background:#F5F3FF;border-radius:8px;font-size:13px;line-height:1.6">
+      <b>Carteira no mapa</b> — ${cliAll.length} cliente(s): <b>${cDentro}</b> no mapa${cFora?` · ${cFora} fora da área mapeada`:''}${cSemCoord?` · ${cSemCoord} só com bairro (sem coordenada)`:''}${cSemCep?` · ${cSemCep} sem CEP`:''}${cALocalizar?` · <b>${cALocalizar} a localizar</b>`:''}
+      ${porDistTxt}
+      <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">${botLoc}<span id="om-cart-status" class="sec-sub"></span></div>
+      <div class="sec-sub" style="margin-top:4px">A posição vem do CEP (rua, não o número): serve para ver a distribuição, não o endereço exato. Para localizar, só o CEP é consultado em serviço público (BrasilAPI/ViaCEP).</div>
+    </div>`;
+  const legCli = '<span style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px"><span style="width:10px;height:10px;background:#8B5CF6;transform:rotate(45deg);outline:1px solid #fff;box-shadow:0 0 0 1px #8B5CF6"></span>Cliente da carteira</span>';
+  let fichaCli = '';
+  if(M.cart && M.selCli){
+    const c = cliAll.find(x=>x.id===M.selCli);
+    if(c){
+      const k = c.geoLat!=null ? _oCelDe(c.geoLat,c.geoLng) : null, d = (k && _oCel.has(k)) ? _oCel.get(k) : null;
+      const visitado = M.estabs.some(e=>e.nomeNorm && e.nomeNorm===_oNorm(c.nome));
+      const rowC = (a,b) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid #F1DDD8"><dt style="color:#4B5563;font-size:13px">${a}</dt><dd style="margin:0;font-size:14px;font-weight:600;text-align:right">${b}</dd></div>`;
+      fichaCli = `<div style="display:flex;align-items:center;gap:12px"><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:#8B5CF6;color:#fff;font-size:16px">◆</span>
+        <div><div style="font-size:16px;font-weight:700">${_oEsc(c.nome||'')}</div><div class="sec-sub">Cliente da carteira · ${_oEsc(_oNomeUsuario(c.uid))}</div></div></div>
+        <dl style="margin:12px 0 0">${rowC('Telefone',_oEsc(c.telefone||'—'))}${rowC('E-mail',_oEsc(c.email||'—'))}${rowC('CEP',_oEsc(_cartFmtCep(c.cep)||'—'))}${rowC('Bairro (Correios)',_oEsc(c.cepBairro||'—'))}${rowC('Cidade',_oEsc(c.cepCidade||c.cidade||'—'))}${rowC('Distrito',d!=null?_oEsc(G.dist[d].n):'—')}${rowC('Subzona',d!=null?OLEOS_SUBNOME[G.dist[d].s]:'—')}${rowC('Segmento',_oEsc(c.segmento||'—'))}${rowC('Já visitado (pelo nome)',visitado?'Sim':'Não')}</dl>`;
+    }
+  }
 
   // Retornos: vale o retorno mais recente de cada estabelecimento (independe do período)
   const ult = {};
@@ -8839,18 +8888,19 @@ function _oMasterRender(){
           <div><div class="fcard-title" style="margin-bottom:2px"><span class="bar" style="background:#22C55E"></span>Mapa de cobertura da Zona Norte</div><div class="sec-sub">Quadrados de 400 m · 12 distritos mais densos · ${M.mapa==='periodo'?'só o período: '+nomePeriodo:'acumulado (todas as visitas)'}</div></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">${chips}</div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">${mbtn('acum','Acumulado')}${mbtn('periodo','Só o período')}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">${mbtn('acum','Acumulado')}${mbtn('periodo','Só o período')}<button type="button" data-om-cart="1" style="padding:7px 14px;border-radius:8px;min-height:36px;cursor:pointer;font:600 13px inherit;border:1.5px solid ${M.cart?'#7C3AED':'#D5DEE7'};background:${M.cart?'#F5F3FF':'#fff'};color:${M.cart?'#5B21B6':'#374151'}">◆ Carteira${M.cart?' ✓':''}</button></div>
         ${barraEdit}
-        ${_oMapaSvg(M.zona, cobertos, excl, pins, selKey, M.editar)}
+        ${_oMapaSvg(M.zona, cobertos, excl, pins, selKey, M.editar, cliPins)}
         <div style="display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;align-items:center">${legenda}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:8px;align-items:center">${legPins}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:8px;align-items:center">${legPins}${M.cart?legCli:''}</div>
+        ${M.cart?cartInfo:''}
         ${M.mapa==='periodo'?'':'<div class="sec-sub" style="margin-top:8px">No mapa acumulado, o número aparece só nos comércios das visitas recentes da tabela; os demais são pontos menores. Toque num ponto para ver a ficha.</div>'}
         ${avisoHtml}
         <div class="sec-sub" style="margin-top:6px">Limites dos distritos: GeoSampa / Prefeitura de São Paulo (CC BY-SA 4.0).</div>
       </div>
       <div style="flex:1 1 340px;min-width:0;max-width:420px;display:flex;flex-direction:column;gap:16px">
-        <div class="fcard" style="margin-bottom:0">${ficha}</div>
-        <div class="fcard" style="margin-bottom:0"><div class="fcard-title" style="margin-bottom:4px">Visitas a este comércio</div>${histor||'<div class="empty" style="padding:1rem">—</div>'}</div>
+        <div class="fcard" style="margin-bottom:0">${fichaCli||ficha}</div>
+        ${fichaCli?'':`<div class="fcard" style="margin-bottom:0"><div class="fcard-title" style="margin-bottom:4px">Visitas a este comércio</div>${histor||'<div class="empty" style="padding:1rem">—</div>'}</div>`}
       </div>
     </div>
     <div class="fcard" style="margin-top:16px"><div class="fcard-title"><span class="bar" style="background:#3E8E41"></span>Cobertura por distrito${M.zona?' · '+OLEOS_SUBNOME[M.zona]:''} · ${M.mapa==='periodo'?'só o período':'acumulado'}</div>${barras}</div>
@@ -8869,18 +8919,96 @@ function _oMasterEventos(){
   $('om-periodo').onchange = e => { M.periodo = e.target.value; _oMasterRender(); };
   if($('om-vend')) $('om-vend').onchange = e => { M.vend = e.target.value; _oMasterRender(); };
   raiz.onclick = e => {
+    const ct = e.target.closest('[data-om-cart]'); if(ct){ M.cart = !M.cart; M.selCli = null; _oMasterRender(); return; }
+    const lc = e.target.closest('#om-loc-cep'); if(lc){ _oLocalizarCeps(lc.getAttribute('data-refazer')==='1'); return; }
+    const cl = e.target.closest('[data-om-cli]'); if(cl){ M.selCli = cl.getAttribute('data-om-cli'); _oMasterRender(); return; }
     const mp = e.target.closest('[data-om-mapa]'); if(mp){ M.mapa = mp.getAttribute('data-om-mapa'); _oMasterRender(); return; }
     const z = e.target.closest('[data-om-zona]'); if(z){ M.zona = Number(z.getAttribute('data-om-zona')); _oMasterRender(); return; }
     if(M.editar){
       const c = e.target.closest('[data-om-cel]');
       if(c){ const k = c.getAttribute('data-om-cel'); if(M.exclTmp.has(k)) M.exclTmp.delete(k); else M.exclTmp.add(k); _oMasterRender(); return; }
     }
-    const s = e.target.closest('[data-om-est]'); if(s){ M.sel = s.getAttribute('data-om-est'); _oMasterRender(); return; }
+    const s = e.target.closest('[data-om-est]'); if(s){ M.sel = s.getAttribute('data-om-est'); M.selCli = null; _oMasterRender(); return; }
     if(e.target.closest('#om-editar-excl')){ M.editar = true; M.exclTmp = new Set(_oExcluidos()); _oMasterRender(); return; }
     if(e.target.closest('#om-cancelar-excl')){ M.editar = false; M.exclTmp = null; _oMasterRender(); return; }
     if(e.target.closest('#om-salvar-excl')){ _oSalvarExcl(); return; }
   };
 }
+
+// ── Carteira no mapa: CEP -> coordenadas e bairro ──────────────────────────────────────
+// Consulta pública (BrasilAPI e, na falta, ViaCEP): só o CEP sai do app. O resultado é guardado no próprio cliente
+// (geoLat, geoLng, cepBairro, cepCidade, geoEm), então cada CEP é consultado uma vez só.
+function _oCartLista(){
+  const M = _oleosM;
+  const oleosUids = new Set((typeof _users!=='undefined' ? _users : []).filter(u=>u.role==='oleos').map(u=>u.id));
+  return (typeof _cartClientes!=='undefined' ? _cartClientes : []).filter(c => (!oleosUids.size || oleosUids.has(c.uid)) && (!M.vend || c.uid===M.vend));
+}
+const _oGeoCache = {};
+const _oGeoOk = (lat,lng) => isFinite(lat) && isFinite(lng) && lat>-24.2 && lat<-23.0 && lng>-47.3 && lng<-46.1;
+async function _oFetchJson(url){
+  const ctrl = new AbortController(), t = setTimeout(()=>ctrl.abort(), 9000);
+  try{ const r = await fetch(url, { signal:ctrl.signal }); if(!r.ok) return null; return await r.json(); }
+  catch(e){ return null; }
+  finally{ clearTimeout(t); }
+}
+async function _oBuscaCep(cep){
+  if(_oGeoCache[cep]) return _oGeoCache[cep];
+  let r = { lat:null, lng:null, bairro:'', cidade:'', ok:false };
+  const j = await _oFetchJson('https://brasilapi.com.br/api/cep/v2/'+cep);
+  if(j && (j.neighborhood || j.city)){
+    const c = j.location && j.location.coordinates;
+    const lat = c ? parseFloat(c.latitude) : NaN, lng = c ? parseFloat(c.longitude) : NaN, ok = _oGeoOk(lat,lng);
+    r = { lat:ok?lat:null, lng:ok?lng:null, bairro:j.neighborhood||'', cidade:j.city||'', ok:true };
+  }
+  if(!r.ok || !r.bairro){
+    const v = await _oFetchJson('https://viacep.com.br/ws/'+cep+'/json/');
+    if(v && !v.erro){ r.bairro = r.bairro || v.bairro || ''; r.cidade = r.cidade || v.localidade || ''; r.ok = true; }
+  }
+  _oGeoCache[cep] = r;
+  return r;
+}
+async function _oLocalizarCeps(refazer){
+  const M = _oleosM; if(M.locBusy) return;
+  const lista = _oCartLista().filter(c => c.cep && (refazer ? c.geoLat==null : !c.geoEm));
+  if(!lista.length) return;
+  const ceps = Array.from(new Set(lista.map(c=>c.cep)));
+  M.locBusy = true;
+  const btn = $('om-loc-cep'); if(btn) btn.disabled = true;
+  const res = {};
+  for(let i=0;i<ceps.length;i++){
+    const st = $('om-cart-status'); if(st) st.textContent = 'Localizando CEP '+(i+1)+' de '+ceps.length+'…';
+    res[ceps[i]] = await _oBuscaCep(ceps[i]);
+    await new Promise(r=>setTimeout(r,150));
+  }
+  // Mesma coordenada em 3 ou mais CEPs diferentes = aproximação (centro do bairro/cidade): não usa no mapa
+  const uso = {};
+  ceps.forEach(c=>{ const r = res[c]; if(r.lat!=null){ const k = r.lat.toFixed(5)+','+r.lng.toFixed(5); (uso[k] = uso[k] || new Set()).add(c); } });
+  let loc=0, semCoord=0, aprox=0, falhou=0;
+  try{
+    const agora = new Date().toISOString();
+    let batch = writeBatch(db), n = 0;
+    for(const c of lista){
+      const r = res[c.cep];
+      if(!r.ok){ falhou++; continue; }     // serviço fora do ar ou CEP inexistente: não marca como tentado
+      const up = { geoEm: agora };
+      const k = r.lat!=null ? r.lat.toFixed(5)+','+r.lng.toFixed(5) : null;
+      if(k && uso[k].size<3){ up.geoLat = r.lat; up.geoLng = r.lng; up.geoFonte = 'cep'; loc++; }
+      else if(k){ aprox++; } else { semCoord++; }
+      if(r.bairro){ up.cepBairro = r.bairro; if(!(c.bairro||'').trim()) up.bairro = r.bairro; }
+      if(r.cidade){ up.cepCidade = r.cidade; if(!(c.cidade||'').trim()) up.cidade = r.cidade; }
+      batch.update(doc(db,'carteira_clientes',c.id), up);
+      if(++n % 400 === 0){ await batch.commit(); batch = writeBatch(db); }
+    }
+    if(n % 400 !== 0) await batch.commit();
+  }catch(err){ console.error('[Óleos] localizar CEPs:', err); toast('Erro ao salvar a localização: '+(err.code||err.message)); }
+  M.locBusy = false;
+  if(falhou===lista.length) toast('Não consegui consultar o serviço de CEP agora. Verifique a internet e tente de novo.', 5000);
+  else toast(loc+' localizado(s) no mapa'+(semCoord?', '+semCoord+' só com bairro':'')+(aprox?', '+aprox+' aproximado(s) descartado(s)':'')+(falhou?', '+falhou+' sem resposta':'')+'.', 5000);
+  _oMasterRender();
+}
+window._oCartAtualizou = () => {
+  if(_oleosM.cart && !_oleosM.locBusy && cp?.role==='master' && $('panel-oleos')?.classList.contains('active') && _oleosM.carregado) _oMasterRender();
+};
 
 async function _oSalvarExcl(){
   const cid = _oCid(); if(!cid || !_oleosM.exclTmp) return;
@@ -8895,7 +9023,7 @@ async function _oSalvarExcl(){
 
 async function _oMasterAbrir(){
   const el = $('oleos-conteudo'); if(!el) return;
-  if(_oleosM.uid !== cu?.uid){ Object.assign(_oleosM, { uid:cu?.uid||null, visitas:[], estabs:[], carregado:false, periodo:'mes', mapa:'acum', vend:'', zona:0, sel:null, editar:false, exclTmp:null }); }
+  if(_oleosM.uid !== cu?.uid){ Object.assign(_oleosM, { uid:cu?.uid||null, visitas:[], estabs:[], carregado:false, periodo:'mes', mapa:'acum', vend:'', zona:0, sel:null, editar:false, exclTmp:null, cart:false, selCli:null, locBusy:false }); }
   el.innerHTML = '<div class="empty">Carregando...</div>';
   await _oMasterCarregar();   // sempre atualiza ao abrir a aba
   _oMasterRender();
@@ -10633,7 +10761,7 @@ function renderCarteiraLista(){
   const fVend   = $('cart-filtro-vendedor')?.value || '';
 
   let lista = _cartClientes.filter(c => {
-    if(busca && !((c.nome||'').toLowerCase().includes(busca) || (c.responsavel||'').toLowerCase().includes(busca))) return false;
+    if(busca && !((c.nome||'').toLowerCase().includes(busca) || (c.responsavel||'').toLowerCase().includes(busca) || (c.email||'').toLowerCase().includes(busca) || (busca.replace(/\D/g,'').length>=3 && (c.cep||'').includes(busca.replace(/\D/g,''))))) return false;
     if(fSeg && c.segmento !== fSeg) return false;
     if(fResult && c.resultadoUltimoContato !== fResult) return false;
     if(fVend && c.uid !== fVend) return false;
@@ -10669,9 +10797,9 @@ function renderCarteiraLista(){
       const rcStyle = ultHist ? `style="background:${(PROSP_CORES[rc]||'#999')}22;color:${PROSP_CORES[rc]||'#666'}"` : '';
       return `<tr>
         <td><b>${c.nome||''}</b>${c.responsavel?`<br><span style="font-size:.72rem;color:var(--gray)">${c.responsavel}</span>`:''}</td>
-        <td>${c.telefone||'—'}</td>
+        <td>${c.telefone||'—'}${c.email?`<br><span style="font-size:.7rem;color:var(--gray)">${_cartEscHtml(c.email)}</span>`:''}</td>
         <td>${c.segmento||'—'}</td>
-        <td>${[c.cidade,c.bairro].filter(Boolean).join(' / ')||'—'}</td>
+        <td>${[c.cidade,c.bairro].filter(Boolean).join(' / ')||'—'}${c.cep?`<br><span style="font-size:.7rem;color:var(--gray)">CEP ${_cartFmtCep(c.cep)}</span>`:''}</td>
         <td><span class="badge ${resultBadgeClass}" ${rcStyle}>${rc||'—'}</span>${rcData?`<br><span style="font-size:.7rem;color:var(--gray)">${fD(rcData)}</span>`:''}</td>
         <td>${stBadge}</td>
         ${veTodaEmpresa?`<td style="font-size:.75rem">${cartNomeVendedor(c.uid)}</td>`:''}
@@ -10720,6 +10848,7 @@ function abrirModalCarteiraCliente(id){
     $('cart-cli-nome').value = c.nome || '';
     $('cart-cli-telefone').value = c.telefone || '';
   $('cart-cli-email').value = c.email || '';
+    if($('cart-cli-cep')) $('cart-cli-cep').value = _cartFmtCep(c.cep);
     $('cart-cli-segmento').value = c.segmento || 'Outros';
     $('cart-cli-responsavel').value = c.responsavel || '';
     $('cart-cli-cidade').value = c.cidade || '';
@@ -10739,6 +10868,7 @@ function abrirModalCarteiraCliente(id){
     $('cart-cli-nome').value = '';
     $('cart-cli-telefone').value = '';
   $('cart-cli-email').value = '';
+    if($('cart-cli-cep')) $('cart-cli-cep').value = '';
     $('cart-cli-segmento').value = 'Outros';
     $('cart-cli-responsavel').value = '';
     $('cart-cli-cidade').value = '';
@@ -10783,6 +10913,7 @@ async function salvarCarteiraCliente(){
     nome,
     telefone: $('cart-cli-telefone').value.trim(),
     email: emailCli,
+    cep: _cartNormCep($('cart-cli-cep')?.value),
     segmento: $('cart-cli-segmento').value,
     responsavel: $('cart-cli-responsavel').value.trim(),
     cidade: $('cart-cli-cidade').value.trim(),
@@ -10885,13 +11016,13 @@ window.cartSetImportTab = function(tab){
 // ── Aba Agenda: Contact Picker API (Chrome/Android) ─────────
 async function cartSelecionarContatos(){
   try {
-    const contatos = await navigator.contacts.select(['name','tel'], {multiple:true});
+    const contatos = await navigator.contacts.select(['name','tel','email'], {multiple:true});
     if(!contatos.length) return;
     // Mantém todos os contatos com nome, mesmo sem celular ou com telefone fixo —
     // quem não bater no formato BR reconhecido entra como veio, editável depois.
     const lista = contatos.map(c => {
       const rawTel = (c.tel && c.tel[0]) || '';
-      return { nome: (c.name&&c.name[0])||'(sem nome)', telefone: _cartNormalizarTel(rawTel) || rawTel.trim() };
+      return { nome: (c.name&&c.name[0])||'(sem nome)', telefone: _cartNormalizarTel(rawTel) || rawTel.trim(), email: _cartLimparEmail(c.email&&c.email[0]), cep: '' };
     });
     _cartImpPreview('nativo', lista);
   } catch(err){
@@ -10900,6 +11031,23 @@ async function cartSelecionarContatos(){
   }
 }
 $('cart-imp-selecionar') && ($('cart-imp-selecionar').onclick = cartSelecionarContatos);
+
+// E-mail: pega o primeiro endereço válido (a planilha pode trazer ";" no fim ou vários separados por ";" ou ",")
+function _cartLimparEmail(raw){
+  const partes = String(raw||'').split(/[;,\s]+/).map(x=>x.trim().toLowerCase()).filter(Boolean);
+  return partes.find(x=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(x)) || '';
+}
+// CEP: guarda só os 8 dígitos. O Excel costuma comer o zero da frente (2124000 -> 02124000), então 7 dígitos ganham o zero.
+function _cartNormCep(raw){
+  let d = String(raw||'').replace(/\D/g,'');
+  if(d.length===7) d = '0'+d;
+  return d.length===8 ? d : '';
+}
+function _cartFmtCep(d){ d = String(d||'').replace(/\D/g,''); return d.length===8 ? d.slice(0,5)+'-'+d.slice(5) : d; }
+window.cartCepMask = function(el){
+  const d = el.value.replace(/\D/g,'').slice(0,8);
+  el.value = d.length>5 ? d.slice(0,5)+'-'+d.slice(5) : d;
+};
 
 // Normaliza telefone: aceita celular BR (11 dígitos, com o 9) e fixo BR (10 dígitos)
 function _cartNormalizarTel(raw){
@@ -10926,6 +11074,8 @@ window.cartImportarCSV = function(input){
       const header = linhas[0].split(sep).map(h=>h.replace(/['"]/g,'').toLowerCase().trim());
       const iNome = header.findIndex(h=>h.includes('nome')||h.includes('name')||h==='contato');
       const iTel  = header.findIndex(h=>h.includes('whatsapp')||h.includes('wpp')||h.includes('telefon')||h.includes('celular')||h.includes('fone')||h.includes('phone')||h.includes('mobile')||h.includes('número')||h.includes('numero'));
+      const iEmail = header.findIndex(h=>h.includes('mail'));
+      const iCep   = header.findIndex(h=>h==='cep' || h.startsWith('cep ') || h.includes('c.e.p') || h.includes('postal'));
       if(iNome===-1 || iTel===-1){
         _cartImpErro('csv', `Colunas não encontradas. Cabeçalho detectado: "${header.join(' | ')}". O arquivo precisa ter colunas com "Nome" e "Telefone" (ou WhatsApp/Celular).`);
         return;
@@ -10936,7 +11086,8 @@ window.cartImportarCSV = function(input){
         const nome = cols[iNome] || '';
         const telRaw = cols[iTel] || '';
         if(!nome) continue; // sem nome não dá pra criar cliente
-        contatos.push({ nome, telefone: _cartNormalizarTel(telRaw) || telRaw });
+        contatos.push({ nome, telefone: _cartNormalizarTel(telRaw) || telRaw,
+          email: iEmail>=0 ? _cartLimparEmail(cols[iEmail]) : '', cep: iCep>=0 ? _cartNormCep(cols[iCep]) : '' });
       }
       if(!contatos.length){ _cartImpErro('csv','Nenhuma linha com nome encontrada no arquivo.'); return; }
       _cartImpPreview('csv', contatos);
@@ -10969,7 +11120,8 @@ window.cartImportarVCF = function(input){
         let tel = '';
         for(const m of telMatches){ const t=_cartNormalizarTel(m[1].trim()); if(t){ tel=t; break; } }
         if(!tel && telMatches.length) tel = telMatches[0][1].trim(); // formato não reconhecido, mantém como veio
-        contatos.push({nome, telefone: tel});
+        const mailM = bloco.match(/^EMAIL(?:;[^:]*)?:(.+)$/im);
+        contatos.push({nome, telefone: tel, email: mailM ? _cartLimparEmail(mailM[1]) : '', cep: ''});
       });
       if(!contatos.length){ _cartImpErro('vcf','Nenhum contato com nome encontrado no arquivo.'); return; }
       _cartImpPreview('vcf', contatos);
@@ -10988,6 +11140,7 @@ function _cartImpPreview(tipo, contatos){
   div.innerHTML = `
     <div style="font-size:.75rem;font-weight:700;color:var(--g);margin-bottom:4px">✓ ${contatos.length} contato${contatos.length>1?'s':''} encontrado${contatos.length>1?'s':''}</div>
     ${semTel>0 ? `<div style="font-size:.72rem;color:var(--gray);margin-bottom:6px">ℹ️ ${semTel} sem telefone — pode completar depois no app</div>` : ''}
+    ${(contatos.some(c=>c.email)||contatos.some(c=>c.cep)) ? `<div style="font-size:.72rem;color:var(--gray);margin-bottom:6px">✉️ ${contatos.filter(c=>c.email).length} com e-mail · 📍 ${contatos.filter(c=>c.cep).length} com CEP</div>` : ''}
     <div style="border:1px solid var(--border);border-radius:var(--rsm);overflow:hidden;margin-bottom:.6rem;max-height:260px;overflow-y:auto">
       <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--grayl);font-size:.72rem;font-weight:700">
         <input type="checkbox" id="_cimp-todos-${tipo}" checked onchange="window._cartImpToggleTodos('${tipo}')" style="width:15px;height:15px">
@@ -10996,7 +11149,7 @@ function _cartImpPreview(tipo, contatos){
       ${contatos.map((c,i)=>`
         <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border);font-size:.78rem">
           <input type="checkbox" class="_cimp-chk-${tipo}" data-i="${i}" checked onchange="window._cartImpAtualizarContagem('${tipo}')" style="width:15px;height:15px">
-          <span style="flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_cartEscHtml(c.nome)}</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${_cartEscHtml(c.nome)}</b>${(c.email||c.cep)?`<br><span style="font-size:.68rem;color:var(--gray)">${_cartEscHtml([c.email, c.cep?'CEP '+_cartFmtCep(c.cep):''].filter(Boolean).join(' · '))}</span>`:''}</span>
           <span style="color:var(--gray);white-space:nowrap">${c.telefone || '— sem telefone'}</span>
         </div>`).join('')}
     </div>
@@ -11052,17 +11205,46 @@ window._cartImpConfirmar = async function(tipo){
   const obsPadrao = ($('cart-imp-obs-padrao')?.value || '').trim();
 
   const existentes = new Set(_cartClientes.map(c => (c.telefone||'').replace(/\D/g,'')).filter(Boolean));
-  let importados = 0, duplicados = 0;
+  const existMap = new Map();
+  _cartClientes.forEach(c => { const t=(c.telefone||'').replace(/\D/g,''); if(t && !existMap.has(t)) existMap.set(t,c); });
+  // Contato sem telefone: confere pelo nome (mesmo vendedor), para o arquivo poder ser importado de novo sem duplicar
+  const _nn = x => String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  const nomeMap = new Map();
+  _cartClientes.forEach(c => { if(c.uid===uidAlvo && !(c.telefone||'').replace(/\D/g,'')) { const k=_nn(c.nome); if(k && !nomeMap.has(k)) nomeMap.set(k,c); } });
+  let importados = 0, duplicados = 0, atualizados = 0;
   try {
     const batch = writeBatch(db);
     contatos.forEach(c => {
       const telNorm = (c.telefone||'').replace(/\D/g,'');
       // Duplicidade só é checada quando há telefone — sem telefone, não dá pra saber se é repetido
-      if(telNorm && existentes.has(telNorm)){ duplicados++; return; }
+      if(!telNorm){
+        const exN = nomeMap.get(_nn(c.nome));
+        if(exN){
+          duplicados++;
+          const up = {};
+          if(c.email && !exN.email){ up.email = c.email; exN.email = c.email; }
+          if(c.cep && !exN.cep){ up.cep = c.cep; exN.cep = c.cep; }
+          if(exN.id && Object.keys(up).length){ batch.update(doc(db,'carteira_clientes',exN.id), up); atualizados++; }
+          return;
+        }
+        nomeMap.set(_nn(c.nome), { id:'', email:c.email||'', cep:c.cep||'' });
+      }
+      if(telNorm && existentes.has(telNorm)){
+        duplicados++;
+        // Cliente já cadastrado (mesmo vendedor) sem e-mail/CEP: completa só o que está vazio
+        const ex = existMap.get(telNorm);
+        if(ex && ex.uid===uidAlvo){
+          const up = {};
+          if(c.email && !ex.email){ up.email = c.email; ex.email = c.email; }
+          if(c.cep && !ex.cep){ up.cep = c.cep; ex.cep = c.cep; }
+          if(Object.keys(up).length){ batch.update(doc(db,'carteira_clientes',ex.id), up); atualizados++; }
+        }
+        return;
+      }
       if(telNorm) existentes.add(telNorm);
       const ref = doc(collection(db,'carteira_clientes'));
       batch.set(ref, {
-        nome: c.nome, telefone: c.telefone||'',
+        nome: c.nome, telefone: c.telefone||'', email: c.email||'', cep: c.cep||'',
         segmento: 'Outros', responsavel: '', cidade: '', bairro: '',
         resultadoUltimoContato: 'Inicial', dataUltimoContato: '', dataUltimaCompra: '',
         observacoes: obsPadrao, origem: 'importado', uid: uidAlvo, companyId: CID,
@@ -11070,7 +11252,7 @@ window._cartImpConfirmar = async function(tipo){
       });
       importados++;
     });
-    if(importados > 0) await batch.commit();
+    if(importados > 0 || atualizados > 0) await batch.commit();
   } catch(err){
     console.error('[Carteira] importar:', err);
     toast('Erro ao importar: ' + (err.message||err.code));
@@ -11082,6 +11264,7 @@ window._cartImpConfirmar = async function(tipo){
       <div style="padding:12px 14px;background:var(--gl);border-radius:var(--rsm);text-align:center">
         <div style="font-size:.85rem;font-weight:700;color:var(--g)">${importados} cliente${importados===1?'':'s'} importado${importados===1?'':'s'}!</div>
         ${duplicados>0?`<div style="font-size:.72rem;color:var(--gray);margin-top:4px">${duplicados} já cadastrado${duplicados>1?'s':''} (ignorado${duplicados>1?'s':''})</div>`:''}
+        ${atualizados>0?`<div style="font-size:.72rem;color:var(--gray);margin-top:4px">${atualizados} já cadastrado${atualizados>1?'s':''} receberam e-mail/CEP</div>`:''}
         <button class="btn-save" style="margin-top:10px" onclick="closeModal('modal-carteira-importar')">Fechar</button>
       </div>`;
   }
