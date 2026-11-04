@@ -580,7 +580,8 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
   <div class="auth-footer">
     Elaborado pela <strong>ECS Consultoria e Treinamento</strong>.<br/>
     Parte integrante do <strong>Método VAP! Vendas de Alta Performance</strong>.<br/>
-    Responsável: <strong>Ernesto Costa Santos</strong>
+    Responsável: <strong>Ernesto Costa Santos</strong><br/>
+    <span data-app-versao style="opacity:.85"></span>
   </div>
 
 </div>
@@ -1907,7 +1908,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <h3>5.3.1 Acesso e primeiro login</h3>
           <ul>
             <li><b>Endereço:</b> <i>www.agoravap.com.br/?empresa=royal</i> — abre direto o login da Royal.</li>
-            <li><b>Cadastro (Master):</b> Administrativo → Profissionais → perfil <b>Vendedor de Óleos</b> (a opção só aparece para o Master de uma empresa com o módulo). Cadastre sempre pelo Master da empresa. O app mostra a <b>senha provisória</b>; copie exatamente como aparece (maiúsculas e minúsculas contam) e envie ao vendedor junto com o endereço.</li>
+            <li><b>Cadastro (Master):</b> Administrativo → Profissionais → perfil <b>Vendedor de Óleos</b> (a opção só aparece para o Master de uma empresa com o módulo). O Master cadastra pela própria empresa; o Super Admin também pode cadastrar em “Ver dados” (o profissional vai para a empresa que está sendo visualizada). O app mostra a <b>senha provisória</b>; copie exatamente como aparece (maiúsculas e minúsculas contam) e envie ao vendedor junto com o endereço.</li>
             <li><b>Primeiro acesso (vendedor):</b> entrar com o e-mail e a senha provisória, informar o <b>nome completo</b> e criar a senha definitiva (mínimo de 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial). Em seguida o app abre na aba <b>Óleos</b>. Quando o celular pedir a localização, toque em <b>Permitir</b>.</li>
             <li><b>Menu do vendedor:</b> Óleos · Carteira · Pedidos · Promoções · Ajuda.</li>
           </ul>
@@ -1967,7 +1968,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <h3>5.3.8 Pedido de vendas</h3>
           <p>O pedido junta os dados do cliente da Carteira com os itens da tabela de atacado e segue para a Gerência (Master), que digita o pedido definitivo no ERP.</p>
           <ul>
-            <li><b>Fazer o pedido (vendedor):</b> aba <b>Pedidos → + Novo pedido</b>, ou o <b>🛒</b> na linha do cliente na Carteira. Escolha o cliente, busque os produtos (por nome, código ou gama) e informe a <b>quantidade de embalagens</b>. O preço mostrado é o da embalagem: na caixa 12×1 é 12 vezes o preço unitário da tabela. O total é calculado sozinho.</li>
+            <li><b>Fazer o pedido (vendedor):</b> aba <b>Pedidos → + Novo pedido</b>, ou o <b>🛒</b> na linha do cliente na Carteira. Ao salvar uma visita com resultado <b>Pedido</b>, o app já oferece <b>Fazer o pedido</b> (se o comércio ainda não estiver na Carteira, oferece cadastrá-lo antes). Escolha o cliente, busque os produtos (por nome, código ou gama) e informe a <b>quantidade de embalagens</b>. O preço mostrado é o da embalagem: na caixa 12×1 é 12 vezes o preço unitário da tabela. O total é calculado sozinho.</li>
             <li><b>Condição de pagamento / observações:</b> campo livre. Toque em <b>Enviar à Gerência</b>: o pedido ganha um número (AAMMDD + sequência do dia, por exemplo 26110401) e aparece em <b>Meus pedidos</b>. Enquanto estiver “Aguardando lançamento”, o vendedor pode cancelá-lo.</li>
             <li><b>Receber e lançar (Master):</b> a aba Pedidos mostra quantos estão aguardando. Abra o pedido, use <b>Imprimir</b>, <b>Copiar</b> ou <b>CSV</b> para digitar no ERP e, depois, informe o nº do pedido no ERP e toque em <b>Lançado no ERP</b>.</li>
             <li><b>Tabela de preços (Master):</b> em Pedidos → <b>Importar tabela</b> (ou <b>Atualizar tabela</b> todo mês). Cole as colunas COD, PRODUTO, GAMA, EMB e PREÇO copiadas do Excel ou do PDF e toque em <b>Conferir</b>. Se um código aparecer mais de uma vez, vale a primeira linha. Depois toque em <b>Salvar tabela</b>. Os pedidos já enviados guardam os preços da época.</li>
@@ -2181,7 +2182,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <p style="margin-top:1rem">Para suporte técnico ou dúvidas, entre em contato:</p>
           <p><b>E-mail:</b> contato@ernestocostasantos.com.br</p>
           <p><b>Site:</b> <a href="https://ernestocostasantos.com.br/agoravap" target="_blank" style="color:#C53030">https://ernestocostasantos.com.br/agoravap</a></p>
-          <p style="margin-top:.8rem;color:var(--gray);font-size:.85rem">AgoraVAP! — Versão 4.0 · 2026</p>
+          <p style="margin-top:.8rem;color:var(--gray);font-size:.85rem">AgoraVAP! — <span data-app-versao></span></p>
         </div>
 
       </div>
@@ -2210,6 +2211,19 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
     <div class="fgrid fg1"><div class="field"><label>Meta mensal atual (R$)</label><input type="number" id="mu-meta" placeholder="0,00"/></div></div>
     <input type="hidden" id="mu-uid"/>
     <div class="ffooter"><button class="btn-sec" id="mu-cancel">Cancelar</button><button class="btn-save" id="mu-save">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL Oferta de pedido após visita (Óleos) -->
+<div class="modal-ov" id="modal-oferta-pedido">
+  <div class="modal" style="max-width:380px;text-align:center">
+    <div style="font-size:2rem;margin-bottom:.5rem">🛒</div>
+    <div class="modal-title" id="ofp-msg" style="margin-bottom:1.1rem;font-size:1rem"></div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-sec" id="ofp-nao">Agora não</button>
+      <button class="btn-sec" id="ofp-escolher" style="display:none">Escolher da Carteira</button>
+      <button class="btn-save" id="ofp-sim">Fazer o pedido</button>
+    </div>
   </div>
 </div>
 
@@ -2576,6 +2590,11 @@ import { getFirestore, collection, addDoc, updateDoc, deleteDoc,
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+// Versão exibida na tela de login e no rodapé da Ajuda: a MESMA denominação dos Manuais (capa "Versão X.Y · AAAA").
+// A cada nova versão dos Manuais, atualizar só aqui.
+const APP_VERSAO = '5.5', APP_ANO = '2026';
+document.querySelectorAll('[data-app-versao]').forEach(el => { el.textContent = 'Versão ' + APP_VERSAO + ' · ' + APP_ANO; });
 
 // ════════════════════════════════════════════════════════
 // ⚠️  COLE AQUI AS CREDENCIAIS DO SEU FIREBASE
@@ -5223,6 +5242,8 @@ window.gerarRelatorio = async function(){
 $('rel-gerar').onclick = window.gerarRelatorio;
 
 // ── Admin: Users ──────────────────────────────────────────
+// Empresa do cadastro: o SuperAdmin grava na empresa que está visualizando ("Ver dados"); os demais perfis, na própria
+const _admCid = () => cp?.role==='superadmin' ? (_companyId || cp?.companyId || 'default') : (cp?.companyId || _companyId || 'default');
 $('btn-adm-save').onclick = async () => {
   const n=$('adm-nome').value.trim(), e=$('adm-email').value.trim(),
         r=$('adm-perfil').value, uid=$('adm-uid').value,
@@ -5244,7 +5265,7 @@ $('btn-adm-save').onclick = async () => {
       const mesAtual = thisMes();
       const metaDoc = {
         uid, mes:mesAtual,
-        companyId: cp.companyId || _companyId || 'default',
+        companyId: _admCid(),
         sellerName:n, updatedAt:new Date().toISOString()
       };
       if(metaIni > 0) metaDoc.valor = metaIni;
@@ -5275,7 +5296,7 @@ $('btn-adm-save').onclick = async () => {
       // Cria documento no Firestore
       await setDoc(doc(db, 'users', newUid), {
         name: n, email: e, role: r, meta: metaIni, potencial: potencialIni, whatsappComercial: whatsCom,
-        companyId: cp.companyId || _companyId || 'default',
+        companyId: _admCid(),
         tempPass: tempPass,
         firstLogin: true,
         createdAt: new Date().toISOString()
@@ -5285,7 +5306,7 @@ $('btn-adm-save').onclick = async () => {
         const mesAtual = thisMes();
         const metaDoc = {
           uid: newUid, mes: mesAtual,
-          companyId: cp.companyId || _companyId || 'default',
+          companyId: _admCid(),
           sellerName: n, createdAt: new Date().toISOString()
         };
         if(metaIni > 0) metaDoc.valor = metaIni;
@@ -5305,7 +5326,7 @@ $('btn-adm-save').onclick = async () => {
           + 'No primeiro acesso, o profissional criará nome completo e senha definitiva.';
         alert(msg);
       }, 300);
-      VapLogger.info('Usuário criado', { email: e, role: r, cid: cp?.companyId || _companyId });
+      VapLogger.info('Usuário criado', { email: e, role: r, cid: _admCid() });
       resetAdmForm();
     } catch (err) {
       if (err.code === 'auth/email-already-in-use') {
@@ -5518,7 +5539,7 @@ $('btn-meta-save').onclick = async () => {
   try {
     await setDoc(doc(db,'metas',id),{
       uid, mes, valor:val, potencial:pot,
-      companyId: cp.companyId || _companyId || 'default',
+      companyId: _admCid(),
       sellerName: _users.find(u=>u.id===uid)?.name||'',
       updatedAt: new Date().toISOString()
     }, {merge:true});
@@ -8605,6 +8626,7 @@ async function _oSalvar(){
     _oleos.estabSel = null;
     _oRenderVendedor();
     toast(gps ? 'Visita salva.' : 'Visita salva sem GPS (localização negada ou sem sinal).', 3600);
+    if(resultado==='Pedido') _oOferecerPedido(estab);
   }catch(err){
     console.error('[Óleos] salvar visita:', err);
     toast('Erro ao salvar a visita. Tente de novo.');
@@ -9078,6 +9100,51 @@ async function vapOleosAbrir(){
   _oGps(8000).then(g => { if(g){ _oleos.gps = g; _oCheckDup(); } });
 }
 window.vapOleosAbrir = vapOleosAbrir;
+
+// ── Atalho: visita com resultado "Pedido" -> pedido de vendas ──
+// Procura o comércio na Carteira pelo nome; se não achar, oferece cadastrá-lo (ou escolher outro cliente) antes do pedido.
+const _OLEOS_SEG_CART = { 'Posto de troca':'Posto de Troca', 'Revenda':'Revenda', 'Centro automotivo':'Serviço Automotivo', 'Mecânica':'Serviço Automotivo',
+  'Posto de gasolina':'Posto de Combustível', 'Transportadora':'Transportadora', 'Pit stop / similar':'Serviço Automotivo', 'Moto':'Moto', 'Outro comércio':'Outros' };
+let _oPedOferta = null;
+function _oAcharNaCarteira(estab){
+  const nn = t => _oNorm(t).replace(/\s+/g,' ');
+  const k = nn(estab.nome);
+  return (typeof _cartClientes!=='undefined' ? _cartClientes : []).find(c => nn(c.nome)===k) || null;
+}
+function _oOferecerPedido(estab){
+  _oPedOferta = estab;
+  const achou = !!_oAcharNaCarteira(estab);
+  $('ofp-msg').textContent = achou
+    ? 'Visita salva. Fazer agora o pedido de vendas para “'+estab.nome+'”?'
+    : 'Visita salva. “'+estab.nome+'” ainda não está na sua Carteira. Cadastrar e fazer o pedido agora?';
+  $('ofp-sim').textContent = achou ? 'Fazer o pedido' : 'Cadastrar e fazer o pedido';
+  $('ofp-escolher').style.display = achou ? 'none' : '';
+  $('modal-oferta-pedido').classList.add('open');
+}
+async function _oIrParaPedido(){
+  const estab = _oPedOferta; if(!estab) return;
+  $('modal-oferta-pedido').classList.remove('open');
+  let c = _oAcharNaCarteira(estab);
+  if(!c){
+    const cid = _oCid(); if(!cid || !cu) return;
+    const dados = { nome:estab.nome, telefone:'', email:'', cep:'', segmento:_OLEOS_SEG_CART[estab.segmento]||'Outros', responsavel:'', cidade:'', bairro:estab.bairro||'',
+      resultadoUltimoContato:'Pedido', dataUltimoContato:tod(), dataUltimaCompra:tod(), observacoes:(estab.via?'Via: '+estab.via:''),
+      origem:'oleos', uid:cu.uid, companyId:cid, criadoEm:new Date().toISOString() };
+    try{
+      const ref = await addDoc(collection(db,'carteira_clientes'), dados);
+      c = { id:ref.id, ...dados };
+      if(typeof _cartClientes!=='undefined' && !_cartClientes.some(x=>x.id===c.id)) _cartClientes.push(c);
+      toast('“'+estab.nome+'” cadastrado na Carteira.');
+    }catch(err){ console.error('[Óleos] cadastrar na Carteira:', err); toast('Não foi possível cadastrar na Carteira: '+(err.code||err.message)); return; }
+  }
+  if(typeof window.vapPedidoNovo==='function') window.vapPedidoNovo(c.id);
+}
+(function _oLigarOferta(){
+  const on = (id, fn) => { const el = $(id); if(el) el.onclick = fn; };
+  on('ofp-nao', () => $('modal-oferta-pedido').classList.remove('open'));
+  on('ofp-escolher', () => { $('modal-oferta-pedido').classList.remove('open'); if(typeof window.vapPedidoNovo==='function') window.vapPedidoNovo(''); });
+  on('ofp-sim', _oIrParaPedido);
+})();
 
 // ══════════════════════════════════════════════════════════
 //  PEDIDO DE VENDAS (Óleos / Royal)
