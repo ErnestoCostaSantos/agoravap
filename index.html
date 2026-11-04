@@ -609,6 +609,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
     <div class="nav-tab" data-tab="prospeccao">CRM</div>
     <div class="nav-tab" data-tab="sdr-painel" id="tab-sdr-painel" style="display:none">Painel</div>
     <div class="nav-tab" data-tab="oleos" id="tab-oleos" style="display:none">Óleos</div>
+    <div class="nav-tab" data-tab="pedidos" id="tab-pedidos" style="display:none">Pedidos</div>
     <div class="nav-tab" data-tab="historico">Histórico</div>
     <div class="nav-tab" data-tab="carteira">Carteira</div>
     <div class="nav-tab" data-tab="dashboard">Dashboard</div>
@@ -955,6 +956,10 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
     </div>
 
     <!-- ════ ÓLEOS (módulo Royal — só aparece com companies.modulo = "oleos") ═════ -->
+    <div class="panel" id="panel-pedidos">
+      <div id="pedidos-conteudo"><div class="empty">Carregando…</div></div>
+    </div>
+
     <div class="panel" id="panel-oleos">
       <div id="oleos-conteudo"></div>
     </div>
@@ -1742,7 +1747,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <p>Na tela de login, clique em "Recuperar acesso". Um e-mail com link de redefinição será enviado.</p>
 
           <h3>Logout automático por inatividade</h3>
-          <p>Após <b>4 minutos</b> sem atividade, o sistema encerra a sessão automaticamente e retorna à tela de login.</p>
+          <p>Após <b>4 minutos</b> sem atividade (<b>10 minutos</b> nas empresas com o módulo Óleos, como a Royal), o sistema encerra a sessão automaticamente e retorna à tela de login.</p>
         </div>
         <div class="divider"></div>
 
@@ -1904,15 +1909,15 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Endereço:</b> <i>www.agoravap.com.br/?empresa=royal</i> — abre direto o login da Royal.</li>
             <li><b>Cadastro (Master):</b> Administrativo → Profissionais → perfil <b>Vendedor de Óleos</b> (a opção só aparece para o Master de uma empresa com o módulo). Cadastre sempre pelo Master da empresa. O app mostra a <b>senha provisória</b>; copie exatamente como aparece (maiúsculas e minúsculas contam) e envie ao vendedor junto com o endereço.</li>
             <li><b>Primeiro acesso (vendedor):</b> entrar com o e-mail e a senha provisória, informar o <b>nome completo</b> e criar a senha definitiva (mínimo de 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial). Em seguida o app abre na aba <b>Óleos</b>. Quando o celular pedir a localização, toque em <b>Permitir</b>.</li>
-            <li><b>Menu do vendedor:</b> Óleos · Promoções · Ajuda.</li>
+            <li><b>Menu do vendedor:</b> Óleos · Carteira · Pedidos · Promoções · Ajuda.</li>
           </ul>
-          <div class="help-tip">Após <b>4 minutos sem atividade</b> o app encerra a sessão (vale para todos os perfis). Se acontecer, basta entrar de novo; as visitas já salvas não se perdem. Registre a visita logo depois do atendimento.</div>
+          <div class="help-tip">Após <b>10 minutos sem atividade</b> o app encerra a sessão (vale para todos os perfis da empresa). Se acontecer, basta entrar de novo; as visitas já salvas não se perdem. Registre a visita logo depois do atendimento.</div>
 
           <h3>5.3.2 Registrar uma visita (vendedor)</h3>
           <p>A aba Óleos tem três blocos: <b>Retornos de hoje</b>, <b>Registrar visita</b> e <b>Minhas últimas visitas</b> (as 15 últimas).</p>
           <ul>
             <li><b>Comércio</b> (obrigatório) — digite ou fale o nome. Se aparecer <b>“Já cadastrado por aqui?”</b> (nome parecido ou comércio a cerca de 100 m), toque em <b>É este</b> para ligar a visita ao cadastro existente; <b>Desfazer</b> volta atrás.</li>
-            <li><b>Segmento</b> — Posto de troca · Revenda · Centro automotivo · Mecânica · Posto de gasolina · Transportadora · Pit stop / similar · Outro comércio.</li>
+            <li><b>Segmento</b> — Posto de troca · Revenda · Centro automotivo · Mecânica · Posto de gasolina · Transportadora · Pit stop / similar · Moto · Outro comércio.</li>
             <li><b>Cargo do contato</b> — Proprietário · Gerente · Comprador · Mecânico · Atendente. Logo abaixo fica o <b>Contato</b> — nome de quem atendeu.</li>
             <li><b>Via</b> e <b>Bairro</b> — digite ou fale. A Via mostra <b>sugestões</b> das avenidas da planilha enquanto você escreve; toque numa sugestão para preencher.</li>
             <li><b>Potencial (L por mês)</b> — quanto o comércio pode comprar por mês.</li>
@@ -1954,6 +1959,19 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Retornos de hoje</b> e <b>Visitas recentes e onde foram</b> (12 últimas, com a precisão do GPS ou “Sem GPS”).</li>
           </ul>
           <div class="help-tip">Limites da medida: a cobertura só enxerga pontos de visita (não a rota), GPS ruim marca o quadrado errado, localização falsa burla a medida e as quantidades da planilha são estimativas. Detalhes e passo a passo de treinamento: documento “Óleos Royal – Versão Técnica”.</div>
+
+          <h3>5.3.7 Carteira do vendedor de óleos</h3>
+          <p>O Vendedor de Óleos tem a aba <b>Carteira</b>, igual à dos demais vendedores, mas <b>só com os clientes cadastrados por ele</b> (o Master vê a de todos). Cadastre o cliente com <b>+ Adicionar Cliente</b> ou importe os contatos do celular. O campo <b>Segmento</b> inclui <b>Moto</b>. Os botões de histórico e lançamento do CRM não aparecem para este perfil; no lugar entra o botão <b>🛒 Pedido</b>.</p>
+
+          <h3>5.3.8 Pedido de vendas</h3>
+          <p>O pedido junta os dados do cliente da Carteira com os itens da tabela de atacado e segue para a Gerência (Master), que digita o pedido definitivo no ERP.</p>
+          <ul>
+            <li><b>Fazer o pedido (vendedor):</b> aba <b>Pedidos → + Novo pedido</b>, ou o <b>🛒</b> na linha do cliente na Carteira. Escolha o cliente, busque os produtos (por nome, código ou gama) e informe a <b>quantidade de embalagens</b>. O preço mostrado é o da embalagem: na caixa 12×1 é 12 vezes o preço unitário da tabela. O total é calculado sozinho.</li>
+            <li><b>Condição de pagamento / observações:</b> campo livre. Toque em <b>Enviar à Gerência</b>: o pedido ganha um número (AAMMDD + sequência do dia, por exemplo 26110401) e aparece em <b>Meus pedidos</b>. Enquanto estiver “Aguardando lançamento”, o vendedor pode cancelá-lo.</li>
+            <li><b>Receber e lançar (Master):</b> a aba Pedidos mostra quantos estão aguardando. Abra o pedido, use <b>Imprimir</b>, <b>Copiar</b> ou <b>CSV</b> para digitar no ERP e, depois, informe o nº do pedido no ERP e toque em <b>Lançado no ERP</b>.</li>
+            <li><b>Tabela de preços (Master):</b> em Pedidos → <b>Importar tabela</b> (ou <b>Atualizar tabela</b> todo mês). Cole as colunas COD, PRODUTO, GAMA, EMB e PREÇO copiadas do Excel ou do PDF e toque em <b>Conferir</b>. Se um código aparecer mais de uma vez, vale a primeira linha. Depois toque em <b>Salvar tabela</b>. Os pedidos já enviados guardam os preços da época.</li>
+          </ul>
+          <div class="help-tip">O pedido não vai sozinho para o ERP: o Master digita no sistema. O app não envia aviso automático por WhatsApp; o Master vê o contador na aba Pedidos.</div>
         </div>
         <div class="divider"></div>
 
@@ -2191,6 +2209,44 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
     <div class="fgrid fg1"><div class="field"><label>Meta mensal atual (R$)</label><input type="number" id="mu-meta" placeholder="0,00"/></div></div>
     <input type="hidden" id="mu-uid"/>
     <div class="ffooter"><button class="btn-sec" id="mu-cancel">Cancelar</button><button class="btn-save" id="mu-save">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL Pedido de vendas (Óleos) -->
+<div class="modal-ov" id="modal-pedido">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-hdr"><div class="modal-title">Novo pedido de vendas</div><button class="btn-close" id="pd-close">×</button></div>
+    <div class="fgrid fg1"><div class="field"><label>Cliente (da sua Carteira)</label><select id="pd-cliente" style="width:100%"></select></div></div>
+    <div id="pd-cli-info" style="font-size:.78rem;color:var(--gray);margin:-2px 0 8px"></div>
+    <div class="fgrid fg2">
+      <div class="field"><label>Buscar produto</label><input type="text" id="pd-busca" placeholder="Nome ou código…" autocomplete="off" style="width:100%"/></div>
+      <div class="field"><label>Gama</label><select id="pd-gama" style="width:100%"><option value="">Todas</option></select></div>
+    </div>
+    <div id="pd-itens" style="max-height:40vh;overflow:auto;border:1px solid var(--border);border-radius:8px"></div>
+    <div class="fgrid fg1" style="margin-top:.6rem"><div class="field"><label>Condição de pagamento / observações <span style="font-weight:400;color:var(--gray)">(campo livre)</span></label><textarea id="pd-obs" rows="2" maxlength="400" style="width:100%"></textarea></div></div>
+    <div id="pd-resumo" style="font-weight:700;margin:.4rem 0">Nenhum item selecionado</div>
+    <div class="ffooter"><button class="btn-sec" id="pd-cancel">Cancelar</button><button class="btn-save" id="pd-enviar">Enviar à Gerência</button></div>
+  </div>
+</div>
+
+<!-- MODAL Detalhe do pedido (Óleos) -->
+<div class="modal-ov" id="modal-pedido-det">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-hdr"><div class="modal-title" id="pdd-title">Pedido</div><button class="btn-close" id="pdd-close">×</button></div>
+    <div id="pdd-body"></div>
+    <div class="ffooter" id="pdd-footer" style="flex-wrap:wrap"></div>
+  </div>
+</div>
+
+<!-- MODAL Tabela de preços (Óleos, Master) -->
+<div class="modal-ov" id="modal-tabela">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-hdr"><div class="modal-title">Tabela de preços</div><button class="btn-close" id="tb-close">×</button></div>
+    <div class="fgrid fg1"><div class="field"><label>Referência</label><input type="text" id="tb-ref" placeholder="Ex.: Novembro/2026 — Atacado" maxlength="80" style="width:100%"/></div></div>
+    <div class="fgrid fg1"><div class="field"><label>Cole as linhas da tabela <span style="font-weight:400;color:var(--gray)">(colunas: COD, PRODUTO, GAMA, EMB, PREÇO — pode copiar direto do Excel ou do PDF)</span></label>
+      <textarea id="tb-texto" rows="9" style="width:100%;font-family:monospace;font-size:.75rem" spellcheck="false"></textarea></div></div>
+    <div id="tb-aviso" style="font-size:.8rem;line-height:1.5;margin:.4rem 0"></div>
+    <div class="ffooter"><button class="btn-sec" id="tb-cancel">Cancelar</button><button class="btn-sec" id="tb-ver">Conferir</button><button class="btn-save" id="tb-salvar" style="display:none">Salvar tabela</button></div>
   </div>
 </div>
 
@@ -2514,7 +2570,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc,
          query, where, orderBy, onSnapshot,
-         doc, setDoc, getDoc, getDocs, writeBatch, increment, arrayUnion, documentId, deleteField }
+         doc, setDoc, getDoc, getDocs, writeBatch, increment, arrayUnion, documentId, deleteField, runTransaction }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -3080,8 +3136,9 @@ $('btn-logout').onclick = async () => {
   window.location.reload();
 };
 
-// ── INATIVIDADE (4 minutos) ────────────────────────────────
+// ── INATIVIDADE (4 minutos; 10 minutos nas empresas com módulo Óleos) ──
 const INACTIVITY_MS = 4 * 60 * 1000;
+const INACTIVITY_OLEOS_MS = 10 * 60 * 1000;
 let _inactTimer = null;
 
 function resetInactivityTimer() {
@@ -3093,7 +3150,7 @@ function resetInactivityTimer() {
     await signOut(auth);
     // Reload apos inatividade — mesmo motivo do logout manual
     setTimeout(() => window.location.reload(), 2000);
-  }, INACTIVITY_MS);
+  }, window._vapModuloOleos ? INACTIVITY_OLEOS_MS : INACTIVITY_MS);
 }
 function clearInactivityTimer() { clearTimeout(_inactTimer); }
 ['click','keydown','mousemove','touchstart','scroll'].forEach(ev => {
@@ -3167,6 +3224,7 @@ onAuthStateChanged(auth, async user => {
     const moduloOleos  = _company?.modulo === 'oleos';           // módulo Óleos só liga por empresa
     const isOleos      = cp.role === 'oleos' && moduloOleos;      // Vendedor de Óleos (Mario)
     window._vapIsOleos = isOleos;
+    window._vapModuloOleos = moduloOleos;
     window._vapIsSdr   = isSdr;
     // Master herda tudo que o Líder tem acesso — exceto que, ao contrário do Líder,
     // Master enxerga a Carteira de TODOS os vendedores (ver isGestorCarteira mais abaixo).
@@ -3237,7 +3295,8 @@ onAuthStateChanged(auth, async user => {
     // ── Módulos Campanhas + Promoções ──────────────────
     window._vapCompanyId = cp.companyId || _companyId || null;
     if (isOleos) {
-      // Vendedor de Óleos: só o módulo Promoções (as mesmas telas do vendedor, com as promoções da própria empresa)
+      // Vendedor de Óleos: Promoções (as mesmas telas do vendedor, com as promoções da própria empresa) e Carteira (só a dele)
+      if (typeof window.vapIniciarListenerCarteira === 'function') window.vapIniciarListenerCarteira();
       if (typeof window.vapIniciarListenerPromos === 'function') window.vapIniciarListenerPromos();
       if (typeof window.vapIniciarListenerVendasPromo === 'function') window.vapIniciarListenerVendasPromo();
     } else if (typeof vapIniciarModulos === 'function') vapIniciarModulos();
@@ -3262,12 +3321,26 @@ onAuthStateChanged(auth, async user => {
     // Vendedor de Óleos: Óleos, Promoções e Ajuda. Master de empresa com módulo Óleos: vê tudo + Óleos. Demais: sem mudança.
     const tabOleosEl = $('tab-oleos');
     if(tabOleosEl) tabOleosEl.style.display = (isOleos || (isMasterRole && moduloOleos)) ? '' : 'none';
+    // Pedidos (Óleos): vendedor de óleos e Master da empresa com módulo; segmento Moto na Carteira só nessas empresas
+    const tabPedEl = $('tab-pedidos');
+    if(tabPedEl) tabPedEl.style.display = (isOleos || (isMasterRole && moduloOleos)) ? '' : 'none';
+    if(isOleos || (isMasterRole && moduloOleos)){ if(typeof window.vapPedidosIniciar==='function') window.vapPedidosIniciar(); }
+    else if(typeof window._pdReset==='function') window._pdReset();
+    if(moduloOleos){
+      ['cart-cli-segmento','cart-filtro-segmento'].forEach(id=>{
+        const sel = $(id);
+        if(sel && !Array.from(sel.options).some(o=>o.value==='Moto')){
+          const o = document.createElement('option'); o.value = 'Moto'; o.textContent = 'Moto';
+          sel.insertBefore(o, Array.from(sel.options).find(x=>x.value==='Outros') || null);
+        }
+      });
+    }
     ['lancar','prospeccao'].forEach(t=>{
       const b = document.querySelector('[data-tab="'+t+'"]');
       if(b) b.style.display = isOleos ? 'none' : '';
     });
     if(isOleos){
-      ['historico','carteira','dashboard','admin','campanhas','promocoes','sdr-painel'].forEach(t=>{
+      ['historico','dashboard','admin','campanhas','promocoes','sdr-painel'].forEach(t=>{
         const b = document.querySelector('[data-tab="'+t+'"]');
         if(b) b.style.display = 'none';
       });
@@ -3276,6 +3349,7 @@ onAuthStateChanged(auth, async user => {
   } else {
     // Deslogado — volta para tela de login
     cu = null; cp = null; _primeiroUid = null;
+    if(typeof window._pdReset === 'function') window._pdReset();
     _sdrValores = []; _sdrValoresCarregado = false; _sdrEquipe = null;
     _sdrDashVal.cid = null; _sdrDashVal.t = 0; _sdrDashVal.data = []; window._dashSdrUid = '';
     clearInactivityTimer();
@@ -5812,6 +5886,7 @@ window.switchTab = tab => {
   if(tab==='carteira'){ renderCarteiraLista(); }
   if(tab==='sdr-painel' && typeof vapSdrPainelAbrir === 'function') vapSdrPainelAbrir();
   if(tab==='oleos' && typeof vapOleosAbrir === 'function') vapOleosAbrir();
+  if(tab==='pedidos' && typeof window.vapPedidosAbrir === 'function') window.vapPedidosAbrir();
   if(tab==='superadmin'){ loadEmpresas(); }
   if(tab==='dashboard') renderDashboard();
   if(tab==='admin')     { renderUsersTable(); checkBannerMesAnterior(); }
@@ -5847,9 +5922,12 @@ async function loadLogs(){
     const isSuperAdm = cp?.role === 'superadmin';
     const cid = isSuperAdm ? _companyId : (cp?.companyId || _companyId);
 
-    let q = query(collection(db,'logs'), orderBy('ts','desc'));
+    // Etapa 3: a consulta já filtra pela empresa (as regras só liberam os logs da própria empresa); ordena aqui no app
+    const _logCid = isSuperAdm ? _companyId : cid;
+    let q = _logCid ? query(collection(db,'logs'), where('companyId','==',_logCid)) : query(collection(db,'logs'));
     const snap = await getDocs(q);
-    let logs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    let logs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a,b) => String(b.ts||'').localeCompare(String(a.ts||'')));
 
     // Filtra logs por empresa
     if(isSuperAdm && _companyId){
@@ -8277,7 +8355,7 @@ function _sdrNovoLeadId(){ return 'L' + Date.now().toString(36) + Math.random().
 //                            litros, promocao, obs, lat, lng, acc, semGps, dia, criadoEm}
 //    (a coleção oleos_promocoes das partes anteriores não é mais usada; o campo Promoção lê a coleção promocoes da empresa)
 // ══════════════════════════════════════════════════════════
-const OLEOS_SEGMENTOS  = ['Posto de troca','Revenda','Centro automotivo','Mecânica','Posto de gasolina','Transportadora','Pit stop / similar','Outro comércio'];
+const OLEOS_SEGMENTOS  = ['Posto de troca','Revenda','Centro automotivo','Mecânica','Posto de gasolina','Transportadora','Pit stop / similar','Moto','Outro comércio'];
 const OLEOS_CARGOS     = ['Proprietário','Gerente','Comprador','Mecânico','Atendente'];
 const OLEOS_RESULTADOS = ['Cotação','Cadastro','Pedido','Retornar','Reclamação','Desinteresse','Promoção','Sem crédito'];
 const OLEOS_RAIO_DUP_M = 100;   // aviso de comércio já cadastrado por perto
@@ -8838,6 +8916,407 @@ async function vapOleosAbrir(){
   _oGps(8000).then(g => { if(g){ _oleos.gps = g; _oCheckDup(); } });
 }
 window.vapOleosAbrir = vapOleosAbrir;
+
+// ══════════════════════════════════════════════════════════
+//  PEDIDO DE VENDAS (Óleos / Royal)
+//  Vendedor de Óleos monta o pedido (cliente da Carteira + itens da tabela de atacado)
+//  e envia à Gerência (Master), que digita o pedido definitivo no ERP e marca como lançado.
+//  Coleções: oleos_tabela/{companyId} (tabela de preços), oleos_pedidos, oleos_contadores
+// ══════════════════════════════════════════════════════════
+const _pd = { un:null, pedidos:[], tabela:null, tabelaCarregada:false, qtd:{}, busy:false, importPend:null, detId:null, fStatus:'', fVend:'' };
+const _pdBRL = n => (Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const _pdEsc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const _pdNorm = s => String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const _pdSouMaster   = () => cp?.role==='master' && !!window._vapModuloOleos;
+const _pdSouVendedor = () => !!window._vapIsOleos;
+const _pdStatusInfo = {
+  enviado:   { txt:'Aguardando lançamento', cls:'bg-amber' },
+  lancado:   { txt:'Lançado no ERP',        cls:'bg-green' },
+  cancelado: { txt:'Cancelado',             cls:'bg-gray'  }
+};
+
+// Embalagem: "12X1" = caixa com 12 unidades de 1 (o preço da tabela é por unidade); "1X20" = balde; "1X200" = tambor
+function _pdMult(emb){ const m=String(emb||'').match(/^\s*(\d+)\s*[xX]/); return m ? parseInt(m[1],10) : 1; }
+function _pdVol(emb){ const m=String(emb||'').match(/[xX]\s*(\d+)\s*$/); return m ? parseInt(m[1],10) : 0; }
+function _pdPrecoEmb(it){ return Math.round((Number(it.preco)||0) * _pdMult(it.emb) * 100) / 100; }
+function _pdTipoEmb(emb){
+  const n=_pdMult(emb), v=_pdVol(emb);
+  if(n>1) return 'caixa '+n+'×'+v;
+  return (v>=100 ? 'tambor ' : 'balde ')+v;
+}
+function _pdNum(s){
+  s = String(s==null?'':s).trim().replace(/[^\d.,]/g,'');
+  if(!s) return NaN;
+  if(s.indexOf(',')>=0) s = s.replace(/\./g,'').replace(',','.');
+  return parseFloat(s);
+}
+function _pdData(iso){ try{ return fD(String(iso).slice(0,10)); }catch(e){ return ''; } }
+
+// ── Listener dos pedidos (vendedor: só os dele; Master: todos da empresa) ──
+function vapPedidosIniciar(){
+  const CID = _vapGetCompanyId(); if(!CID || !cu) return;
+  if(_pd.un){ _pd.un(); _pd.un = null; }
+  const q = _pdSouMaster()
+    ? query(collection(db,'oleos_pedidos'), where('companyId','==',CID))
+    : query(collection(db,'oleos_pedidos'), where('companyId','==',CID), where('uid','==',cu.uid));
+  _pd.un = onSnapshot(q, snap => {
+    _pd.pedidos = snap.docs.map(d=>({id:d.id, ...d.data()}))
+      .sort((a,b)=>String(b.criadoEm||'').localeCompare(String(a.criadoEm||'')));
+    _pdBadge();
+    if($('panel-pedidos')?.classList.contains('active')) _pdRender();
+  }, err => console.error('[Pedidos] listener:', err));
+}
+window.vapPedidosIniciar = vapPedidosIniciar;
+window._pdReset = () => {
+  if(_pd.un){ _pd.un(); _pd.un = null; }
+  _pd.pedidos = []; _pd.tabela = null; _pd.tabelaCarregada = false; _pd.qtd = {};
+  _pdBadge();
+};
+function _pdBadge(){
+  const t = $('tab-pedidos'); if(!t) return;
+  const n = _pdSouMaster() ? _pd.pedidos.filter(p=>p.status==='enviado').length : 0;
+  t.textContent = 'Pedidos' + (n ? ' ('+n+')' : '');
+}
+
+async function _pdCarregarTabela(forcar){
+  if(_pd.tabelaCarregada && !forcar) return _pd.tabela;
+  const CID = _vapGetCompanyId();
+  try{
+    const s = await getDoc(doc(db,'oleos_tabela',CID));
+    _pd.tabela = s.exists() ? s.data() : null;
+    _pd.tabelaCarregada = true;
+  }catch(e){
+    console.error('[Pedidos] tabela:', e);
+    _pd.tabela = null;
+    toast('Não foi possível carregar a tabela de preços.');
+  }
+  return _pd.tabela;
+}
+
+async function vapPedidosAbrir(){
+  const el = $('pedidos-conteudo'); if(!el) return;
+  if(!_pd.un) vapPedidosIniciar();
+  await _pdCarregarTabela(false);
+  _pdRender();
+}
+window.vapPedidosAbrir = vapPedidosAbrir;
+
+// ── Tela da aba Pedidos ──
+function _pdRender(){
+  const el = $('pedidos-conteudo'); if(!el) return;
+  const master = _pdSouMaster();
+  const t = _pd.tabela;
+  let h = '';
+  if(master){
+    const sub = t
+      ? _pdEsc(t.referencia||'Sem referência')+' — '+(t.itens||[]).length+' itens'+(t.atualizadoEm?' · atualizada em '+_pdData(t.atualizadoEm):'')
+      : 'Nenhuma tabela cadastrada ainda. Importe a tabela de atacado para o vendedor poder montar pedidos.';
+    h += '<div class="fcard" style="padding:1rem 1.25rem;margin-bottom:.75rem"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'
+      + '<div><div class="fcard-title" style="margin:0"><span class="bar" style="background:#D97706"></span>Tabela de preços</div>'
+      + '<div style="font-size:.8rem;color:var(--gray);margin-top:4px">'+sub+'</div></div>'
+      + '<button class="btn-sec" id="pd-btn-tabela">'+(t?'Atualizar tabela':'Importar tabela')+'</button></div></div>';
+  }
+  const vends = {};
+  _pd.pedidos.forEach(p=>{ vends[p.uid] = p.vendedorNome||'—'; });
+  let lista = _pd.pedidos.filter(p => (!_pd.fStatus || p.status===_pd.fStatus) && (!_pd.fVend || p.uid===_pd.fVend));
+  h += '<div class="fcard" style="padding:1rem 1.25rem"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:.75rem">'
+    + '<div class="fcard-title" style="margin:0"><span class="bar" style="background:#D97706"></span>'+(master?'Pedidos de vendas':'Meus pedidos')+'</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+    + '<select id="pd-f-status"><option value="">Todos os status</option>'
+    + ['enviado','lancado','cancelado'].map(s=>'<option value="'+s+'"'+(_pd.fStatus===s?' selected':'')+'>'+_pdStatusInfo[s].txt+'</option>').join('')+'</select>'
+    + (master ? '<select id="pd-f-vend"><option value="">Todos os vendedores</option>'
+        + Object.keys(vends).map(u=>'<option value="'+_pdEsc(u)+'"'+(_pd.fVend===u?' selected':'')+'>'+_pdEsc(vends[u])+'</option>').join('')+'</select>' : '')
+    + (_pdSouVendedor() ? '<button class="btn-save" id="pd-btn-novo">+ Novo pedido</button>' : '')
+    + '</div></div>';
+  if(!lista.length){
+    h += '<div class="empty">'+(_pd.pedidos.length ? 'Nenhum pedido neste filtro.' : (_pdSouVendedor() ? 'Você ainda não enviou pedidos. Toque em “+ Novo pedido” ou no 🛒 do cliente na Carteira.' : 'Nenhum pedido recebido ainda.'))+'</div>';
+  } else {
+    h += '<div style="overflow-x:auto"><table class="adm-table"><thead><tr><th>Nº</th><th>Data</th><th>Cliente</th>'
+      + (master?'<th>Vendedor</th>':'') + '<th style="text-align:right">Total</th><th>Status</th><th></th></tr></thead><tbody>'
+      + lista.map(p=>{
+          const si = _pdStatusInfo[p.status] || _pdStatusInfo.enviado;
+          return '<tr><td><b>'+_pdEsc(p.numero)+'</b></td><td>'+_pdData(p.data||p.criadoEm)+'</td>'
+            + '<td>'+_pdEsc(p.cliente?.nome||'')+'</td>'
+            + (master?'<td style="font-size:.78rem">'+_pdEsc(p.vendedorNome||'')+'</td>':'')
+            + '<td style="text-align:right;white-space:nowrap">'+_pdBRL(p.total)+'</td>'
+            + '<td><span class="badge '+si.cls+'">'+si.txt+'</span>'+(p.erpNumero?'<br><span style="font-size:.7rem;color:var(--gray)">ERP '+_pdEsc(p.erpNumero)+'</span>':'')+'</td>'
+            + '<td><button class="btn-xs pd-ver" data-id="'+_pdEsc(p.id)+'">Ver</button></td></tr>';
+        }).join('') + '</tbody></table></div>';
+  }
+  h += '</div>';
+  el.innerHTML = h;
+  if($('pd-btn-tabela')) $('pd-btn-tabela').onclick = vapTabelaAbrir;
+  if($('pd-btn-novo'))   $('pd-btn-novo').onclick   = () => vapPedidoNovo('');
+  if($('pd-f-status'))   $('pd-f-status').onchange  = e => { _pd.fStatus = e.target.value; _pdRender(); };
+  if($('pd-f-vend'))     $('pd-f-vend').onchange    = e => { _pd.fVend = e.target.value; _pdRender(); };
+  el.querySelectorAll('.pd-ver').forEach(b => b.onclick = () => vapPedidoVer(b.dataset.id));
+}
+
+// ── Novo pedido (vendedor) ──
+function _pdLinhas(){
+  const t = _pd.tabela; if(!t) return [];
+  return (t.itens||[]).filter(it => _pd.qtd[it.cod] > 0).map(it => {
+    const qtd = _pd.qtd[it.cod], pu = _pdPrecoEmb(it);
+    return { cod:it.cod, nome:it.nome, gama:it.gama, emb:it.emb, qtd, precoUnit:pu, total:Math.round(pu*qtd*100)/100 };
+  });
+}
+function _pdTotal(l){ return Math.round(l.reduce((s,x)=>s+x.total,0)*100)/100; }
+function _pdResumo(){
+  const l = _pdLinhas();
+  $('pd-resumo').textContent = l.length ? (l.length+' item(ns) — Total '+_pdBRL(_pdTotal(l))) : 'Nenhum item selecionado';
+}
+function _pdCliInfo(){
+  const c = (typeof _cartClientes!=='undefined' ? _cartClientes : []).find(x=>x.id===$('pd-cliente').value);
+  $('pd-cli-info').textContent = c ? [c.responsavel, c.telefone, c.segmento, [c.cidade,c.bairro].filter(Boolean).join(' / ')].filter(Boolean).join(' · ') : '';
+}
+function _pdRenderItens(){
+  const wrap = $('pd-itens'); if(!wrap) return;
+  const t = _pd.tabela;
+  if(!t || !(t.itens||[]).length){ wrap.innerHTML = '<div class="empty">Tabela de preços ainda não cadastrada.</div>'; return; }
+  const b = _pdNorm($('pd-busca').value), g = $('pd-gama').value;
+  const lista = t.itens.filter(it => (!g || it.gama===g) && (!b || _pdNorm(it.nome+' '+it.cod).indexOf(b)>=0));
+  if(!lista.length){ wrap.innerHTML = '<div class="empty">Nenhum produto encontrado.</div>'; return; }
+  wrap.innerHTML = '<table class="adm-table" style="width:100%"><thead><tr><th>Produto</th><th>Embalagem</th><th style="text-align:right">Preço</th><th style="width:84px">Qtd</th></tr></thead><tbody>'
+    + lista.map(it=>{
+        const q = _pd.qtd[it.cod] || '';
+        return '<tr><td><b style="font-size:.8rem">'+_pdEsc(it.nome)+'</b><br><span style="font-size:.68rem;color:var(--gray)">'+_pdEsc(it.cod)+' · '+_pdEsc(it.gama)+'</span></td>'
+          + '<td style="font-size:.75rem">'+_pdEsc(_pdTipoEmb(it.emb))+'</td>'
+          + '<td style="text-align:right;font-size:.8rem;white-space:nowrap">'+_pdBRL(_pdPrecoEmb(it))+'</td>'
+          + '<td><input type="number" min="0" step="1" inputmode="numeric" data-cod="'+_pdEsc(it.cod)+'" value="'+q+'" style="width:72px"/></td></tr>';
+      }).join('') + '</tbody></table>';
+  wrap.querySelectorAll('input[data-cod]').forEach(i => i.oninput = () => {
+    const v = parseInt(i.value,10);
+    if(v>0) _pd.qtd[i.dataset.cod] = v; else delete _pd.qtd[i.dataset.cod];
+    _pdResumo();
+  });
+}
+async function vapPedidoNovo(clienteId){
+  if(!_pdSouVendedor()){ toast('O pedido é feito pelo Vendedor de Óleos.'); return; }
+  const t = await _pdCarregarTabela(true);
+  if(!t || !(t.itens||[]).length){ toast('A Gerência ainda não cadastrou a tabela de preços.'); return; }
+  _pd.qtd = {};
+  const cli = (typeof _cartClientes!=='undefined' ? _cartClientes : []).slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  $('pd-cliente').innerHTML = '<option value="">Selecione o cliente…</option>'
+    + cli.map(c=>'<option value="'+_pdEsc(c.id)+'">'+_pdEsc(c.nome||'')+(c.cidade?' — '+_pdEsc(c.cidade):'')+'</option>').join('');
+  $('pd-cliente').value = clienteId || '';
+  const gamas = Array.from(new Set(t.itens.map(i=>i.gama))).sort();
+  $('pd-gama').innerHTML = '<option value="">Todas</option>' + gamas.map(g=>'<option value="'+_pdEsc(g)+'">'+_pdEsc(g)+'</option>').join('');
+  $('pd-busca').value = ''; $('pd-obs').value = '';
+  _pdCliInfo(); _pdRenderItens(); _pdResumo();
+  $('modal-pedido').classList.add('open');
+}
+window.vapPedidoNovo = vapPedidoNovo;
+
+// Número do pedido: AAMMDD + sequência do dia (2 dígitos), gerado por transação para não repetir
+async function _pdNumero(CID){
+  const d = tod().replace(/-/g,'').slice(2);
+  const ref = doc(db,'oleos_contadores', CID+'_'+d);
+  const seq = await runTransaction(db, async tx => {
+    const s = await tx.get(ref);
+    const n = (s.exists() ? (s.data().seq||0) : 0) + 1;
+    tx.set(ref, { companyId:CID, dia:d, seq:n });
+    return n;
+  });
+  return d + String(seq).padStart(2,'0');
+}
+async function _pdEnviar(){
+  if(_pd.busy) return;
+  const c = (typeof _cartClientes!=='undefined' ? _cartClientes : []).find(x=>x.id===$('pd-cliente').value);
+  if(!c){ toast('Selecione o cliente.'); return; }
+  const linhas = _pdLinhas();
+  if(!linhas.length){ toast('Inclua ao menos um item.'); return; }
+  const CID = _vapGetCompanyId();
+  _pd.busy = true;
+  const btn = $('pd-enviar'); btn.disabled = true; btn.textContent = 'Enviando…';
+  try{
+    const numero = await _pdNumero(CID);
+    await addDoc(collection(db,'oleos_pedidos'), {
+      companyId:CID, uid:cu.uid, vendedorNome:cp?.name||'', numero, status:'enviado',
+      clienteId:c.id,
+      cliente:{ nome:c.nome||'', responsavel:c.responsavel||'', telefone:c.telefone||'', email:c.email||'', segmento:c.segmento||'', cidade:c.cidade||'', bairro:c.bairro||'' },
+      itens:linhas, total:_pdTotal(linhas), condicao:$('pd-obs').value.trim().slice(0,400),
+      tabelaRef:_pd.tabela?.referencia||'', data:tod(), criadoEm:new Date().toISOString()
+    });
+    $('modal-pedido').classList.remove('open');
+    _pd.qtd = {};
+    toast('Pedido '+numero+' enviado à Gerência.', 4000);
+    if(typeof switchTab==='function') switchTab('pedidos');
+  }catch(e){
+    console.error('[Pedidos] enviar:', e);
+    toast('Erro ao enviar o pedido: '+(e.code||e.message));
+  }finally{
+    _pd.busy = false; btn.disabled = false; btn.textContent = 'Enviar à Gerência';
+  }
+}
+
+// ── Detalhe do pedido, impressão, cópia e CSV ──
+function _pdTextoCopia(p){
+  const c = p.cliente||{};
+  const l = ['PEDIDO '+p.numero+' — '+_pdData(p.data||p.criadoEm), 'Vendedor: '+(p.vendedorNome||''),
+    'Cliente: '+(c.nome||'')+(c.responsavel?' ('+c.responsavel+')':''),
+    'Telefone: '+(c.telefone||'—')+(c.email?' | E-mail: '+c.email:''),
+    'Segmento: '+(c.segmento||'—')+' | '+[c.cidade,c.bairro].filter(Boolean).join(' / '), '', 'ITENS'];
+  (p.itens||[]).forEach(i=>l.push(i.cod+' | '+i.nome+' | '+_pdTipoEmb(i.emb)+' | qtd '+i.qtd+' | '+_pdBRL(i.precoUnit)+' | '+_pdBRL(i.total)));
+  l.push('', 'TOTAL: '+_pdBRL(p.total));
+  if(p.condicao) l.push('Condição de pagamento / obs.: '+p.condicao);
+  return l.join('\n');
+}
+function _pdCopiar(p){
+  const txt = _pdTextoCopia(p);
+  const ok = () => toast('Pedido copiado.');
+  if(navigator.clipboard?.writeText){ navigator.clipboard.writeText(txt).then(ok, ()=>toast('Não foi possível copiar.')); return; }
+  const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); ok(); }catch(e){ toast('Não foi possível copiar.'); }
+  ta.remove();
+}
+function _pdCsv(p){
+  const c = p.cliente||{};
+  const q = v => '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const n2 = v => (Number(v)||0).toFixed(2).replace('.',',');
+  const linhas = [['Pedido','Data','Vendedor','Cliente','Telefone','Código','Produto','Gama','Embalagem','Qtd','Preço emb.','Total linha'].map(q).join(';')];
+  (p.itens||[]).forEach(i=>linhas.push([p.numero,_pdData(p.data||p.criadoEm),p.vendedorNome,c.nome,c.telefone,i.cod,i.nome,i.gama,i.emb,i.qtd,n2(i.precoUnit),n2(i.total)].map(q).join(';')));
+  linhas.push(['','','','','','','','','','','Total',n2(p.total)].map(q).join(';'));
+  const blob = new Blob(['\ufeff'+linhas.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'pedido_'+p.numero+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+function _pdImprimir(p){
+  const c = p.cliente||{};
+  const emp = _pdEsc(_company?.fantasyName || _company?.name || '');
+  const html = '<!doctype html><html><head><meta charset="utf-8"><title>Pedido '+_pdEsc(p.numero)+'</title><style>'
+    + 'body{font-family:Arial,sans-serif;font-size:12px;color:#111;margin:24px}h1{font-size:18px;margin:0 0 4px}'
+    + '.sub{color:#555;margin-bottom:14px}.box{border:1px solid #bbb;border-radius:6px;padding:8px 10px;margin-bottom:12px;line-height:1.55}'
+    + 'table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;padding:5px 6px;text-align:left}th{background:#f1f1f1}'
+    + '.r{text-align:right}.tot{font-size:14px;font-weight:bold;text-align:right;margin-top:10px}</style></head><body>'
+    + '<h1>Pedido de vendas '+_pdEsc(p.numero)+'</h1><div class="sub">'+emp+' · '+_pdData(p.data||p.criadoEm)+' · Vendedor: '+_pdEsc(p.vendedorNome||'')+'</div>'
+    + '<div class="box"><b>'+_pdEsc(c.nome||'')+'</b>'+(c.responsavel?' — '+_pdEsc(c.responsavel):'')+'<br>Telefone: '+_pdEsc(c.telefone||'—')
+    + (c.email?' · E-mail: '+_pdEsc(c.email):'')+'<br>Segmento: '+_pdEsc(c.segmento||'—')+' · '+_pdEsc([c.cidade,c.bairro].filter(Boolean).join(' / '))+'</div>'
+    + '<table><thead><tr><th>Código</th><th>Produto</th><th>Embalagem</th><th class="r">Qtd</th><th class="r">Preço</th><th class="r">Total</th></tr></thead><tbody>'
+    + (p.itens||[]).map(i=>'<tr><td>'+_pdEsc(i.cod)+'</td><td>'+_pdEsc(i.nome)+'</td><td>'+_pdEsc(_pdTipoEmb(i.emb))+'</td><td class="r">'+i.qtd+'</td><td class="r">'+_pdBRL(i.precoUnit)+'</td><td class="r">'+_pdBRL(i.total)+'</td></tr>').join('')
+    + '</tbody></table><div class="tot">Total: '+_pdBRL(p.total)+'</div>'
+    + (p.condicao?'<div class="box" style="margin-top:12px"><b>Condição de pagamento / observações:</b><br>'+_pdEsc(p.condicao)+'</div>':'')
+    + (p.tabelaRef?'<div class="sub" style="margin-top:10px">Tabela: '+_pdEsc(p.tabelaRef)+'</div>':'')
+    + '</body></html>';
+  const w = window.open('','_blank');
+  if(!w){ toast('Permita pop-ups para imprimir.'); return; }
+  w.document.open(); w.document.write(html); w.document.close(); w.focus();
+  setTimeout(()=>{ try{ w.print(); }catch(e){} }, 300);
+}
+function vapPedidoVer(id){
+  const p = _pd.pedidos.find(x=>x.id===id); if(!p) return;
+  _pd.detId = id;
+  const c = p.cliente||{}, si = _pdStatusInfo[p.status] || _pdStatusInfo.enviado, master = _pdSouMaster();
+  $('pdd-title').textContent = 'Pedido '+p.numero;
+  $('pdd-body').innerHTML =
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.5rem"><span class="badge '+si.cls+'">'+si.txt+'</span>'
+    + (p.erpNumero?'<span style="font-size:.8rem">Nº no ERP: <b>'+_pdEsc(p.erpNumero)+'</b></span>':'')
+    + '<span style="font-size:.78rem;color:var(--gray)">'+_pdData(p.data||p.criadoEm)+' · Vendedor: '+_pdEsc(p.vendedorNome||'')+'</span></div>'
+    + '<div style="border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:.82rem;line-height:1.6;margin-bottom:.6rem"><b>'+_pdEsc(c.nome||'')+'</b>'
+    + (c.responsavel?' — '+_pdEsc(c.responsavel):'')+'<br>Telefone: '+_pdEsc(c.telefone||'—')+(c.email?' · '+_pdEsc(c.email):'')
+    + '<br>'+_pdEsc(c.segmento||'—')+' · '+_pdEsc([c.cidade,c.bairro].filter(Boolean).join(' / '))+'</div>'
+    + '<div style="overflow-x:auto"><table class="adm-table"><thead><tr><th>Código</th><th>Produto</th><th>Emb.</th><th style="text-align:right">Qtd</th><th style="text-align:right">Preço</th><th style="text-align:right">Total</th></tr></thead><tbody>'
+    + (p.itens||[]).map(i=>'<tr><td style="font-size:.72rem;white-space:nowrap">'+_pdEsc(i.cod)+'</td><td style="font-size:.8rem">'+_pdEsc(i.nome)+'</td><td style="font-size:.75rem">'+_pdEsc(_pdTipoEmb(i.emb))+'</td><td style="text-align:right">'+i.qtd+'</td><td style="text-align:right;white-space:nowrap">'+_pdBRL(i.precoUnit)+'</td><td style="text-align:right;white-space:nowrap">'+_pdBRL(i.total)+'</td></tr>').join('')
+    + '</tbody></table></div><div style="text-align:right;font-weight:700;margin:.5rem 0">Total: '+_pdBRL(p.total)+'</div>'
+    + (p.condicao?'<div style="font-size:.82rem"><b>Condição de pagamento / obs.:</b> '+_pdEsc(p.condicao)+'</div>':'');
+  let f = '<button class="btn-sec" id="pdd-print">🖨️ Imprimir</button>';
+  if(master) f += '<button class="btn-sec" id="pdd-copy">📋 Copiar</button><button class="btn-sec" id="pdd-csv">⬇ CSV</button>';
+  if(master && p.status==='enviado') f += '<input type="text" id="pdd-erp" placeholder="Nº do pedido no ERP" style="width:170px"/><button class="btn-save" id="pdd-lancar">✔ Lançado no ERP</button>';
+  if(p.status==='enviado') f += '<button class="btn-danger" id="pdd-cancel">Cancelar pedido</button>';
+  $('pdd-footer').innerHTML = f;
+  $('pdd-print').onclick = () => _pdImprimir(p);
+  if($('pdd-copy')) $('pdd-copy').onclick = () => _pdCopiar(p);
+  if($('pdd-csv'))  $('pdd-csv').onclick  = () => _pdCsv(p);
+  if($('pdd-lancar')) $('pdd-lancar').onclick = async () => {
+    try{
+      await updateDoc(doc(db,'oleos_pedidos',p.id), { status:'lancado', erpNumero:($('pdd-erp').value||'').trim().slice(0,40), lancadoEm:new Date().toISOString(), lancadoPor:cp?.name||'' });
+      $('modal-pedido-det').classList.remove('open');
+      toast('Pedido '+p.numero+' marcado como lançado no ERP.');
+    }catch(e){ console.error(e); toast('Erro ao atualizar: '+(e.code||e.message)); }
+  };
+  if($('pdd-cancel')) $('pdd-cancel').onclick = () => {
+    confirm2('Cancelar o pedido '+p.numero+'?', async () => {
+      try{
+        await updateDoc(doc(db,'oleos_pedidos',p.id), { status:'cancelado', canceladoEm:new Date().toISOString(), canceladoPor:cp?.name||'' });
+        $('modal-pedido-det').classList.remove('open');
+        toast('Pedido cancelado.');
+      }catch(e){ console.error(e); toast('Erro ao cancelar: '+(e.code||e.message)); }
+    });
+  };
+  $('modal-pedido-det').classList.add('open');
+}
+window.vapPedidoVer = vapPedidoVer;
+
+// ── Tabela de preços: importar (Master) ──
+// Aceita linhas coladas do Excel (separadas por tabulação), "a;b;c" ou do PDF (colunas separadas por 2+ espaços):
+// COD | PRODUTO | GAMA | EMB | PREÇO. Código repetido: vale a primeira linha, as seguintes são ignoradas.
+function _pdParseTabela(txt){
+  const itens = [], dups = [], invalidas = [], vistos = {};
+  String(txt||'').split(/\r?\n/).forEach(raw => {
+    const ln = raw.replace(/\f/g,'').trim(); if(!ln) return;
+    if(/^COD\b/i.test(ln) || /TABELA\s+ROYAL/i.test(ln) || /^ATACADO\s*$/i.test(ln)) return;
+    let p = ln.indexOf('\t')>=0 ? ln.split('\t') : (ln.indexOf(';')>=0 ? ln.split(';') : ln.split(/\s{2,}/));
+    p = p.map(x=>x.trim()).filter(x=>x!=='' && x!=='R$');
+    if(p.length<5){ invalidas.push(ln); return; }
+    const preco = _pdNum(p[p.length-1].replace(/^R\$\s*/,''));
+    const emb   = p[p.length-2].toUpperCase().replace(/\s/g,'');
+    const gama  = p[p.length-3].toUpperCase();
+    const cod   = p[0].replace(/\s+/g,' ').trim();
+    const nome  = p.slice(1,p.length-3).join(' ').trim();
+    if(!/^\d+X\d+$/.test(emb) || !(preco>0) || !nome || !cod){ invalidas.push(ln); return; }
+    const chave = cod.replace(/\s/g,'');
+    if(vistos[chave]){ dups.push(cod+' — '+nome); return; }
+    vistos[chave] = true;
+    itens.push({ cod, nome, gama, emb, preco });
+  });
+  return { itens, dups, invalidas };
+}
+function vapTabelaAbrir(){
+  _pd.importPend = null;
+  $('tb-ref').value = _pd.tabela?.referencia || '';
+  $('tb-texto').value = '';
+  $('tb-aviso').innerHTML = '';
+  $('tb-salvar').style.display = 'none';
+  $('modal-tabela').classList.add('open');
+}
+function _pdConferirTabela(){
+  const r = _pdParseTabela($('tb-texto').value);
+  _pd.importPend = r;
+  let h = '<b>'+r.itens.length+' produto(s) reconhecido(s).</b>';
+  if(r.dups.length) h += '<br><span style="color:#B45309">'+r.dups.length+' linha(s) ignorada(s) por código repetido (vale a primeira):</span><br><span style="font-size:.72rem">'+r.dups.map(_pdEsc).join('<br>')+'</span>';
+  if(r.invalidas.length) h += '<br><span style="color:#B91C1C">'+r.invalidas.length+' linha(s) não reconhecida(s):</span><br><span style="font-size:.72rem">'+r.invalidas.slice(0,8).map(_pdEsc).join('<br>')+(r.invalidas.length>8?'<br>…':'')+'</span>';
+  $('tb-aviso').innerHTML = h;
+  $('tb-salvar').style.display = r.itens.length ? '' : 'none';
+}
+async function _pdSalvarTabela(){
+  const r = _pd.importPend; if(!r || !r.itens.length) return;
+  const CID = _vapGetCompanyId();
+  const btn = $('tb-salvar'); btn.disabled = true; btn.textContent = 'Salvando…';
+  try{
+    await setDoc(doc(db,'oleos_tabela',CID), { companyId:CID, referencia:($('tb-ref').value||'').trim().slice(0,80), itens:r.itens, atualizadoEm:new Date().toISOString(), atualizadoPor:cp?.name||'' });
+    await _pdCarregarTabela(true);
+    $('modal-tabela').classList.remove('open');
+    toast('Tabela salva: '+r.itens.length+' produtos.');
+    _pdRender();
+  }catch(e){ console.error(e); toast('Erro ao salvar a tabela: '+(e.code||e.message)); }
+  finally{ btn.disabled = false; btn.textContent = 'Salvar tabela'; }
+}
+
+// Ligações dos elementos estáticos (modais)
+(function _pdLigar(){
+  const on = (id, fn) => { const el = $(id); if(el) el.onclick = fn; };
+  on('pd-close', ()=>$('modal-pedido').classList.remove('open'));
+  on('pd-cancel', ()=>$('modal-pedido').classList.remove('open'));
+  on('pd-enviar', _pdEnviar);
+  on('pdd-close', ()=>$('modal-pedido-det').classList.remove('open'));
+  on('tb-close', ()=>$('modal-tabela').classList.remove('open'));
+  on('tb-cancel', ()=>$('modal-tabela').classList.remove('open'));
+  on('tb-ver', _pdConferirTabela);
+  on('tb-salvar', _pdSalvarTabela);
+  if($('pd-cliente')) $('pd-cliente').onchange = _pdCliInfo;
+  if($('pd-busca'))   $('pd-busca').oninput    = _pdRenderItens;
+  if($('pd-gama'))    $('pd-gama').onchange    = _pdRenderItens;
+})();
 
 // Menu/telas conforme o perfil (chamado no login para TODOS os perfis, para reverter se outro usuário entrar)
 function vapAplicarPerfilSdrUI(isSdr){
@@ -10199,8 +10678,8 @@ function renderCarteiraLista(){
         <td style="width:200px"><div class="act">
           <button class="btn-xs bx-wpp" data-id="${c.id}" style="border-color:var(--gl);color:var(--g);display:inline-flex;align-items:center;justify-content:center" title="WhatsApp"><svg viewBox="0 0 32 32" width="13" height="13" fill="currentColor" style="display:block"><path d="M16.001 3C9.373 3 4 8.373 4 15c0 2.386.703 4.605 1.918 6.475L4 29l7.72-1.884A11.94 11.94 0 0 0 16 27c6.627 0 12-5.373 12-12S22.628 3 16.001 3zm0 21.818a9.77 9.77 0 0 1-4.99-1.37l-.358-.213-4.583 1.119 1.197-4.463-.233-.371A9.8 9.8 0 0 1 5.18 15c0-5.964 4.855-10.818 10.82-10.818S26.82 9.036 26.82 15 21.966 24.818 16.001 24.818zm5.36-7.354c-.294-.147-1.74-.859-2.01-.957-.27-.098-.467-.147-.664.147-.196.294-.76.957-.932 1.152-.171.196-.343.22-.637.073-.294-.147-1.24-.457-2.362-1.457-.873-.779-1.463-1.741-1.635-2.035-.171-.294-.018-.453.129-.6.132-.132.294-.343.441-.514.147-.171.196-.294.294-.49.098-.196.049-.367-.024-.514-.073-.147-.664-1.6-.91-2.192-.24-.577-.484-.499-.664-.508l-.566-.01c-.196 0-.514.073-.784.367-.27.294-1.03 1.007-1.03 2.454 0 1.447 1.054 2.847 1.201 3.043.147.196 2.075 3.167 5.03 4.44.703.303 1.251.484 1.678.62.705.224 1.347.192 1.854.117.566-.084 1.74-.712 1.986-1.4.245-.688.245-1.278.171-1.4-.073-.122-.27-.196-.564-.343z"/></svg></button>
           ${c.email?`<button class="btn-xs bx-mail" data-id="${c.id}" style="border-color:#BFD4F7;color:#1D4ED8" title="Enviar e-mail">✉️</button>`:''}
-          <button class="btn-xs bx-hist" data-id="${c.id}" style="border-color:#BFE8CC;color:#1B7A3D" title="Ver histórico de relacionamento">🕘</button>
-          <button class="btn-xs bx-lancar" data-id="${c.id}" style="border-color:#BFE8CC;color:#1B7A3D" title="Novo lançamento no histórico">📝</button>
+          ${window._vapIsOleos?`<button class="btn-xs bx-pedido" data-id="${c.id}" style="border-color:#F3D9A4;color:#B45309" title="Fazer pedido de vendas">🛒</button>`:`<button class="btn-xs bx-hist" data-id="${c.id}" style="border-color:#BFE8CC;color:#1B7A3D" title="Ver histórico de relacionamento">🕘</button>
+          <button class="btn-xs bx-lancar" data-id="${c.id}" style="border-color:#BFE8CC;color:#1B7A3D" title="Novo lançamento no histórico">📝</button>`}
           <button class="btn-xs bx-edit" data-id="${c.id}" style="border-color:var(--border);color:var(--gray)" title="Editar cliente">✏️</button>
           <button class="btn-xs bx-del" data-id="${c.id}" style="border-color:var(--rl);color:var(--r)" title="Excluir cliente">🗑️</button>
         </div></td>
@@ -10220,6 +10699,7 @@ function renderCarteiraLista(){
   wrap.querySelectorAll('.bx-lancar').forEach(b=>b.onclick=()=>{
     const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapProspNovoParaCliente(c);
   });
+  wrap.querySelectorAll('.bx-pedido').forEach(b=>b.onclick=()=>{ if(typeof window.vapPedidoNovo==='function') window.vapPedidoNovo(b.dataset.id); });
   wrap.querySelectorAll('.bx-edit').forEach(b=>b.onclick=()=>abrirModalCarteiraCliente(b.dataset.id));
   wrap.querySelectorAll('.bx-del').forEach(b=>b.onclick=()=>excluirCarteiraCliente(b.dataset.id));
 }
