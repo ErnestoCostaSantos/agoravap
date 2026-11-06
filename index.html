@@ -8438,7 +8438,8 @@ function _oGps(timeout){
   return new Promise(res=>{
     if(!navigator.geolocation) return res(null);
     navigator.geolocation.getCurrentPosition(
-      p => res({ lat:p.coords.latitude, lng:p.coords.longitude, acc:Math.round(p.coords.accuracy) }),
+      p => { if(typeof _oleos!=='undefined' && _oleos.gpsNegado){ _oleos.gpsNegado = false; const a = document.getElementById('ol-gps-aviso'); if(a) a.remove(); }   // a localização voltou a funcionar: tira o aviso
+        res({ lat:p.coords.latitude, lng:p.coords.longitude, acc:Math.round(p.coords.accuracy) }); },
       err => { if(err && err.code===1 && typeof _oleos!=='undefined'){ _oleos.gpsNegado = true; if(typeof _oAvisoGps==='function') _oAvisoGps(); } res(null); },
       { enableHighAccuracy:true, timeout: timeout||10000, maximumAge:30000 }
     );
@@ -8654,6 +8655,11 @@ function _oAvisoGps(){
   d.innerHTML = '<b>A localização está bloqueada neste aparelho.</b> As visitas serão salvas como “sem GPS” e não entram no mapa de cobertura. No iPhone: <b>Ajustes → Privacidade e Segurança → Serviços de Localização</b> (ligado) <b>→ Sites do Safari → “Ao Usar o App”</b>; depois, no Safari, toque em <b>aA → Ajustes do Site → Localização → Permitir</b>. Feche e abra o app de novo.';
   el.prepend(d);
 }
+// ao voltar para o app (por exemplo, depois de liberar a localização nos Ajustes), confere de novo e tira o aviso se já funciona
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState!=='visible' || !window._vapIsOleos || !_oleos.gpsNegado || !$('ol-salvar')) return;
+  if($('panel-oleos') && $('panel-oleos').classList.contains('active')) _oGps(8000);
+});
 
 
 // ── Painel do Master (parte 3 + Fase 2: mapa de cobertura) ─────────────────────────────
@@ -9114,7 +9120,7 @@ async function vapOleosAbrir(qual){
   }
   _oRenderVendedor();
   // se o aparelho já bloqueou a localização para este site, avisa na hora (o site não consegue pedir de novo)
-  try{ if(navigator.permissions && navigator.permissions.query) navigator.permissions.query({name:'geolocation'}).then(p=>{ if(p.state==='denied'){ _oleos.gpsNegado = true; _oAvisoGps(); } }).catch(()=>{}); }catch(e){}
+  try{ if(navigator.permissions && navigator.permissions.query) navigator.permissions.query({name:'geolocation'}).then(p=>{ if(p.state==='denied'){ _oleos.gpsNegado = true; _oAvisoGps(); } p.onchange = () => { if(p.state==='denied'){ _oleos.gpsNegado = true; _oAvisoGps(); } else { _oleos.gpsNegado = false; const a = $('ol-gps-aviso'); if(a) a.remove(); } }; }).catch(()=>{}); }catch(e){}
   // localização para o aviso de comércio por perto (pede permissão na primeira vez)
   _oGps(8000).then(g => { if(g){ _oleos.gps = g; _oCheckDup(); } });
 }
