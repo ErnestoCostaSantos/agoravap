@@ -1611,7 +1611,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Motivos de Perda</b> — Rosca com 12 fatias: 4 grupos de Cotações Perdidas (Carga, Passeio, Óleo, Variadas), cada um dividido em Preço/Estoque/Outras. As 4 famílias de cor batem com as do card de Lançar; a legenda mostra só os 4 grupos e pode ser clicada para esconder/mostrar um grupo inteiro</li>
             <li><b>Contatos por Origem</b> — Barras horizontais com 7 origens</li>
             <li><b>Vendas Perdidas</b> (Líder/Master/SuperAdmin) — Listagem do mês selecionado, respeitando também o Filtro por Vendedor, com as mesmas colunas do relatório (Data, Vendedor, Cliente, Produtos, Razão, Valor). Ordenável por Data, Vendedor ou Valor, com os totais "R$ perdidos no mês" e "Quantidade de perdas" no topo — puxa da mesma lista que cada vendedor já preenche em Lançar &gt; Relatório das 2 Principais Vendas Perdidas por Dia</li>
-            <li><b>Card "SDR — Prospecção por telefone"</b> (Líder/Master/SuperAdmin) — Aparece logo depois de "Motivos de Perda / Contatos por Origem", só em empresas que têm SDR cadastrada (ou que já tiveram: quem lançou como SDR e depois mudou de perfil continua aparecendo no seletor como "ex-SDR", só com os lançamentos que fez como SDR). Mostra, no mês selecionado: Internos de Prospecção (do Lançar), Leads novos, Transferidos (e % sobre os leads novos), Vendas (com clientes distintos e conversão acumulada) e Valor vendido informado pela SDR. Com mais de uma SDR, um seletor filtra por pessoa. Abaixo, o <b>alerta</b> lista os leads transferidos há 7 dias ou mais sem nenhum registro do vendedor no CRM. Os lançamentos da SDR <b>não entram</b> nos totais, no ranking nem no filtro de vendedores do Dashboard — têm card próprio.</li>
+            <li><b>Card "SDR — Prospecção por telefone"</b> (Líder/Master/SuperAdmin) — Aparece logo depois de "Motivos de Perda / Contatos por Origem", só em empresas que têm SDR cadastrada (ou que já tiveram: quem lançou como SDR e depois mudou de perfil continua aparecendo no seletor como "ex-SDR", só com os lançamentos que fez como SDR). Mostra, no mês selecionado, as mesmas regras do Painel da SDR: Empresas Prospectadas (com as Ligações feitas, do Lançar), Leads novos (empresas com Agendado, Aguardando ou Transferido), Transferidos (e % sobre os leads novos), Vendas (com clientes distintos e conversão acumulada) e Valor vendido informado pela SDR. Com mais de uma SDR, um seletor filtra por pessoa. Abaixo, o resumo <b>Status dos transferidos</b> (retorno do vendedor) e o <b>alerta</b>, que lista os leads transferidos há 7 dias ou mais sem nenhum registro do vendedor no CRM. Os lançamentos da SDR <b>não entram</b> nos totais, no ranking nem no filtro de vendedores do Dashboard — têm card próprio.</li>
             <li><b>Relatórios (impressão)</b> (Líder/Master/SuperAdmin) — Botão "Relatórios" abre um modal com duas opções: <i>Toda a equipe</i> (KPIs, Ranking do mês, os 3 gráficos, Ranking de Clientes e a lista de Vendas perdidas do mês ordenada do maior valor para o menor) ou <i>Vendedor específico</i> (mesmos KPIs e gráficos, só que daquele vendedor, mais "Vendas x meta" e a lista de vendas perdidas dele, também ordenada por valor). O relatório sempre segue o mês e o vendedor que estiverem selecionados no Dashboard no momento — se um vendedor estiver filtrado, o modal já abre em "Vendedor específico" com ele marcado. O botão "Gerar e imprimir" abre uma nova aba com o relatório pronto para impressão ou salvar como PDF.</li>
           </ul>
 
@@ -1836,7 +1836,110 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <h2>5.2 Perfil SDR — Prospecção por Telefone</h2>
           <p>A SDR faz o trabalho de <b>abrir portas</b>: parte de uma lista externa de nomes de empresas, liga, identifica quem tem potencial e <b>transfere o lead qualificado ao vendedor</b>. Dali em diante o lead é do vendedor, que registra tudo no CRM — e é isso que permite medir quantos leads viram venda.</p>
 
+          <h3>Entenda os números: empresas × ligações</h3>
+          <p>O Painel conta duas coisas diferentes. O <b>funil</b> conta <b>empresas</b>: cada empresa que você lança na Prospecção é uma <b>empresa prospectada</b> (pode ter até 3 contatos) e passa a ser um <b>lead novo</b> quando teve, em algum contato, o resultado <b>Agendado, Aguardando ou Transferido</b>. As <b>ligações</b> medem o seu esforço: você informa o total do dia no Lançar, e ele aparece no cartão Empresas Prospectadas como “Ligações feitas”.</p>
+          <div style="overflow-x:auto;margin:.5rem 0 1rem"><svg xmlns="http://www.w3.org/2000/svg" width="100%" style="display:block;max-width:900px;height:auto" viewBox="0 0 1000 905" role="img" aria-label="Diagrama: o funil da SDR conta empresas e as ligações medem o esforço">
+<title>Empresas × ligações: como o Painel da SDR conta o seu trabalho</title>
+<rect x="0" y="0" width="1000" height="905" rx="16" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+<text x="500" y="46" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="26" font-weight="700" fill="#111827" text-anchor="middle">O que o AgoraVAP! conta no seu Painel</text>
+<text x="500" y="74" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="400" fill="#4B5563" text-anchor="middle">Duas medidas diferentes: EMPRESAS (o funil) e LIGAÇÕES (o seu esforço)</text>
+<text x="30" y="116" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#111827" text-anchor="start">1) O funil conta EMPRESAS (exemplo de um período)</text>
+<polygon points="50.0,134 480.0,134 425.0,218 105.0,218" fill="#E53E3E"/>
+<text x="265" y="180.0" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="38" font-weight="700" fill="#FFFFFF" text-anchor="middle">10</text>
+<text x="265" y="202.0" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" font-weight="400" fill="#FFFFFF" text-anchor="middle">empresas</text>
+<line x1="460.5" y1="176.0" x2="500" y2="176.0" stroke="#9CA3AF" stroke-width="1.2" stroke-dasharray="3 4"/>
+<rect x="508" y="138" width="6" height="76" rx="3" fill="#E53E3E"/>
+<text x="526" y="158" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#111827" text-anchor="start">EMPRESAS PROSPECTADAS</text>
+<text x="526" y="178" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13.5" font-weight="400" fill="#374151" text-anchor="start">Empresas diferentes que você lançou na Prospecção</text>
+<text x="526" y="195" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13.5" font-weight="400" fill="#374151" text-anchor="start">(1º contato). Cada empresa pode ter até 3 contatos,</text>
+<text x="526" y="212" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13.5" font-weight="400" fill="#374151" text-anchor="start">ou seja, até 3 ligações registradas.</text>
+<text x="265" y="225" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="9" font-weight="400" fill="#9CA3AF" text-anchor="middle">▼</text>
+<polygon points="105.0,226 425.0,226 377.5,310 152.5,310" fill="#3B82F6"/>
+<text x="265" y="272.0" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="38" font-weight="700" fill="#FFFFFF" text-anchor="middle">7</text>
+<text x="265" y="294.0" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" font-weight="400" fill="#FFFFFF" text-anchor="middle">leads</text>
+<line x1="409.25" y1="268.0" x2="500" y2="268.0" stroke="#9CA3AF" stroke-width="1.2" stroke-dasharray="3 4"/>
+<rect x="508" y="230" width="6" height="76" rx="3" fill="#3B82F6"/>
+<text x="526" y="250" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#111827" text-anchor="start">LEADS NOVOS</text>
+<text x="526" y="270" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13.5" font-weight="400" fill="#374151" text-anchor="start">Empresas prospectadas que mostraram interesse:</text>
+<text x="526" y="287" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13.5" font-weight="400" fill="#374151" text-anchor="start">tiveram o resultado Agendado, Aguardando</text>
+<text x="526" y="304" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13.5" font-weight="400" fill="#374151" text-anchor="start">ou Transferido em algum contato.</text>
+<text x="265" y="317" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="9" font-weight="400" fill="#9CA3AF" text-anchor="middle">▼</text>
+<polygon points="152.5,318 377.5,318 327.5,402 202.5,402" fill="#38BDF8"/>
+<text x="265" y="364.0" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="38" font-weight="700" fill="#0C2D48" text-anchor="middle">5</text>
+<text x="265" y="386.0" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" font-weight="400" fill="#0C2D48" text-anchor="middle">transferidos</text>
+<line x1="360.5" y1="360.0" x2="500" y2="360.0" stroke="#9CA3AF" stroke-width="1.2" stroke-dasharray="3 4"/>
+<rect x="508" y="322" width="6" height="76" rx="3" fill="#38BDF8"/>
+<text x="526" y="342" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#111827" text-anchor="start">TRANSFERIDOS</text>
+<text x="526" y="362" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13.5" font-weight="400" fill="#374151" text-anchor="start">Leads entregues a um vendedor (Carteira e CRM dele).</text>
+<text x="526" y="379" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13.5" font-weight="400" fill="#374151" text-anchor="start">O Painel mostra o retorno do vendedor em</text>
+<text x="526" y="396" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13.5" font-weight="400" fill="#374151" text-anchor="start">“Status dos transferidos”.</text>
+<text x="265" y="409" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="9" font-weight="400" fill="#9CA3AF" text-anchor="middle">▼</text>
+<polygon points="202.5,410 327.5,410 312.5,494 217.5,494" fill="#22C55E"/>
+<text x="265" y="456.0" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="38" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+<text x="265" y="478.0" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" font-weight="400" fill="#FFFFFF" text-anchor="middle">venda</text>
+<line x1="328.0" y1="452.0" x2="500" y2="452.0" stroke="#9CA3AF" stroke-width="1.2" stroke-dasharray="3 4"/>
+<rect x="508" y="414" width="6" height="76" rx="3" fill="#22C55E"/>
+<text x="526" y="434" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#111827" text-anchor="start">COM VENDA</text>
+<text x="526" y="454" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13.5" font-weight="400" fill="#374151" text-anchor="start">Clientes transferidos por você em que o vendedor</text>
+<text x="526" y="471" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13.5" font-weight="400" fill="#374151" text-anchor="start">lançou “Vendeu” no CRM.</text>
+<text x="30" y="524" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#111827" text-anchor="start">2) Exemplo: 3 empresas e 6 ligações</text>
+<rect x="30" y="542" width="112" height="40" rx="8" fill="#F3F4F6" stroke="#D1D5DB" stroke-width="1"/>
+<text x="86" y="568" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#111827" text-anchor="middle">Empresa A</text>
+<rect x="154" y="542" width="148" height="40" rx="8" fill="#FEF3C7" stroke="none" stroke-width="1"/>
+<text x="228" y="558" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="11.5" font-weight="400" fill="#92400E" text-anchor="middle">1º contato</text>
+<text x="228" y="574" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="14" font-weight="700" fill="#92400E" text-anchor="middle">Não atendeu</text>
+<rect x="310" y="542" width="148" height="40" rx="8" fill="#DBEAFE" stroke="none" stroke-width="1"/>
+<text x="384" y="558" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="11.5" font-weight="400" fill="#1E40AF" text-anchor="middle">2º contato</text>
+<text x="384" y="574" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="14" font-weight="700" fill="#1E40AF" text-anchor="middle">Agendado</text>
+<rect x="466" y="542" width="148" height="40" rx="8" fill="#E0F2FE" stroke="none" stroke-width="1"/>
+<text x="540" y="558" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="11.5" font-weight="400" fill="#075985" text-anchor="middle">3º contato</text>
+<text x="540" y="574" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="14" font-weight="700" fill="#075985" text-anchor="middle">Transferido</text>
+<text x="640" y="568" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="18" fill="#6B7280">→</text>
+<circle cx="676" cy="554" r="8" fill="#DCFCE7" stroke="#15803D" stroke-width="1.5"/><polyline points="672,554 675,557.5 680,550.5" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="690" y="559" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#374151">prospectada</text>
+<circle cx="782.4" cy="554" r="8" fill="#DCFCE7" stroke="#15803D" stroke-width="1.5"/><polyline points="778.4,554 781.4,557.5 786.4,550.5" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="796.4" y="559" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#374151">lead</text>
+<circle cx="844.0" cy="554" r="8" fill="#DCFCE7" stroke="#15803D" stroke-width="1.5"/><polyline points="840.0,554 843.0,557.5 848.0,550.5" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="858.0" y="559" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#374151">transferida</text>
+<rect x="30" y="594" width="112" height="40" rx="8" fill="#F3F4F6" stroke="#D1D5DB" stroke-width="1"/>
+<text x="86" y="620" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#111827" text-anchor="middle">Empresa B</text>
+<rect x="154" y="594" width="148" height="40" rx="8" fill="#E5E7EB" stroke="none" stroke-width="1"/>
+<text x="228" y="610" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="11.5" font-weight="400" fill="#374151" text-anchor="middle">1º contato</text>
+<text x="228" y="626" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="14" font-weight="700" fill="#374151" text-anchor="middle">Sem interesse</text>
+<text x="640" y="620" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="18" fill="#6B7280">→</text>
+<circle cx="676" cy="606" r="8" fill="#DCFCE7" stroke="#15803D" stroke-width="1.5"/><polyline points="672,606 675,609.5 680,602.5" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="690" y="611" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#374151">prospectada</text>
+<circle cx="782.4" cy="606" r="8" fill="#FEE2E2" stroke="#B91C1C" stroke-width="1.5"/><path d="M778.9,602.5 L785.9,609.5 M785.9,602.5 L778.9,609.5" fill="none" stroke="#B91C1C" stroke-width="2" stroke-linecap="round"/>
+<text x="796.4" y="611" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#374151">não é lead (sem interesse)</text>
+<rect x="30" y="646" width="112" height="40" rx="8" fill="#F3F4F6" stroke="#D1D5DB" stroke-width="1"/>
+<text x="86" y="672" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#111827" text-anchor="middle">Empresa C</text>
+<rect x="154" y="646" width="148" height="40" rx="8" fill="#FEF3C7" stroke="none" stroke-width="1"/>
+<text x="228" y="662" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="11.5" font-weight="400" fill="#92400E" text-anchor="middle">1º contato</text>
+<text x="228" y="678" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="14" font-weight="700" fill="#92400E" text-anchor="middle">Não atendeu</text>
+<rect x="310" y="646" width="148" height="40" rx="8" fill="#DBEAFE" stroke="none" stroke-width="1"/>
+<text x="384" y="662" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="11.5" font-weight="400" fill="#1E40AF" text-anchor="middle">2º contato</text>
+<text x="384" y="678" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="14" font-weight="700" fill="#1E40AF" text-anchor="middle">Agendado</text>
+<text x="640" y="672" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="18" fill="#6B7280">→</text>
+<circle cx="676" cy="658" r="8" fill="#DCFCE7" stroke="#15803D" stroke-width="1.5"/><polyline points="672,658 675,661.5 680,654.5" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="690" y="663" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#374151">prospectada</text>
+<circle cx="782.4" cy="658" r="8" fill="#DCFCE7" stroke="#15803D" stroke-width="1.5"/><polyline points="778.4,658 781.4,661.5 786.4,654.5" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="796.4" y="663" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#374151">lead (em andamento)</text>
+<rect x="30" y="702" width="940" height="44" rx="10" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1"/>
+<text x="500" y="730" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#7F1D1D" text-anchor="middle">Resultado: 6 ligações  ·  3 empresas prospectadas  ·  2 leads novos  ·  1 transferido</text>
+<rect x="30" y="768" width="458" height="92" rx="10" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1"/>
+<text x="46" y="792" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#1E3A8A" text-anchor="start">Ligações feitas (campo do Lançar)</text>
+<text x="46" y="812" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" font-weight="400" fill="#1E3A8A" text-anchor="start">No fim do dia, informe todas as ligações: prospecção</text>
+<text x="46" y="829" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" font-weight="400" fill="#1E3A8A" text-anchor="start">e recontatos com leads, inclusive as de empresas que</text>
+<text x="46" y="846" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" font-weight="400" fill="#1E3A8A" text-anchor="start">nem foram para o app. Mede o seu esforço; não entra no funil.</text>
+<rect x="512" y="768" width="458" height="92" rx="10" fill="#F9FAFB" stroke="#D1D5DB" stroke-width="1"/>
+<text x="528" y="792" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#111827" text-anchor="start">Seu caderno</text>
+<text x="528" y="812" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" font-weight="400" fill="#374151" text-anchor="start">Nomes que você só pesquisou e não lançou na Prospecção</text>
+<text x="528" y="829" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" font-weight="400" fill="#374151" text-anchor="start">não entram em nenhuma conta. Lance no app as empresas</text>
+<text x="528" y="846" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="13" font-weight="400" fill="#374151" text-anchor="start">que podem virar lead: a série de até 3 contatos começa aí.</text>
+</svg></div>
+
           <h3>5.2.1 O caminho do lead</h3>
+          <p>Cada empresa lançada é uma <b>empresa prospectada</b>; ela só passa a contar como <b>lead novo</b> no Painel quando tem Agendado, Aguardando ou Transferido. Abaixo, o caminho de uma empresa (até 3 contatos):</p>
           <ul>
             <li><b>Fonte externa</b> (lista de nomes) → a SDR liga (<b>Contato 1</b>).</li>
             <li><b>Sem interesse</b> ou <b>Sem potencial</b> → fim do lead. <b>Ctto Inválido</b> (telefone errado) também encerra.</li>
@@ -1860,10 +1963,11 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <h3>5.2.4 Prospecção — registrar os contatos</h3>
           <p>A aba <b>Prospecção</b> usa o mesmo modal "Novo Lançamento" do CRM, adaptado à SDR.</p>
           <ul>
-            <li><b>+ Novo Lançamento</b> — cria um <b>novo lead</b> (Contato 1). Campos: Empresa e WhatsApp/Telefone com DDD (obrigatórios), Contato, Segmento, Bairro, Perfil do contato (Decisor/Influenciador), Campanha (opcional), Resultado e Próximo Contato.</li>
+            <li><b>+ Novo Lançamento</b> — cria uma <b>nova empresa prospectada</b> (Contato 1). O campo <b>Segmento</b> tem uma lista própria da SDR (Autocenter, Transportadoras, Centro Automotivo, Troca de Óleo, Super troca de óleo, Oficina de câmbio, Frotas de Veículos Comerciais, Manutenção de Geradores e de Elevadores, Frigorífico / Abatedouro e Indústrias químicas). Campos: Empresa e WhatsApp/Telefone com DDD (obrigatórios), Contato, Segmento, Bairro, Perfil do contato (Decisor/Influenciador), Campanha (opcional), Resultado e Próximo Contato.</li>
             <li><b>➕ Novo contato</b> — botão no cartão do lead (aparece no último contato de um lead ainda aberto). Abre o modal já preenchido e conta como Contato 2 ou 3. Digitar o nome de um lead aberto em Empresa também continua o mesmo lead.</li>
             <li>O modal mostra "Contato X de 3 deste lead". No 3º contato as opções "Agendado" e "Não atendeu" somem.</li>
             <li><b>Aguardando</b> — use quando o lead já foi qualificado, mas o vendedor ainda não pode ir. O lead fica guardado e <b>não consome contato</b>: o registro seguinte (Transferido, por exemplo) mantém o mesmo número de contato, mesmo no 3º. Depois de um Aguardando, só ficam disponíveis Aguardando, Transferido e os resultados que encerram o lead. No cartão do lead aparece o botão <b>➡ Retomar lead</b>, e o Painel mostra o chip <b>Aguardando</b> com quantos leads estão guardados. Use o Próximo Contato para marcar quando voltar a falar com o vendedor.</li>
+            <li><b>Retorno do vendedor</b> — em cada cartão <b>Transferido</b> aparece o último resultado que o vendedor registrou no CRM (por exemplo, Fez Cotação) ou o aviso <b>⚠️ Sem retorno do vendedor</b>, com os dias.</li>
             <li><b>Telefone repetido</b> — se o telefone já pertence a outro lead dela, o app avisa e não duplica. Antes de ligar para um nome da lista, a SDR confirma com o vendedor se a empresa já é cliente dele.</li>
             <li><b>Próximo Contato</b> — a data aparece em "🔔 Pendências de Hoje" (e no pop-up diário) como a agenda de retornos da SDR; clicar numa pendência abre o próximo contato daquele lead.</li>
             <li><b>💬 WhatsApp</b> — abre a conversa; para a SDR não registra nada automaticamente (o registro é pelo botão Salvar).</li>
@@ -1888,7 +1992,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Vendas</b> — lançamentos "Vendeu" que o vendedor faz no CRM para clientes que vieram desta SDR (com número de clientes distintos e a <b>conversão acumulada</b>: clientes que já compraram ÷ todos os transferidos).</li>
             <li><b>Valor vendido</b> — informado pela própria SDR (abaixo).</li>
             <li><b>Status dos transferidos</b> — resumo, em % e quantidade, do último resultado que o vendedor registrou no CRM para os leads transferidos (Cotação, Cadastro, Agendado, Em contato, Sem interesse/inválido, Vendeu) e a lista dos que ainda estão <b>sem nenhum registro do vendedor</b>, com os dias. Na lista da Prospecção, cada Transferido mostra o retorno do vendedor ou o aviso "Sem retorno".</li>
-            <li><b>Funil do período</b> (Empresas prospectadas → Leads novos → Transferidos → Com venda) e como terminaram as empresas prospectadas (Transferido, Não qualificado, Sem interesse, Sem potencial, Ctto Inválido, Aguardando, Em andamento).</li>
+            <li><b>Funil do período</b>, em formato de funil, com a taxa de passagem entre as etapas (Empresas prospectadas → Leads novos → Transferidos → Com venda) e como terminaram as empresas prospectadas (Transferido, Não qualificado, Sem interesse, Sem potencial, Ctto Inválido, Aguardando, Em andamento).</li>
           </ul>
           <p><b>Valor Vendido (R$)</b>: no próprio Painel, a SDR informa Data, Valor e Campanha (opcional). Cada registro soma no dia; o Painel mostra o total por dia. Aceita datas do mês atual e do anterior; depois de salvo não é editado (correção pelo Líder). O valor é <b>informado pela SDR</b> — por isso aparece com essa identificação.</p>
           <div class="help-tip">As vendas só aparecem no Painel e no Dashboard quando o <b>vendedor registra "Vendeu" no CRM</b> para o cliente que veio da SDR. O CRM do vendedor é obrigatório para a conversão ser medida.</div>
@@ -1940,6 +2044,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li>O app captura a localização <b>uma única vez, ao tocar em Salvar visita</b>. Não há rastreamento contínuo.</li>
             <li>Sem permissão ou sem sinal, a visita é salva como <b>“sem GPS”</b> e <b>não entra na cobertura</b>.</li>
             <li>Para contar na cobertura, a precisão do sinal precisa ser melhor que <b>100 m</b>. Salve do lado de fora do comércio, com o celular desbloqueado.</li>
+            <li>Se o iPhone tiver <b>bloqueado a localização</b> para o site, a aba Visitas mostra um aviso amarelo (ele some sozinho quando a localização volta a funcionar). Para liberar: <b>Ajustes → Privacidade e Segurança → Serviços de Localização</b> (ligado) <b>→ Sites do Safari → “Ao Usar o App”</b>; depois, no Safari, toque em <b>aA → Ajustes do Site → Localização → Permitir</b> e reabra o app.</li>
           </ul>
 
           <h3>5.3.4 Retornos do dia</h3>
@@ -1950,6 +2055,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
 
           <h3>5.3.6 Painel do Master</h3>
           <p>Na aba <b>Óleos</b>, o Master vê o painel (pensado para o computador). Escolha o <b>Período</b> (Hoje, Últimos 7 dias, Mês atual, Mês anterior, Tudo) e, havendo mais de um vendedor, o <b>Vendedor</b>.</p>
+          <p>O <b>Vendedor de Óleos</b> também tem a aba <b>Óleos</b>, com este mesmo painel, mas só com as visitas dele: o campo Vendedor mostra apenas o nome dele e ele não vê “Editar áreas excluídas” nem o botão Carteira do mapa.</p>
           <ul>
             <li><b>Total vendido (L)</b> — soma dos litros das visitas com resultado Pedido.</li>
             <li><b>Visitas</b> — todas as do período, inclusive retornos ao mesmo comércio.</li>
@@ -9937,6 +10043,22 @@ function vapSdrRetornoVendedor(clienteId){
 const _sdrGrupoRet = r => r==='Vendeu' ? 'Vendeu' : r==='Cadastro' ? 'Cadastro' : r==='Fez Cotação' ? 'Cotação' : r==='Agendado' ? 'Agendado'
   : (r==='Sem interesse' || r==='Ctto Inválido') ? 'Sem interesse/inválido' : 'Em contato';
 const _SDR_COR_GRUPO = {'Vendeu':'#22C55E','Cadastro':'#0D9488','Cotação':'#8B5CF6','Agendado':'#3B82F6','Em contato':'#F59E0B','Sem interesse/inválido':'#9CA3AF','Sem retorno':'#E53E3E'};
+// Funil cônico (SVG): faixas empilhadas que estreitam; largura proporcional ao primeiro item, com mínimo para o número caber; setas com a taxa de passagem
+function vapSdrFunilSvg(itens){
+  const CX=330, MAXW=300, MINW=56, H=64, GAP=8, n=itens.length;
+  const topo = Math.max(itens[0].n, 1);
+  let ef = topo;
+  const ws = itens.map(i=>{ ef = Math.min(i.n, ef); return Math.max(MINW, Math.round(ef/topo*MAXW)); });
+  let g = '';
+  itens.forEach((it,i)=>{
+    const y0 = 10 + i*(H+GAP), ht = ws[i]/2, hb = i<n-1 ? ws[i+1]/2 : ht*0.8;
+    g += `<polygon points="${CX-ht},${y0} ${CX+ht},${y0} ${CX+hb},${y0+H} ${CX-hb},${y0+H}" fill="${it.cor}"/>`
+       + `<text x="${CX}" y="${y0+H/2+7}" text-anchor="middle" style="fill:${it.txt};font-size:20px;font-weight:600">${it.n}</text>`
+       + `<text x="0" y="${y0+H/2+5}" style="fill:#566573;font-size:14px">${it.rot}</text>`;
+    if(i<n-1){ const pct = it.n>0 ? Math.round(itens[i+1].n/it.n*100)+'%' : '—'; g += `<text x="495" y="${y0+H+GAP}" style="fill:#566573;font-size:13px">↓ ${pct}</text>`; }
+  });
+  return `<svg width="100%" viewBox="0 0 560 ${10+n*(H+GAP)}" role="img" aria-label="Funil: ${itens.map(i=>i.rot+' '+i.n).join(', ')}" style="display:block;max-width:640px">${g}</svg>`;
+}
 function vapSdrStatusHtml(transf){
   const lista = transf.filter(p=>p.clienteId);
   if(!lista.length) return '<div style="font-size:.8rem;color:var(--gray)">Nenhum lead transferido neste filtro.</div>';
@@ -10074,17 +10196,14 @@ function vapSdrPainelRender(){
   </div>`;
 
   // Funil + motivos de encerramento
-  const maxF = Math.max(prospectadas.length, 1);
-  const barra = (rotulo, n, cor) => `<div style="display:flex;align-items:center;gap:8px;margin:4px 0;font-size:.8rem">
-      <div style="width:150px;color:var(--gray)">${rotulo}</div>
-      <div style="flex:1;background:#EEF2F6;border-radius:6px;height:16px"><div style="width:${Math.round(n/maxF*100)}%;min-width:${n?4:0}px;height:16px;border-radius:6px;background:${cor}"></div></div>
-      <div style="width:36px;text-align:right;font-weight:600">${n}</div></div>`;
-  const chip = (rotulo,n) => `<span class="badge" style="background:${(PROSP_CORES[rotulo]||'#999')}22;color:${PROSP_CORES[rotulo]||'#666'};margin:2px 4px 2px 0">${rotulo}: ${n}</span>`;
+    const chip = (rotulo,n) => `<span class="badge" style="background:${(PROSP_CORES[rotulo]||'#999')}22;color:${PROSP_CORES[rotulo]||'#666'};margin:2px 4px 2px 0">${rotulo}: ${n}</span>`;
   $('sdrp-funil').innerHTML =
-    barra('Empresas prospectadas', prospectadas.length, '#E53E3E') +
-    barra('Leads novos', leadsNovos.length, '#3B82F6') +
-    barra('Transferidos', transfLinhas.length, '#38BDF8') +
-    barra('Com venda', clientesVenda, '#22C55E') +
+    vapSdrFunilSvg([
+      {rot:'Empresas prospectadas', n:prospectadas.length, cor:'#E53E3E', txt:'#fff'},
+      {rot:'Leads novos',          n:leadsNovos.length,   cor:'#3B82F6', txt:'#fff'},
+      {rot:'Transferidos',         n:transfLinhas.length, cor:'#38BDF8', txt:'#0C2D48'},
+      {rot:'Com venda',            n:clientesVenda,       cor:'#22C55E', txt:'#fff'}
+    ]) +
     `<div style="margin-top:.6rem;font-size:.75rem;color:var(--gray)">Situação das empresas prospectadas do período:</div>
      <div>${chip('Transferido',contaFim('Transferido'))}${chip('Não qualificado',contaFim('Não qualificado'))}${chip('Sem interesse',contaFim('Sem interesse'))}${chip('Sem potencial',contaFim('Sem potencial'))}${chip('Ctto Inválido',contaFim('Ctto Inválido'))}${chip('Aguardando',contaFim('Aguardando'))}<span class="badge" style="background:#3B82F622;color:#3B82F6;margin:2px 4px 2px 0">Em andamento: ${emAndamento}</span></div>`;
 
@@ -10216,10 +10335,13 @@ function vapSdrDashCardHtml(mes){
   const linhas = _prospListaSdr.filter(p=>uids.includes(p.sdrId || p.uid) && p.companyId===cid);
   const porLead = {};
   linhas.forEach(p=>{ if(p.leadId) (porLead[p.leadId] = porLead[p.leadId] || []).push(p); });
-  const leadsNovos = Object.keys(porLead).filter(id=>{
+  // Mesmas regras do Painel da SDR: empresas prospectadas (1º contato no mês) e leads novos (as que tiveram Agendado, Aguardando ou Transferido)
+  const prospIds = Object.keys(porLead).filter(id=>{
     const primeira = porLead[id].slice().sort((a,b)=>(a.numeroContato||0)-(b.numeroContato||0) || (a.criadoEm||'').localeCompare(b.criadoEm||''))[0];
     return primeira && doMes(primeira.criadoEm);
-  }).length;
+  });
+  const prospectadas = prospIds.length;
+  const leadsNovos = prospIds.filter(id=>porLead[id].some(x=>['Agendado','Aguardando','Transferido'].includes(x.resultado))).length;
   const transfMes = linhas.filter(p=>p.resultado==='Transferido' && (p.transferidoEm || _sdrDataLocal(p.criadoEm)).startsWith(mes));
   const transfTodos = linhas.filter(p=>p.resultado==='Transferido');
   // Vendas = linhas "Vendeu" dos vendedores carimbadas com o sdrId (clientes que vieram da SDR)
@@ -10270,7 +10392,7 @@ function vapSdrDashCardHtml(mes){
         ${seletor}
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.55rem;margin-top:.6rem">
-        ${cardK('Internos de Prospecção', internos, 'Do módulo Lançar', '#E53E3E')}
+        ${cardK('Empresas Prospectadas', prospectadas, 'Ligações feitas: '+internos, '#E53E3E')}
         ${cardK('Leads novos', leadsNovos, '', '#3B82F6')}
         ${cardK('Transferidos', transfMes.length, taxaTransf+'% dos leads novos', '#38BDF8')}
         ${cardK('Vendas', vendasMes.length, clientesMes+' cliente(s) · conversão acumulada '+convAcum+'%', '#22C55E')}
