@@ -609,6 +609,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
     <div class="nav-tab active" data-tab="lancar">Lançar</div>
     <div class="nav-tab" data-tab="prospeccao">CRM</div>
     <div class="nav-tab" data-tab="sdr-painel" id="tab-sdr-painel" style="display:none">Painel</div>
+    <div class="nav-tab" data-tab="visitas" id="tab-visitas" style="display:none">Visitas</div>
     <div class="nav-tab" data-tab="oleos" id="tab-oleos" style="display:none">Óleos</div>
     <div class="nav-tab" data-tab="pedidos" id="tab-pedidos" style="display:none">Pedidos</div>
     <div class="nav-tab" data-tab="historico">Histórico</div>
@@ -1748,7 +1749,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <p>Na tela de login, clique em "Recuperar acesso". Um e-mail com link de redefinição será enviado.</p>
 
           <h3>Logout automático por inatividade</h3>
-          <p>Após <b>4 minutos</b> sem atividade (<b>10 minutos</b> nas empresas com o módulo Óleos, como a Royal), o sistema encerra a sessão automaticamente e retorna à tela de login.</p>
+          <p>Após <b>4 minutos</b> sem atividade (<b>10 minutos</b> na Dealer e nas empresas com o módulo Óleos, como a Royal), o sistema encerra a sessão automaticamente e retorna à tela de login.</p>
         </div>
         <div class="divider"></div>
 
@@ -1909,13 +1910,13 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <ul>
             <li><b>Endereço:</b> <i>www.agoravap.com.br/?empresa=royal</i> — abre direto o login da Royal.</li>
             <li><b>Cadastro (Master):</b> Administrativo → Profissionais → perfil <b>Vendedor de Óleos</b> (a opção só aparece para o Master de uma empresa com o módulo). O Master cadastra pela própria empresa; o Super Admin também pode cadastrar em “Ver dados” (o profissional vai para a empresa que está sendo visualizada). O app mostra a <b>senha provisória</b>; copie exatamente como aparece (maiúsculas e minúsculas contam) e envie ao vendedor junto com o endereço.</li>
-            <li><b>Primeiro acesso (vendedor):</b> entrar com o e-mail e a senha provisória, informar o <b>nome completo</b> e criar a senha definitiva (mínimo de 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial). Em seguida o app abre na aba <b>Óleos</b>. Quando o celular pedir a localização, toque em <b>Permitir</b>.</li>
-            <li><b>Menu do vendedor:</b> Óleos · Carteira · Pedidos · Promoções · Ajuda.</li>
+            <li><b>Primeiro acesso (vendedor):</b> entrar com o e-mail e a senha provisória, informar o <b>nome completo</b> e criar a senha definitiva (mínimo de 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial). Em seguida o app abre na aba <b>Visitas</b>. Quando o celular pedir a localização, toque em <b>Permitir</b>.</li>
+            <li><b>Menu do vendedor:</b> Visitas · Óleos (o painel de resultados e o mapa de cobertura, só com as visitas dele) · Carteira · Pedidos · Promoções · Ajuda.</li>
           </ul>
           <div class="help-tip">Após <b>10 minutos sem atividade</b> o app encerra a sessão (vale para todos os perfis da empresa). Se acontecer, basta entrar de novo; as visitas já salvas não se perdem. Registre a visita logo depois do atendimento.</div>
 
           <h3>5.3.2 Registrar uma visita (vendedor)</h3>
-          <p>A aba Óleos tem três blocos: <b>Retornos de hoje</b>, <b>Registrar visita</b> e <b>Minhas últimas visitas</b> (as 15 últimas).</p>
+          <p>A aba <b>Visitas</b> tem três blocos: <b>Retornos de hoje</b>, <b>Registrar visita</b> e <b>Minhas últimas visitas</b> (dos últimos 30 dias, até 200; a lista rola depois de 10 nomes).</p>
           <ul>
             <li><b>Comércio</b> (obrigatório) — digite ou fale o nome. Se aparecer <b>“Já cadastrado por aqui?”</b> (nome parecido ou comércio a cerca de 100 m), toque em <b>É este</b> para ligar a visita ao cadastro existente; <b>Desfazer</b> volta atrás.</li>
             <li><b>Segmento</b> — Posto de troca · Revenda · Centro automotivo · Mecânica · Posto de gasolina · Transportadora · Pit stop / similar · Moto · Outro comércio.</li>
@@ -3157,7 +3158,7 @@ $('btn-logout').onclick = async () => {
   window.location.reload();
 };
 
-// ── INATIVIDADE (4 minutos; 10 minutos nas empresas com módulo Óleos) ──
+// ── INATIVIDADE (4 minutos; 10 minutos nas empresas com módulo Óleos e na Dealer) ──
 const INACTIVITY_MS = 4 * 60 * 1000;
 const INACTIVITY_OLEOS_MS = 10 * 60 * 1000;
 let _inactTimer = null;
@@ -3171,7 +3172,7 @@ function resetInactivityTimer() {
     await signOut(auth);
     // Reload apos inatividade — mesmo motivo do logout manual
     setTimeout(() => window.location.reload(), 2000);
-  }, window._vapModuloOleos ? INACTIVITY_OLEOS_MS : INACTIVITY_MS);
+  }, (window._vapModuloOleos || _companyId === 'dealer') ? INACTIVITY_OLEOS_MS : INACTIVITY_MS);
 }
 function clearInactivityTimer() { clearTimeout(_inactTimer); }
 ['click','keydown','mousemove','touchstart','scroll'].forEach(ev => {
@@ -3309,7 +3310,7 @@ onAuthStateChanged(auth, async user => {
     // clicar nela explicitamente (é a tela que ele já vê ao entrar). Sem essa chamada, os dados
     // do Top 10 Clientes e demais campos da aba só carregavam ao clicar na aba manualmente —
     // por isso pareciam "sumir" após um novo login, mesmo estando salvos corretamente.
-    if (typeof window.switchTab === 'function') window.switchTab(isOleos ? 'oleos' : 'lancar');
+    if (typeof window.switchTab === 'function') window.switchTab(isOleos ? 'visitas' : 'lancar');
     // Verifica banner dia 1 do mês
     setTimeout(checkBannerMesAnterior, 800);
 
@@ -3342,6 +3343,8 @@ onAuthStateChanged(auth, async user => {
     // Vendedor de Óleos: Óleos, Promoções e Ajuda. Master de empresa com módulo Óleos: vê tudo + Óleos. Demais: sem mudança.
     const tabOleosEl = $('tab-oleos');
     if(tabOleosEl) tabOleosEl.style.display = (isOleos || (isMasterRole && moduloOleos)) ? '' : 'none';
+    const tabVisitasEl = $('tab-visitas');   // só o Vendedor de Óleos: registrar visita (a aba Óleos dele é o painel, igual ao do Master)
+    if(tabVisitasEl) tabVisitasEl.style.display = isOleos ? '' : 'none';
     // Pedidos (Óleos): vendedor de óleos e Master da empresa com módulo; segmento Moto na Carteira só nessas empresas
     const tabPedEl = $('tab-pedidos');
     if(tabPedEl) tabPedEl.style.display = (isOleos || (isMasterRole && moduloOleos)) ? '' : 'none';
@@ -5883,7 +5886,7 @@ window.switchTab = tab => {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   const btn = document.querySelector('[data-tab="'+tab+'"]');
   if(btn) btn.classList.add('active');
-  const panel = $('panel-'+tab);
+  const panel = $('panel-'+(tab==='visitas' ? 'oleos' : tab));   // Visitas usa o mesmo painel da aba Óleos
   if(panel) panel.classList.add('active');
   if(tab==='lancar'){
     if($('lancar-data')){
@@ -5909,6 +5912,7 @@ window.switchTab = tab => {
   if(tab==='carteira'){ renderCarteiraLista(); }
   if(tab==='sdr-painel' && typeof vapSdrPainelAbrir === 'function') vapSdrPainelAbrir();
   if(tab==='oleos' && typeof vapOleosAbrir === 'function') vapOleosAbrir();
+  if(tab==='visitas' && typeof vapOleosAbrir === 'function') vapOleosAbrir('visitas');
   if(tab==='pedidos' && typeof window.vapPedidosAbrir === 'function') window.vapPedidosAbrir();
   if(tab==='superadmin'){ loadEmpresas(); }
   if(tab==='dashboard') renderDashboard();
@@ -8435,7 +8439,7 @@ function _oGps(timeout){
     if(!navigator.geolocation) return res(null);
     navigator.geolocation.getCurrentPosition(
       p => res({ lat:p.coords.latitude, lng:p.coords.longitude, acc:Math.round(p.coords.accuracy) }),
-      () => res(null),
+      err => { if(err && err.code===1 && typeof _oleos!=='undefined'){ _oleos.gpsNegado = true; if(typeof _oAvisoGps==='function') _oAvisoGps(); } res(null); },
       { enableHighAccuracy:true, timeout: timeout||10000, maximumAge:30000 }
     );
   });
@@ -8494,7 +8498,8 @@ function _oHtmlVendedor(){
         <div><b>${_oEsc(v.estabNome)}</b><div class="sec-sub">${v.contato?_oEsc(v.contato)+' · ':''}retorno ${_oFmtData(v.retorno)}${v.retorno<tod()?' (atrasado)':''}</div></div>
         <button type="button" class="btn-sec" data-ol-visitar="${_oEsc(v.estabId)}">Visitar</button></div>`).join('')}
     </div>` : '';
-  const ultimas = _oleos.visitas.slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||'')).slice(0,15);
+  const _d30 = new Date(); _d30.setDate(_d30.getDate()-30); const desde30 = _isoLocal(_d30);   // últimos 30 dias, no máximo 200 (os dados já vêm carregados: não pesa mais)
+  const ultimas = _oleos.visitas.filter(v=>(v.dia||'')>=desde30).sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||'')).slice(0,200);
   const listaHtml = ultimas.length ? ultimas.map(v=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
       <div><b>${_oEsc(v.estabNome)}</b><div class="sec-sub">${_oFmtData(v.dia)} · ${_oEsc(v.resultado)}${v.resultado==='Pedido'?' · '+v.litros+' L':''}${v.semGps?' · sem GPS':''}</div></div>
       <div class="sec-sub" style="text-align:right">${v.retorno?'Retorno '+_oFmtData(v.retorno):''}</div></div>`).join('')
@@ -8525,8 +8530,8 @@ function _oHtmlVendedor(){
       <div class="ffooter"><button type="button" class="btn-save" id="ol-salvar">Salvar visita</button></div>
     </div>
     <div class="fcard">
-      <div class="fcard-title"><span class="bar" style="background:#22C55E"></span>Minhas últimas visitas</div>
-      ${listaHtml}
+      <div class="fcard-title"><span class="bar" style="background:#22C55E"></span>Minhas últimas visitas <span class="sec-sub" style="font-weight:400">· 30 dias (${ultimas.length})</span></div>
+      <div style="max-height:520px;overflow-y:auto;-webkit-overflow-scrolling:touch">${listaHtml}</div>
     </div>`;
 }
 
@@ -8640,6 +8645,14 @@ function _oRenderVendedor(){
   el.innerHTML = _oHtmlVendedor();
   _oLigarEventos();
   _oCheckDup();
+  _oAvisoGps();
+}
+function _oAvisoGps(){
+  const el = $('oleos-conteudo'); if(!el || !window._vapIsOleos || !_oleos.gpsNegado || $('ol-gps-aviso') || !$('ol-salvar')) return;
+  const d = document.createElement('div'); d.id = 'ol-gps-aviso';
+  d.style.cssText = 'margin-bottom:12px;padding:10px 12px;border:1.5px solid #F59E0B;background:#FFFBEB;border-radius:10px;font-size:.85rem;line-height:1.5';
+  d.innerHTML = '<b>A localização está bloqueada neste aparelho.</b> As visitas serão salvas como “sem GPS” e não entram no mapa de cobertura. No iPhone: <b>Ajustes → Privacidade e Segurança → Serviços de Localização</b> (ligado) <b>→ Sites do Safari → “Ao Usar o App”</b>; depois, no Safari, toque em <b>aA → Ajustes do Site → Localização → Permitir</b>. Feche e abra o app de novo.';
+  el.prepend(d);
 }
 
 
@@ -8661,9 +8674,10 @@ const _oleosM = { uid:null, visitas:[], estabs:[], carregado:false, periodo:'mes
 async function _oMasterCarregar(){
   const cid = _oCid(); if(!cid || !cu) return;
   try{
+    const so = window._vapIsOleos ? [where('uid','==',cu.uid)] : [];   // Vendedor de Óleos vê no painel só o que é dele
     const [v, e] = await Promise.all([
-      getDocs(query(collection(db,'oleos_visitas'),          where('companyId','==',cid))),
-      getDocs(query(collection(db,'oleos_estabelecimentos'), where('companyId','==',cid)))
+      getDocs(query(collection(db,'oleos_visitas'),          where('companyId','==',cid), ...so)),
+      getDocs(query(collection(db,'oleos_estabelecimentos'), where('companyId','==',cid), ...so))
     ]);
     _oleosM.visitas = v.docs.map(d=>({id:d.id, ...d.data()}));
     _oleosM.estabs  = e.docs.map(d=>({id:d.id, ...d.data()}));
@@ -8687,6 +8701,7 @@ function _oPeriodoIntervalo(p){
 }
 
 function _oNomeUsuario(uid){
+  if(window._vapIsOleos && uid===cu?.uid) return cp?.name || 'Vendedor';
   const u = (typeof _users!=='undefined' ? _users : []).find(x=>x.id===uid);
   return u ? u.name : 'Vendedor';
 }
@@ -8839,15 +8854,17 @@ function _oMasterRender(){
 
   const mbtn = (k,t) => `<button type="button" data-om-mapa="${k}" style="padding:7px 14px;border-radius:8px;min-height:36px;cursor:pointer;font:600 13px inherit;border:1.5px solid ${M.mapa===k?'#1B6CA8':'#D5DEE7'};background:${M.mapa===k?'#1B6CA8':'#fff'};color:${M.mapa===k?'#fff':'#3D3431'}">${t}</button>`;
   const opP = (v,t) => `<option value="${v}"${M.periodo===v?' selected':''}>${t}</option>`;
-  const filtroVend = uids.length>1
+  const filtroVend = window._vapIsOleos
+    ? `<div class="field"><label for="om-vend">Vendedor</label><select id="om-vend" disabled><option>${_oEsc(_oNomeUsuario(cu.uid))}</option></select></div>`
+    : uids.length>1
     ? `<div class="field"><label for="om-vend">Vendedor</label><select id="om-vend"><option value="">Todos</option>${uids.map(u=>`<option value="${_oEsc(u)}"${M.vend===u?' selected':''}>${_oEsc(_oNomeUsuario(u))}</option>`).join('')}</select></div>` : '';
-  const titulo = (M.vend ? _oNomeUsuario(M.vend) : (uids.length===1 ? _oNomeUsuario(uids[0]) : '')) ;
+  const titulo = window._vapIsOleos ? '' : (M.vend ? _oNomeUsuario(M.vend) : (uids.length===1 ? _oNomeUsuario(uids[0]) : '')) ;
 
   const chip = (z,t) => `<button type="button" data-om-zona="${z}" style="padding:8px 14px;border-radius:999px;min-height:36px;cursor:pointer;font:600 13px inherit;border:1.5px solid ${M.zona===z?'#E53E3E':'#E7CFC9'};background:${M.zona===z?'#E53E3E':'#fff'};color:${M.zona===z?'#fff':'#3D3431'}">${t}</button>`;
   const chips = chip(0,'Toda a Zona Norte')+chip(1,'1 Nordeste')+chip(2,'2 Centro-Norte')+chip(3,'3 Noroeste');
   const barraEdit = M.editar
     ? `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;padding:8px 10px;border:1.5px solid #F59E0B;background:#FFFBEB;border-radius:8px;font-size:13px">Clique nos quadrados para excluir ou incluir. <button type="button" class="btn-save" id="om-salvar-excl">Salvar</button><button type="button" class="btn-sec" id="om-cancelar-excl">Cancelar</button></div>`
-    : `<div style="margin-bottom:10px"><button type="button" class="btn-sec" id="om-editar-excl">Editar áreas excluídas</button></div>`;
+    : (window._vapIsOleos ? '' : `<div style="margin-bottom:10px"><button type="button" class="btn-sec" id="om-editar-excl">Editar áreas excluídas</button></div>`);
   const leg = (bg,t,b) => `<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px"><span style="width:14px;height:14px;border-radius:3px;background:${bg};border:1px solid ${b}"></span>${t}</span>`;
   const legenda = leg('#CDEBD6','Coberto','#4FA56B')+leg('#fff','Sem visita','#CBBDB8')+leg('repeating-linear-gradient(45deg,#ECEAE8 0 3px,#B9B3AF 3px 5px)','Excluído pelo Master','#A8A19C');
   const legPins = ['Pedido','Cadastro','Cotação','Retornar','Promoção','Desinteresse','Sem crédito','Reclamação'].map(r=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px"><span style="width:12px;height:12px;border-radius:50%;background:${OLEOS_COR[r]}"></span>${r}</span>`).join('');
@@ -8893,7 +8910,7 @@ function _oMasterRender(){
   el.innerHTML = `
     <div class="fcard">
       <div class="fcard-title"><span class="bar" style="background:#1B6CA8"></span>Óleos${titulo?' · '+_oEsc(titulo):''} — resultados</div>
-      <div class="fgrid ${uids.length>1?'fg2':'fg1'}">
+      <div class="fgrid ${(uids.length>1||window._vapIsOleos)?'fg2':'fg1'}">
         <div class="field"><label for="om-periodo">Período</label><select id="om-periodo">${opP('hoje','Hoje')}${opP('7d','Últimos 7 dias')}${opP('mes','Mês atual')}${opP('mesant','Mês anterior')}${opP('tudo','Tudo')}</select></div>
         ${filtroVend}
       </div>
@@ -8910,7 +8927,7 @@ function _oMasterRender(){
           <div><div class="fcard-title" style="margin-bottom:2px"><span class="bar" style="background:#22C55E"></span>Mapa de cobertura da Zona Norte</div><div class="sec-sub">Quadrados de 400 m · 12 distritos mais densos · ${M.mapa==='periodo'?'só o período: '+nomePeriodo:'acumulado (todas as visitas)'}</div></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">${chips}</div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">${mbtn('acum','Acumulado')}${mbtn('periodo','Só o período')}<button type="button" data-om-cart="1" style="padding:7px 14px;border-radius:8px;min-height:36px;cursor:pointer;font:600 13px inherit;border:1.5px solid ${M.cart?'#7C3AED':'#D5DEE7'};background:${M.cart?'#F5F3FF':'#fff'};color:${M.cart?'#5B21B6':'#374151'}">◆ Carteira${M.cart?' ✓':''}</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">${mbtn('acum','Acumulado')}${mbtn('periodo','Só o período')}${window._vapIsOleos?'':`<button type="button" data-om-cart="1" style="padding:7px 14px;border-radius:8px;min-height:36px;cursor:pointer;font:600 13px inherit;border:1.5px solid ${M.cart?'#7C3AED':'#D5DEE7'};background:${M.cart?'#F5F3FF':'#fff'};color:${M.cart?'#5B21B6':'#374151'}">◆ Carteira${M.cart?' ✓':''}</button>`}</div>
         ${barraEdit}
         ${_oMapaSvg(M.zona, cobertos, excl, pins, selKey, M.editar, cliPins)}
         <div style="display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;align-items:center">${legenda}</div>
@@ -9085,9 +9102,9 @@ async function _oMasterAbrir(){
   _oMasterRender();
 }
 
-async function vapOleosAbrir(){
+async function vapOleosAbrir(qual){
   const el = $('oleos-conteudo'); if(!el) return;
-  if(!window._vapIsOleos){ return _oMasterAbrir(); }   // Master da empresa com módulo Óleos
+  if(!window._vapIsOleos || qual!=='visitas'){ return _oMasterAbrir(); }   // painel: Master da empresa com módulo Óleos e, filtrado nele mesmo, o Vendedor de Óleos
   if(_oleos.uid !== cu?.uid){   // outro usuário entrou sem recarregar a página
     Object.assign(_oleos, { uid:cu?.uid||null, estabs:[], visitas:[], promos:[], carregado:false, gps:null, estabSel:null, busy:false });
   }
@@ -9096,6 +9113,8 @@ async function vapOleosAbrir(){
     await _oCarregar();
   }
   _oRenderVendedor();
+  // se o aparelho já bloqueou a localização para este site, avisa na hora (o site não consegue pedir de novo)
+  try{ if(navigator.permissions && navigator.permissions.query) navigator.permissions.query({name:'geolocation'}).then(p=>{ if(p.state==='denied'){ _oleos.gpsNegado = true; _oAvisoGps(); } }).catch(()=>{}); }catch(e){}
   // localização para o aviso de comércio por perto (pede permissão na primeira vez)
   _oGps(8000).then(g => { if(g){ _oleos.gps = g; _oCheckDup(); } });
 }
