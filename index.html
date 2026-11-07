@@ -1611,7 +1611,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Motivos de Perda</b> — Rosca com 12 fatias: 4 grupos de Cotações Perdidas (Carga, Passeio, Óleo, Variadas), cada um dividido em Preço/Estoque/Outras. As 4 famílias de cor batem com as do card de Lançar; a legenda mostra só os 4 grupos e pode ser clicada para esconder/mostrar um grupo inteiro</li>
             <li><b>Contatos por Origem</b> — Barras horizontais com 7 origens</li>
             <li><b>Vendas Perdidas</b> (Líder/Master/SuperAdmin) — Listagem do mês selecionado, respeitando também o Filtro por Vendedor, com as mesmas colunas do relatório (Data, Vendedor, Cliente, Produtos, Razão, Valor). Ordenável por Data, Vendedor ou Valor, com os totais "R$ perdidos no mês" e "Quantidade de perdas" no topo — puxa da mesma lista que cada vendedor já preenche em Lançar &gt; Relatório das 2 Principais Vendas Perdidas por Dia</li>
-            <li><b>Card "SDR — Prospecção por telefone"</b> (Líder/Master/SuperAdmin) — Aparece logo depois de "Motivos de Perda / Contatos por Origem", só em empresas que têm SDR cadastrada (ou que já tiveram: quem lançou como SDR e depois mudou de perfil continua aparecendo no seletor como "ex-SDR", só com os lançamentos que fez como SDR). Mostra, no mês selecionado, as mesmas regras do Painel da SDR: Empresas Prospectadas (com as Ligações feitas, do Lançar), Leads novos (empresas com Agendado, Aguardando ou Transferido), Transferidos (com os Cadastros do período embaixo), Vendas (com clientes distintos e conversão acumulada) e Valor vendido informado pela SDR. Com mais de uma SDR, um seletor filtra por pessoa. Abaixo dos cartões vem o <b>funil do mês</b> e, depois, o resumo <b>Status dos transferidos</b> (retorno do vendedor) e o <b>alerta</b>, que lista os leads transferidos há 7 dias ou mais sem nenhum registro do vendedor no CRM. Os lançamentos da SDR <b>não entram</b> nos totais, no ranking nem no filtro de vendedores do Dashboard — têm card próprio.</li>
+            <li><b>Card "SDR — Prospecção por telefone"</b> (Líder/Master/SuperAdmin) — Aparece logo depois de "Motivos de Perda / Contatos por Origem", só em empresas que têm SDR cadastrada (ou que já tiveram: quem lançou como SDR e depois mudou de perfil continua aparecendo no seletor como "ex-SDR", só com os lançamentos que fez como SDR). Mostra, no mês selecionado, as mesmas regras do Painel da SDR: Empresas Prospectadas (com as Ligações feitas, do Lançar), Leads novos (empresas com Agendado, Aguardando ou Transferido), Transferidos (com os Cadastros do período embaixo), Vendas (com clientes distintos e conversão acumulada) e Valor vendido informado pela SDR. Com mais de uma SDR, um seletor filtra por pessoa. O <b>funil do mês</b> fica ao lado dos cartões (em telas estreitas, abaixo deles) e, depois, vem o resumo <b>Status dos transferidos</b> (retorno do vendedor) e o <b>alerta</b>, que lista os leads transferidos há 7 dias ou mais sem nenhum registro do vendedor no CRM. Os lançamentos da SDR <b>não entram</b> nos totais, no ranking nem no filtro de vendedores do Dashboard — têm card próprio.</li>
             <li><b>Relatórios (impressão)</b> (Líder/Master/SuperAdmin) — Botão "Relatórios" abre um modal com duas opções: <i>Toda a equipe</i> (KPIs, Ranking do mês, os 3 gráficos, Ranking de Clientes e a lista de Vendas perdidas do mês ordenada do maior valor para o menor) ou <i>Vendedor específico</i> (mesmos KPIs e gráficos, só que daquele vendedor, mais "Vendas x meta" e a lista de vendas perdidas dele, também ordenada por valor). O relatório sempre segue o mês e o vendedor que estiverem selecionados no Dashboard no momento — se um vendedor estiver filtrado, o modal já abre em "Vendedor específico" com ele marcado. O botão "Gerar e imprimir" abre uma nova aba com o relatório pronto para impressão ou salvar como PDF.</li>
           </ul>
 
@@ -10068,6 +10068,20 @@ function vapSdrFunilSvg(itens){
   });
   return `<svg width="100%" viewBox="0 0 560 ${10+n*(H+GAP)}" role="img" aria-label="Funil: ${itens.map(i=>i.rot+' '+i.n).join(', ')}" style="display:block;max-width:640px">${g}</svg>`;
 }
+// Funil compacto (Dashboard): faixas baixas que estreitam de forma regular (sem proporção; os números e as taxas dão a leitura exata), nome da etapa dentro da faixa
+function vapSdrFunilCompacto(itens){
+  const CX=170, W0=300, W1=112, H=44, GAP=8, n=itens.length;
+  const ws = itens.map((_,i)=> Math.round(W0 - i*(W0-W1)/(n-1)));
+  let g='';
+  itens.forEach((it,i)=>{
+    const y=i*(H+GAP), ht=ws[i]/2, hb = i<n-1 ? ws[i+1]/2 : ht-12;
+    g += `<polygon points="${CX-ht},${y} ${CX+ht},${y} ${CX+hb},${y+H} ${CX-hb},${y+H}" fill="${it.cor}"/>`
+       + `<text x="${CX}" y="${y+21}" text-anchor="middle" style="fill:${it.txt};font-size:18px;font-weight:600">${it.n}</text>`
+       + `<text x="${CX}" y="${y+37}" text-anchor="middle" style="fill:${it.txt};font-size:11px">${it.rot}</text>`;
+    if(i<n-1){ const pct = it.n>0 ? Math.round(itens[i+1].n/it.n*100)+'%' : '—'; g += `<text x="${CX+ws[i+1]/2+12}" y="${y+H+GAP+4}" style="fill:#566573;font-size:11px">↓ ${pct}</text>`; }
+  });
+  return `<svg width="100%" viewBox="0 0 364 ${n*(H+GAP)-GAP+2}" role="img" aria-label="Funil do mês: ${itens.map(i=>i.rot+' '+i.n).join(', ')}" style="display:block;max-width:420px">${g}</svg>`;
+}
 function vapSdrStatusHtml(transf){
   const lista = transf.filter(p=>p.clienteId);
   if(!lista.length) return '<div style="font-size:.8rem;color:var(--gray)">Nenhum lead transferido neste filtro.</div>';
@@ -10404,20 +10418,25 @@ function vapSdrDashCardHtml(mes){
         <span><span class="bar" style="background:#38BDF8"></span>SDR — Prospecção por telefone · ${mesExtenso(mes)}</span>
         ${seletor}
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.55rem;margin-top:.6rem">
-        ${cardK('Empresas Prospectadas', prospectadas, 'Ligações feitas: '+internos, '#E53E3E')}
-        ${cardK('Leads novos', leadsNovos, '', '#3B82F6')}
-        ${cardK('Transferidos', transfMes.length, 'Cadastros do período: '+cadMes, '#38BDF8')}
-        ${cardK('Vendas', vendasMes.length, clientesMes+' cliente(s) · conversão acumulada '+convAcum+'%', '#22C55E')}
-        ${cardK('Valor vendido', fC(valor), 'Informado pela SDR', '#D4AC0D')}
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start;margin-top:.6rem">
+        <div>
+          <div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Funil do mês</div>
+          ${vapSdrFunilCompacto([
+            {rot:'Empresas prospectadas', n:prospectadas,    cor:'#E53E3E', txt:'#fff'},
+            {rot:'Leads novos',          n:leadsNovos,       cor:'#3B82F6', txt:'#fff'},
+            {rot:'Transferidos',         n:transfMes.length, cor:'#38BDF8', txt:'#0C2D48'},
+            {rot:'Cadastros',            n:cadMes,           cor:'#0D9488', txt:'#fff'},
+            {rot:'Com venda',            n:clientesMes,      cor:'#22C55E', txt:'#fff'}
+          ])}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem">
+          ${cardK('Empresas Prospectadas', prospectadas, 'Ligações feitas: '+internos, '#E53E3E')}
+          ${cardK('Leads novos', leadsNovos, '', '#3B82F6')}
+          ${cardK('Transferidos', transfMes.length, 'Cadastros do período: '+cadMes, '#38BDF8')}
+          ${cardK('Vendas', vendasMes.length, clientesMes+' cliente(s) · conversão acumulada '+convAcum+'%', '#22C55E')}
+          <div style="grid-column:1 / span 2">${cardK('Valor vendido', fC(valor), 'Informado pela SDR', '#D4AC0D')}</div>
+        </div>
       </div>
-      <div style="margin-top:.75rem"><div style="font-size:.82rem;font-weight:700;margin-bottom:2px">Funil do mês</div>${vapSdrFunilSvg([
-        {rot:'Empresas prospectadas', n:prospectadas,      cor:'#E53E3E', txt:'#fff'},
-        {rot:'Leads novos',          n:leadsNovos,         cor:'#3B82F6', txt:'#fff'},
-        {rot:'Transferidos',         n:transfMes.length,   cor:'#38BDF8', txt:'#0C2D48'},
-        {rot:'Cadastros',            n:cadMes,             cor:'#0D9488', txt:'#fff'},
-        {rot:'Com venda',            n:clientesMes,        cor:'#22C55E', txt:'#fff'}
-      ])}</div>
       ${statusHtml}
     </div>`;
 }
