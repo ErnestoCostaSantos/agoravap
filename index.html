@@ -880,12 +880,25 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <label>Último contato</label>
             <select id="cart-filtro-resultado" style="width:100%">
               <option value="">Todos</option>
-              <option value="Pedido">Pedido</option>
-              <option value="Cotação">Cotação</option>
-              <option value="Sem contato">Sem contato</option>
-              <option value="Inicial">Inicial</option>
-              <option value="Aguardando">Aguardando</option>
-              <option value="Cadastro">Cadastro</option>
+              <optgroup label="Último lançamento do CRM">
+                <option value="Agendado">Agendado</option>
+                <option value="Fez Cotação">Fez Cotação</option>
+                <option value="Vendeu">Vendeu</option>
+                <option value="Cadastro">Cadastro</option>
+                <option value="Sem interesse">Sem interesse</option>
+                <option value="Não atendeu">Não atendeu</option>
+                <option value="Ctto Inválido">Ctto Inválido</option>
+                <option value="Promo via Whats">Promo via Whats</option>
+                <option value="Promo via E-mail">Promo via E-mail</option>
+                <option value="Transferido">Transferido</option>
+              </optgroup>
+              <optgroup label="Cadastro manual (clientes sem histórico no CRM)">
+                <option value="Pedido">Pedido</option>
+                <option value="Cotação">Cotação</option>
+                <option value="Sem contato">Sem contato</option>
+                <option value="Inicial">Inicial</option>
+                <option value="Aguardando">Aguardando</option>
+              </optgroup>
             </select>
           </div>
           <div class="ff" id="ff-cart-vendedor" style="display:none;min-width:150px">
@@ -1679,7 +1692,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <ul>
             <li><b>Campos do cliente</b> — Nome, Telefone, E-mail (opcional — habilita o botão ✉️ de envio de promoção por e-mail), Segmento (6 opções), Responsável, Cidade, Bairro, Data da Última Compra (formato DD/MM/AAAA com máscara automática) e Observações. <b>Resultado do Último Contato</b> e <b>Data do Último Contato</b> só ficam disponíveis para edição enquanto o cliente não tem nenhum lançamento no histórico do CRM — assim que o primeiro lançamento é feito, esses dois campos somem da edição e passam a ser calculados automaticamente (veja abaixo)</li>
             <li><b>Status Ativo/Inativo</b> — Calculado automaticamente: um cliente fica <b>Inativo</b> quando a Data da Última Compra está há mais de 6 meses; sem necessidade de marcar manualmente</li>
-            <li><b>Busca e filtros</b> — Por nome/responsável, Segmento, Status (Ativo/Inativo) e Resultado do Último Contato</li>
+            <li><b>Busca e filtros</b> — Por nome/responsável, Segmento, Status (Ativo/Inativo) e Último contato. O filtro "Último contato" segue o mesmo resultado que aparece no card do cliente: o do último lançamento do CRM (grupo "Último lançamento do CRM" na lista) ou, quando o cliente ainda não tem histórico, o do cadastro (grupo "Cadastro manual"). A data mostrada no card usa o horário de Brasília</li>
             <li><b>Adicionar / Editar / Excluir</b> — Cadastro manual pelo formulário (inclui e-mail e CEP), ou clique em Editar na lista</li>
             <li><b>Histórico de Relacionamento (CRM)</b> — Dois atalhos na coluna Ações de cada cliente: 🕘 <b>Histórico</b> abre o módulo CRM já filtrado nos lançamentos daquele cliente (do mais recente para o mais antigo), com um aviso "Histórico de: [nome]" mostrando todo o histórico dele, sem recorte de mês. Para sair desse modo, basta abrir a aba CRM novamente pelo menu superior (ela sempre volta à visão geral) ou navegar para outro módulo. O botão "+ Novo Lançamento", usado dentro desse histórico, já abre o lançamento vinculado a esse mesmo cliente, com Empresa/Responsável/Telefone/Segmento pré-preenchidos — igual ao atalho 📝 <b>Lançar</b> da Carteira, que faz o mesmo diretamente da lista. O "Resultado do Último Contato" mostrado na lista passa a refletir automaticamente o lançamento mais recente do histórico assim que existir um, e quando esse resultado é "Vendeu" a Data da Última Compra é atualizada sozinha</li>
             <li><b>Botão E-mail (✉️)</b> — Aparece na Carteira (e na lista do CRM, em lançamentos ligados a um cliente da Carteira) <b>só quando o cliente tem e-mail cadastrado</b>. Havendo promoção ativa, abre a mesma janela "Enviar promoção a [cliente]": escolha a promoção, toque em <b>"Baixar imagem"</b> e depois em <b>"Abrir e-mail"</b>. O app de e-mail do seu aparelho abre com assunto, "A/C [cliente]", nome da promoção, validade e a sua assinatura (nome, WhatsApp comercial, se cadastrado, e e-mail). <b>Anexe a imagem baixada</b> antes de enviar. O remetente é a conta de e-mail configurada no seu aparelho. O registro "Promo via E-mail" é gravado no histórico ao abrir o e-mail (registra a intenção de envio; o app não confirma que o e-mail saiu). O mesmo cliente pode receber a promoção por WhatsApp e por e-mail: cada canal gera o seu registro. O botão "Baixar imagem" sozinho não grava registro. A imagem que você anexa leva a marca d'água diagonal com o nome do cliente e o seu. <b>Resumo:</b> toque no ✉️, escolha a promoção, toque em Baixar imagem, depois em Abrir e-mail, anexe a imagem e envie.</li>
@@ -1722,6 +1735,39 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <div class="help-tip">O pop-up de lembrete abre só 1x por dia por usuário no fluxo automático (mesma lógica do pop-up de promoções); o botão "Pendências de Hoje" sempre mostra a situação atual, a qualquer hora.</div>
           <h4 style="margin:10px 0 4px">Leads recebidos da SDR</h4>
           <p>Quando uma SDR transfere um lead para você, o cliente entra na sua <b>Carteira</b> (com as Observações já preenchidas com o histórico dos contatos dela) e aparece no seu CRM uma linha com o Resultado <b>Transferido</b> (azul claro), que mostra o resumo dos contatos 1 a 3. A partir daí o acompanhamento é seu: <b>registre cada contato no CRM</b>. O lançamento <b>Vendeu</b> num cliente que veio da SDR é o que mede a conversão dela — sem esse registro a venda não aparece no painel dela. As linhas de prospecção da própria SDR não aparecem no seu CRM.</p>
+        </div>
+        <div class="divider"></div>
+
+        <!-- 2.9 COMO USAR CARTEIRA E CRM -->
+        <div class="help-section">
+          <h3>2.9 Como Usar os Módulos Carteira e CRM</h3>
+          <div style="overflow-x:auto;margin:.5rem 0">
+            <table class="help-table">
+              <tr><th>Se você usar o CRM dessa forma:</th><th>Acontece isso:</th></tr>
+              <tr><td>Clicar em <b>+ Novo Lançamento</b> e escolher o cliente na lista (ou digitar o nome <b>idêntico</b> ao da Carteira)</td><td>O lançamento fica vinculado: o card do cliente na Carteira passa a mostrar esse resultado e a data</td></tr>
+              <tr><td>Digitar o nome do cliente de outro jeito (outra grafia, acento diferente, "Ltda" a mais) ou clicar em "Desvincular" no aviso</td><td>Vira lançamento avulso: salva no CRM, mas <b>não aparece</b> na Carteira</td></tr>
+              <tr><td>Lançar com resultado <b>Vendeu</b> para um cliente vinculado</td><td>A Carteira grava a Data da Última Compra como hoje e o cliente fica <b>Ativo</b></td></tr>
+              <tr><td>Lançar <b>Vendeu</b> e a atualização da Data da Última Compra falhar</td><td>O lançamento é salvo, mas o app mostra o aviso ⚠️ de que a data <b>não foi atualizada</b> (o cliente pode continuar Inativo). Avise o Master</td></tr>
+              <tr><td>Lançar Fez Cotação, Agendado ou outro resultado (que não seja Vendeu)</td><td>O resultado aparece no card da Carteira, mas o cliente <b>não muda</b> de Ativo/Inativo</td></tr>
+              <tr><td><b>Editar</b> um lançamento antigo em vez de criar um novo</td><td>A Carteira continua mostrando o lançamento mais recente; o antigo editado não passa a ser o último</td></tr>
+              <tr><td>Clicar no <b>💬 WhatsApp</b> da lista do CRM</td><td>Registra automaticamente um lançamento "Promo via Whats" para o cliente</td></tr>
+            </table>
+          </div>
+          <div style="overflow-x:auto;margin:.5rem 0">
+            <table class="help-table">
+              <tr><th>Se você usar a Carteira dessa forma:</th><th>Acontece isso:</th></tr>
+              <tr><td>Clicar no <b>📝</b> (Novo lançamento) de um cliente e salvar uma Cotação</td><td>O lançamento é criado no <b>CRM</b>, já vinculado, e aparece no histórico e no card do cliente</td></tr>
+              <tr><td>Clicar no <b>📝</b> e salvar com resultado <b>Vendeu</b></td><td>O lançamento vai para o CRM e o cliente fica <b>Ativo</b></td></tr>
+              <tr><td>Clicar no <b>✏️</b> (Editar cliente) e mudar telefone, responsável ou segmento</td><td>Muda só o cadastro. As linhas antigas do CRM continuam com os dados antigos</td></tr>
+              <tr><td>Clicar no <b>✏️</b> de um cliente <b>sem histórico</b> no CRM e marcar o "Resultado do último contato"</td><td>Muda só o cadastro e <b>nada é criado no CRM</b>. O card mostra esse resultado até o primeiro lançamento no CRM</td></tr>
+              <tr><td>Clicar no <b>✏️</b> de um cliente que <b>já tem histórico</b> no CRM</td><td>O campo "Resultado do último contato" some e aparece um aviso: o resultado passa a ser calculado pelo CRM. Para registrar uma nova interação, use o <b>📝</b></td></tr>
+              <tr><td>Clicar no <b>botão de WhatsApp</b> do cliente</td><td>Registra no CRM um lançamento "Promo via Whats" (não registra Cotação)</td></tr>
+              <tr><td>Clicar no <b>✉️</b> e depois em "Abrir e-mail"</td><td>Registra no CRM um lançamento "Promo via E-mail"</td></tr>
+              <tr><td>Usar o filtro <b>Último contato</b></td><td>O filtro usa o mesmo resultado que o card mostra (o do último lançamento do CRM; sem histórico, o do cadastro)</td></tr>
+              <tr><td>Clicar no <b>🗑️</b> (Excluir cliente)</td><td>O cliente sai da Carteira. Os lançamentos dele continuam no CRM</td></tr>
+            </table>
+          </div>
+          <p style="font-size:.8rem;color:var(--gray)">O Módulo Carteira permite que você foque na sua lista de clientes e mantenha eles ativos.<br>O Módulo CRM permite que você se relacione melhor com todos os seus clientes.</p>
         </div>
         <div class="divider"></div>
 
@@ -8447,21 +8493,24 @@ async function vapProspSalvar(){
       if(liga) payload.origemLead = 'SDR';
     }
   }
+  let _msgOk = '', _falhaCompra = false;
   try{
     if(id){
       await updateDoc(doc(db,'prospeccoes',id), payload);
-      toast('Lançamento atualizado!');
+      _msgOk = 'Lançamento atualizado!';
     } else {
       payload.criadoEm = new Date().toISOString();
       await addDoc(collection(db,'prospeccoes'), payload);
-      toast('Lançamento registrado!');
+      _msgOk = 'Lançamento registrado!';
     }
     // Vinculado a um cliente da Carteira + resultado "Vendeu": atualiza a Data da
     // última compra do cliente, para o status Ativo/Inativo continuar refletindo a realidade.
     if(clienteId && resultado === 'Vendeu'){
       try{ await updateDoc(doc(db,'carteira_clientes',clienteId), { dataUltimaCompra: tod() }); }
-      catch(e){ console.warn('[CRM] não foi possível atualizar a última compra do cliente:', e); }
+      catch(e){ _falhaCompra = true; console.warn('[CRM] não foi possível atualizar a última compra do cliente:', e); }
     }
+    if(_falhaCompra) toast(_msgOk + ' ⚠️ Mas a Data da última compra do cliente NÃO foi atualizada (ele pode continuar Inativo). Avise o Master.', 8000);
+    else toast(_msgOk);
     closeModal('modal-prospeccao');
     vapProspLimparForm();
   } catch(e){
@@ -10659,6 +10708,21 @@ function cartUltimoHistorico(clienteId){
 }
 window.cartUltimoHistorico = cartUltimoHistorico;
 
+// Data local (Brasil) de um timestamp ISO em UTC — evita que um lançamento feito depois das 21h apareça com a data do dia seguinte
+function _cartDataLocalDeISO(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d.getTime())) return String(iso).slice(0,10);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+// Resultado que a Carteira EXIBE no card: o do último lançamento do CRM; sem histórico, o campo manual do cadastro.
+// O filtro "Último contato" usa o mesmo valor, para o card e o filtro sempre dizerem a mesma coisa.
+function _cartResultadoExibido(c){
+  const h = cartUltimoHistorico(c.id);
+  return h ? (h.resultado || '') : (c.resultadoUltimoContato || '');
+}
+
 function vapProspRenderTudo(){
   vapProspFiltroVendedorPreencher();
   const banner = $('prosp-filtro-cliente-banner');
@@ -11120,7 +11184,7 @@ function renderCarteiraLista(){
   let lista = _cartClientes.filter(c => {
     if(busca && !((c.nome||'').toLowerCase().includes(busca) || (c.responsavel||'').toLowerCase().includes(busca) || (c.email||'').toLowerCase().includes(busca) || (busca.replace(/\D/g,'').length>=3 && (c.cep||'').includes(busca.replace(/\D/g,''))))) return false;
     if(fSeg && c.segmento !== fSeg) return false;
-    if(fResult && c.resultadoUltimoContato !== fResult) return false;
+    if(fResult && _cartResultadoExibido(c) !== fResult) return false;
     if(fVend && c.uid !== fVend) return false;
     if(fStatus && cartStatus(c) !== fStatus) return false;
     return true;
@@ -11145,7 +11209,7 @@ function renderCarteiraLista(){
       const ultHist = cartUltimoHistorico(c.id);
       let rc, rcData, resultBadgeClass;
       if(ultHist){
-        rc = ultHist.resultado; rcData = ultHist.criadoEm ? ultHist.criadoEm.slice(0,10) : '';
+        rc = ultHist.resultado; rcData = ultHist.criadoEm ? _cartDataLocalDeISO(ultHist.criadoEm) : '';
         resultBadgeClass = ''; // usa cor própria do CRM (PROSP_CORES) abaixo
       } else {
         rc = c.resultadoUltimoContato; rcData = c.dataUltimoContato;
