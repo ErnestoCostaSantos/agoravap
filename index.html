@@ -890,6 +890,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
                 <option value="Ctto Inválido">Ctto Inválido</option>
                 <option value="Promo via Whats">Promo via Whats</option>
                 <option value="Promo via E-mail">Promo via E-mail</option>
+                <option value="Atualizado">Atualizado</option>
                 <option value="Transferido">Transferido</option>
               </optgroup>
               <optgroup label="Cadastro manual (clientes sem histórico no CRM)">
@@ -949,6 +950,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
               <option value="Cadastro">Cadastro</option>
               <option value="Promo via Whats">Promo via Whats</option>
           <option value="Promo via E-mail">Promo via E-mail</option>
+          <option value="Atualizado">Atualizado</option>
             </select>
           </div>
           <div class="field" id="ff-prosp-vendedor" style="display:none">
@@ -1715,11 +1717,11 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <h3>2.8 Módulo CRM</h3>
           <p>Registro diário de acompanhamento, prospecção e follow-up de contatos comerciais, com totalização diária/mensal, um sistema de lembretes de "Próximo Contato", relatórios extensíveis e vínculo direto com a Carteira de Clientes.</p>
           <ul>
-            <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Atualizar/Reativar — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, Fez Cotação, Vendeu, Ctto Inválido, Cadastro, Promo via Whats ou Promo via E-mail) e Próximo Contato. O resultado <b>Promo via Whats</b> é preenchido automaticamente quando o vendedor usa o botão WhatsApp da Carteira ou da lista do CRM (💬), e o <b>Promo via E-mail</b> quando usa o botão ✉️ — o botão 💬 do CRM também abre a janela "Enviar promoção" quando há promoção ativa — e também pode ser escolhido manualmente. Ao escolher <b>Promo via E-mail</b> em um <b>lançamento novo</b> (aberto pela Carteira, pelo CRM ou digitando o cliente), aparece o campo <b>E-mail do cliente</b> (já preenchido quando o cliente é da Carteira e tem e-mail; se for cliente avulso, digite) e, ao salvar, abre a janela "Enviar promoção": o lançamento só é registrado quando você toca em "Abrir e-mail" (se fechar a janela, nada é registrado). <b>Prospecto que ainda não está na Carteira:</b> digite o nome da empresa e o e-mail e envie normalmente — o lançamento fica <b>avulso no CRM</b> e <b>nada é cadastrado na Carteira</b>. Cadastrar na Carteira é opcional, por decisão do vendedor, caso o prospecto demonstre interesse. O e-mail digitado vale só para aquele envio e não fica guardado: ao cadastrar o cliente, digite-o de novo. Os envios avulsos anteriores não se ligam sozinhos ao cliente cadastrado depois; a partir do cadastro, digite o nome exatamente como está na Carteira para os próximos lançamentos entrarem no histórico dele. Nesses lançamentos, o campo Local mostra "Promoção: [nome]"; o Master pode filtrar por esse resultado (e ver a contagem por vendedor nos gráficos) para acompanhar quem envia promoções pelo app</li>
+            <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Atualizar/Reativar — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, Fez Cotação, Vendeu, Ctto Inválido, Cadastro, Promo via Whats, Promo via E-mail ou Atualizado) e Próximo Contato. O resultado <b>Atualizado</b> é provisório: serve para registrar que o cliente foi conferido e atualizado a partir da lista impressa da carteira. Ao escolhê-lo, o Tipo muda sozinho para Atualizar/Reativar; ele aparece no card da Carteira e nos filtros, mas <b>não entra no gráfico</b>, não muda Ativo/Inativo e não encerra pendência. O resultado <b>Promo via Whats</b> é preenchido automaticamente quando o vendedor usa o botão WhatsApp da Carteira ou da lista do CRM (💬), e o <b>Promo via E-mail</b> quando usa o botão ✉️ — o botão 💬 do CRM também abre a janela "Enviar promoção" quando há promoção ativa — e também pode ser escolhido manualmente. Ao escolher <b>Promo via E-mail</b> em um <b>lançamento novo</b> (aberto pela Carteira, pelo CRM ou digitando o cliente), aparece o campo <b>E-mail do cliente</b> (já preenchido quando o cliente é da Carteira e tem e-mail; se for cliente avulso, digite) e, ao salvar, abre a janela "Enviar promoção": o lançamento só é registrado quando você toca em "Abrir e-mail" (se fechar a janela, nada é registrado). <b>Prospecto que ainda não está na Carteira:</b> digite o nome da empresa e o e-mail e envie normalmente — o lançamento fica <b>avulso no CRM</b> e <b>nada é cadastrado na Carteira</b>. Cadastrar na Carteira é opcional, por decisão do vendedor, caso o prospecto demonstre interesse. O e-mail digitado vale só para aquele envio e não fica guardado: ao cadastrar o cliente, digite-o de novo. Os envios avulsos anteriores não se ligam sozinhos ao cliente cadastrado depois; a partir do cadastro, digite o nome exatamente como está na Carteira para os próximos lançamentos entrarem no histórico dele. Nesses lançamentos, o campo Local mostra "Promoção: [nome]"; o Master pode filtrar por esse resultado (e ver a contagem por vendedor nos gráficos) para acompanhar quem envia promoções pelo app</li>
             <li><b>Vínculo automático com a Carteira</b> — Se o texto digitado em Empresa bater com um cliente já cadastrado, o lançamento vincula automaticamente: aparece o aviso "🔗 Vinculado à Carteira de Clientes", e Responsável/Telefone/Segmento são preenchidos a partir do cadastro do cliente. Esse lançamento passa a contar no histórico do cliente (veja 2.7). Para registrar como lançamento avulso, fora da Carteira (por exemplo uma prospecção de empresa nova), clique em "Desvincular" no próprio aviso. Quando o Resultado é "Vendeu" e há vínculo, a Data da Última Compra do cliente é atualizada automaticamente</li>
             <li><b>Próximo Contato</b> — Pode ser digitado ou escolhido num calendário; é a data usada pelo lembrete de pendências (veja abaixo)</li>
             <li><b>Totais e filtros</b> — Contadores "Hoje" e "Este Mês" no topo (ambos respeitam os mesmos filtros de Vendedor e Resultado aplicados na tela, para os números ficarem sempre consistentes entre si); filtros por Mês, Resultado e (Líder/Master/SuperAdmin) por Vendedor</li>
-            <li><b>Gráfico "Resultado do Mês por Vendedor"</b> — Visível para Líder/Master/SuperAdmin, mostra a distribuição de Resultados por vendedor no mês selecionado. Um seletor acima do gráfico alterna entre três visões: <b>Prospecção</b> (só lançamentos Tipo Prospecção — visão padrão ao abrir a tela), <b>Manutenção de Carteira</b> (Tipo Acompanhamento ou Atualizar/Reativar) e <b>Tudo</b> (todos os Tipos juntos). O card fica oculto quando não há nenhum lançamento no mês para a categoria selecionada</li>
+            <li><b>Gráfico "Resultado do Mês por Vendedor"</b> — Visível para Líder/Master/SuperAdmin, mostra a distribuição de Resultados por vendedor no mês selecionado. Um seletor acima do gráfico alterna entre três visões: <b>Prospecção</b> (só lançamentos Tipo Prospecção — visão padrão ao abrir a tela), <b>Manutenção de Carteira</b> (Tipo Acompanhamento ou Atualizar/Reativar) e <b>Tudo</b> (todos os Tipos juntos). O card fica oculto quando não há nenhum lançamento no mês para a categoria selecionada. O resultado provisório <b>Atualizado</b> não é contado no gráfico</li>
             <li><b>📊 Relatórios</b> — Botão que abre um modal com relatórios do CRM, com uma lista de tipos que cresce ao longo do tempo. Hoje com dois: <b>Ativos/Inativos</b> (período em meses configurável, padrão 3 — independente dos 6 meses fixos do status Ativo/Inativo da Carteira) e <b>Resultados por Vendedor</b> (por mês). Master e Super Admin filtram por vendedor no primeiro; Líder, Master e Super Admin no segundo. Botão "Baixar PDF" imprime o relatório aberto no momento</li>
             <li><b>Baixar PDF do mês</b> — Gera um relatório para impressão com todos os lançamentos do mês/filtros selecionados, de qualquer Tipo</li>
           </ul>
@@ -1749,6 +1751,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
               <tr><td>Lançar com resultado <b>Vendeu</b> para um cliente vinculado</td><td>A Carteira grava a Data da Última Compra como hoje e o cliente fica <b>Ativo</b></td></tr>
               <tr><td>Lançar <b>Vendeu</b> e a atualização da Data da Última Compra falhar</td><td>O lançamento é salvo, mas o app mostra o aviso ⚠️ de que a data <b>não foi atualizada</b> (o cliente pode continuar Inativo). Avise o Master</td></tr>
               <tr><td>Lançar Fez Cotação, Agendado ou outro resultado (que não seja Vendeu)</td><td>O resultado aparece no card da Carteira, mas o cliente <b>não muda</b> de Ativo/Inativo</td></tr>
+              <tr><td>Lançar com resultado <b>Atualizado</b> (conferência da lista impressa)</td><td>O Tipo muda sozinho para Atualizar/Reativar. O card da Carteira mostra "Atualizado" e o filtro encontra o cliente, mas o lançamento <b>não aparece no gráfico</b>, não muda Ativo/Inativo e não encerra pendência</td></tr>
               <tr><td><b>Editar</b> um lançamento antigo em vez de criar um novo<br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> toque no botão de texto <b>Editar</b> na linha do lançamento</span></td><td>A Carteira continua mostrando o lançamento mais recente; o antigo editado não passa a ser o último</td></tr>
               <tr><td>Clicar no botão <b>WhatsApp</b> da lista do CRM<br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> toque em 💬 na linha do lançamento (só aparece se houver telefone)</span></td><td>Registra automaticamente um lançamento "Promo via Whats" para o cliente</td></tr>
               <tr><td>Clicar no botão <b>E-mail</b> da lista do CRM<br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> toque em ✉️ na linha do lançamento (só aparece se o cliente vinculado tem e-mail)</span></td><td>Abre a janela "Enviar promoção". O lançamento "Promo via E-mail" só é registrado ao tocar em "Abrir e-mail"</td></tr>
@@ -1760,6 +1763,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
               <tr><th>Se você usar a Carteira dessa forma:</th><th>Acontece isso:</th></tr>
               <tr><td>Clicar em <b>Novo lançamento</b> de um cliente e salvar uma Cotação<br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> na linha do cliente, toque em 📝</span></td><td>O lançamento é criado no <b>CRM</b>, já vinculado, e aparece no histórico e no card do cliente</td></tr>
               <tr><td>Clicar em <b>Novo lançamento</b> e salvar com resultado <b>Vendeu</b><br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> na linha do cliente, toque em 📝</span></td><td>O lançamento vai para o CRM e o cliente fica <b>Ativo</b></td></tr>
+              <tr><td>Clicar em <b>Novo lançamento</b> e salvar com resultado <b>Atualizado</b> (conferência da lista impressa)<br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> na linha do cliente, toque em 📝</span></td><td>O lançamento vai para o CRM, o Tipo muda sozinho para Atualizar/Reativar e o card mostra "Atualizado". Não muda Ativo/Inativo e não aparece no gráfico</td></tr>
               <tr><td>Clicar em <b>Editar cliente</b> e mudar telefone, responsável ou segmento<br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> na linha do cliente, toque em ✏️</span></td><td>Muda só o cadastro. As linhas antigas do CRM continuam com os dados antigos</td></tr>
               <tr><td>Clicar em <b>Editar cliente</b> de um cliente <b>sem histórico</b> no CRM e marcar o "Resultado do último contato"<br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> na linha do cliente, toque em ✏️</span></td><td>Muda só o cadastro e <b>nada é criado no CRM</b>. O card mostra esse resultado até o primeiro lançamento no CRM</td></tr>
               <tr><td>Clicar em <b>Editar cliente</b> de um cliente que <b>já tem histórico</b> no CRM<br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> na linha do cliente, toque em ✏️</span></td><td>O campo "Resultado do último contato" some e aparece um aviso: o resultado passa a ser calculado pelo CRM. Para registrar uma nova interação, use o <b>Novo lançamento</b></td></tr>
@@ -2567,6 +2571,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <option value="Cadastro">Cadastro</option>
           <option value="Promo via Whats">Promo via Whats</option>
           <option value="Promo via E-mail">Promo via E-mail</option>
+          <option value="Atualizado">Atualizado</option>
         </select>
       </div>
     </div>
@@ -8416,10 +8421,11 @@ function _selSeg(id, v){
 }
 const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido','Cadastro','Promo via Whats','Promo via E-mail','Transferido'];
 // O que o vendedor pode escolher ao lançar ("Transferido" só nasce da transferência da SDR)
-const PROSP_RESULTADOS_VENDEDOR = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido','Cadastro','Promo via Whats','Promo via E-mail'];
+// "Atualizado" = resultado provisório (atualização da carteira por lista impressa): fica só aqui, de propósito FORA de PROSP_RESULTADOS, para não entrar no gráfico
+const PROSP_RESULTADOS_VENDEDOR = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido','Cadastro','Promo via Whats','Promo via E-mail','Atualizado'];
 // O que a SDR pode escolher (ordem do fluxo: segue, qualifica/transfere, ou encerra)
 const PROSP_RESULTADOS_SDR = ['Agendado','Não atendeu','Aguardando','Transferido','Não qualificado','Sem interesse','Sem potencial','Ctto Inválido'];
-const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444','Cadastro':'#0D9488','Promo via Whats':'#EC4899','Promo via E-mail':'#6366F1','Transferido':'#38BDF8','Não qualificado':'#64748B','Sem potencial':'#6B7280','Aguardando':'#A16207'};
+const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444','Cadastro':'#0D9488','Promo via Whats':'#EC4899','Promo via E-mail':'#6366F1','Transferido':'#38BDF8','Atualizado':'#92400E','Não qualificado':'#64748B','Sem potencial':'#6B7280','Aguardando':'#A16207'};
 const PROSP_TIPOS = ['Acompanhamento','Prospecção','Atualizar/Reativar'];
 // Resultados que "encerram" um lançamento — deixam de contar como pendência mesmo com Próximo Contato vencido
 const PROSP_RESULTADOS_FINAIS = ['Vendeu','Sem interesse','Ctto Inválido','Transferido','Não qualificado','Sem potencial'];
@@ -8464,11 +8470,12 @@ async function vapProspSalvar(){
   const id = $('prosp-id').value;
   const empresa = $('prosp-empresa').value.trim();
   const responsavel = $('prosp-responsavel').value.trim();
-  const tipo = $('prosp-tipo').value || PROSP_TIPOS[1];
+  let tipo = $('prosp-tipo').value || PROSP_TIPOS[1];
   const segmento = $('prosp-segmento').value;
   const telefone = $('prosp-telefone').value.trim();
   const local = $('prosp-local').value.trim();
   const resultado = $('prosp-resultado').value;
+  if(resultado === 'Atualizado') tipo = 'Atualizar/Reativar'; // "Atualizado" sempre conta como Manutenção de Carteira
   const proximoContato = $('prosp-proximo').value || ''; // input type=date já entrega YYYY-MM-DD
   const clienteId = $('prosp-cliente-id')?.value || '';
   if(!empresa){ toast('Informe a empresa.'); return; }
@@ -10822,6 +10829,7 @@ function vapProspRenderGrafico(){
   // Filtra pelo Tipo do lançamento conforme a categoria escolhida no toggle acima
   // (lançamentos antigos sem campo Tipo salvo são tratados como Prospecção por compatibilidade)
   const lista = vapProspListaDoMes().filter(p=>{
+    if(p.resultado==='Atualizado') return false; // provisório: sem representação no gráfico
     if(_prospGraficoFiltro==='Tudo') return true;
     if(_prospGraficoFiltro==='Prospeccao') return !p.tipo || p.tipo==='Prospecção';
     return PROSP_TIPOS_MANUTENCAO.includes(p.tipo);
@@ -10894,7 +10902,7 @@ function vapInitProspeccaoUI(){
   $('btn-prosp-pdf') && ($('btn-prosp-pdf').onclick = vapProspBaixarPDF);
   $('btn-prosp-pendencias') && ($('btn-prosp-pendencias').onclick = () => vapAbrirPopupCRM(false));
   $('prosp-filtro-resultado') && ($('prosp-filtro-resultado').onchange = vapProspRenderTudo);
-  $('prosp-resultado') && ($('prosp-resultado').onchange = () => { vapSdrToggleTransf(); vapProspAtualizarEmailCampo(); });
+  $('prosp-resultado') && ($('prosp-resultado').onchange = () => { vapSdrToggleTransf(); vapProspAtualizarEmailCampo(); if($('prosp-resultado').value==='Atualizado') vapProspSelecionarTipo('Atualizar/Reativar'); });
   $('prosp-email') && ($('prosp-email').oninput = () => { $('prosp-email').dataset.auto = ''; });
   $('prosp-proximo') && ($('prosp-proximo').onchange = () => atualizarProspProximoFmt());
   $('prosp-telefone') && ($('prosp-telefone').oninput = () => cartMaskTelefone($('prosp-telefone')));
