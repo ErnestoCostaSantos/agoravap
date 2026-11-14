@@ -242,6 +242,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
 .adm-table .act{display:flex;gap:5px;flex-wrap:wrap}
 .cart-table{table-layout:fixed;width:100%;min-width:var(--cw,1000px)}
 .cart-table th,.cart-table td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;max-width:0}
+.cart-table th,.cart-table td{padding-left:8px;padding-right:8px}
 .cart-table td{height:46px;padding-top:4px;padding-bottom:4px;line-height:1.25}
 .cart-table td.cart-acoes{overflow:visible;max-width:none}
 .cart-table .act{flex-wrap:nowrap;gap:4px}
@@ -11216,7 +11217,7 @@ function renderCarteiraLista(){
   if(!lista.length){ wrap.innerHTML = '<div class="empty">Nenhum cliente encontrado.</div>'; return; }
 
   const mostraVend = veTodaEmpresa && !fVend; // lista de um único vendedor: coluna Vendedor some
-  const _cw = mostraVend ? [200,140,95,110,125,85,115,235] : [225,140,100,115,125,85,235];
+  const _cw = mostraVend ? [180,120,80,90,100,70,100,232] : [190,125,85,95,105,72,232];
   wrap.innerHTML = `<div style="overflow-x:auto"><table class="adm-table cart-table" style="--cw:${_cw.reduce((a,b)=>a+b,0)}px"><colgroup>${_cw.map(w=>`<col style="width:${w}px">`).join('')}</colgroup>
     <thead><tr>
       <th>Nome</th><th>Telefone</th><th>Segmento</th><th>Cidade/Bairro</th>
