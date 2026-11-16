@@ -1816,7 +1816,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <p>Na tela de login, clique em "Recuperar acesso". Um e-mail com link de redefinição será enviado.</p>
 
           <h3>Logout automático por inatividade</h3>
-          <p>Após <b>4 minutos</b> sem atividade (<b>10 minutos</b> na Dealer e nas empresas com o módulo Óleos, como a Royal), o sistema encerra a sessão automaticamente e retorna à tela de login.</p>
+          <p>Após <b>60 minutos</b> sem atividade (limite temporário), o sistema encerra a sessão automaticamente e retorna à tela de login. Usuários com liberação específica, definida pelo administrador do sistema, não têm esse logout.</p>
         </div>
         <div class="divider"></div>
 
@@ -3343,13 +3343,16 @@ $('btn-logout').onclick = async () => {
 };
 
 // ── INATIVIDADE (4 minutos; 10 minutos nas empresas com módulo Óleos e na Dealer) ──
-const INACTIVITY_MS = 4 * 60 * 1000;
-const INACTIVITY_OLEOS_MS = 10 * 60 * 1000;
+// TEMPORÁRIO (16/11/2026): 60 min para todos. Valores normais: 4 min (padrão) e 10 min (Óleos/Dealer).
+const INACTIVITY_MS = 60 * 60 * 1000;
+const INACTIVITY_OLEOS_MS = 60 * 60 * 1000;
 let _inactTimer = null;
 
 function resetInactivityTimer() {
   if (!cu) return;
   clearTimeout(_inactTimer);
+  // Exceção: usuário com o campo semLogoutInatividade = true no cadastro (users/{uid}) não é deslogado por inatividade
+  if (cp && cp.semLogoutInatividade === true) return;
   _inactTimer = setTimeout(async () => {
     $('inactivity-bar').style.display = 'block';
     [unRecs, unUsers, unMetas, unPerdasDash].forEach(u => u && u());
