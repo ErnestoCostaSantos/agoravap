@@ -1816,7 +1816,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <p>Na tela de login, clique em "Recuperar acesso". Um e-mail com link de redefinição será enviado.</p>
 
           <h3>Logout automático por inatividade</h3>
-          <p>Após <b>60 minutos</b> sem atividade (limite temporário), o sistema encerra a sessão automaticamente e retorna à tela de login. Usuários com liberação específica, definida pelo administrador do sistema, não têm esse logout.</p>
+          <p>Após <b>10 horas</b> sem atividade, o sistema encerra a sessão automaticamente e retorna à tela de login. Usuários com liberação específica, definida pelo administrador do sistema, não têm esse logout.</p>
         </div>
         <div class="divider"></div>
 
@@ -3355,9 +3355,9 @@ $('btn-logout').onclick = async () => {
 };
 
 // ── INATIVIDADE (4 minutos; 10 minutos nas empresas com módulo Óleos e na Dealer) ──
-// TEMPORÁRIO (16/11/2026): 60 min para todos. Valores normais: 4 min (padrão) e 10 min (Óleos/Dealer).
-const INACTIVITY_MS = 60 * 60 * 1000;
-const INACTIVITY_OLEOS_MS = 60 * 60 * 1000;
+// 17/11/2026: limite de 10 horas para todos (pedido dos usuários). Valores antigos: 4 min (padrão) e 10 min (Óleos/Dealer).
+const INACTIVITY_MS = 10 * 60 * 60 * 1000;
+const INACTIVITY_OLEOS_MS = 10 * 60 * 60 * 1000;
 let _inactTimer = null;
 
 function resetInactivityTimer() {
