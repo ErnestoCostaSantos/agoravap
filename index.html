@@ -109,6 +109,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--dark);min-height:1
   #auth-screen.auth-royal .royal-foot{position:absolute;left:0;right:0;bottom:0}
 }
 
+/* Aceite dos documentos (Termos, Privacidade, Segurança) */
+#auth-screen .doc-links{flex-basis:100%;text-align:center;font-size:.76rem;line-height:1.6}
+#auth-screen .doc-links a{color:inherit;text-decoration:underline;white-space:nowrap}
+#auth-screen .auth-footer .doc-links{margin-bottom:.4rem}
+#auth-screen.auth-royal .royal-foot{flex-wrap:wrap}
+#auth-screen .ac-lista{display:flex;flex-direction:column;gap:.7rem;margin:.4rem 0 1rem;background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:10px;padding:.85rem .9rem}
+#auth-screen .ac-linha{display:flex;align-items:center;gap:12px;font-size:.92rem;color:#1C2833;cursor:pointer;line-height:1.35}
+#auth-screen .ac-linha input[type=checkbox]{width:26px;min-width:26px;height:26px;margin:0;padding:0;accent-color:#C53030;flex:none}
+#auth-screen .ac-linha a{color:#C53030;font-weight:700;text-decoration:underline}
+#auth-screen .ac-intro{font-size:.9rem;color:#1C2833;line-height:1.5;margin:0 0 .6rem}
+#auth-screen .ac-sair{display:block;width:100%;margin-top:.7rem;background:none;border:0;color:#1C2833;font:600 .92rem var(--font);cursor:pointer;text-decoration:underline}
+#auth-screen.auth-royal .ac-linha input[type=checkbox]{accent-color:#0b3aa8}
+#auth-screen.auth-royal .ac-linha a{color:#0b3aa8}
+
 .first-login-badge{background:#FFF9C4;border:1px solid #F9A825;border-radius:var(--rsm);padding:8px 12px;font-size:.8rem;color:#7B4F00;margin-bottom:.9rem;display:none}
 .inactivity-bar{position:fixed;bottom:0;left:0;right:0;background:#C53030;color:#fff;font-size:.78rem;text-align:center;padding:6px;z-index:9999;display:none}
 
@@ -554,7 +568,17 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
         </div>
         <div class="pw-hint" id="hint-pw2"></div>
       </div>
+      <div class="ac-lista" id="pr-ac-lista"></div>
       <button class="btn-auth" id="btn-primeiro">Criar senha e entrar</button>
+    </div>
+
+    <!-- ── TELA: ANTES DE CONTINUAR (aceite dos documentos, só quando a versão muda) ── -->
+    <div id="form-aceite" style="display:none">
+      <div style="margin-bottom:.8rem"><h2 style="font-size:1.25rem;margin:0 0 .3rem;color:#7B1F1F">Antes de continuar</h2></div>
+      <p class="ac-intro">Para continuar, leia os documentos abaixo (toque no nome para abrir) e marque para confirmar que você leu e aceita.</p>
+      <div class="ac-lista" id="ac-lista"></div>
+      <button class="btn-auth" id="btn-aceite">Continuar</button>
+      <button type="button" class="ac-sair" id="btn-aceite-sair">Sair</button>
     </div>
 
     <!-- ── TELA 3: RECUPERAR SENHA ── -->
@@ -584,10 +608,12 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
   <div class="royal-foot royal-only">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
     <span>Tratamento de dados conforme a LGPD</span>
+    <div class="doc-links" data-doc-links></div>
   </div>
 
   <!-- Rodapé institucional -->
   <div class="auth-footer">
+    <div class="doc-links" data-doc-links></div>
     Elaborado pela <strong>ECS Consultoria e Treinamento</strong>.<br/>
     Parte integrante do <strong>Método VAP! Vendas de Alta Performance</strong>.<br/>
     Responsável: <strong>Ernesto Costa Santos</strong><br/>
@@ -3187,7 +3213,7 @@ function clearFields() {
   });
 }
 function showForm(name) {
-  ['form-login','form-primeiro','form-forgot'].forEach(id => {
+  ['form-login','form-primeiro','form-aceite','form-forgot'].forEach(id => {
     const el = $(id); if (el) el.style.display = id === name ? 'block' : 'none';
   });
   clearFields();
@@ -3310,6 +3336,58 @@ $('btn-forgot').onclick = async () => {
   }
 };
 
+// ── ACEITE DOS DOCUMENTOS (Termos, Privacidade e Segurança) ─────────────
+// Pedido uma vez no primeiro acesso e de novo só quando VERSAO_DOCS mudar.
+// Para exigir novo aceite de todos: suba VERSAO_DOCS (ex.: "1.0" → "1.1").
+const VERSAO_DOCS = '1.0';
+const DOCS_ACEITE = [
+  { id: 'termos',      nome: 'Termos de Uso',            url: 'https://coachdevendas.com.br/documentos/agoravap/termos.pdf' },
+  { id: 'privacidade', nome: 'Política de Privacidade',  url: 'https://coachdevendas.com.br/documentos/agoravap/privacidade.pdf' },
+  { id: 'seguranca',   nome: 'Política de Segurança',    url: 'https://coachdevendas.com.br/documentos/agoravap/seguranca.pdf' }
+];
+function montarAceite(caixa) {
+  if (!caixa) return;
+  caixa.replaceChildren();
+  DOCS_ACEITE.forEach(dc => {
+    const lab = document.createElement('label'); lab.className = 'ac-linha';
+    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.dataset.doc = dc.id;
+    const sp = document.createElement('span'); sp.append('Li e aceito: ');
+    const a = document.createElement('a'); a.textContent = dc.nome; a.href = dc.url; a.target = '_blank'; a.rel = 'noopener';
+    sp.append(a); lab.append(cb, sp); caixa.append(lab);
+  });
+}
+function aceiteMarcado(caixa) {
+  const cbs = caixa ? caixa.querySelectorAll('input[type=checkbox]') : [];
+  return cbs.length > 0 && Array.prototype.every.call(cbs, c => c.checked);
+}
+function dadosAceite() {
+  return { versao: VERSAO_DOCS, em: new Date().toISOString(), docs: DOCS_ACEITE.map(d => d.id) };
+}
+function aceiteEmDia(perfil) { return !!(perfil && perfil.aceite && perfil.aceite.versao === VERSAO_DOCS); }
+// Links dos documentos na tela de login (sem caixa: quem entra já aceitou ou vai aceitar logo depois)
+document.querySelectorAll('[data-doc-links]').forEach(box => {
+  DOCS_ACEITE.forEach((dc, i) => {
+    if (i) box.append(' · ');
+    const a = document.createElement('a'); a.textContent = dc.nome; a.href = dc.url; a.target = '_blank'; a.rel = 'noopener';
+    box.append(a);
+  });
+});
+montarAceite($('pr-ac-lista'));
+
+let _aceiteUid = null;
+$('btn-aceite').onclick = async () => {
+  if (!aceiteMarcado($('ac-lista'))) { showErr('Marque os três documentos para continuar.'); return; }
+  $('btn-aceite').textContent = 'Salvando...'; $('btn-aceite').disabled = true;
+  try {
+    await updateDoc(doc(db, 'users', _aceiteUid), { aceite: dadosAceite(), updatedAt: new Date().toISOString() });
+    window.location.reload();
+  } catch (err) {
+    showErr('Erro ao salvar: ' + (err.code || err.message));
+    $('btn-aceite').textContent = 'Continuar'; $('btn-aceite').disabled = false;
+  }
+};
+$('btn-aceite-sair').onclick = async () => { await signOut(auth); window.location.reload(); };
+
 // ── PRIMEIRO ACESSO — criar nome e senha ───────────────────
 let _primeiroUid = null, _primeiroEmail = null;
 
@@ -3325,6 +3403,7 @@ $('btn-primeiro').onclick = async () => {
     return;
   }
   if (!validatePw(pass)) { showErr('Senha nao atende aos criterios minimos.'); return; }
+  if (!aceiteMarcado($('pr-ac-lista'))) { showErr('Marque os três documentos para continuar.'); return; }
   if (pass !== pass2) {
     if ($('hint-pw2')) { $('hint-pw2').textContent = 'As senhas nao coincidem.'; $('hint-pw2').style.color = '#C53030'; }
     return;
@@ -3334,7 +3413,7 @@ $('btn-primeiro').onclick = async () => {
   try {
     await updatePassword(auth.currentUser, pass);
     await updateDoc(doc(db, 'users', _primeiroUid), {
-      name: nome, firstLogin: false, tempPass: deleteField(), updatedAt: new Date().toISOString()
+      name: nome, firstLogin: false, tempPass: deleteField(), aceite: dadosAceite(), updatedAt: new Date().toISOString()
     });
     // Recarrega para iniciar sessão limpa com dados atualizados
     window.location.reload();
@@ -3418,6 +3497,16 @@ onAuthStateChanged(auth, async user => {
       $('auth-screen').style.display = 'flex';
       $('app').style.display = 'none';
       showForm('form-primeiro');
+      return;
+    }
+
+    // Aceite dos documentos: só quando a versão mudou (ou nunca aceitou). SuperAdmin (ECS) fica de fora.
+    if (cp.role !== 'superadmin' && !aceiteEmDia(cp)) {
+      _aceiteUid = user.uid;
+      montarAceite($('ac-lista'));
+      $('auth-screen').style.display = 'flex';
+      $('app').style.display = 'none';
+      showForm('form-aceite');
       return;
     }
 
