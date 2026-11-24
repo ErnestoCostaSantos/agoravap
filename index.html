@@ -10369,16 +10369,18 @@ function vapSdrPainelRender(){
   const transfLinhas = _prospLista.filter(p=>p.resultado==='Transferido' && noPeriodo(p.transferidoEm || _sdrDataLocal(p.criadoEm)) && okCamp(p.campanha));
 
   // 5) Vendas: linhas "Vendeu" dos vendedores (clientes que vieram desta SDR)
-  const campPorLead = {}; _prospLista.forEach(p=>{ if(p.leadId && p.campanha) campPorLead[p.leadId] = p.campanha; });
+  const campPorLead = {}, campPorCli = {}; _prospLista.forEach(p=>{ if(p.leadId && p.campanha) campPorLead[p.leadId] = p.campanha; if(p.clienteId && p.campanha) campPorCli[p.clienteId] = p.campanha; });
+  // A campanha é da SDR: as linhas do vendedor (Cadastro/Vendeu) não têm leadId, então a campanha vem do cliente transferido
+  const campDe = p => campPorLead[p.leadId] || campPorCli[p.clienteId];
   const vendasTodas = _prospListaVend.filter(p=>p.resultado==='Vendeu');
-  const vendasPer = vendasTodas.filter(p=>noPeriodo(_sdrDataLocal(p.criadoEm)) && okCamp(campPorLead[p.leadId]));
+  const vendasPer = vendasTodas.filter(p=>noPeriodo(_sdrDataLocal(p.criadoEm)) && okCamp(campDe(p)));
   const clientesVenda = new Set(vendasPer.map(p=>p.clienteId || p.id)).size;
   // Cadastros: clientes distintos com uma linha do vendedor "Cadastro" (ou "Vendeu", que pressupõe cadastro) no período
-  const cadPer = _prospListaVend.filter(p=>(p.resultado==='Cadastro' || p.resultado==='Vendeu') && noPeriodo(_sdrDataLocal(p.criadoEm)) && okCamp(campPorLead[p.leadId]));
+  const cadPer = _prospListaVend.filter(p=>(p.resultado==='Cadastro' || p.resultado==='Vendeu') && noPeriodo(_sdrDataLocal(p.criadoEm)) && okCamp(campDe(p)));
   const clientesCad = new Set(cadPer.map(p=>p.clienteId || p.id)).size;
   // Conversão acumulada (todos os transferidos x clientes que já compraram) — não depende do período
   const transfTodos = _prospLista.filter(p=>p.resultado==='Transferido' && okCamp(p.campanha));
-  const compraram = new Set(vendasTodas.filter(p=>okCamp(campPorLead[p.leadId])).map(p=>p.clienteId || p.id)).size;
+  const compraram = new Set(vendasTodas.filter(p=>okCamp(campDe(p))).map(p=>p.clienteId || p.id)).size;
   const convAcum = transfTodos.length ? Math.round(compraram/transfTodos.length*100) : 0;
 
   // 6) Valor vendido (informado)
@@ -10418,7 +10420,7 @@ function vapSdrPainelRender(){
     const dias = (a,b)=>Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00'))/86400000);
     const transfPorCli = {}; transfTodos.forEach(t=>{ if(t.clienteId) transfPorCli[t.clienteId] = t; });
     const vendasCli = {};
-    vendasTodas.forEach(v=>{ if(v.clienteId && okCamp(campPorLead[v.leadId])) (vendasCli[v.clienteId] = vendasCli[v.clienteId] || []).push(v); });
+    vendasTodas.forEach(v=>{ if(v.clienteId && okCamp(campDe(v))) (vendasCli[v.clienteId] = vendasCli[v.clienteId] || []).push(v); });
     const linhasC = Object.keys(vendasCli).map(cid=>{
       const vs = vendasCli[cid].map(v=>({v, d:_sdrDataLocal(v.criadoEm)})).filter(x=>x.d).sort((a,b)=>a.d.localeCompare(b.d));
       if(!vs.length || !vs.some(x=>noPeriodo(x.d))) return null;
