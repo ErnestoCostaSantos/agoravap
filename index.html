@@ -10898,6 +10898,7 @@ function vapProspRenderLista(){
       <div style="flex:1;min-width:200px">
         <div style="font-weight:600">${p.empresa||'—'}${veTodaEmpresa?` <span style="font-weight:400;font-size:.72rem;color:var(--gray)">· ${p.vendedorNome||prospNomeVendedor(p.uid)}</span>`:''}</div>
         <div style="font-size:.78rem;color:var(--gray)">${p.responsavel||'—'} · ${p.segmento||'—'}${p.localSaturacao?' · '+p.localSaturacao:''}${p.tipo?' · '+p.tipo:''}</div>
+        ${p.criadoEm?`<div style="font-size:.75rem;color:var(--gray)">📅 Lançado em ${(()=>{const d=new Date(p.criadoEm);return isNaN(d)?'—':d.toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});})()}</div>`:''}
         ${p.proximoContato?`<div style="font-size:.75rem;color:var(--gray)">Próximo contato: ${cartISOtoBR(p.proximoContato)}</div>`:''}
         ${p.resumoSdr?`<div style="font-size:.75rem;color:#0369A1">${String(p.resumoSdr).replace(/</g,'&lt;')}</div>`:''}
       </div>
