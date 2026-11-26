@@ -1792,6 +1792,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
               <tr><td>Lançar <b>Vendeu</b> e a atualização da Data da Última Compra falhar</td><td>O lançamento é salvo, mas o app mostra o aviso ⚠️ de que a data <b>não foi atualizada</b> (o cliente pode continuar Inativo). Avise o Master</td></tr>
               <tr><td>Lançar Fez Cotação, Agendado ou outro resultado (que não seja Vendeu)</td><td>O resultado aparece no card da Carteira, mas o cliente <b>não muda</b> de Ativo/Inativo</td></tr>
               <tr><td>Preencher à mão a <b>Data da Última Compra</b> no cadastro (✏️) ou salvar o cadastro com o resultado <b>Pedido</b></td><td>O cliente passa a <b>Ativo</b> sem existir nenhum "Vendeu" no CRM. Por isso a coluna "Último contato" pode mostrar Fez Cotação ou Agendado e o status continuar Ativo</td></tr>
+              <tr><td><b>Só Master:</b> a SDR transferiu para o vendedor errado<br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> na Carteira, na linha do cliente (origem SDR), toque em 🔁 e escolha o vendedor certo</span></td><td>O cliente, o histórico dele no CRM (inclusive o que o vendedor errado já lançou) e a linha da SDR passam para o novo vendedor. O painel da SDR e o "Retorno do vendedor" seguem o novo vendedor</td></tr>
               <tr><td>Lançar com resultado <b>Atualizado</b> (conferência da lista impressa)</td><td>O Tipo muda sozinho para Atualizar/Reativar. O card da Carteira mostra "Atualizado" e o filtro encontra o cliente, mas o lançamento <b>não aparece no gráfico</b>, não muda Ativo/Inativo e não encerra pendência</td></tr>
               <tr><td><b>Editar</b> um lançamento antigo em vez de criar um novo<br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> toque no botão de texto <b>Editar</b> na linha do lançamento</span></td><td>A Carteira continua mostrando o lançamento mais recente; o antigo editado não passa a ser o último</td></tr>
               <tr><td>Clicar no botão <b>WhatsApp</b> da lista do CRM<br><span style="font-size:.78rem;color:var(--gray)"><b>Passo:</b> toque em 💬 na linha do lançamento (só aparece se houver telefone)</span></td><td>Registra automaticamente um lançamento "Promo via Whats" para o cliente</td></tr>
@@ -11384,6 +11385,7 @@ function renderCarteiraLista(){
           ${c.email?`<button class="btn-xs bx-mail" data-id="${c.id}" style="border-color:#BFD4F7;color:#1D4ED8" title="Enviar e-mail">✉️</button>`:''}
           ${window._vapIsOleos?`<button class="btn-xs bx-pedido" data-id="${c.id}" style="border-color:#F3D9A4;color:#B45309" title="Fazer pedido de vendas">🛒</button>`:`<button class="btn-xs bx-hist" data-id="${c.id}" style="border-color:#BFE8CC;color:#1B7A3D" title="Ver histórico de relacionamento">🕘</button>
           <button class="btn-xs bx-lancar" data-id="${c.id}" style="border-color:#BFE8CC;color:#1B7A3D" title="Novo lançamento no histórico">📝</button>`}
+          ${(veTodaEmpresa && c.origem==='SDR')?`<button class="btn-xs bx-troca" data-id="${c.id}" style="border-color:#BAE6FD;color:#0369A1" title="Corrigir vendedor (transferência da SDR)">🔁</button>`:''}
           <button class="btn-xs bx-edit" data-id="${c.id}" style="border-color:var(--border);color:var(--gray)" title="Editar cliente">✏️</button>
           <button class="btn-xs bx-del" data-id="${c.id}" style="border-color:var(--rl);color:var(--r)" title="Excluir cliente">🗑️</button>
         </div></td>
@@ -11404,6 +11406,7 @@ function renderCarteiraLista(){
     const c = _cartClientes.find(x=>x.id===b.dataset.id); if(c) vapProspNovoParaCliente(c);
   });
   wrap.querySelectorAll('.bx-pedido').forEach(b=>b.onclick=()=>{ if(typeof window.vapPedidoNovo==='function') window.vapPedidoNovo(b.dataset.id); });
+  wrap.querySelectorAll('.bx-troca').forEach(b=>b.onclick=()=>vapCartTrocarVendedor(b.dataset.id));
   wrap.querySelectorAll('.bx-edit').forEach(b=>b.onclick=()=>abrirModalCarteiraCliente(b.dataset.id));
   wrap.querySelectorAll('.bx-del').forEach(b=>b.onclick=()=>excluirCarteiraCliente(b.dataset.id));
 }
@@ -11537,6 +11540,55 @@ function excluirCarteiraCliente(id){
   });
 }
 window.excluirCarteiraCliente = excluirCarteiraCliente;
+
+// ── Corrigir vendedor de um cliente transferido pela SDR (só Master/SuperAdmin) ──
+// Move os 3 registros da transferência (Carteira, linha do vendedor, linha da SDR) e tudo que o vendedor errado já lançou nesse cliente.
+function vapCartTrocarVendedor(id){
+  if(!(cp?.role==='master' || cp?.role==='superadmin')) return;
+  const c = _cartClientes.find(x=>x.id===id); if(!c) return;
+  const CID = _vapGetCompanyId(); if(!CID) return;
+  const atual = _users.find(u=>u.id===c.uid);
+  const opcoes = [..._users].filter(u=>u.companyId===CID && u.id!==c.uid && ['vendedor','lider','master'].includes(u.role))
+    .sort((a,b)=>(a.name||'').localeCompare(b.name||'','pt-BR'));
+  if(!opcoes.length){ toast('Nenhum outro vendedor disponível.'); return; }
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+  ov.innerHTML = `<div style="background:#fff;border-radius:12px;max-width:420px;width:100%;padding:1.2rem 1.3rem;box-shadow:0 10px 30px rgba(0,0,0,.25)">
+    <div style="font-weight:700;margin-bottom:.4rem">Corrigir vendedor da transferência</div>
+    <div style="font-size:.85rem;color:var(--gray);margin-bottom:.7rem">Cliente: <b>${_cartEscHtml(c.nome||'')}</b><br>Vendedor atual: <b>${_cartEscHtml(atual?.name||'—')}</b></div>
+    <label style="font-size:.8rem">Novo vendedor</label>
+    <select id="vct-novo" style="width:100%;margin:.25rem 0 .7rem"><option value="">Selecione…</option>${opcoes.map(u=>`<option value="${u.id}">${_cartEscHtml(u.name||'—')}${u.role==='lider'?' (Líder)':u.role==='master'?' (Master)':''}</option>`).join('')}</select>
+    <div style="font-size:.76rem;color:var(--gray);margin-bottom:.8rem">O cliente, o histórico dele no CRM (inclusive o que o vendedor atual já lançou) e a linha da SDR passam para o novo vendedor.</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn-sec" id="vct-cancel">Cancelar</button><button class="btn-save" id="vct-ok">Corrigir</button></div></div>`;
+  document.body.appendChild(ov);
+  const fechar = () => ov.remove();
+  ov.querySelector('#vct-cancel').onclick = fechar;
+  ov.querySelector('#vct-ok').onclick = async () => {
+    const novoUid = ov.querySelector('#vct-novo').value;
+    const novo = opcoes.find(u=>u.id===novoUid);
+    if(!novo){ toast('Escolha o novo vendedor.'); return; }
+    const btn = ov.querySelector('#vct-ok'); btn.disabled = true;
+    try{
+      const snap = await getDocs(query(collection(db,'prospeccoes'), where('companyId','==',CID), where('clienteId','==',id)));
+      const batch = writeBatch(db);
+      batch.update(doc(db,'carteira_clientes',id), { uid: novoUid, vendedorAnteriorUid: c.uid || '', vendedorTrocadoEm: new Date().toISOString() });
+      let n = 0;
+      snap.docs.forEach(d=>{
+        const p = d.data();
+        if(p.fonte==='sdr') batch.update(d.ref, { vendedorDestinoUid: novoUid, vendedorDestinoNome: novo.name || '—' });
+        else { batch.update(d.ref, { uid: novoUid, vendedorNome: novo.name || '—' }); n++; }
+      });
+      await batch.commit();
+      fechar();
+      toast('Vendedor corrigido para ' + (novo.name||'—') + ' (' + n + ' lançamento(s) do CRM movido(s)).', 6000);
+    }catch(e){
+      console.error('[Carteira] trocar vendedor:', e);
+      toast('Erro ao corrigir: ' + (e.message||e.code));
+      btn.disabled = false;
+    }
+  };
+}
+window.vapCartTrocarVendedor = vapCartTrocarVendedor;
 
 $('btn-cart-add')    && ($('btn-cart-add').onclick    = () => abrirModalCarteiraCliente(null));
 $('cart-cli-close')  && ($('cart-cli-close').onclick  = () => closeModal('modal-carteira-cliente'));
