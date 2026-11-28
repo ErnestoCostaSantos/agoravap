@@ -2100,7 +2100,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Leads novos</b> (empresas prospectadas que tiveram resultado Agendado, Aguardando ou Transferido, com quantas ainda estão em andamento) e <b>Leads transferidos</b> (com os <b>Cadastros do período</b> embaixo).</li>
             <li><b>Vendas</b> — lançamentos "Vendeu" que o vendedor faz no CRM para clientes que vieram desta SDR (com número de clientes distintos e a <b>conversão acumulada</b>: clientes que já compraram ÷ todos os transferidos).</li>
             <li><b>Valor vendido</b> — informado pela própria SDR (abaixo).</li>
-            <li><b>Transferidos por vendedor</b> — Tabela abaixo de "Clientes que compraram", no mesmo período e campanha do Painel, com uma linha por vendedor: <b>Transferidos</b> (vem direto do app), <b>Contrapartida</b> (leads que o próprio vendedor gerou) e o resultado dos leads transferidos: <b>Cadastros/Reativações</b> (para vendedores em que a SDR ajuda a reativar clientes, como o Victor, é o cliente que voltou), <b>Venda</b>, <b>Não atendeu</b>, <b>Não visitou</b> e <b>Outros</b>. Os resultados vêm do Resultado que o vendedor lança no app dele: cada lead conta uma vez, no estágio mais avançado (Venda, depois Cadastro, depois o último resultado); lead sem registro do vendedor entra em Outros. A Contrapartida, e qualquer número que faltar, você completa com o botão <b>+</b> de cada célula, que soma na data de hoje e na campanha escolhida (use número negativo para corrigir)</li>
+            <li><b>Transferidos por vendedor</b> — Tabela abaixo de "Clientes que compraram", no mesmo período e campanha do Painel, com uma linha por vendedor (Cassio, Claudio, Marcelo, Eriomar e Victor; a linha "V Guilherme" é fictícia, até o gerente da Vila Guilherme começar): <b>Transferidos</b> (vem direto do app), <b>Contrapartida</b> (leads que o próprio vendedor gerou) e o resultado dos leads transferidos: <b>Cadastros/Reativações</b> (para vendedores em que a SDR ajuda a reativar clientes, como o Victor, é o cliente que voltou), <b>Venda</b>, <b>Não atendeu</b>, <b>Não visitou</b> e <b>Outros</b>. Os resultados vêm do Resultado que o vendedor lança no app dele: cada lead conta uma vez, no estágio mais avançado (Venda, depois Cadastro, depois o último resultado); lead sem registro do vendedor entra em Outros. A Contrapartida, e qualquer número que faltar, você completa com o botão <b>+</b> de cada célula, que soma na data de hoje e na campanha escolhida (use número negativo para corrigir)</li>
             <li><b>Clientes que compraram</b> — Lista logo abaixo do funil, com Empresa, Vendedor, data da transferência, data da <b>1ª venda</b> e os <b>Dias</b> entre as duas. Mostra os clientes transferidos por você que tiveram um <b>Vendeu</b> lançado pelo vendedor no período e na campanha escolhidos (o mesmo recorte da etapa "Com venda"). Não há prazo máximo: uma venda feita meses depois da transferência aparece normalmente, no período da data da venda. Se o cliente comprou mais de uma vez, aparece "(2 vendas)" ao lado do nome. Só entra quando o vendedor lança o Vendeu no cliente que veio de você — venda lançada em outro cadastro do mesmo cliente não conta</li>
             <li><b>Status dos transferidos</b> — resumo, em % e quantidade, do último resultado que o vendedor registrou no CRM para os leads transferidos (Cotação, Cadastro, Agendado, Em contato, Sem interesse/inválido, Vendeu) e a lista, agrupada por vendedor, dos que ainda estão <b>sem nenhum registro do vendedor</b>, com os dias. Em cada vendedor, o botão <b>💬 Cobrar no WhatsApp</b> abre o WhatsApp com a mensagem pronta (nome do vendedor e a lista das empresas pendentes); a SDR escolhe o contato e envia. Na lista da Prospecção, cada Transferido mostra o retorno do vendedor ou o aviso "Sem retorno".</li>
             <li><b>Funil do período</b>, em formato de funil, com a taxa de passagem entre as etapas (Empresas prospectadas → Leads novos → Transferidos → Cadastros → Com venda; Cadastros são os clientes transferidos que o vendedor cadastrou, ou seja, com Cadastro ou Vendeu no CRM) e como terminaram as empresas prospectadas (Transferido, Não qualificado, Sem interesse, Sem potencial, Ctto Inválido, Aguardando, Em andamento).</li>
@@ -10300,21 +10300,27 @@ function vapSdrStatusHtml(transf){
 }
 
 // ── Tabela "Transferidos por vendedor" (Painel da SDR) — mesmo período e campanha do Painel ──
+// Vendedores que aparecem na tabela (pelo primeiro nome). "V Guilherme" é uma linha fictícia até o gerente da Vila Guilherme começar:
+// quando começar, troque 'V Guilherme' por 'NomeReal' em _SDR_TAB_VEND e apague _SDR_TAB_FICTICIO.
+const _SDR_TAB_VEND = ['Cassio','Claudio','Marcelo','Eriomar','Victor'];
+const _SDR_TAB_FICTICIO = {nome:'V Guilherme', transf:6, contra:2, cad:2, venda:1, na:1, nv:1, outros:1};
 function vapSdrTabelaVendHtml(transfPer, camp, noPeriodo, classeDe){
+  const norm = t => String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().split(/\s+/)[0];
   const equipe = _sdrEquipe || [];
-  const nomes = {};
-  equipe.forEach(e=>{ nomes[e.id] = e.name||'—'; });
-  const uids = new Set(equipe.filter(e=>e.role==='vendedor').map(e=>e.id));
-  transfPer.forEach(p=>{ if(p.vendedorDestinoUid){ uids.add(p.vendedorDestinoUid); if(!nomes[p.vendedorDestinoUid]) nomes[p.vendedorDestinoUid] = p.vendedorDestinoNome||'—'; } });
+  const chaveDe = {}, uidDe = {};   // uid -> chave (primeiro nome) ; chave -> uid real (se já existir)
+  const reg = (uid, nome)=>{ const k = norm(nome); if(!uid || !k) return; chaveDe[uid] = k; if(!uidDe[k]) uidDe[k] = uid; };
+  equipe.forEach(e=>reg(e.id, e.name));
+  transfPer.forEach(p=>reg(p.vendedorDestinoUid, p.vendedorDestinoNome));
   const COLS = ['contra','cad','venda','na','nv','outros'];
-  const linhas = [...uids].map(uid=>{
+  const linhas = _SDR_TAB_VEND.map(nome=>{
+    const k = norm(nome);
+    const r = {uid: uidDe[k] || ('nome:'+k), nome, transf:0, contra:0, cad:0, venda:0, na:0, nv:0, outros:0};
     // Transferidos e resultados vêm do app (resultado lançado pelo vendedor); a SDR soma à mão o que faltar
-    const r = {uid, nome:nomes[uid]||'—', transf:0, contra:0, cad:0, venda:0, na:0, nv:0, outros:0};
-    transfPer.filter(p=>p.vendedorDestinoUid===uid).forEach(p=>{ r.transf++; r[p.clienteId ? classeDe(p.clienteId) : 'outros']++; });
-    _sdrContraRegs.filter(x=>x.vendedorUid===uid && COLS.includes(x.coluna) && noPeriodo(x.date) && (!camp || (x.campanha||'').trim()===camp))
+    transfPer.filter(p=>chaveDe[p.vendedorDestinoUid]===k).forEach(p=>{ r.transf++; r[p.clienteId ? classeDe(p.clienteId) : 'outros']++; });
+    _sdrContraRegs.filter(x=>(chaveDe[x.vendedorUid]===k || x.vendedorUid==='nome:'+k) && COLS.includes(x.coluna) && noPeriodo(x.date) && (!camp || (x.campanha||'').trim()===camp))
       .forEach(x=>{ r[x.coluna] += (Number(x.qtd)||0); });
     return r;
-  }).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  });
   if(!linhas.length) return '<div style="font-size:.8rem;color:var(--gray)">Nenhum vendedor encontrado.</div>';
   const tot = {}; ['transf',...COLS].forEach(k=>tot[k] = linhas.reduce((a,r)=>a+r[k],0));
   const c = 'style="text-align:center"';
@@ -10322,8 +10328,9 @@ function vapSdrTabelaVendHtml(transfPer, camp, noPeriodo, classeDe){
   const cel = (r,col) => `<td ${c}><span>${z(r[col])}</span> <button class="btn-xs" style="padding:0 6px" onclick="vapSdrSomarCelula('${r.uid}','${col}')" title="Somar ou corrigir à mão (use número negativo para diminuir)">+</button></td>`;
   return `<div style="overflow-x:auto"><table class="adm-table"><thead><tr><th>Vendedor</th><th ${c}>Transferidos</th><th ${c}>Contrapartida</th><th ${c}>Cadastros/Reativações</th><th ${c}>Venda</th><th ${c}>Não atendeu</th><th ${c}>Não visitou</th><th ${c}>Outros</th></tr></thead><tbody>`
     + linhas.map(r=>`<tr><td><b>${_sdrEsc(r.nome)}</b></td><td ${c}>${z(r.transf)}</td>${COLS.map(col=>cel(r,col)).join('')}</tr>`).join('')
-    + `<tr style="font-weight:700"><td>Total</td><td ${c}>${tot.transf}</td>${COLS.map(col=>`<td ${c}>${tot[col]}</td>`).join('')}</tr></tbody></table></div>
-    <div style="font-size:.72rem;color:var(--gray);margin-top:.4rem">Mesmo período e campanha do Painel. Só "Transferidos" vem direto do app. Cadastros/Reativações, Venda, Não atendeu, Não visitou e Outros vêm do Resultado que o vendedor lança no app dele (cada lead conta uma vez, no estágio mais avançado; lead sem registro entra em Outros). Contrapartida e qualquer número que faltar você completa com o botão +, que soma na data de hoje e na campanha escolhida.</div>`;
+    + (()=>{ const f=_SDR_TAB_FICTICIO; return `<tr style="color:var(--gray);font-style:italic"><td><b>${_sdrEsc(f.nome)}</b> <span style="font-size:.7rem">(fictício)</span></td><td ${c}>${f.transf}</td>${COLS.map(col=>`<td ${c}>${f[col]}</td>`).join('')}</tr>`; })()
+    + `<tr style="font-weight:700"><td>Total <span style="font-weight:400;font-size:.7rem">(sem o fictício)</span></td><td ${c}>${tot.transf}</td>${COLS.map(col=>`<td ${c}>${tot[col]}</td>`).join('')}</tr></tbody></table></div>
+    <div style="font-size:.72rem;color:var(--gray);margin-top:.4rem">Mesmo período e campanha do Painel. A linha em cinza (V Guilherme) é fictícia, só para visualização, e não entra no Total. Só "Transferidos" vem direto do app. Cadastros/Reativações, Venda, Não atendeu, Não visitou e Outros vêm do Resultado que o vendedor lança no app dele (cada lead conta uma vez, no estágio mais avançado; lead sem registro entra em Outros). Contrapartida e qualquer número que faltar você completa com o botão +, que soma na data de hoje e na campanha escolhida.</div>`;
 }
 async function vapSdrSomarCelula(uid, coluna){
   if(cp?.role!=='sdr' || !cu) return;
