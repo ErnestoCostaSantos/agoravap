@@ -10342,7 +10342,7 @@ async function vapSdrSomarCelula(uid, coluna){
   try{
     await addDoc(collection(db,'sdr_valores'), {
       companyId: CID, uid: cu.uid, sdrNome: cp?.name || '—', tipo: 'tabela_vendedor', vendedorUid: uid, coluna, qtd,
-      valor: 0, date: tod(), campanha: ($('sdrp-campanha')?.value||'').trim(), criadoEm: new Date().toISOString()
+      valor: 1, /* a regra do Firestore exige valor > 0; este registro não é dinheiro (tipo 'tabela_vendedor') e é ignorado nos somas de Valor Vendido */ date: tod(), campanha: ($('sdrp-campanha')?.value||'').trim(), criadoEm: new Date().toISOString()
     });
     toast('Somado.');
     await vapSdrCarregarValores();
@@ -10623,7 +10623,7 @@ async function vapSdrDashCarregarValores(cid){
   _sdrDashVal.busy = true;
   try{
     const snap = await getDocs(query(collection(db,'sdr_valores'), where('companyId','==',cid)));
-    _sdrDashVal.data = snap.docs.map(x=>({id:x.id, ...x.data()}));
+    _sdrDashVal.data = snap.docs.map(x=>({id:x.id, ...x.data()})).filter(x=>x.tipo!=='tabela_vendedor');
     _sdrDashVal.cid = cid; _sdrDashVal.t = Date.now();
     if(document.querySelector('#panel-dashboard.active') && typeof renderDashboard==='function') renderDashboard(window._dashFiltroUid||'');
   }catch(e){
