@@ -1041,6 +1041,10 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
         <div class="fcard-title" style="margin-bottom:.6rem"><span class="bar" style="background:#22C55E"></span>Clientes que compraram</div>
         <div id="sdrp-compraram"></div>
       </div>
+      <div class="fcard" style="padding:1rem 1.25rem">
+        <div class="fcard-title" style="margin-bottom:.6rem"><span class="bar" style="background:#E53E3E"></span>Transferidos por vendedor</div>
+        <div id="sdrp-vend"></div>
+      </div>
       <div class="fcard" id="sdrp-status-card" style="padding:1rem 1.25rem">
         <div class="fcard-title" style="margin-bottom:.6rem"><span class="bar" style="background:#8B5CF6"></span>Status dos transferidos (retorno do vendedor)</div>
         <div id="sdrp-status"></div>
@@ -1757,7 +1761,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <p>Registro diário de acompanhamento, prospecção e follow-up de contatos comerciais, com totalização diária/mensal, um sistema de lembretes de "Próximo Contato", relatórios extensíveis e vínculo direto com a Carteira de Clientes.</p>
           <ul>
             <li><b>Data e hora em cada linha</b> — Cada lançamento da lista do CRM (e do histórico de um cliente) mostra "📅 Lançado em dd/mm/aaaa hh:mm", no horário de Brasília. É o momento em que o lançamento foi criado; editar o lançamento depois não muda essa data</li>
-            <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Atualizar/Reativar — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, Fez Cotação, Vendeu, Ctto Inválido, Cadastro, Promo via Whats, Promo via E-mail ou Atualizado) e Próximo Contato. O resultado <b>Atualizado</b> é provisório: serve para registrar que o cliente foi conferido e atualizado a partir da lista impressa da carteira. Ao escolhê-lo, o Tipo muda sozinho para Atualizar/Reativar; ele aparece no card da Carteira e nos filtros, mas <b>não entra no gráfico</b>, não muda Ativo/Inativo e não encerra pendência. O resultado <b>Promo via Whats</b> é preenchido automaticamente quando o vendedor usa o botão WhatsApp da Carteira ou da lista do CRM (💬), e o <b>Promo via E-mail</b> quando usa o botão ✉️ — o botão 💬 do CRM também abre a janela "Enviar promoção" quando há promoção ativa — e também pode ser escolhido manualmente. Ao escolher <b>Promo via E-mail</b> em um <b>lançamento novo</b> (aberto pela Carteira, pelo CRM ou digitando o cliente), aparece o campo <b>E-mail do cliente</b> (já preenchido quando o cliente é da Carteira e tem e-mail; se for cliente avulso, digite) e, ao salvar, abre a janela "Enviar promoção": o lançamento só é registrado quando você toca em "Abrir e-mail" (se fechar a janela, nada é registrado). <b>Prospecto que ainda não está na Carteira:</b> digite o nome da empresa e o e-mail e envie normalmente — o lançamento fica <b>avulso no CRM</b> e <b>nada é cadastrado na Carteira</b>. Cadastrar na Carteira é opcional, por decisão do vendedor, caso o prospecto demonstre interesse. O e-mail digitado vale só para aquele envio e não fica guardado: ao cadastrar o cliente, digite-o de novo. Os envios avulsos anteriores não se ligam sozinhos ao cliente cadastrado depois; a partir do cadastro, digite o nome exatamente como está na Carteira para os próximos lançamentos entrarem no histórico dele. Nesses lançamentos, o campo Local mostra "Promoção: [nome]"; o Master pode filtrar por esse resultado (e ver a contagem por vendedor nos gráficos) para acompanhar quem envia promoções pelo app</li>
+            <li><b>Campos do lançamento</b> — Empresa, Responsável, Tipo (Acompanhamento, Prospecção ou Atualizar/Reativar — seleção única), Segmento (6 opções), Telefone, Local na Área de Saturação, Resultado (Agendado, Sem interesse, Não atendeu, <b>Não visitou</b> (o vendedor não conseguiu visitar o cliente), Fez Cotação, Vendeu, Ctto Inválido, Cadastro, Promo via Whats, Promo via E-mail ou Atualizado) e Próximo Contato. O resultado <b>Atualizado</b> é provisório: serve para registrar que o cliente foi conferido e atualizado a partir da lista impressa da carteira. Ao escolhê-lo, o Tipo muda sozinho para Atualizar/Reativar; ele aparece no card da Carteira e nos filtros, mas <b>não entra no gráfico</b>, não muda Ativo/Inativo e não encerra pendência. O resultado <b>Promo via Whats</b> é preenchido automaticamente quando o vendedor usa o botão WhatsApp da Carteira ou da lista do CRM (💬), e o <b>Promo via E-mail</b> quando usa o botão ✉️ — o botão 💬 do CRM também abre a janela "Enviar promoção" quando há promoção ativa — e também pode ser escolhido manualmente. Ao escolher <b>Promo via E-mail</b> em um <b>lançamento novo</b> (aberto pela Carteira, pelo CRM ou digitando o cliente), aparece o campo <b>E-mail do cliente</b> (já preenchido quando o cliente é da Carteira e tem e-mail; se for cliente avulso, digite) e, ao salvar, abre a janela "Enviar promoção": o lançamento só é registrado quando você toca em "Abrir e-mail" (se fechar a janela, nada é registrado). <b>Prospecto que ainda não está na Carteira:</b> digite o nome da empresa e o e-mail e envie normalmente — o lançamento fica <b>avulso no CRM</b> e <b>nada é cadastrado na Carteira</b>. Cadastrar na Carteira é opcional, por decisão do vendedor, caso o prospecto demonstre interesse. O e-mail digitado vale só para aquele envio e não fica guardado: ao cadastrar o cliente, digite-o de novo. Os envios avulsos anteriores não se ligam sozinhos ao cliente cadastrado depois; a partir do cadastro, digite o nome exatamente como está na Carteira para os próximos lançamentos entrarem no histórico dele. Nesses lançamentos, o campo Local mostra "Promoção: [nome]"; o Master pode filtrar por esse resultado (e ver a contagem por vendedor nos gráficos) para acompanhar quem envia promoções pelo app</li>
             <li><b>Vínculo automático com a Carteira</b> — Se o texto digitado em Empresa bater com um cliente já cadastrado, o lançamento vincula automaticamente: aparece o aviso "🔗 Vinculado à Carteira de Clientes", e Responsável/Telefone/Segmento são preenchidos a partir do cadastro do cliente. Esse lançamento passa a contar no histórico do cliente (veja 2.7). Para registrar como lançamento avulso, fora da Carteira (por exemplo uma prospecção de empresa nova), clique em "Desvincular" no próprio aviso. Quando o Resultado é "Vendeu" e há vínculo, a Data da Última Compra do cliente é atualizada automaticamente</li>
             <li><b>Próximo Contato</b> — Pode ser digitado ou escolhido num calendário; é a data usada pelo lembrete de pendências (veja abaixo)</li>
             <li><b>Totais e filtros</b> — Contadores "Hoje" e "Este Mês" no topo (ambos respeitam os mesmos filtros de Vendedor e Resultado aplicados na tela, para os números ficarem sempre consistentes entre si); filtros por Mês, Resultado e (Líder/Master/SuperAdmin) por Vendedor</li>
@@ -1768,7 +1772,7 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
           <h4 style="margin:10px 0 4px">Pop-up de Pendências de Hoje</h4>
           <p>Todo dia, ao entrar no sistema, um pop-up de lembrete abre automaticamente logo depois do pop-up de promoções (mesmo em dias sem nenhuma promoção ativa), mostrando os lançamentos com Próximo Contato vencido ou marcado para hoje.</p>
           <ul>
-            <li><b>O que "encerra" uma pendência</b> — Um lançamento deixa de aparecer no lembrete assim que o Resultado é marcado como <b>Vendeu</b>, <b>Sem interesse</b> ou <b>Ctto Inválido</b>, mesmo que a data do Próximo Contato já tenha passado. O resultado <b>Transferido</b> (lead recebido de uma SDR) também encerra a pendência. Os demais resultados (Agendado, Não atendeu, Fez Cotação, Cadastro, Promo via Whats) continuam gerando lembrete até serem atualizados — mas só quando há Próximo Contato preenchido; os lançamentos automáticos de "Promo via Whats" nascem sem data e, por isso, não geram lembrete a menos que você edite o lançamento e informe uma data</li>
+            <li><b>O que "encerra" uma pendência</b> — Um lançamento deixa de aparecer no lembrete assim que o Resultado é marcado como <b>Vendeu</b>, <b>Sem interesse</b> ou <b>Ctto Inválido</b>, mesmo que a data do Próximo Contato já tenha passado. O resultado <b>Transferido</b> (lead recebido de uma SDR) também encerra a pendência. Os demais resultados (Agendado, Não atendeu, Não visitou, Fez Cotação, Cadastro, Promo via Whats) continuam gerando lembrete até serem atualizados — mas só quando há Próximo Contato preenchido; os lançamentos automáticos de "Promo via Whats" nascem sem data e, por isso, não geram lembrete a menos que você edite o lançamento e informe uma data</li>
             <li><b>Sem pendências</b> — Quando não há nada vencido, aparece a frase "Não há pendências agendadas para hoje" por 5 segundos, e o pop-up fecha sozinho</li>
             <li><b>Com pendências</b> — A lista fica até 10 itens visíveis por vez, com rolagem para ver o restante; clicar num item abre o lançamento direto para edição; fecha pelo "✕" no canto superior direito</li>
             <li><b>Visão Líder/Master</b> — Além da própria lista de pendências (mesmo comportamento acima), uma linha extra no rodapé do pop-up mostra "Hoje o time tem X pendências agendadas", somando a empresa toda</li>
@@ -2096,8 +2100,9 @@ body.vap-sdr .vap-so-gestao{display:none!important} /* recursos de gestão/venda
             <li><b>Leads novos</b> (empresas prospectadas que tiveram resultado Agendado, Aguardando ou Transferido, com quantas ainda estão em andamento) e <b>Leads transferidos</b> (com os <b>Cadastros do período</b> embaixo).</li>
             <li><b>Vendas</b> — lançamentos "Vendeu" que o vendedor faz no CRM para clientes que vieram desta SDR (com número de clientes distintos e a <b>conversão acumulada</b>: clientes que já compraram ÷ todos os transferidos).</li>
             <li><b>Valor vendido</b> — informado pela própria SDR (abaixo).</li>
+            <li><b>Transferidos por vendedor</b> — Tabela abaixo de "Clientes que compraram", no mesmo período e campanha do Painel, com uma linha por vendedor: <b>Transferidos</b> (vem direto do app), <b>Contrapartida</b> (leads que o próprio vendedor gerou) e o resultado dos leads transferidos: <b>Cadastros/Reativações</b> (para vendedores em que a SDR ajuda a reativar clientes, como o Victor, é o cliente que voltou), <b>Venda</b>, <b>Não atendeu</b>, <b>Não visitou</b> e <b>Outros</b>. Os resultados vêm do Resultado que o vendedor lança no app dele: cada lead conta uma vez, no estágio mais avançado (Venda, depois Cadastro, depois o último resultado); lead sem registro do vendedor entra em Outros. A Contrapartida, e qualquer número que faltar, você completa com o botão <b>+</b> de cada célula, que soma na data de hoje e na campanha escolhida (use número negativo para corrigir)</li>
             <li><b>Clientes que compraram</b> — Lista logo abaixo do funil, com Empresa, Vendedor, data da transferência, data da <b>1ª venda</b> e os <b>Dias</b> entre as duas. Mostra os clientes transferidos por você que tiveram um <b>Vendeu</b> lançado pelo vendedor no período e na campanha escolhidos (o mesmo recorte da etapa "Com venda"). Não há prazo máximo: uma venda feita meses depois da transferência aparece normalmente, no período da data da venda. Se o cliente comprou mais de uma vez, aparece "(2 vendas)" ao lado do nome. Só entra quando o vendedor lança o Vendeu no cliente que veio de você — venda lançada em outro cadastro do mesmo cliente não conta</li>
-            <li><b>Status dos transferidos</b> — resumo, em % e quantidade, do último resultado que o vendedor registrou no CRM para os leads transferidos (Cotação, Cadastro, Agendado, Em contato, Sem interesse/inválido, Vendeu) e a lista dos que ainda estão <b>sem nenhum registro do vendedor</b>, com os dias. Na lista da Prospecção, cada Transferido mostra o retorno do vendedor ou o aviso "Sem retorno".</li>
+            <li><b>Status dos transferidos</b> — resumo, em % e quantidade, do último resultado que o vendedor registrou no CRM para os leads transferidos (Cotação, Cadastro, Agendado, Em contato, Sem interesse/inválido, Vendeu) e a lista, agrupada por vendedor, dos que ainda estão <b>sem nenhum registro do vendedor</b>, com os dias. Em cada vendedor, o botão <b>💬 Cobrar no WhatsApp</b> abre o WhatsApp com a mensagem pronta (nome do vendedor e a lista das empresas pendentes); a SDR escolhe o contato e envia. Na lista da Prospecção, cada Transferido mostra o retorno do vendedor ou o aviso "Sem retorno".</li>
             <li><b>Funil do período</b>, em formato de funil, com a taxa de passagem entre as etapas (Empresas prospectadas → Leads novos → Transferidos → Cadastros → Com venda; Cadastros são os clientes transferidos que o vendedor cadastrou, ou seja, com Cadastro ou Vendeu no CRM) e como terminaram as empresas prospectadas (Transferido, Não qualificado, Sem interesse, Sem potencial, Ctto Inválido, Aguardando, Em andamento).</li>
           </ul>
           <p><b>Valor Vendido (R$)</b>: no próprio Painel, a SDR informa Data, Valor e Campanha (opcional). Cada registro soma no dia; o Painel mostra o total por dia. Aceita datas do mês atual e do anterior; depois de salvo não é editado (correção pelo Líder). O valor é <b>informado pela SDR</b> — por isso aparece com essa identificação.</p>
@@ -8540,13 +8545,13 @@ function _selSeg(id, v){
   if(v && !Array.from(sel.options).some(o=>o.value===v)){ const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); }
   sel.value = v || '';
 }
-const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido','Cadastro','Promo via Whats','Promo via E-mail','Transferido'];
+const PROSP_RESULTADOS = ['Agendado','Sem interesse','Não atendeu','Não visitou','Fez Cotação','Vendeu','Ctto Inválido','Cadastro','Promo via Whats','Promo via E-mail','Transferido'];
 // O que o vendedor pode escolher ao lançar ("Transferido" só nasce da transferência da SDR)
 // "Atualizado" = resultado provisório (atualização da carteira por lista impressa): fica só aqui, de propósito FORA de PROSP_RESULTADOS, para não entrar no gráfico
-const PROSP_RESULTADOS_VENDEDOR = ['Agendado','Sem interesse','Não atendeu','Fez Cotação','Vendeu','Ctto Inválido','Cadastro','Promo via Whats','Promo via E-mail','Atualizado'];
+const PROSP_RESULTADOS_VENDEDOR = ['Agendado','Sem interesse','Não atendeu','Não visitou','Fez Cotação','Vendeu','Ctto Inválido','Cadastro','Promo via Whats','Promo via E-mail','Atualizado'];
 // O que a SDR pode escolher (ordem do fluxo: segue, qualifica/transfere, ou encerra)
 const PROSP_RESULTADOS_SDR = ['Agendado','Não atendeu','Aguardando','Transferido','Não qualificado','Sem interesse','Sem potencial','Ctto Inválido'];
-const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444','Cadastro':'#0D9488','Promo via Whats':'#EC4899','Promo via E-mail':'#6366F1','Transferido':'#38BDF8','Atualizado':'#92400E','Não qualificado':'#64748B','Sem potencial':'#6B7280','Aguardando':'#A16207'};
+const PROSP_CORES = {'Agendado':'#3B82F6','Sem interesse':'#9CA3AF','Não atendeu':'#F59E0B','Não visitou':'#F97316','Fez Cotação':'#8B5CF6','Vendeu':'#22C55E','Ctto Inválido':'#EF4444','Cadastro':'#0D9488','Promo via Whats':'#EC4899','Promo via E-mail':'#6366F1','Transferido':'#38BDF8','Atualizado':'#92400E','Não qualificado':'#64748B','Sem potencial':'#6B7280','Aguardando':'#A16207'};
 const PROSP_TIPOS = ['Acompanhamento','Prospecção','Atualizar/Reativar'];
 // Resultados que "encerram" um lançamento — deixam de contar como pendência mesmo com Próximo Contato vencido
 const PROSP_RESULTADOS_FINAIS = ['Vendeu','Sem interesse','Ctto Inválido','Transferido','Não qualificado','Sem potencial'];
@@ -10263,6 +10268,9 @@ function vapSdrFunilCompacto(itens){
   });
   return `<svg width="100%" viewBox="0 0 364 ${n*(H+GAP)-GAP+2}" role="img" aria-label="Funil do mês: ${itens.map(i=>i.rot+' '+i.n).join(', ')}" style="display:block;max-width:420px">${g}</svg>`;
 }
+let _sdrCobrancas = {};
+function vapSdrCobrar(k){ const m=_sdrCobrancas[k]; if(m) vapAbrirWpp(m); }
+window.vapSdrCobrar = vapSdrCobrar;
 function vapSdrStatusHtml(transf){
   const lista = transf.filter(p=>p.clienteId);
   if(!lista.length) return '<div style="font-size:.8rem;color:var(--gray)">Nenhum lead transferido neste filtro.</div>';
@@ -10276,13 +10284,80 @@ function vapSdrStatusHtml(transf){
   sem.sort((a,b)=>b.dias-a.dias);
   const n = lista.length;
   const chips = Object.keys(_SDR_COR_GRUPO).filter(g=>cont[g]).map(g=>`<span class="badge" style="background:${_SDR_COR_GRUPO[g]}22;color:${_SDR_COR_GRUPO[g]};margin:2px 4px 2px 0">${g}: ${cont[g]} (${Math.round(cont[g]/n*100)}%)</span>`).join('');
+  // Pendências agrupadas por vendedor (todas), cada grupo com botão para cobrar pelo WhatsApp
+  _sdrCobrancas = {};
+  const grupos = {};
+  sem.forEach(x=>{ const k = x.p.vendedorDestinoUid || x.p.vendedorDestinoNome || '?'; (grupos[k] = grupos[k] || {nome:x.p.vendedorDestinoNome||'—', itens:[]}).itens.push(x); });
   const semHtml = sem.length ? `<div style="margin-top:.6rem;font-size:.78rem;font-weight:600;color:#C53030">⚠️ ${sem.length} sem nenhum registro do vendedor</div>`
-    + sem.slice(0,10).map(x=>`<div style="font-size:.78rem;display:flex;justify-content:space-between;gap:8px;padding:2px 0"><span>${_sdrEsc(x.p.empresa)||'—'} <span style="color:var(--gray)">→ ${_sdrEsc(x.p.vendedorDestinoNome)||'—'}</span></span><b style="color:#C53030">${x.dias} dia${x.dias===1?'':'s'}</b></div>`).join('')
-    + (sem.length>10 ? `<div style="font-size:.74rem;color:var(--gray)">+ ${sem.length-10} outro(s)</div>` : '')
+    + Object.keys(grupos).sort((a,b)=>grupos[b].itens.length-grupos[a].itens.length).map(k=>{
+        const g = grupos[k];
+        _sdrCobrancas[k] = 'Oi, ' + g.nome.split(' ')[0] + '! Estes leads que te transferi ainda estão sem nenhum registro no CRM:\n' + g.itens.map(x=>'• ' + (x.p.empresa||'—') + ' (' + x.dias + ' dia' + (x.dias===1?'':'s') + ')').join('\n') + '\nPode lançar o resultado de cada um?';
+        return `<div style="margin-top:.5rem;border-top:1px solid #eee;padding-top:.35rem"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:.8rem">${_sdrEsc(g.nome)} <span style="color:#C53030">(${g.itens.length})</span></b><button class="btn-xs" onclick="vapSdrCobrar('${String(k).replace(/'/g,'')}')">💬 Cobrar no WhatsApp</button></div>`
+          + g.itens.map(x=>`<div style="font-size:.78rem;display:flex;justify-content:space-between;gap:8px;padding:2px 0"><span>${_sdrEsc(x.p.empresa)||'—'}</span><b style="color:#C53030">${x.dias} dia${x.dias===1?'':'s'}</b></div>`).join('') + '</div>';
+      }).join('')
     : '<div style="font-size:.78rem;color:#2F855A;margin-top:.5rem">✔ O vendedor já registrou algo em todos os leads transferidos.</div>';
   return `<div style="font-size:.75rem;color:var(--gray)">Último resultado do vendedor nos ${n} lead(s) transferido(s):</div><div>${chips}</div>${semHtml}`;
 }
+
+// ── Tabela "Transferidos por vendedor" (Painel da SDR) — mesmo período e campanha do Painel ──
+function vapSdrTabelaVendHtml(transfPer, camp, noPeriodo, classeDe){
+  const equipe = _sdrEquipe || [];
+  const nomes = {};
+  equipe.forEach(e=>{ nomes[e.id] = e.name||'—'; });
+  const uids = new Set(equipe.filter(e=>e.role==='vendedor').map(e=>e.id));
+  transfPer.forEach(p=>{ if(p.vendedorDestinoUid){ uids.add(p.vendedorDestinoUid); if(!nomes[p.vendedorDestinoUid]) nomes[p.vendedorDestinoUid] = p.vendedorDestinoNome||'—'; } });
+  const COLS = ['contra','cad','venda','na','nv','outros'];
+  const linhas = [...uids].map(uid=>{
+    // Transferidos e resultados vêm do app (resultado lançado pelo vendedor); a SDR soma à mão o que faltar
+    const r = {uid, nome:nomes[uid]||'—', transf:0, contra:0, cad:0, venda:0, na:0, nv:0, outros:0};
+    transfPer.filter(p=>p.vendedorDestinoUid===uid).forEach(p=>{ r.transf++; r[p.clienteId ? classeDe(p.clienteId) : 'outros']++; });
+    _sdrContraRegs.filter(x=>x.vendedorUid===uid && COLS.includes(x.coluna) && noPeriodo(x.date) && (!camp || (x.campanha||'').trim()===camp))
+      .forEach(x=>{ r[x.coluna] += (Number(x.qtd)||0); });
+    return r;
+  }).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  if(!linhas.length) return '<div style="font-size:.8rem;color:var(--gray)">Nenhum vendedor encontrado.</div>';
+  const tot = {}; ['transf',...COLS].forEach(k=>tot[k] = linhas.reduce((a,r)=>a+r[k],0));
+  const c = 'style="text-align:center"';
+  const z = n => n ? n : '<span style="color:var(--gray)">0</span>';
+  const cel = (r,col) => `<td ${c}><span>${z(r[col])}</span> <button class="btn-xs" style="padding:0 6px" onclick="vapSdrSomarCelula('${r.uid}','${col}')" title="Somar ou corrigir à mão (use número negativo para diminuir)">+</button></td>`;
+  return `<div style="overflow-x:auto"><table class="adm-table"><thead><tr><th>Vendedor</th><th ${c}>Transferidos</th><th ${c}>Contrapartida</th><th ${c}>Cadastros/Reativações</th><th ${c}>Venda</th><th ${c}>Não atendeu</th><th ${c}>Não visitou</th><th ${c}>Outros</th></tr></thead><tbody>`
+    + linhas.map(r=>`<tr><td><b>${_sdrEsc(r.nome)}</b></td><td ${c}>${z(r.transf)}</td>${COLS.map(col=>cel(r,col)).join('')}</tr>`).join('')
+    + `<tr style="font-weight:700"><td>Total</td><td ${c}>${tot.transf}</td>${COLS.map(col=>`<td ${c}>${tot[col]}</td>`).join('')}</tr></tbody></table></div>
+    <div style="font-size:.72rem;color:var(--gray);margin-top:.4rem">Mesmo período e campanha do Painel. Só "Transferidos" vem direto do app. Cadastros/Reativações, Venda, Não atendeu, Não visitou e Outros vêm do Resultado que o vendedor lança no app dele (cada lead conta uma vez, no estágio mais avançado; lead sem registro entra em Outros). Contrapartida e qualquer número que faltar você completa com o botão +, que soma na data de hoje e na campanha escolhida.</div>`;
+}
+async function vapSdrSomarCelula(uid, coluna){
+  if(cp?.role!=='sdr' || !cu) return;
+  const CID = _vapGetCompanyId(); if(!CID){ toast('Empresa não identificada.'); return; }
+  const txt = prompt('Quanto somar? (use número negativo para diminuir)', '1');
+  if(txt===null) return;
+  const qtd = Math.trunc(Number(String(txt).replace(',','.')));
+  if(!qtd){ toast('Informe um número diferente de zero.'); return; }
+  try{
+    await addDoc(collection(db,'sdr_valores'), {
+      companyId: CID, uid: cu.uid, sdrNome: cp?.name || '—', tipo: 'tabela_vendedor', vendedorUid: uid, coluna, qtd,
+      valor: 0, date: tod(), campanha: ($('sdrp-campanha')?.value||'').trim(), criadoEm: new Date().toISOString()
+    });
+    toast('Somado.');
+    await vapSdrCarregarValores();
+    vapSdrPainelRender();
+  }catch(e){
+    console.error('[SDR] somar célula:', e);
+    toast('Erro ao salvar: ' + (e.message||e.code));
+  }
+}
+window.vapSdrSomarCelula = vapSdrSomarCelula;
+async function vapSdrEquipeDados(){
+  if(!_sdrEquipe){
+    try{
+      const snap = await getDocs(query(collection(db,'equipe'), where('companyId','==',_vapGetCompanyId())));
+      _sdrEquipe = snap.docs.map(x=>({id:x.id, ...x.data()})).sort((a,b)=>(a.name||'').localeCompare(b.name||'','pt-BR'));
+    }catch(e){ console.warn('[SDR] equipe:', e); return []; }
+  }
+  return _sdrEquipe;
+}
+
 let _sdrValores = [];
+let _sdrContraRegs = []; // Quantidades que a SDR completa à mão na tabela por vendedor (mesma coleção sdr_valores, tipo 'tabela_vendedor')
 let _sdrValoresCarregado = false;
 const _sdrDataLocal = iso => iso ? _isoLocal(new Date(iso)) : '';
 const _sdrEsc = t => String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
@@ -10299,7 +10374,9 @@ async function vapSdrCarregarValores(){
   if(!cu) return;
   try{
     const snap = await getDocs(query(collection(db,'sdr_valores'), where('uid','==',cu.uid)));
-    _sdrValores = snap.docs.map(x=>({id:x.id, ...x.data()}));
+    const todos = snap.docs.map(x=>({id:x.id, ...x.data()}));
+    _sdrValores = todos.filter(x=>x.tipo!=='tabela_vendedor');
+    _sdrContraRegs = todos.filter(x=>x.tipo==='tabela_vendedor');
     _sdrValoresCarregado = true;
   }catch(e){
     console.error('[SDR] carregar valores:', e);
@@ -10329,6 +10406,7 @@ async function vapSdrPainelAbrir(){
   if(vd){ vd.max = tod(); vd.min = _recsJanelaInicio(); if(!vd.value) vd.value = tod(); }
   if(!_sdrValoresCarregado) await vapSdrCarregarValores();
   vapSdrPainelRender();
+  vapSdrEquipeDados().then(()=>vapSdrPainelRender());
 }
 window.vapSdrPainelAbrir = vapSdrPainelAbrir;
 
@@ -10433,6 +10511,20 @@ function vapSdrPainelRender(){
       ? '<div style="font-size:.8rem;color:var(--gray)">Nenhum cliente transferido por mim comprou neste período.</div>'
       : `<div style="overflow-x:auto"><table class="adm-table"><thead><tr><th>Empresa</th><th>Vendedor</th><th>Transferido em</th><th>1ª venda em</th><th>Dias</th></tr></thead><tbody>${linhasC.map(x=>`<tr><td><b>${_sdrEsc(x.empresa)}</b>${x.n>1?` <span style="font-size:.72rem;color:var(--gray)">(${x.n} vendas)</span>`:''}</td><td>${_sdrEsc(x.vendedor)}</td><td>${x.dt?fD(x.dt):'—'}</td><td>${fD(x.dv)}</td><td>${x.dias==null?'—':(x.dias<0?'—':x.dias)}</td></tr>`).join('')}</tbody></table></div>
          <div style="font-size:.72rem;color:var(--gray);margin-top:.4rem">Lista as vendas lançadas pelo vendedor no período e campanha escolhidos; "Dias" = transferência até a 1ª venda do cliente.</div>`;
+  }
+
+  // Transferidos por vendedor (mesmo período e campanha do Painel)
+  if($('sdrp-vend')){
+    const porCli = {};
+    _prospListaVend.forEach(x=>{ if(x.clienteId && x.resultado!=='Transferido') (porCli[x.clienteId] = porCli[x.clienteId] || []).push(x); });
+    const classeDe = cid => {
+      const ls = porCli[cid]; if(!ls || !ls.length) return 'outros';
+      if(ls.some(x=>x.resultado==='Vendeu')) return 'venda';
+      if(ls.some(x=>x.resultado==='Cadastro')) return 'cad';
+      const r = ls.slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''))[0].resultado;
+      return r==='Não atendeu' ? 'na' : r==='Não visitou' ? 'nv' : 'outros';
+    };
+    $('sdrp-vend').innerHTML = vapSdrTabelaVendHtml(transfLinhas, camp, noPeriodo, classeDe);
   }
 
   // Status dos transferidos (acumulado, respeita a campanha escolhida)
